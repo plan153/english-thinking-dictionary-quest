@@ -1,0 +1,9 @@
+{
+  "name": "English Thinking Dictionary Quest",
+  "short_name": "ETD Quest",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f6f3ed",
+  "theme_color": "#18212e",
+  "description": "게임처럼 배우는 핵심 영어 생각 사전"
+}

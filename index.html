@@ -1,0 +1,718 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#18212e" />
+  <meta name="description" content="English Thinking Dictionary Quest — 핵심 단어로 영어 생각을 조립하는 게임형 학습 앱" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <title>English Thinking Dictionary Quest</title>
+  <style>
+    :root {
+      --bg: #f6f3ed;
+      --paper: #fffdf9;
+      --ink: #18212e;
+      --muted: #68717d;
+      --line: #ded8cf;
+      --accent: #286f6c;
+      --accent-2: #e6673f;
+      --accent-3: #d7af38;
+      --good: #2a865e;
+      --bad: #bc4a4a;
+      --shadow: 0 16px 40px rgba(27, 33, 42, .10);
+    }
+
+    * { box-sizing: border-box; }
+    html { min-height: 100%; background: var(--bg); }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: ui-rounded, "SF Pro Rounded", "Pretendard", "Apple SD Gothic Neo", system-ui, -apple-system, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 18% 0%, rgba(230,103,63,.14), transparent 28rem),
+        radial-gradient(circle at 88% 4%, rgba(40,111,108,.16), transparent 30rem),
+        var(--bg);
+    }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    .app { width: min(1120px, calc(100% - 28px)); margin: 0 auto; padding: 22px 0 46px; }
+
+    .topbar {
+      display: flex; align-items: center; gap: 16px; justify-content: space-between;
+      margin-bottom: 18px;
+    }
+    .brand { display:flex; align-items:center; gap: 12px; }
+    .brand-mark {
+      width: 48px; height: 48px; display: grid; place-items: center; border-radius: 16px;
+      background: var(--ink); color: #fff; font-size: 24px; box-shadow: var(--shadow);
+    }
+    .brand h1 { font-size: 18px; line-height: 1.15; margin: 0; letter-spacing: -.5px; }
+    .brand p { font-size: 12px; color: var(--muted); margin: 3px 0 0; }
+    .top-stats { display:flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .stat-pill { background: rgba(255,255,255,.72); border: 1px solid var(--line); padding: 9px 11px; border-radius: 99px; font-size: 13px; font-weight: 760; }
+
+    .nav { display:flex; gap: 8px; overflow-x:auto; padding-bottom: 6px; margin-bottom: 22px; }
+    .nav button { border: 1px solid var(--line); background: rgba(255,255,255,.58); color: var(--muted); border-radius: 12px; padding: 10px 13px; white-space: nowrap; font-weight: 760; }
+    .nav button.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+    .screen { display:none; }
+    .screen.active { display:block; animation: appear .22s ease-out; }
+    @keyframes appear { from { opacity: .35; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+    .hero {
+      background: linear-gradient(128deg, #18212e 0%, #2c4551 62%, #286f6c 100%);
+      color:#fff; border-radius: 28px; padding: clamp(24px, 4vw, 46px); box-shadow: var(--shadow);
+      position:relative; overflow:hidden;
+    }
+    .hero:after { content:""; position:absolute; right:-80px; top:-100px; width:310px; height:310px; border: 30px solid rgba(255,255,255,.08); border-radius: 50%; }
+    .eyebrow { text-transform: uppercase; letter-spacing: 1.3px; font-size: 11px; font-weight: 850; color: #c4e9e7; }
+    .hero h2 { font-size: clamp(28px, 4.6vw, 48px); letter-spacing: -2px; line-height: 1.05; margin: 13px 0 14px; max-width: 760px; }
+    .hero p { max-width: 720px; color: #e9f0f0; line-height: 1.65; margin: 0; font-size: 15px; }
+    .hero-actions { display:flex; flex-wrap:wrap; gap: 10px; margin-top: 24px; }
+
+    .btn { border:0; border-radius:14px; padding: 12px 15px; font-weight: 800; transition: transform .16s ease, box-shadow .16s ease; }
+    .btn:hover { transform: translateY(-1px); }
+    .btn.primary { background: #fff; color: var(--ink); box-shadow: 0 7px 18px rgba(0,0,0,.16); }
+    .btn.accent { background: var(--accent-2); color:#fff; }
+    .btn.dark { background: var(--ink); color:#fff; }
+    .btn.ghost { background: transparent; border: 1px solid currentColor; color: inherit; }
+    .btn.soft { background: #eaf4f3; color: #155a57; }
+    .btn.warn { background: #fff1ec; color: #a74527; }
+    .btn:disabled { cursor: not-allowed; opacity: .48; transform:none; }
+
+    .grid { display:grid; gap: 16px; margin-top: 16px; }
+    .grid.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .card { background: var(--paper); border: 1px solid rgba(222,216,207,.94); box-shadow: 0 7px 24px rgba(33,41,52,.055); border-radius: 20px; padding: 18px; }
+    .card h3 { margin:0 0 8px; letter-spacing: -.6px; font-size: 18px; }
+    .card p { margin:0; color:var(--muted); font-size: 13px; line-height:1.55; }
+
+    .mode-card { min-height: 175px; display:flex; flex-direction:column; align-items:flex-start; gap:10px; }
+    .mode-icon { width:44px; height:44px; border-radius:14px; display:grid; place-items:center; font-size:23px; background:#f4ece6; }
+    .mode-card:nth-child(2) .mode-icon { background:#eaf4f3; }
+    .mode-card:nth-child(3) .mode-icon { background:#fff3d5; }
+    .mode-card:nth-child(4) .mode-icon { background:#f3ebfa; }
+    .mode-card .btn { margin-top:auto; width:100%; }
+
+    .mini-progress { display:flex; align-items:center; gap: 10px; margin-top: 16px; }
+    .progress-track { flex:1; height:10px; border-radius:99px; background:#e8e4dc; overflow:hidden; }
+    .progress-track > span { display:block; height:100%; background:linear-gradient(90deg,var(--accent),#4b9d98); border-radius:inherit; transition:width .25s; }
+    .mini-progress strong { font-size:13px; }
+
+    .section-head { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin: 0 0 10px; }
+    .section-head h2 { margin:0; font-size:24px; letter-spacing:-1px; }
+    .section-head p { margin:0; color:var(--muted); font-size:13px; }
+
+    .lesson-shell { max-width: 860px; margin:0 auto; }
+    .lesson-top { display:flex; gap:10px; justify-content:space-between; align-items:center; margin-bottom: 14px; }
+    .back-link { border:0; background: transparent; color:var(--muted); padding: 6px 0; font-weight:800; }
+    .lesson-label { color:var(--accent); text-transform:uppercase; letter-spacing:1px; font-weight:900; font-size:11px; }
+    .question-card { padding: clamp(23px,5vw,45px); text-align:center; min-height: 430px; display:flex; flex-direction:column; justify-content:center; }
+    .question-card h2 { font-size: clamp(29px,5vw,48px); letter-spacing:-1.8px; line-height:1.1; margin: 9px 0; }
+    .question-card .korean { color:var(--muted); font-size: 17px; line-height:1.55; margin: 0 auto 18px; max-width:650px; }
+    .sound-btn { width:62px; height:62px; border:0; border-radius:50%; align-self:center; color:#fff; background:var(--accent); font-size:25px; box-shadow:0 8px 18px rgba(40,111,108,.28); }
+    .sound-help { font-size:12px; color:var(--muted); margin:8px 0 14px; }
+
+    .answer-input { width:min(620px,100%); align-self:center; border:2px solid var(--line); border-radius:16px; padding: 15px 16px; background:#fff; color:var(--ink); font-size:18px; outline:none; }
+    .answer-input:focus { border-color: var(--accent); box-shadow:0 0 0 4px rgba(40,111,108,.12); }
+    .question-actions { display:flex; gap:9px; justify-content:center; flex-wrap:wrap; margin-top:15px; }
+    .feedback { margin:17px auto 0; padding: 13px 16px; border-radius:13px; max-width:620px; font-size:14px; font-weight:700; line-height:1.55; }
+    .feedback.good { background:#e9f7f0; color:#256b4d; }
+    .feedback.bad { background:#fff0ee; color:#a7433b; }
+    .answer-key { font-size: 14px; margin-top:8px; color:var(--muted); }
+
+    .choices { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; max-width:650px; width:100%; align-self:center; margin-top: 12px; }
+    .choice { background:#fff; color:var(--ink); border:1px solid var(--line); border-radius:14px; padding: 14px 12px; font-weight:750; text-align:left; }
+    .choice:hover { border-color:var(--accent); }
+    .choice.selected { border-color:var(--accent); background:#eaf4f3; }
+
+    .hint-box { max-width:620px; align-self:center; text-align:left; background:#fff7dd; border:1px dashed #d8b34c; border-radius:15px; padding: 13px 15px; margin-top:16px; font-size:14px; line-height:1.55; }
+    .hint-title { color:#8a6610; font-size:11px; font-weight:900; letter-spacing:1px; text-transform:uppercase; margin-bottom:5px; }
+
+    .repeat-panel { max-width:620px; align-self:center; padding:13px; background:#eef7f6; border-radius:16px; color:#245c5a; font-size:13px; margin-top:16px; }
+    .repeat-panel strong { display:block; margin-bottom:4px; }
+
+    .dictionary-toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; }
+    .search { flex: 1 1 280px; border:1px solid var(--line); background:#fff; padding:12px 14px; border-radius:13px; outline:none; }
+    .filter-row { display:flex; gap:7px; flex-wrap:wrap; }
+    .filter { border:1px solid var(--line); background:#fffdfa; color:var(--muted); border-radius:99px; padding:9px 11px; font-weight:750; font-size:13px; }
+    .filter.active { background:var(--ink); color:#fff; border-color:var(--ink); }
+    .word-list { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+    .word-card { padding:15px; position:relative; overflow:hidden; }
+    .word-card:before { content:""; position:absolute; left:0; top:0; bottom:0; width:5px; background:var(--accent); }
+    .word-card .word { font-weight:900; font-size:20px; letter-spacing:-.6px; }
+    .word-card .tag { display:inline-block; margin-top:5px; color:var(--accent); background:#eaf4f3; border-radius:99px; padding:3px 7px; font-weight:800; font-size:11px; }
+    .word-card .meaning { margin-top:9px; color:var(--muted); font-size:13px; line-height:1.45; }
+    .word-card .example { margin-top:9px; font-size:13px; line-height:1.45; }
+    .word-card .connections { margin-top:9px; font-size:12px; color:#9a7028; }
+
+    .map-wrap { overflow:auto; padding-bottom:5px; }
+    .thinking-map { min-width:800px; display:grid; grid-template-columns: 1fr 1.35fr 1fr; gap:16px; align-items:stretch; }
+    .map-col { border-radius:20px; padding:15px; border:1px solid var(--line); background:rgba(255,253,249,.8); }
+    .map-col h3 { font-size:13px; margin:0 0 11px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
+    .node { padding:10px 11px; border-radius:12px; background:#fff; border:1px solid var(--line); margin-bottom:8px; font-weight:800; font-size:14px; }
+    .node.verb { border-color:#b8dcd9; background:#eff9f8; }
+    .node.frame { border-color:#f3d5c9; background:#fff5f0; }
+    .node.noun { border-color:#ead8a1; background:#fffbea; }
+    .map-arrow { color:var(--accent-2); font-size:12px; margin: 2px 0 10px 6px; font-weight:900; }
+
+    .daily-card { display:flex; gap:16px; align-items:center; }
+    .ring { --p: 0; width:100px; aspect-ratio:1; border-radius:50%; display:grid; place-items:center; background:conic-gradient(var(--accent) calc(var(--p) * 1%), #e7e1d6 0); position:relative; flex:none; }
+    .ring:after { content:""; width:77px; aspect-ratio:1; border-radius:50%; background:var(--paper); position:absolute; }
+    .ring strong { position:relative; z-index:1; font-size:18px; }
+    .daily-card h3 { margin:0 0 5px; }
+
+    .toast { position: fixed; left:50%; bottom:24px; transform:translate(-50%, 18px); background:var(--ink); color:#fff; padding:12px 15px; border-radius:12px; font-size:13px; font-weight:700; opacity:0; pointer-events:none; transition:.22s; box-shadow:var(--shadow); z-index:10; }
+    .toast.show { transform:translate(-50%, 0); opacity:1; }
+
+    .empty { padding:30px; text-align:center; color:var(--muted); }
+    .small-note { color:var(--muted); font-size:12px; line-height:1.5; margin-top:8px; }
+    .hidden { display:none !important; }
+
+    @media (max-width: 780px) {
+      .grid.cols-3, .word-list { grid-template-columns:1fr 1fr; }
+      .topbar { align-items:flex-start; flex-direction:column; }
+      .top-stats { justify-content:flex-start; }
+      .choices { grid-template-columns:1fr; }
+    }
+    @media (max-width: 530px) {
+      .app { width:min(100% - 20px, 1120px); padding-top:14px; }
+      .brand p { display:none; }
+      .grid.cols-3, .grid.cols-2, .word-list { grid-template-columns:1fr; }
+      .hero { border-radius:22px; }
+      .question-card { min-height: 460px; }
+      .top-stats { gap:6px; }
+      .stat-pill { padding:7px 9px; font-size:12px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">E</div>
+        <div>
+          <h1>English Thinking Dictionary</h1>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.0.0">v1.0.0</span></p>
+        </div>
+      </div>
+      <div class="top-stats">
+        <div class="stat-pill">🔥 <span id="streak">0</span>일</div>
+        <div class="stat-pill">⚡ <span id="xp">0</span> XP</div>
+        <div class="stat-pill">🧠 <span id="mastered">0</span> / <span id="totalWords">0</span></div>
+      </div>
+    </header>
+
+    <nav class="nav" aria-label="주요 메뉴">
+      <button class="active" data-screen="home">오늘의 퀘스트</button>
+      <button data-screen="play">게임 모드</button>
+      <button data-screen="dictionary">생각 사전</button>
+      <button data-screen="map">연결 지도</button>
+      <button data-screen="progress">내 성장</button>
+    </nav>
+
+    <section id="home" class="screen active">
+      <div class="hero">
+        <div class="eyebrow">Think in building blocks</div>
+        <h2>영어 문장을 외우지 말고,<br>핵심 단어를 조립하세요.</h2>
+        <p><b>have · get · make · take · give · go · come · keep · put · feel</b> 같은 기본 동사와 핵심 명사를 연결합니다. 듣고, 따라 말하고, 힌트를 보며 직접 조립하면 한국어를 거치지 않고 말이 나옵니다.</p>
+        <div class="hero-actions">
+          <button class="btn primary" id="startDaily">오늘의 7분 퀘스트 시작</button>
+          <button class="btn ghost" id="jumpDictionary">생각 사전 보기</button>
+        </div>
+      </div>
+
+      <div class="grid cols-2">
+        <article class="card daily-card">
+          <div class="ring" id="dailyRing" style="--p: 0"><strong id="dailyPercent">0%</strong></div>
+          <div>
+            <h3>오늘의 최소 루프</h3>
+            <p id="dailyCopy">듣기 1개 → 따라 말하기 1개 → 한영 2개 → 영한 2개 → 연결 1개</p>
+            <div class="mini-progress"><div class="progress-track"><span id="dailyBar" style="width:0%"></span></div><strong id="dailyCount">0 / 7</strong></div>
+          </div>
+        </article>
+        <article class="card">
+          <h3>오늘의 연결</h3>
+          <p>하나의 기본 동사는 “한 단어”가 아니라 여러 표현을 만드는 <b>엔진</b>입니다.</p>
+          <div style="margin-top:14px; display:flex; flex-wrap:wrap; gap:8px;">
+            <button class="filter active" data-map-focus="get">get</button>
+            <button class="filter" data-map-focus="make">make</button>
+            <button class="filter" data-map-focus="take">take</button>
+            <button class="filter" data-map-focus="have">have</button>
+          </div>
+          <p class="small-note" id="connectionText" style="margin-top:12px">get = 받다 / 얻다 / 도착하다 / 이해하다 / 상태가 되다</p>
+        </article>
+      </div>
+
+      <div class="section-head" style="margin-top:28px">
+        <div><h2>오늘 바로 할 게임</h2><p>틀려도 힌트로 길을 찾는 방식입니다.</p></div>
+      </div>
+      <div class="grid cols-3" id="homeModes"></div>
+    </section>
+
+    <section id="play" class="screen">
+      <div class="section-head">
+        <div><h2>게임 모드</h2><p>같은 표현을 다른 통로로 만날수록 오래 기억됩니다.</p></div>
+      </div>
+      <div class="grid cols-3" id="gameModes"></div>
+      <article class="card" style="margin-top:16px">
+        <h3>왜 여러 채널로 하나요?</h3>
+        <p>뜻만 보면 “알 것 같은 단어”가 됩니다. 소리로 듣고, 입으로 말하고, 한국어에서 영어를 만들고, 영어에서 장면을 떠올리면 그 표현이 실제로 꺼내 쓰는 말이 됩니다.</p>
+      </article>
+    </section>
+
+    <section id="lesson" class="screen">
+      <div class="lesson-shell">
+        <div class="lesson-top">
+          <button class="back-link" id="exitLesson">← 게임 모드로</button>
+          <div class="stat-pill"><span id="lessonProgressText">1 / 7</span></div>
+        </div>
+        <div class="mini-progress" style="margin:0 0 14px"><div class="progress-track"><span id="lessonProgress" style="width:0%"></span></div></div>
+        <article class="card question-card" id="questionCard"></article>
+      </div>
+    </section>
+
+    <section id="dictionary" class="screen">
+      <div class="section-head">
+        <div><h2>생각 사전</h2><p>단어를 번역으로 외우지 말고, 쓰임과 연결로 익히세요.</p></div>
+      </div>
+      <div class="dictionary-toolbar">
+        <input id="wordSearch" class="search" placeholder="예: get, time, 약속, 이해하다" />
+        <div class="filter-row" id="wordFilters"></div>
+      </div>
+      <div class="word-list" id="wordList"></div>
+    </section>
+
+    <section id="map" class="screen">
+      <div class="section-head">
+        <div><h2>연결 지도</h2><p>기본 동사 → 생각 틀 → 핵심 명사로 문장을 만듭니다.</p></div>
+      </div>
+      <article class="card">
+        <div class="filter-row" id="mapFilters" style="margin-bottom:15px"></div>
+        <div class="map-wrap"><div class="thinking-map" id="thinkingMap"></div></div>
+        <p class="small-note">예: <b>make + a decision</b> = 결정을 만들다 → “결정하다”. 단어 하나씩 번역하는 대신, 자주 붙는 조합을 덩어리로 저장합니다.</p>
+      </article>
+    </section>
+
+    <section id="progress" class="screen">
+      <div class="section-head">
+        <div><h2>내 성장</h2><p>많이 푸는 것보다, 약한 연결을 다시 만나는 것이 중요합니다.</p></div>
+      </div>
+      <div class="grid cols-3">
+        <article class="card"><h3>총 경험치</h3><div style="font-size:34px;font-weight:900;letter-spacing:-1.5px" id="xpBig">0 XP</div><p>정답, 따라 말하기, 복습으로 얻습니다.</p></article>
+        <article class="card"><h3>연속 학습</h3><div style="font-size:34px;font-weight:900;letter-spacing:-1.5px" id="streakBig">0일</div><p>오늘 한 문제라도 풀면 이어집니다.</p></article>
+        <article class="card"><h3>완성한 연결</h3><div style="font-size:34px;font-weight:900;letter-spacing:-1.5px" id="masteredBig">0</div><p>각 표현을 3번 성공하면 “내 말”이 됩니다.</p></article>
+      </div>
+      <article class="card" style="margin-top:16px">
+        <h3>다음 복습 추천</h3>
+        <div id="reviewList" style="margin-top:12px"></div>
+      </article>
+      <article class="card" style="margin-top:16px">
+        <button class="btn warn" id="resetProgress">학습 기록 초기화</button>
+        <p class="small-note">이 기기 브라우저에만 저장된 XP, 정답 기록, 연속 학습일을 지웁니다.</p>
+      </article>
+    </section>
+
+    <div class="toast" id="toast"></div>
+  </main>
+
+  <script>
+    const wordBank = [
+      { id:'get', type:'핵심 동사', word:'get', korean:'얻다 · 받다 · 도착하다 · 이해하다 · 상태가 되다', example:'I got your message.', exKo:'네 메시지 받았어.', connections:'get a message · get home · get better · get it' },
+      { id:'have', type:'핵심 동사', word:'have', korean:'가지다 · 먹다/마시다 · 경험하다 · 시간을 보내다', example:'Let’s have a quick chat.', exKo:'잠깐 얘기하자.', connections:'have time · have lunch · have a problem · have fun' },
+      { id:'make', type:'핵심 동사', word:'make', korean:'만들다 · 결정/계획/변화를 만들다', example:'I need to make a decision.', exKo:'결정을 내려야 해.', connections:'make a plan · make a mistake · make progress · make sure' },
+      { id:'take', type:'핵심 동사', word:'take', korean:'가지고 가다 · 시간을 들이다 · 선택하다 · 행동하다', example:'It takes time.', exKo:'시간이 걸려.', connections:'take time · take a break · take a look · take care' },
+      { id:'give', type:'핵심 동사', word:'give', korean:'주다 · 기회를 주다 · 정보/답을 주다', example:'Give me a minute.', exKo:'나한테 1분만 줘.', connections:'give advice · give it a try · give me a call' },
+      { id:'go', type:'핵심 동사', word:'go', korean:'가다 · 진행되다 · 어울리다 · 작동하다', example:'How did it go?', exKo:'어떻게 됐어?', connections:'go home · go well · go with · go on' },
+      { id:'come', type:'핵심 동사', word:'come', korean:'오다 · 떠오르다 · 생기다 · 따라오다', example:'Something came up.', exKo:'일이 좀 생겼어.', connections:'come back · come in · come up · come true' },
+      { id:'keep', type:'핵심 동사', word:'keep', korean:'계속하다 · 유지하다 · 보관하다', example:'Keep trying.', exKo:'계속 해봐.', connections:'keep going · keep in touch · keep it simple' },
+      { id:'put', type:'핵심 동사', word:'put', korean:'놓다 · 넣다 · 표현하다 · 시간/노력을 들이다', example:'Put it on the table.', exKo:'그거 테이블 위에 놔.', connections:'put on · put off · put together · put effort into' },
+      { id:'feel', type:'핵심 동사', word:'feel', korean:'느끼다 · 생각되다 · 몸 상태가 어떻다', example:'I feel better now.', exKo:'이제 좀 나아.', connections:'feel like · feel better · feel free' },
+      { id:'need', type:'생각 동사', word:'need', korean:'필요하다 · 해야 한다', example:'I need some help.', exKo:'도움이 좀 필요해.', connections:'need help · need to go · need more time' },
+      { id:'want', type:'생각 동사', word:'want', korean:'원하다 · 하고 싶다', example:'I want to try.', exKo:'해보고 싶어.', connections:'want to know · want to try · want more' },
+      { id:'time', type:'핵심 명사', word:'time', korean:'시간 · 때 · 기회', example:'Do you have time?', exKo:'시간 있어?', connections:'have time · take time · save time · spend time' },
+      { id:'help', type:'핵심 명사', word:'help', korean:'도움', example:'Can you help me?', exKo:'도와줄 수 있어?', connections:'need help · ask for help · get help' },
+      { id:'idea', type:'핵심 명사', word:'idea', korean:'생각 · 아이디어', example:'That’s a good idea.', exKo:'좋은 생각이다.', connections:'have an idea · get an idea · share an idea' },
+      { id:'plan', type:'핵심 명사', word:'plan', korean:'계획', example:'Let’s make a plan.', exKo:'계획을 세우자.', connections:'make a plan · change plans · stick to a plan' },
+      { id:'decision', type:'핵심 명사', word:'decision', korean:'결정', example:'It’s a hard decision.', exKo:'어려운 결정이야.', connections:'make a decision · reach a decision' },
+      { id:'break', type:'핵심 명사', word:'break', korean:'휴식 · 잠깐의 쉼', example:'Let’s take a break.', exKo:'잠깐 쉬자.', connections:'take a break · need a break' },
+      { id:'chance', type:'핵심 명사', word:'chance', korean:'기회 · 가능성', example:'Give it a chance.', exKo:'한번 기회를 줘 봐.', connections:'get a chance · have a chance · give a chance' },
+      { id:'problem', type:'핵심 명사', word:'problem', korean:'문제 · 곤란한 일', example:'We have a problem.', exKo:'우리 문제가 있어.', connections:'have a problem · solve a problem · cause a problem' },
+      { id:'way', type:'핵심 명사', word:'way', korean:'방법 · 길', example:'There’s a better way.', exKo:'더 좋은 방법이 있어.', connections:'find a way · make a way · by the way' },
+      { id:'place', type:'핵심 명사', word:'place', korean:'장소 · 자리', example:'This is a nice place.', exKo:'여기 좋은 곳이네.', connections:'take place · find a place · put in place' },
+      { id:'message', type:'핵심 명사', word:'message', korean:'메시지 · 연락', example:'I got your message.', exKo:'네 메시지 받았어.', connections:'get a message · leave a message · send a message' },
+      { id:'progress', type:'핵심 명사', word:'progress', korean:'진전 · 발전', example:'You’re making progress.', exKo:'너 발전하고 있어.', connections:'make progress · see progress' },
+      { id:'mistake', type:'핵심 명사', word:'mistake', korean:'실수', example:'Everyone makes mistakes.', exKo:'누구나 실수해.', connections:'make a mistake · learn from mistakes' },
+      { id:'look', type:'핵심 동사', word:'look', korean:'보다 · 살펴보다 · 보이다', example:'Take a look.', exKo:'한번 봐.', connections:'look at · look for · look like · take a look' },
+      { id:'work', type:'핵심 동사', word:'work', korean:'일하다 · 작동하다 · 효과가 있다', example:'This method works.', exKo:'이 방법은 효과가 있어.', connections:'work on · work out · work well' },
+      { id:'know', type:'생각 동사', word:'know', korean:'알다 · 이해하다', example:'I don’t know yet.', exKo:'아직 모르겠어.', connections:'want to know · get to know · let me know' },
+      { id:'think', type:'생각 동사', word:'think', korean:'생각하다 · 의견을 가지다', example:'What do you think?', exKo:'어떻게 생각해?', connections:'think about · think of · I think so' },
+      { id:'say', type:'대화 동사', word:'say', korean:'말하다 · 표현하다', example:'Say it again.', exKo:'다시 말해줘.', connections:'say hello · say sorry · what do you say?' },
+      { id:'ask', type:'대화 동사', word:'ask', korean:'묻다 · 부탁하다', example:'Just ask me.', exKo:'그냥 나한테 물어봐.', connections:'ask a question · ask for help · ask someone to' },
+      { id:'try', type:'핵심 동사', word:'try', korean:'시도하다 · 해보다', example:'Give it a try.', exKo:'한번 해봐.', connections:'try again · try to · give it a try' },
+      { id:'change', type:'핵심 명사', word:'change', korean:'변화 · 바꾸기', example:'I need a change.', exKo:'변화가 필요해.', connections:'make a change · change plans · change your mind' },
+      { id:'mind', type:'핵심 명사', word:'mind', korean:'마음 · 생각', example:'I changed my mind.', exKo:'마음이 바뀌었어.', connections:'change your mind · keep in mind · make up your mind' },
+      { id:'point', type:'핵심 명사', word:'point', korean:'핵심 · 요점 · 지점', example:'What’s your point?', exKo:'요점이 뭐야?', connections:'make a point · get the point · point out' },
+      { id:'care', type:'핵심 명사', word:'care', korean:'돌봄 · 신경 씀', example:'Take care.', exKo:'잘 지내.', connections:'take care · care about · take care of' },
+    ];
+
+    const phraseBank = [
+      { id:'p1', en:'I got your message.', ko:'네 메시지 받았어.', verb:'get', nouns:['message'], frame:'get + thing', hint:['“받다/얻다”의 get을 써요.', 'get + your message', 'I ___ your message.', 'I g__ your m______.'] },
+      { id:'p2', en:'I need more time.', ko:'시간이 더 필요해.', verb:'need', nouns:['time'], frame:'need + thing', hint:['필요하다 = need', 'need + more time', 'I need ___ ___.', 'I n___ m___ t___.'] },
+      { id:'p3', en:'Let’s make a plan.', ko:'계획을 세우자.', verb:'make', nouns:['plan'], frame:'make + plan', hint:['계획을 “만들다” = make a plan', 'Let’s + make a plan', 'Let’s ____ _ ____.', 'L__’_ m___ _ p___.'] },
+      { id:'p4', en:'It takes time.', ko:'시간이 걸려.', verb:'take', nouns:['time'], frame:'take + time', hint:['“시간을 가져가다” = take time', 'It takes + time', 'It _____ ____.', 'I_ t____ t___.'] },
+      { id:'p5', en:'Give me a minute.', ko:'나한테 1분만 줘.', verb:'give', nouns:['time'], frame:'give + person + thing', hint:['give + me + a minute', '부탁할 때 짧게 쓰는 표현이에요.', '____ me _ ______.', 'G___ m_ _ m_____.'] },
+      { id:'p6', en:'How did it go?', ko:'어떻게 됐어?', verb:'go', nouns:[], frame:'how + go', hint:['일이 어떻게 진행됐는지 물어요.', 'How did it go?', 'How ___ it ___?', 'H__ d__ i_ g__?'] },
+      { id:'p7', en:'Something came up.', ko:'일이 좀 생겼어.', verb:'come', nouns:[], frame:'something + come up', hint:['예상 밖의 일이 생기다 = come up', 'Something came up', '_________ ____ __.', 'S________ c___ u_.'] },
+      { id:'p8', en:'Keep trying.', ko:'계속 해봐.', verb:'keep', nouns:[], frame:'keep + -ing', hint:['계속하다 = keep', 'keep + trying', '____ ______.', 'K___ t______.'] },
+      { id:'p9', en:'I feel better now.', ko:'이제 좀 나아.', verb:'feel', nouns:[], frame:'feel + adjective', hint:['몸/기분 상태는 feel + 형용사', 'feel + better + now', 'I ____ ______ ___', 'I f___ b_____ n__.'] },
+      { id:'p10', en:'Take a look.', ko:'한번 봐.', verb:'take', nouns:['look'], frame:'take + a look', hint:['한번 살펴보다 = take a look', 'take + a look', '____ _ _____.', 'T___ _ l___.'] },
+      { id:'p11', en:'Can you help me?', ko:'도와줄 수 있어?', verb:'help', nouns:['help'], frame:'can + help', hint:['부드러운 부탁: Can you + 동사?', 'Can you + help + me?', 'Can ___ ____ __?', 'C__ y__ h___ m_?'] },
+      { id:'p12', en:'I want to try.', ko:'해보고 싶어.', verb:'want', nouns:['try'], frame:'want to + verb', hint:['want to + 동사원형', 'want to + try', 'I ____ __ ____.', 'I w___ t_ t__.'] },
+      { id:'p13', en:'We have a problem.', ko:'우리 문제가 있어.', verb:'have', nouns:['problem'], frame:'have + problem', hint:['문제 “가지고 있다” = have a problem', 'We + have + a problem', 'We ____ _ _______.', 'W_ h___ _ p______.'] },
+      { id:'p14', en:'That’s a good idea.', ko:'좋은 생각이다.', verb:'have', nouns:['idea'], frame:'be + idea', hint:['좋은 생각이다 = That’s a good idea.', 'That is → That’s', 'That’s _ ____ ____.', 'T___’_ _ g___ i___.'] },
+      { id:'p15', en:'I made a mistake.', ko:'실수했어.', verb:'make', nouns:['mistake'], frame:'make + mistake', hint:['실수를 “만들다” = make a mistake', 'I made + a mistake', 'I ____ _ _______.', 'I m___ _ m______.'] },
+      { id:'p16', en:'Let me know.', ko:'나한테 알려줘.', verb:'know', nouns:[], frame:'let + person + verb', hint:['상대가 알려주길 바랄 때.', 'let + me + know', 'Let __ ____.', 'L__ m_ k___.'] },
+      { id:'p17', en:'I need a break.', ko:'쉬는 시간이 필요해.', verb:'need', nouns:['break'], frame:'need + break', hint:['휴식 = break', 'need + a break', 'I ____ _ _____.', 'I n___ _ b____.'] },
+      { id:'p18', en:'Give it a try.', ko:'한번 해봐.', verb:'give', nouns:['try'], frame:'give + it + a try', hint:['“한번 시도해 봐”의 자연스러운 표현.', 'give + it + a try', '____ __ _ ____.', 'G___ i_ _ t__.'] },
+      { id:'p19', en:'I changed my mind.', ko:'마음이 바뀌었어.', verb:'change', nouns:['mind'], frame:'change + mind', hint:['마음/생각을 바꾸다', 'change + my mind', 'I _______ __ ____.', 'I c______ m_ m___.'] },
+      { id:'p20', en:'What do you think?', ko:'어떻게 생각해?', verb:'think', nouns:[], frame:'what + think', hint:['상대의 의견을 물어요.', 'What do you think?', 'What __ ___ _____?', 'W___ d_ y__ t____?'] },
+    ];
+
+    const modeCards = [
+      { id:'listen', icon:'🔊', title:'듣고 따라 말하기', desc:'문장을 듣고, 입으로 말하며 리듬과 덩어리를 익혀요.', cta:'소리로 시작' },
+      { id:'koen', icon:'🧩', title:'한글 → 영어 조립', desc:'한국어 뜻을 보고 핵심 동사와 표현 덩어리를 꺼내요.', cta:'영어 만들기' },
+      { id:'enko', icon:'🎯', title:'영어 → 장면 고르기', desc:'영어를 번역하지 말고, 가장 가까운 상황과 뜻을 골라요.', cta:'뜻 연결하기' },
+      { id:'hint', icon:'💡', title:'힌트 사다리', desc:'의미 → 틀 → 빈칸 → 첫 글자 순서로 스스로 답에 도착해요.', cta:'힌트로 풀기' },
+      { id:'build', icon:'🧱', title:'문장 빌드 랩', desc:'동사·틀·명사를 연결해 새 문장을 만드는 훈련이에요.', cta:'문장 조립' },
+      { id:'review', icon:'🔁', title:'약한 연결 복습', desc:'틀린 표현과 아직 덜 익은 연결만 다시 만나요.', cta:'복습 시작' },
+    ];
+
+    const mapSets = {
+      get: { title:'get 엔진', verbs:['get'], frames:['get + thing', 'get + place', 'get + adjective', 'get + it'], nouns:['a message', 'home', 'better', 'the point'], examples:['I got your message.', 'I got home late.', 'I’m getting better.', 'I get it.'] },
+      make: { title:'make 엔진', verbs:['make'], frames:['make + a thing', 'make + a change', 'make + sure'], nouns:['a plan', 'a decision', 'progress', 'a mistake'], examples:['Let’s make a plan.', 'I need to make a decision.', 'You’re making progress.', 'I made a mistake.'] },
+      take: { title:'take 엔진', verbs:['take'], frames:['take + time', 'take + a thing', 'take + action'], nouns:['time', 'a break', 'a look', 'care'], examples:['It takes time.', 'Take a break.', 'Take a look.', 'Take care.'] },
+      have: { title:'have 엔진', verbs:['have'], frames:['have + thing', 'have + experience', 'have + meal'], nouns:['time', 'a problem', 'an idea', 'lunch'], examples:['Do you have time?', 'We have a problem.', 'I have an idea.', 'Let’s have lunch.'] },
+      want: { title:'want 엔진', verbs:['want'], frames:['want to + verb', 'want + thing'], nouns:['try', 'know', 'help', 'more time'], examples:['I want to try.', 'I want to know.', 'I want help.', 'I want more time.'] },
+      need: { title:'need 엔진', verbs:['need'], frames:['need + thing', 'need to + verb'], nouns:['help', 'time', 'a break', 'to go'], examples:['I need help.', 'I need more time.', 'I need a break.', 'I need to go.'] },
+    };
+
+    const appState = {
+      selectedMode: null,
+      lessonItems: [],
+      currentIndex: 0,
+      hintStep: 0,
+      currentMap: 'get',
+      filter: '전체',
+      search: '',
+      progress: loadProgress(),
+    };
+
+    function defaultProgress() {
+      return { xp: 0, streak: 0, lastStudyDate: null, successes: {}, attempts: {}, daily: { date: null, done: [] } };
+    }
+    function loadProgress() {
+      try { return { ...defaultProgress(), ...JSON.parse(localStorage.getItem('etdQuestProgress') || '{}') }; }
+      catch { return defaultProgress(); }
+    }
+    function saveProgress() { localStorage.setItem('etdQuestProgress', JSON.stringify(appState.progress)); updateDashboard(); }
+    function todayKey() { return new Date().toISOString().slice(0,10); }
+    function ensureToday() {
+      const p = appState.progress;
+      const today = todayKey();
+      if (p.daily.date !== today) p.daily = { date: today, done: [] };
+      if (p.lastStudyDate !== today) {
+        const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0,10);
+        p.streak = p.lastStudyDate === yesterday ? p.streak + 1 : 1;
+        p.lastStudyDate = today;
+      }
+    }
+    function masteredCount() { return Object.values(appState.progress.successes).filter(n => n >= 3).length; }
+    function markStudy(mode, itemId, isCorrect = true) {
+      ensureToday();
+      const p = appState.progress;
+      if (!p.daily.done.includes(mode)) p.daily.done.push(mode);
+      p.attempts[itemId] = (p.attempts[itemId] || 0) + 1;
+      if (isCorrect) { p.successes[itemId] = (p.successes[itemId] || 0) + 1; p.xp += 10; }
+      saveProgress();
+    }
+    function updateDashboard() {
+      const p = appState.progress;
+      const done = p.daily?.date === todayKey() ? p.daily.done.length : 0;
+      const percent = Math.min(100, Math.round(done / 7 * 100));
+      document.getElementById('streak').textContent = p.streak || 0;
+      document.getElementById('xp').textContent = p.xp || 0;
+      document.getElementById('mastered').textContent = masteredCount();
+      document.getElementById('totalWords').textContent = phraseBank.length;
+      document.getElementById('dailyPercent').textContent = percent + '%';
+      document.getElementById('dailyRing').style.setProperty('--p', percent);
+      document.getElementById('dailyBar').style.width = percent + '%';
+      document.getElementById('dailyCount').textContent = `${done} / 7`;
+      document.getElementById('xpBig').textContent = `${p.xp || 0} XP`;
+      document.getElementById('streakBig').textContent = `${p.streak || 0}일`;
+      document.getElementById('masteredBig').textContent = masteredCount();
+      renderReviewList();
+    }
+
+    function renderModeCards(targetId, count = 6) {
+      const target = document.getElementById(targetId);
+      target.innerHTML = modeCards.slice(0, count).map(m => `
+        <article class="card mode-card">
+          <div class="mode-icon">${m.icon}</div>
+          <h3>${m.title}</h3>
+          <p>${m.desc}</p>
+          <button class="btn dark start-mode" data-mode="${m.id}">${m.cta}</button>
+        </article>
+      `).join('');
+      target.querySelectorAll('.start-mode').forEach(btn => btn.addEventListener('click', () => startMode(btn.dataset.mode)));
+    }
+
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id));
+      document.querySelectorAll('.nav button').forEach(b => b.classList.toggle('active', b.dataset.screen === id));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (id === 'dictionary') renderWords();
+      if (id === 'map') renderMap();
+      if (id === 'progress') updateDashboard();
+    }
+
+    function shuffled(arr) { return [...arr].sort(() => Math.random() - .5); }
+    function makeLesson(mode) {
+      const weak = [...phraseBank].sort((a,b) => (appState.progress.successes[a.id] || 0) - (appState.progress.successes[b.id] || 0));
+      let pool = mode === 'review' ? weak : shuffled(phraseBank);
+      if (mode === 'build') pool = shuffled(phraseBank.filter(p => ['make','take','have','get','give'].includes(p.verb)));
+      return pool.slice(0, 7);
+    }
+    function startMode(mode) {
+      appState.selectedMode = mode;
+      appState.lessonItems = makeLesson(mode);
+      appState.currentIndex = 0;
+      appState.hintStep = 0;
+      showScreen('lesson');
+      renderQuestion();
+    }
+
+    function renderQuestion() {
+      const item = appState.lessonItems[appState.currentIndex];
+      if (!item) return finishLesson();
+      appState.hintStep = 0;
+      const mode = appState.selectedMode;
+      const card = document.getElementById('questionCard');
+      const progress = Math.round((appState.currentIndex) / appState.lessonItems.length * 100);
+      document.getElementById('lessonProgress').style.width = progress + '%';
+      document.getElementById('lessonProgressText').textContent = `${appState.currentIndex + 1} / ${appState.lessonItems.length}`;
+
+      const baseTop = `<div class="lesson-label">${modeTitle(mode)} · ${item.frame}</div>`;
+      let body = '';
+      if (mode === 'listen') body = renderListen(item);
+      else if (mode === 'koen') body = renderKoEn(item);
+      else if (mode === 'enko') body = renderEnKo(item);
+      else if (mode === 'hint') body = renderHint(item);
+      else if (mode === 'build') body = renderBuild(item);
+      else body = renderReview(item);
+      card.innerHTML = baseTop + body;
+      attachQuestionHandlers(item, mode);
+    }
+
+    function modeTitle(mode) { return (modeCards.find(x => x.id === mode) || {}).title || '퀘스트'; }
+    function renderListen(item) {
+      return `
+        <h2>${item.en}</h2>
+        <p class="korean">${item.ko}</p>
+        <button class="sound-btn speak" data-text="${escapeHtml(item.en)}" title="문장 듣기">🔊</button>
+        <p class="sound-help">버튼을 눌러 3번 듣고, 문장 전체를 따라 말해 보세요.</p>
+        <div class="repeat-panel"><strong>🎤 따라 말하기 미션</strong>입으로 문장을 2번 말한 뒤, “말했어요” 버튼을 눌러 경험치를 받으세요. 브라우저 음성 인식은 기기마다 다르게 지원됩니다.</div>
+        <div class="question-actions"><button class="btn accent complete-repeat">말했어요 (+10 XP)</button><button class="btn soft show-answer">표현 연결 보기</button></div>
+        <div class="feedback hidden" id="feedback"></div>`;
+    }
+    function renderKoEn(item) {
+      return `
+        <h2>${item.ko}</h2>
+        <p class="korean">말하듯이 영어로 조립해 보세요. 대소문자와 마침표는 크게 신경 쓰지 않아도 됩니다.</p>
+        <input class="answer-input" id="answerInput" placeholder="Type your English sentence" autocomplete="off" />
+        <div class="question-actions"><button class="btn dark check-answer">정답 확인</button><button class="btn soft next-hint">힌트 <span id="hintCount">1</span>/4</button></div>
+        <div class="hint-box hidden" id="hintBox"></div><div class="feedback hidden" id="feedback"></div>`;
+    }
+    function renderEnKo(item) {
+      const wrong = shuffled(phraseBank.filter(p => p.id !== item.id)).slice(0,3).map(p => p.ko);
+      const choices = shuffled([item.ko, ...wrong]);
+      return `
+        <h2>${item.en}</h2>
+        <p class="korean">가장 자연스러운 뜻이나 상황을 골라 보세요.</p>
+        <button class="sound-btn speak" data-text="${escapeHtml(item.en)}" title="문장 듣기">🔊</button>
+        <div class="choices" id="choices">${choices.map(c => `<button class="choice" data-value="${escapeHtml(c)}">${c}</button>`).join('')}</div>
+        <div class="feedback hidden" id="feedback"></div>`;
+    }
+    function renderHint(item) {
+      return `
+        <h2>${item.ko}</h2>
+        <p class="korean">답을 바로 보지 말고, 힌트 한 단계씩만 열어 보세요.</p>
+        <div class="hint-box" id="hintBox"><div class="hint-title">힌트 0 — 아직 안 열었어요</div>막히면 “다음 힌트”를 눌러 보세요.</div>
+        <input class="answer-input" id="answerInput" placeholder="Type your English sentence" autocomplete="off" />
+        <div class="question-actions"><button class="btn soft next-hint">다음 힌트</button><button class="btn dark check-answer">정답 확인</button></div>
+        <div class="feedback hidden" id="feedback"></div>`;
+    }
+    function renderBuild(item) {
+      const verbs = shuffled(['get','make','take','give','have','keep', item.verb]).slice(0,5);
+      const frameOptions = shuffled([item.frame, 'get + thing', 'make + a plan', 'take + a break', 'have + a problem']).slice(0,4);
+      return `
+        <h2>${item.ko}</h2>
+        <p class="korean">아래의 동사와 생각 틀 중 가장 잘 맞는 것을 골라 문장을 완성하세요.</p>
+        <div class="hint-box" style="background:#eef7f6; border-style:solid; border-color:#b8dcd9"><div class="hint-title" style="color:#286f6c">목표 문장</div><strong>${item.en}</strong>을 스스로 조립해 보세요.</div>
+        <div class="choices" id="choices">${shuffled([item.verb, ...verbs.filter(v=>v!==item.verb)]).slice(0,4).map(c => `<button class="choice build-verb" data-value="${c}">${c}</button>`).join('')}</div>
+        <input class="answer-input" id="answerInput" placeholder="Type the whole sentence" autocomplete="off" style="margin-top:14px" />
+        <div class="question-actions"><button class="btn dark check-answer">문장 완성</button><button class="btn soft next-hint">생각 틀 힌트</button></div>
+        <div class="hint-box hidden" id="hintBox"></div><div class="feedback hidden" id="feedback"></div>`;
+    }
+    function renderReview(item) {
+      const success = appState.progress.successes[item.id] || 0;
+      return `
+        <h2>${item.ko}</h2>
+        <p class="korean">이 표현은 지금까지 <b>${success}회</b> 성공했어요. 3회가 되면 내 표현으로 표시됩니다.</p>
+        <input class="answer-input" id="answerInput" placeholder="Type your English sentence" autocomplete="off" />
+        <div class="question-actions"><button class="btn dark check-answer">다시 연결하기</button><button class="btn soft next-hint">힌트</button></div>
+        <div class="hint-box hidden" id="hintBox"></div><div class="feedback hidden" id="feedback"></div>`;
+    }
+
+    function attachQuestionHandlers(item, mode) {
+      document.querySelectorAll('.speak').forEach(btn => btn.addEventListener('click', () => speak(btn.dataset.text)));
+      document.querySelectorAll('.complete-repeat').forEach(btn => btn.addEventListener('click', () => {
+        markStudy(mode, item.id, true); showFeedback('good', `좋아요! <b>${item.en}</b><br><span class="answer-key">${item.frame} · ${item.verb} 엔진</span>`); btn.disabled = true; setTimeout(nextQuestion, 850);
+      }));
+      document.querySelectorAll('.show-answer').forEach(btn => btn.addEventListener('click', () => showFeedback('good', `<b>${item.en}</b><br><span class="answer-key">${item.ko} · ${item.frame}</span>`)));
+      document.querySelectorAll('.check-answer').forEach(btn => btn.addEventListener('click', () => checkTextAnswer(item, mode)));
+      document.querySelectorAll('.next-hint').forEach(btn => btn.addEventListener('click', () => showNextHint(item)));
+      document.querySelectorAll('.choice').forEach(btn => btn.addEventListener('click', () => chooseAnswer(item, mode, btn)));
+      const input = document.getElementById('answerInput');
+      if (input) input.addEventListener('keydown', e => { if (e.key === 'Enter') checkTextAnswer(item, mode); });
+    }
+    function normalize(s) { return s.toLowerCase().replace(/[.?!,']/g,'').replace(/\s+/g,' ').trim(); }
+    function checkTextAnswer(item, mode) {
+      const input = document.getElementById('answerInput');
+      const guess = normalize(input?.value || '');
+      if (!guess) { toast('먼저 문장을 직접 써 보세요.'); return; }
+      const expected = normalize(item.en);
+      const correct = guess === expected || expected.includes(guess) && guess.length > Math.max(5, expected.length*.68);
+      markStudy(mode, item.id, correct);
+      if (correct) {
+        showFeedback('good', `정답이에요! <b>${item.en}</b><br><span class="answer-key">${item.frame} — ${item.verb} 엔진을 잘 꺼냈어요.</span>`);
+        setTimeout(nextQuestion, 950);
+      } else {
+        showFeedback('bad', `거의 다 왔어요. 다시 한번 조립해 볼까요?<br><span class="answer-key">정답: <b>${item.en}</b></span>`);
+        showNextHint(item);
+      }
+    }
+    function chooseAnswer(item, mode, button) {
+      document.querySelectorAll('.choice').forEach(c => c.classList.remove('selected'));
+      button.classList.add('selected');
+      const correct = normalize(button.dataset.value) === normalize(item.ko);
+      markStudy(mode, item.id, correct);
+      if (correct) {
+        button.style.borderColor = 'var(--good)';
+        showFeedback('good', `맞았어요! <b>${item.en}</b> = ${item.ko}`);
+        setTimeout(nextQuestion, 850);
+      } else {
+        button.style.borderColor = 'var(--bad)';
+        showFeedback('bad', `이 문장은 <b>${item.ko}</b>라는 뜻이에요. 소리도 다시 들어 보세요.`);
+      }
+    }
+    function showNextHint(item) {
+      const box = document.getElementById('hintBox');
+      if (!box) return;
+      const step = Math.min(appState.hintStep, item.hint.length - 1);
+      const names = ['뜻/장면', '생각 틀', '문장 뼈대', '첫 글자'];
+      box.classList.remove('hidden');
+      box.innerHTML = `<div class="hint-title">힌트 ${step+1} — ${names[step] || '정답'}</div>${item.hint[step]}`;
+      appState.hintStep++;
+      const btn = document.querySelector('.next-hint');
+      if (btn) btn.innerHTML = appState.hintStep >= item.hint.length ? '정답 보기' : `다음 힌트`;
+      if (appState.hintStep > item.hint.length) { showFeedback('good', `정답: <b>${item.en}</b>`); }
+    }
+    function showFeedback(type, html) {
+      const el = document.getElementById('feedback');
+      if (!el) return;
+      el.className = `feedback ${type}`;
+      el.innerHTML = html;
+    }
+    function nextQuestion() {
+      appState.currentIndex++;
+      renderQuestion();
+    }
+    function finishLesson() {
+      document.getElementById('lessonProgress').style.width = '100%';
+      document.getElementById('questionCard').innerHTML = `
+        <div class="lesson-label">퀘스트 완료</div>
+        <h2>좋아요! 연결 하나를 더 만들었어요.</h2>
+        <p class="korean">오늘 푼 문장을 소리 내어 한 번 더 읽으면 더 오래 남습니다. 내일은 약한 연결부터 다시 꺼내 드릴게요.</p>
+        <div class="question-actions"><button class="btn accent" id="againLesson">다른 퀘스트 계속하기</button><button class="btn dark" id="goProgress">내 성장 보기</button></div>`;
+      document.getElementById('againLesson').addEventListener('click', () => startMode(appState.selectedMode));
+      document.getElementById('goProgress').addEventListener('click', () => showScreen('progress'));
+      toast('퀘스트 완료! +연결 경험치');
+    }
+
+    function renderWords() {
+      const filters = ['전체', ...new Set(wordBank.map(w => w.type))];
+      document.getElementById('wordFilters').innerHTML = filters.map(f => `<button class="filter ${appState.filter === f ? 'active':''}" data-filter="${f}">${f}</button>`).join('');
+      document.querySelectorAll('[data-filter]').forEach(b => b.addEventListener('click', () => { appState.filter = b.dataset.filter; renderWords(); }));
+      const q = appState.search.trim().toLowerCase();
+      const results = wordBank.filter(w => (appState.filter === '전체' || w.type === appState.filter) && (!q || [w.word,w.korean,w.example,w.exKo,w.connections,w.type].join(' ').toLowerCase().includes(q)));
+      document.getElementById('wordList').innerHTML = results.length ? results.map(w => `
+        <article class="card word-card">
+          <div class="word">${w.word}</div><span class="tag">${w.type}</span>
+          <div class="meaning">${w.korean}</div>
+          <div class="example"><b>${w.example}</b><br>${w.exKo}</div>
+          <div class="connections">↳ ${w.connections}</div>
+        </article>
+      `).join('') : `<div class="card empty">찾는 단어가 없어요. 영어·한국어·표현 일부로 다시 찾아 보세요.</div>`;
+    }
+    function renderMap() {
+      document.getElementById('mapFilters').innerHTML = Object.entries(mapSets).map(([key,val]) => `<button class="filter ${appState.currentMap === key ? 'active':''}" data-map="${key}">${key}</button>`).join('');
+      document.querySelectorAll('[data-map]').forEach(b => b.addEventListener('click', () => { appState.currentMap = b.dataset.map; renderMap(); }));
+      const m = mapSets[appState.currentMap];
+      document.getElementById('thinkingMap').innerHTML = `
+        <div class="map-col"><h3>1. 기본 엔진</h3>${m.verbs.map(x => `<div class="node verb">${x}</div>`).join('')}</div>
+        <div class="map-col"><h3>2. 생각 틀</h3>${m.frames.map(x => `<div class="node frame">${x}</div><div class="map-arrow">↓ 자주 붙는 조합</div>`).join('')}</div>
+        <div class="map-col"><h3>3. 장면 / 명사</h3>${m.nouns.map((x,i) => `<div class="node noun">${x}</div>${m.examples[i] ? `<div class="small-note" style="margin:0 0 10px">${m.examples[i]}</div>`:''}`).join('')}</div>`;
+    }
+    function renderReviewList() {
+      const target = document.getElementById('reviewList');
+      if (!target) return;
+      const review = [...phraseBank].sort((a,b) => (appState.progress.successes[a.id]||0)-(appState.progress.successes[b.id]||0)).slice(0,5);
+      target.innerHTML = review.map((p,i) => {
+        const n = appState.progress.successes[p.id] || 0;
+        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:${i===review.length-1?'0':'1px solid var(--line)'}"><span style="width:28px;height:28px;display:grid;place-items:center;border-radius:50%;background:#eef7f6;color:#286f6c;font-weight:900;font-size:12px">${n}/3</span><div style="flex:1"><b>${p.en}</b><div class="small-note" style="margin:2px 0 0">${p.ko} · ${p.frame}</div></div><button class="filter review-one" data-id="${p.id}">복습</button></div>`;
+      }).join('');
+      target.querySelectorAll('.review-one').forEach(btn => btn.addEventListener('click', () => {
+        const item = phraseBank.find(p => p.id === btn.dataset.id);
+        appState.selectedMode = 'review'; appState.lessonItems=[item]; appState.currentIndex=0; showScreen('lesson'); renderQuestion();
+      }));
+    }
+    function speak(text) {
+      if (!('speechSynthesis' in window)) { toast('이 브라우저에서는 음성 재생을 지원하지 않아요.'); return; }
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = 'en-US'; utter.rate = .82; utter.pitch = 1;
+      window.speechSynthesis.speak(utter);
+    }
+    function toast(msg) { const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2200); }
+    function escapeHtml(s) { return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+    document.querySelectorAll('.nav button').forEach(btn => btn.addEventListener('click', () => showScreen(btn.dataset.screen)));
+    document.getElementById('startDaily').addEventListener('click', () => startMode('koen'));
+    document.getElementById('jumpDictionary').addEventListener('click', () => showScreen('dictionary'));
+    document.getElementById('exitLesson').addEventListener('click', () => showScreen('play'));
+    document.getElementById('wordSearch').addEventListener('input', e => { appState.search=e.target.value; renderWords(); });
+    document.querySelectorAll('[data-map-focus]').forEach(btn => btn.addEventListener('click', () => {
+      appState.currentMap = btn.dataset.mapFocus; document.querySelectorAll('[data-map-focus]').forEach(x=>x.classList.toggle('active',x===btn));
+      document.getElementById('connectionText').textContent = mapSets[appState.currentMap].examples.join(' · ');
+    }));
+    document.getElementById('resetProgress').addEventListener('click', () => { localStorage.removeItem('etdQuestProgress'); appState.progress=defaultProgress(); updateDashboard(); toast('학습 기록을 초기화했어요.'); });
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
+
+    renderModeCards('homeModes', 3);
+    renderModeCards('gameModes', 6);
+    renderWords(); renderMap(); updateDashboard();
+  </script>
+</body>
+</html>
