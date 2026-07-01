@@ -41,7 +41,9 @@
     .topbar {
       display: flex; align-items: center; gap: 16px; justify-content: space-between;
       margin-bottom: 18px;
+      flex-wrap: wrap;
     }
+    .top-controls { display:flex; align-items:center; gap:10px; }
     .brand { display:flex; align-items:center; gap: 12px; }
     .brand-mark {
       width: 48px; height: 48px; display: grid; place-items: center; border-radius: 16px;
@@ -229,10 +231,13 @@
           <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.0.0">v1.0.0</span></p>
         </div>
       </div>
-      <div class="top-stats">
-        <div class="stat-pill">🔥 <span id="streak">0</span>일</div>
-        <div class="stat-pill">⚡ <span id="xp">0</span> XP</div>
-        <div class="stat-pill">🧠 <span id="mastered">0</span> / <span id="totalWords">0</span></div>
+      <div class="top-controls">
+        <button class="btn soft" id="toggleSound" type="button">🔊 소리 켬</button>
+        <div class="top-stats">
+          <div class="stat-pill">🔥 <span id="streak">0</span>일</div>
+          <div class="stat-pill">⚡ <span id="xp">0</span> XP</div>
+          <div class="stat-pill">🧠 <span id="mastered">0</span> / <span id="totalWords">0</span></div>
+        </div>
       </div>
     </header>
 
@@ -467,15 +472,35 @@
       search: '',
       dictionaryData: { verbs: [], nouns: [], patterns: [], expressions: [], learningPaths: null, isLoaded: false, error: null, selectedVerbId: null, selectedExpressionId: null, gameExpressions: [], dataSource: 'fallback' },
       progress: loadProgress(),
+      sessionStudyRecords: {},
+      audioContext: null,
+      audioSupported: true,
     };
 
     function defaultProgress() {
-      return { xp: 0, streak: 0, lastStudyDate: null, successes: {}, attempts: {}, skipped: {}, recentExpressionIds: [], daily: { date: null, done: [] } };
+      return {
+        xp: 0,
+        streak: 0,
+        lastStudyDate: null,
+        successes: {},
+        attempts: {},
+        skipped: {},
+        recentExpressionIds: [],
+        daily: { date: null, done: [] },
+        settings: { soundEnabled: true },
+        historyByExpressionId: {},
+      };
     }
     function loadProgress() {
       try {
         const saved = JSON.parse(localStorage.getItem('etdQuestProgress') || '{}');
-        return { ...defaultProgress(), ...saved, recentExpressionIds: saved.recentExpressionIds || [] };
+        return {
+          ...defaultProgress(),
+          ...saved,
+          recentExpressionIds: saved.recentExpressionIds || [],
+          settings: { ...defaultProgress().settings, ...(saved.settings || {}) },
+          historyByExpressionId: saved.historyByExpressionId || {},
+        };
       }
       catch { return defaultProgress(); }
     }
@@ -492,12 +517,37 @@
       }
     }
     function masteredCount() { return Object.values(appState.progress.successes).filter(n => n >= 3).length; }
-    function markStudy(mode, itemId, isCorrect = true) {
+    function markStudy(mode, itemId, resultType, details = {}) {
       ensureToday();
       const p = appState.progress;
       if (!p.daily.done.includes(mode)) p.daily.done.push(mode);
       p.attempts[itemId] = (p.attempts[itemId] || 0) + 1;
-      if (isCorrect) { p.successes[itemId] = (p.successes[itemId] || 0) + 1; p.xp += 10; }
+      const now = new Date().toISOString();
+      const history = p.historyByExpressionId[itemId] || { lastAttemptedAt: null, lastCorrectAt: null, lastMeaningHitAt: null, timesSeen: 0, timesCorrect: 0, reviewPriority: 0 };
+      history.lastAttemptedAt = now;
+      history.timesSeen = (history.timesSeen || 0) + 1;
+      const signature = details.signature || resultType;
+      const sessionRecord = appState.sessionStudyRecords[itemId] || {};
+      const duplicateCorrect = sessionRecord.lastRecordedSignature === signature && (resultType === 'correct' || resultType === 'almost');
+      const duplicateMeaning = sessionRecord.lastRecordedSignature === signature && resultType === 'meaning';
+      if (resultType === 'correct' || resultType === 'almost') {
+        if (!duplicateCorrect) {
+          p.successes[itemId] = (p.successes[itemId] || 0) + 1;
+          p.xp += 10;
+          history.timesCorrect = (history.timesCorrect || 0) + 1;
+          history.lastCorrectAt = now;
+          history.reviewPriority = Math.max(0, (history.reviewPriority || 0) - 1);
+        }
+        appState.sessionStudyRecords[itemId] = { lastRecordedSignature: signature };
+      }
+      else if (resultType === 'meaning') {
+        history.lastMeaningHitAt = now;
+        if (!duplicateMeaning) {
+          history.reviewPriority = (history.reviewPriority || 0) + 1;
+          appState.sessionStudyRecords[itemId] = { lastRecordedSignature: signature };
+        }
+      }
+      p.historyByExpressionId[itemId] = history;
       saveProgress();
     }
     function markSkipped(mode, itemId) {
@@ -773,7 +823,10 @@
     function attachQuestionHandlers(item, mode) {
       document.querySelectorAll('.speak').forEach(btn => btn.addEventListener('click', () => speak(btn.dataset.text)));
       document.querySelectorAll('.complete-repeat').forEach(btn => btn.addEventListener('click', () => {
-        markStudy(mode, item.id, true); showFeedback('good', `좋아요! <b>${item.en}</b><br><span class="answer-key">${item.frame} · ${item.verb} 엔진</span>`); btn.disabled = true; setTimeout(nextQuestion, 850);
+        markStudy(mode, item.id, 'correct', { signature: `complete-repeat-${item.id}` });
+        showFeedback('good', `좋아요! <b>${item.en}</b><br><span class="answer-key">${item.frame} · ${item.verb} 엔진</span>`);
+        btn.disabled = true;
+        setTimeout(nextQuestion, 850);
       }));
       document.querySelectorAll('.show-answer').forEach(btn => btn.addEventListener('click', () => showFeedback('good', `<b>${item.en}</b><br><span class="answer-key">${item.ko} · ${item.frame}<br>직역 이미지: ${escapeHtml(item.literalMeaning || item.ko)}</span>`)));
       document.querySelectorAll('.check-answer').forEach(btn => btn.addEventListener('click', () => checkTextAnswer(item, mode)));
@@ -882,7 +935,16 @@
       const rawGuess = input?.value || '';
       if (!normalize(rawGuess)) { toast('먼저 문장을 직접 써 보세요.'); return; }
       const result = classifyAnswer(item, rawGuess);
-      markStudy(mode, item.id, result.countsAsSuccess);
+      const signature = normalize(rawGuess);
+      if (result.status === 'correct') {
+        markStudy(mode, item.id, 'correct', { signature });
+      } else if (result.status === 'almost') {
+        markStudy(mode, item.id, 'almost', { signature });
+      } else if (result.status === 'meaning') {
+        markStudy(mode, item.id, 'meaning', { signature });
+      } else {
+        markStudy(mode, item.id, 'retry', { signature });
+      }
       showAnswerSummary(result.feedbackClass, item, result, rawGuess);
     }
     function chooseAnswer(item, mode, button) {
@@ -890,12 +952,13 @@
       document.querySelectorAll('.choice').forEach(c => c.classList.remove('selected'));
       button.classList.add('selected');
       const correct = normalize(button.dataset.value) === normalize(item.ko);
-      markStudy(mode, item.id, correct);
       if (correct) {
+        markStudy(mode, item.id, 'correct', { signature: `choice-${item.id}-${button.dataset.value}` });
         button.style.borderColor = 'var(--good)';
         showFeedback('good', `맞았어요! <b>${item.en}</b> = ${item.ko}`);
         setTimeout(nextQuestion, 850);
       } else {
+        markStudy(mode, item.id, 'retry', { signature: `choice-${item.id}-${button.dataset.value}` });
         button.style.borderColor = 'var(--bad)';
         showFeedback('bad', `이 문장은 <b>${item.ko}</b>라는 뜻이에요. 소리도 다시 들어 보세요.`);
       }
@@ -955,6 +1018,7 @@
     function showFeedback(type, html) {
       const el = document.getElementById('feedback');
       if (!el) return;
+      playFeedbackSound(type);
       el.className = `feedback ${type}`;
       el.innerHTML = html;
     }
@@ -1182,6 +1246,74 @@
       utter.lang = 'en-US'; utter.rate = .82; utter.pitch = 1;
       window.speechSynthesis.speak(utter);
     }
+    function initSoundEngine() {
+      if (!window.AudioContext && !window.webkitAudioContext) {
+        appState.audioSupported = false;
+        return;
+      }
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        appState.audioContext = new AudioCtx();
+      }
+      catch (error) {
+        appState.audioSupported = false;
+      }
+    }
+    function canPlaySound() {
+      return appState.progress.settings?.soundEnabled !== false && appState.audioSupported && appState.audioContext;
+    }
+    function playTone({ frequency = 440, duration = 0.08, type = 'sine', volume = 0.12, when = 0 }) {
+      if (!canPlaySound()) return;
+      try {
+        const ctx = appState.audioContext;
+        if (!ctx) return;
+        const gain = ctx.createGain();
+        const osc = ctx.createOscillator();
+        osc.type = type;
+        osc.frequency.value = frequency;
+        gain.gain.setValueAtTime(volume, ctx.currentTime + when);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + when + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + when);
+        osc.stop(ctx.currentTime + when + duration + 0.02);
+      }
+      catch (error) {
+        appState.audioSupported = false;
+      }
+    }
+    function playSuccessSound() {
+      playTone({ frequency: 660, duration: 0.12, type: 'triangle', volume: 0.14 });
+      playTone({ frequency: 880, duration: 0.06, type: 'triangle', volume: 0.1, when: 0.07 });
+    }
+    function playAlmostSound() {
+      playTone({ frequency: 540, duration: 0.12, type: 'triangle', volume: 0.12 });
+      playTone({ frequency: 610, duration: 0.08, type: 'triangle', volume: 0.08, when: 0.06 });
+    }
+    function playMeaningSound() {
+      playTone({ frequency: 420, duration: 0.16, type: 'sine', volume: 0.12 });
+      playTone({ frequency: 520, duration: 0.12, type: 'sine', volume: 0.08, when: 0.08 });
+    }
+    function playRetrySound() {
+      playTone({ frequency: 330, duration: 0.12, type: 'square', volume: 0.12 });
+      playTone({ frequency: 260, duration: 0.08, type: 'square', volume: 0.08, when: 0.06 });
+    }
+    function resumeAudioContext() {
+      const ctx = appState.audioContext;
+      if (!ctx || typeof ctx.resume !== 'function') return;
+      if (ctx.state === 'suspended') {
+        ctx.resume().catch(() => { appState.audioSupported = false; });
+      }
+    }
+    function playFeedbackSound(type) {
+      if (!canPlaySound()) return;
+      if (!appState.audioContext) initSoundEngine();
+      resumeAudioContext();
+      if (type === 'good') playSuccessSound();
+      else if (type === 'almost') playAlmostSound();
+      else if (type === 'meaning') playMeaningSound();
+      else playRetrySound();
+    }
     function toast(msg) { const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2200); }
     function escapeHtml(s) { return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
@@ -1195,13 +1327,22 @@
       appState.currentMap = btn.dataset.mapFocus; document.querySelectorAll('[data-map-focus]').forEach(x=>x.classList.toggle('active',x===btn));
       document.getElementById('connectionText').textContent = mapSets[appState.currentMap].examples.join(' · ');
     }));
+    document.getElementById('toggleSound').addEventListener('click', () => {
+      const settings = appState.progress.settings || { soundEnabled: true };
+      settings.soundEnabled = !settings.soundEnabled;
+      appState.progress.settings = settings;
+      saveProgress();
+      updateSoundToggle();
+      toast(settings.soundEnabled ? '소리를 켰어요.' : '소리를 껐어요.');
+    });
     document.getElementById('resetProgress').addEventListener('click', () => { localStorage.removeItem('etdQuestProgress'); appState.progress=defaultProgress(); updateDashboard(); toast('학습 기록을 초기화했어요.'); });
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
 
+    initSoundEngine();
     renderModeCards('homeModes', 3);
     renderModeCards('gameModes', 6);
-        renderWords(); renderMap(); updateDashboard(); loadDictionaryExplorer();
-        if (!window.location.hash) updateRouteForScreen('home', true);
+    renderWords(); renderMap(); updateDashboard(); loadDictionaryExplorer();
+    if (!window.location.hash) updateRouteForScreen('home', true);
       </script>
 </body>
 </html>
