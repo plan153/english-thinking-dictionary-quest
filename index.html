@@ -117,12 +117,22 @@
     .answer-input { width:min(620px,100%); align-self:center; border:2px solid var(--line); border-radius:16px; padding: 15px 16px; background:#fff; color:var(--ink); font-size:18px; outline:none; }
     .answer-input:focus { border-color: var(--accent); box-shadow:0 0 0 4px rgba(40,111,108,.12); }
     .question-actions { display:flex; gap:9px; justify-content:center; flex-wrap:wrap; margin-top:15px; }
+    .quiz-nav { display:flex; gap:9px; justify-content:center; flex-wrap:wrap; margin-top:15px; }
+    .quiz-nav .btn[disabled] { opacity:.45; cursor:not-allowed; }
+    .question-card.pulse-good { animation: pulseGood .34s ease-out; }
+    .question-card.pulse-warn { animation: pulseWarn .34s ease-out; }
+    .question-card.pulse-bad { animation: pulseBad .34s ease-out; }
     .feedback { margin:17px auto 0; padding: 13px 16px; border-radius:13px; max-width:620px; font-size:14px; font-weight:700; line-height:1.55; }
     .feedback.good { background:#e9f7f0; color:#256b4d; }
+    .feedback.almost { background:#fff7dd; color:#8a6610; }
+    .feedback.meaning { background:#eef7f6; color:#245c5a; }
     .feedback.bad { background:#fff0ee; color:#a7433b; }
     .answer-key { font-size: 14px; margin-top:8px; color:var(--muted); }
     .answer-summary { text-align:left; }
     .answer-summary .chunk-row { margin:9px 0 0; }
+    @keyframes pulseGood { 0% { box-shadow:0 18px 50px rgba(28,24,20,.08); } 45% { box-shadow:0 0 0 5px rgba(52,143,94,.25), 0 18px 50px rgba(28,24,20,.08); } 100% { box-shadow:0 18px 50px rgba(28,24,20,.08); } }
+    @keyframes pulseWarn { 0% { box-shadow:0 18px 50px rgba(28,24,20,.08); } 45% { box-shadow:0 0 0 5px rgba(218,169,54,.25), 0 18px 50px rgba(28,24,20,.08); } 100% { box-shadow:0 18px 50px rgba(28,24,20,.08); } }
+    @keyframes pulseBad { 0% { box-shadow:0 18px 50px rgba(28,24,20,.08); } 45% { box-shadow:0 0 0 5px rgba(191,76,63,.23), 0 18px 50px rgba(28,24,20,.08); } 100% { box-shadow:0 18px 50px rgba(28,24,20,.08); } }
 
     .choices { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; max-width:650px; width:100%; align-self:center; margin-top: 12px; }
     .choice { background:#fff; color:var(--ink); border:1px solid var(--line); border-radius:14px; padding: 14px 12px; font-weight:750; text-align:left; }
@@ -449,10 +459,10 @@
       selectedMode: null,
       lessonItems: [],
       currentIndex: 0,
-          hintStep: 0,
-          questionAnswered: false,
-          isApplyingRoute: false,
-          currentMap: 'get',
+      hintStep: 0,
+      questionAnswered: false,
+      isApplyingRoute: false,
+      currentMap: 'get',
       filter: '전체',
       search: '',
       dictionaryData: { verbs: [], nouns: [], patterns: [], expressions: [], learningPaths: null, isLoaded: false, error: null, selectedVerbId: null, selectedExpressionId: null, gameExpressions: [], dataSource: 'fallback' },
@@ -460,7 +470,7 @@
     };
 
     function defaultProgress() {
-      return { xp: 0, streak: 0, lastStudyDate: null, successes: {}, attempts: {}, recentExpressionIds: [], daily: { date: null, done: [] } };
+      return { xp: 0, streak: 0, lastStudyDate: null, successes: {}, attempts: {}, skipped: {}, recentExpressionIds: [], daily: { date: null, done: [] } };
     }
     function loadProgress() {
       try {
@@ -488,6 +498,14 @@
       if (!p.daily.done.includes(mode)) p.daily.done.push(mode);
       p.attempts[itemId] = (p.attempts[itemId] || 0) + 1;
       if (isCorrect) { p.successes[itemId] = (p.successes[itemId] || 0) + 1; p.xp += 10; }
+      saveProgress();
+    }
+    function markSkipped(mode, itemId) {
+      ensureToday();
+      const p = appState.progress;
+      if (!p.daily.done.includes(mode)) p.daily.done.push(mode);
+      p.skipped = p.skipped || {};
+      p.skipped[itemId] = (p.skipped[itemId] || 0) + 1;
       saveProgress();
     }
     function updateDashboard() {
@@ -537,11 +555,12 @@
         }
         function updateRouteForScreen(id, replace = false) {
           let hash = `#/${id}`;
-          if (id === 'dictionary' && routeExpressionId()) hash = `#/dictionary/${routeExpressionId()}`;
-          if (id === 'lesson') {
-            const item = appState.lessonItems[appState.currentIndex];
-            hash = item?.id ? `#/quiz/${item.id}?mode=${appState.selectedMode || 'koen'}` : '#/play';
-          }
+      if (id === 'dictionary' && routeExpressionId()) hash = `#/dictionary/${routeExpressionId()}`;
+      if (id === 'lesson') {
+        const item = appState.lessonItems[appState.currentIndex];
+        const mode = appState.selectedMode || 'koen';
+        hash = item?.id && appState.lessonItems.length <= 1 ? `#/quiz/${item.id}?mode=${mode}` : `#/quiz?mode=${mode}`;
+      }
           if (window.location.hash === hash) return;
           if (replace) window.location.replace(hash);
           else window.location.hash = hash;
@@ -566,8 +585,8 @@
                 }
               }
               showScreen('dictionary', { skipRoute: true });
-            } else if (route.screen === 'quiz') {
-              startMode(route.mode || 'koen', route.id, { skipRoute: true });
+        } else if (route.screen === 'quiz') {
+          startMode(route.mode || 'koen', route.id, { skipRoute: true });
             } else if (document.getElementById(route.screen)) {
               showScreen(route.screen, { skipRoute: true });
             } else {
@@ -693,7 +712,8 @@
         <h2>${item.ko}</h2>
         <p class="korean">말하듯이 영어로 조립해 보세요. 대소문자와 마침표는 크게 신경 쓰지 않아도 됩니다.</p>
         <input class="answer-input" id="answerInput" placeholder="Type your English sentence" autocomplete="off" />
-        <div class="question-actions"><button class="btn dark check-answer">정답 확인</button><button class="btn soft next-hint">힌트 1/3</button></div>
+        ${renderQuizNav('정답 확인')}
+        <div class="question-actions"><button class="btn soft next-hint">힌트 1/3</button></div>
         <div class="hint-box hidden" id="hintBox"></div><div class="feedback hidden" id="feedback"></div>`;
     }
     function renderEnKo(item) {
@@ -712,7 +732,8 @@
         <p class="korean">답을 바로 보지 말고, 힌트 한 단계씩만 열어 보세요.</p>
         <div class="hint-box" id="hintBox"><div class="hint-title">힌트 0 — 아직 안 열었어요</div>막히면 “다음 힌트”를 눌러 보세요.</div>
         <input class="answer-input" id="answerInput" placeholder="Type your English sentence" autocomplete="off" />
-        <div class="question-actions"><button class="btn soft next-hint">힌트 1/3</button><button class="btn dark check-answer">정답 확인</button></div>
+        ${renderQuizNav('정답 확인')}
+        <div class="question-actions"><button class="btn soft next-hint">힌트 1/3</button></div>
         <div class="feedback hidden" id="feedback"></div>`;
     }
     function renderBuild(item) {
@@ -723,7 +744,8 @@
         <div class="hint-box" style="background:#eef7f6; border-style:solid; border-color:#b8dcd9"><div class="hint-title" style="color:#286f6c">목표 문장</div><strong>${item.en}</strong>을 스스로 조립해 보세요.</div>
         <div class="choices" id="choices">${shuffled([item.verb, ...verbs.filter(v=>v!==item.verb)]).slice(0,4).map(c => `<button class="choice build-verb" data-value="${c}">${c}</button>`).join('')}</div>
         <input class="answer-input" id="answerInput" placeholder="Type the whole sentence" autocomplete="off" style="margin-top:14px" />
-        <div class="question-actions"><button class="btn dark check-answer">문장 완성</button><button class="btn soft next-hint">힌트 1/3</button></div>
+        ${renderQuizNav('문장 완성')}
+        <div class="question-actions"><button class="btn soft next-hint">힌트 1/3</button></div>
         <div class="hint-box hidden" id="hintBox"></div><div class="feedback hidden" id="feedback"></div>`;
     }
     function renderReview(item) {
@@ -732,8 +754,20 @@
         <h2>${item.ko}</h2>
         <p class="korean">이 표현은 지금까지 <b>${success}회</b> 성공했어요. 3회가 되면 내 표현으로 표시됩니다.</p>
         <input class="answer-input" id="answerInput" placeholder="Type your English sentence" autocomplete="off" />
-        <div class="question-actions"><button class="btn dark check-answer">다시 연결하기</button><button class="btn soft next-hint">힌트 1/3</button></div>
+        ${renderQuizNav('다시 연결하기')}
+        <div class="question-actions"><button class="btn soft next-hint">힌트 1/3</button></div>
         <div class="hint-box hidden" id="hintBox"></div><div class="feedback hidden" id="feedback"></div>`;
+    }
+    function renderQuizNav(label) {
+      const isSingle = appState.lessonItems.length <= 1;
+      const prevDisabled = isSingle || appState.currentIndex === 0 ? 'disabled' : '';
+      const nextDisabled = isSingle ? 'disabled' : '';
+      return `
+        <div class="quiz-nav">
+          <button class="btn soft prev-question" ${prevDisabled}>← 이전</button>
+          <button class="btn dark check-answer">${label}</button>
+          <button class="btn soft next-question" ${nextDisabled}>다음 →</button>
+        </div>`;
     }
 
     function attachQuestionHandlers(item, mode) {
@@ -742,49 +776,121 @@
         markStudy(mode, item.id, true); showFeedback('good', `좋아요! <b>${item.en}</b><br><span class="answer-key">${item.frame} · ${item.verb} 엔진</span>`); btn.disabled = true; setTimeout(nextQuestion, 850);
       }));
       document.querySelectorAll('.show-answer').forEach(btn => btn.addEventListener('click', () => showFeedback('good', `<b>${item.en}</b><br><span class="answer-key">${item.ko} · ${item.frame}<br>직역 이미지: ${escapeHtml(item.literalMeaning || item.ko)}</span>`)));
-          document.querySelectorAll('.check-answer').forEach(btn => btn.addEventListener('click', () => checkTextAnswer(item, mode)));
-          document.querySelectorAll('.next-hint').forEach(btn => btn.addEventListener('click', () => showNextHint(item)));
-          document.querySelectorAll('.choice').forEach(btn => btn.addEventListener('click', () => chooseAnswer(item, mode, btn)));
-          const input = document.getElementById('answerInput');
-          if (input) {
-            input.addEventListener('keydown', e => {
-              if (e.key !== 'Enter') return;
-              e.preventDefault();
-              if (appState.questionAnswered) nextQuestion();
-              else checkTextAnswer(item, mode);
-            });
-            requestAnimationFrame(() => input.focus());
-          }
-        }
-        function normalize(s) {
-          return String(s || '')
-            .normalize('NFKC')
-            .toLowerCase()
-            .replace(/[‘’`´]/g, "'")
-            .replace(/[.?!,;:"'()[\]{}]/g, '')
-            .replace(/\s+/g, ' ')
-            .trim();
-        }
-        function checkTextAnswer(item, mode) {
-          if (appState.questionAnswered) { nextQuestion(); return; }
-          const input = document.getElementById('answerInput');
-          const guess = normalize(input?.value || '');
-          if (!guess) { toast('먼저 문장을 직접 써 보세요.'); return; }
-      const expected = normalize(item.en);
-      const correct = guess === expected || expected.includes(guess) && guess.length > Math.max(5, expected.length*.68);
-      markStudy(mode, item.id, correct);
-      if (correct) {
-        showAnswerSummary('good', item, '정답이에요!');
-      } else {
-        showAnswerSummary('bad', item, '거의 다 왔어요. 정답을 보고 다시 연결해 보세요.');
+      document.querySelectorAll('.check-answer').forEach(btn => btn.addEventListener('click', () => checkTextAnswer(item, mode)));
+      document.querySelectorAll('.next-hint').forEach(btn => btn.addEventListener('click', () => showNextHint(item)));
+      document.querySelectorAll('.choice').forEach(btn => btn.addEventListener('click', () => chooseAnswer(item, mode, btn)));
+      document.querySelectorAll('.prev-question').forEach(btn => btn.addEventListener('click', () => previousQuestion()));
+      document.querySelectorAll('.next-question').forEach(btn => btn.addEventListener('click', () => advanceFromNav(item, mode)));
+      const input = document.getElementById('answerInput');
+      if (input) {
+        input.addEventListener('keydown', e => {
+          if (e.key !== 'Enter') return;
+          e.preventDefault();
+          if (appState.questionAnswered) nextQuestion();
+          else checkTextAnswer(item, mode);
+        });
+        requestAnimationFrame(() => input.focus());
       }
     }
-        function chooseAnswer(item, mode, button) {
-          if (appState.questionAnswered) { nextQuestion(); return; }
-          document.querySelectorAll('.choice').forEach(c => c.classList.remove('selected'));
-          button.classList.add('selected');
-          const correct = normalize(button.dataset.value) === normalize(item.ko);
-          markStudy(mode, item.id, correct);
+    function normalize(s) {
+      return String(s || '')
+        .normalize('NFKC')
+        .toLowerCase()
+        .replace(/[‘’`´]/g, "'")
+        .replace(/[.?!,;:"'()[\]{}]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+    function normalizeExpanded(s) {
+      const expanded = String(s || '')
+        .normalize('NFKC')
+        .toLowerCase()
+        .replace(/[‘’`´]/g, "'")
+        .replace(/\b(i'm)\b/g, 'i am')
+        .replace(/\b(you're)\b/g, 'you are')
+        .replace(/\b(we're)\b/g, 'we are')
+        .replace(/\b(they're)\b/g, 'they are')
+        .replace(/\b(it's)\b/g, 'it is')
+        .replace(/\b(that's)\b/g, 'that is')
+        .replace(/\b(what's)\b/g, 'what is')
+        .replace(/\b(let's)\b/g, 'let us')
+        .replace(/\b(don't)\b/g, 'do not')
+        .replace(/\b(doesn't)\b/g, 'does not')
+        .replace(/\b(didn't)\b/g, 'did not')
+        .replace(/\b(can't)\b/g, 'cannot')
+        .replace(/\b(shouldn't)\b/g, 'should not')
+        .replace(/\b(i'll)\b/g, 'i will')
+        .replace(/\b(we'll)\b/g, 'we will');
+      return normalize(expanded);
+    }
+    function answerForms(text) {
+      return new Set([normalize(text), normalizeExpanded(text)].filter(Boolean));
+    }
+    function expressionAnswers(item) {
+      return [item.en, item.audioText, ...(item.acceptedAnswers || [])].filter(Boolean);
+    }
+    function matchesAnyAnswer(guess, answers, normalizer = normalize) {
+      const value = normalizer(guess);
+      return answers.some(answer => normalizer(answer) === value);
+    }
+    function sortedTokens(value) {
+      return normalizeExpanded(value).split(' ').filter(Boolean).sort().join(' ');
+    }
+    function editDistance(a, b) {
+      const rows = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+      for (let j = 1; j <= b.length; j++) rows[0][j] = j;
+      for (let i = 1; i <= a.length; i++) {
+        for (let j = 1; j <= b.length; j++) {
+          rows[i][j] = Math.min(rows[i - 1][j] + 1, rows[i][j - 1] + 1, rows[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+        }
+      }
+      return rows[a.length][b.length];
+    }
+    function classifyAnswer(item, rawGuess) {
+      const answers = expressionAnswers(item);
+      if (matchesAnyAnswer(rawGuess, answers, normalize)) {
+        return { status: 'correct', feedbackClass: 'good', title: '정답이에요!', message: item.usageNotes || '오늘 목표 표현과 잘 연결됐어요.', countsAsSuccess: true };
+      }
+      if (matchesAnyAnswer(rawGuess, answers, normalizeExpanded)) {
+        return { status: 'almost', feedbackClass: 'almost', title: '거의 맞았어요.', message: '축약형이나 작은 표기 차이만 있어요. 같은 표현으로 볼 수 있어요.', countsAsSuccess: true };
+      }
+      const alternative = (item.alternativeExpressions || []).find(alt => answerForms(alt.text).has(normalize(rawGuess)) || answerForms(alt.text).has(normalizeExpanded(rawGuess)));
+      if (alternative) {
+        return { status: 'meaning', feedbackClass: 'meaning', title: '뜻은 잘 전달됐어요.', message: alternative.message || `오늘은 ${item.frame} 연결을 익히는 중이에요.`, nuance: alternative.nuance || '', countsAsSuccess: false };
+      }
+      const mistake = (item.commonMistakes || []).find(entry => answerForms(entry.answer || entry.pattern).has(normalize(rawGuess)) || answerForms(entry.answer || entry.pattern).has(normalizeExpanded(rawGuess)));
+      if (mistake) {
+        return { status: 'retry', feedbackClass: 'bad', title: '다시 연결해 볼게요.', message: mistake.message || item.mistakeExplanation || '표현의 순서나 핵심 연결이 조금 어색해요.', countsAsSuccess: false };
+      }
+      const guessExpanded = normalizeExpanded(rawGuess);
+      const expectedExpanded = normalizeExpanded(item.en);
+      if (Math.abs(guessExpanded.length - expectedExpanded.length) <= 2 && editDistance(guessExpanded, expectedExpanded) <= 2) {
+        return { status: 'almost', feedbackClass: 'almost', title: '거의 맞았어요.', message: '철자나 짧은 단어 하나만 조금 다르게 보였어요.', countsAsSuccess: true };
+      }
+      if (sortedTokens(rawGuess) === sortedTokens(item.en)) {
+        return { status: 'retry', feedbackClass: 'bad', title: '다시 연결이 필요해요.', message: '단어는 거의 맞는데 순서가 어색해요. 입에 붙는 순서로 다시 말해 볼게요.', countsAsSuccess: false };
+      }
+      const guessWords = new Set(guessExpanded.split(' '));
+      if (item.verb && !guessWords.has(item.verb)) {
+        return { status: 'retry', feedbackClass: 'bad', title: '다시 연결이 필요해요.', message: `뜻은 가까울 수 있지만 오늘은 ${item.verb} 엔진으로 표현을 꺼내는 연습이에요.`, countsAsSuccess: false };
+      }
+      return { status: 'retry', feedbackClass: 'bad', title: '다시 연결이 필요해요.', message: item.mistakeExplanation || '오늘 목표 표현과는 아직 조금 달라요. 정답을 보고 한 번 더 입으로 붙여 볼게요.', countsAsSuccess: false };
+    }
+    function checkTextAnswer(item, mode) {
+      if (appState.questionAnswered) { nextQuestion(); return; }
+      const input = document.getElementById('answerInput');
+      const rawGuess = input?.value || '';
+      if (!normalize(rawGuess)) { toast('먼저 문장을 직접 써 보세요.'); return; }
+      const result = classifyAnswer(item, rawGuess);
+      markStudy(mode, item.id, result.countsAsSuccess);
+      showAnswerSummary(result.feedbackClass, item, result, rawGuess);
+    }
+    function chooseAnswer(item, mode, button) {
+      if (appState.questionAnswered) { nextQuestion(); return; }
+      document.querySelectorAll('.choice').forEach(c => c.classList.remove('selected'));
+      button.classList.add('selected');
+      const correct = normalize(button.dataset.value) === normalize(item.ko);
+      markStudy(mode, item.id, correct);
       if (correct) {
         button.style.borderColor = 'var(--good)';
         showFeedback('good', `맞았어요! <b>${item.en}</b> = ${item.ko}`);
@@ -811,27 +917,41 @@
         btn.disabled = appState.hintStep >= totalHints;
       }
     }
-        function showAnswerSummary(type, item, title) {
-          appState.questionAnswered = true;
-          const totalHints = Math.min(3, item.hint.length || 3);
-          const usedHints = Math.min(appState.hintStep, totalHints);
-          showFeedback(type, `
+    function showAnswerSummary(type, item, result, rawGuess) {
+      appState.questionAnswered = true;
+      pulseQuestion(type);
+      const totalHints = Math.min(3, item.hint.length || 3);
+      const usedHints = Math.min(appState.hintStep, totalHints);
+      const nuance = result.nuance ? `<div class="answer-key">뉘앙스</div><div>${escapeHtml(result.nuance)}</div>` : '';
+      showFeedback(type, `
         <div class="answer-summary">
-          <b>${escapeHtml(title)}</b>
+          <b>${escapeHtml(result.title)}</b>
+          <div style="margin-top:6px">${escapeHtml(result.message || '')}</div>
+          <div class="answer-key">내 답</div>
+          <div>${escapeHtml(rawGuess)}</div>
           <div class="answer-key">정답 영어 문장</div>
           <div><b>${escapeHtml(item.en)}</b></div>
           <div class="answer-key">자연스러운 한국어</div>
           <div>${escapeHtml(item.ko)}</div>
+          ${nuance}
           <div class="answer-key">단어 덩어리</div>
           <div class="chunk-row">${(item.chunks || []).map(chunk => `<span class="chunk">${escapeHtml(chunk)}</span>`).join('')}</div>
           <div class="answer-key">사용한 힌트 수: ${usedHints}/${totalHints} · ${escapeHtml(item.frame)} · ${escapeHtml(item.verb)} 엔진</div>
           <div class="question-actions"><button class="btn dark next-after-answer">다음 문제</button></div>
         </div>
-          `);
-          document.querySelectorAll('.check-answer').forEach(btn => { btn.textContent = appState.currentIndex + 1 >= appState.lessonItems.length ? '마무리하기' : '다음 문제'; });
-          const next = document.querySelector('.next-after-answer');
-          if (next) next.addEventListener('click', nextQuestion);
-        }
+      `);
+      document.querySelectorAll('.check-answer').forEach(btn => { btn.textContent = appState.currentIndex + 1 >= appState.lessonItems.length ? '마무리하기' : '다음 문제'; });
+      const next = document.querySelector('.next-after-answer');
+      if (next) next.addEventListener('click', nextQuestion);
+    }
+    function pulseQuestion(type) {
+      const card = document.getElementById('questionCard');
+      if (!card) return;
+      const className = type === 'good' ? 'pulse-good' : type === 'bad' ? 'pulse-bad' : 'pulse-warn';
+      card.classList.remove('pulse-good', 'pulse-warn', 'pulse-bad');
+      void card.offsetWidth;
+      card.classList.add(className);
+    }
     function showFeedback(type, html) {
       const el = document.getElementById('feedback');
       if (!el) return;
@@ -841,6 +961,19 @@
     function nextQuestion() {
       appState.currentIndex++;
       renderQuestion();
+    }
+    function previousQuestion() {
+      if (appState.currentIndex <= 0) return;
+      appState.currentIndex--;
+      renderQuestion();
+    }
+    function advanceFromNav(item, mode) {
+      if (appState.lessonItems.length <= 1) return;
+      if (!appState.questionAnswered) {
+        markSkipped(mode, item.id);
+        toast('이 문제는 나중에 다시 나와요.');
+      }
+      nextQuestion();
     }
     function finishLesson() {
       document.getElementById('lessonProgress').style.width = '100%';
