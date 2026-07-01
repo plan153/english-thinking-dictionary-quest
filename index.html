@@ -449,8 +449,10 @@
       selectedMode: null,
       lessonItems: [],
       currentIndex: 0,
-      hintStep: 0,
-      currentMap: 'get',
+          hintStep: 0,
+          questionAnswered: false,
+          isApplyingRoute: false,
+          currentMap: 'get',
       filter: '전체',
       search: '',
       dictionaryData: { verbs: [], nouns: [], patterns: [], expressions: [], learningPaths: null, isLoaded: false, error: null, selectedVerbId: null, selectedExpressionId: null, gameExpressions: [], dataSource: 'fallback' },
@@ -519,15 +521,62 @@
       target.querySelectorAll('.start-mode').forEach(btn => btn.addEventListener('click', () => startMode(btn.dataset.mode)));
     }
 
-    function showScreen(id) {
-      document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id));
-      document.querySelectorAll('.nav button').forEach(b => b.classList.toggle('active', b.dataset.screen === id));
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      if (id === 'dictionary') renderWords();
-      if (id === 'dictionary') renderDictionaryExplorer();
-      if (id === 'map') renderMap();
-      if (id === 'progress') updateDashboard();
-    }
+        function showScreen(id, options = {}) {
+          document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id));
+          document.querySelectorAll('.nav button').forEach(b => b.classList.toggle('active', b.dataset.screen === id));
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          if (id === 'dictionary') renderWords();
+          if (id === 'dictionary') renderDictionaryExplorer();
+          if (id === 'map') renderMap();
+          if (id === 'progress') updateDashboard();
+          if (!options.skipRoute && !appState.isApplyingRoute) updateRouteForScreen(id);
+        }
+
+        function routeExpressionId() {
+          return appState.dictionaryData.selectedExpressionId || '';
+        }
+        function updateRouteForScreen(id, replace = false) {
+          let hash = `#/${id}`;
+          if (id === 'dictionary' && routeExpressionId()) hash = `#/dictionary/${routeExpressionId()}`;
+          if (id === 'lesson') {
+            const item = appState.lessonItems[appState.currentIndex];
+            hash = item?.id ? `#/quiz/${item.id}?mode=${appState.selectedMode || 'koen'}` : '#/play';
+          }
+          if (window.location.hash === hash) return;
+          if (replace) window.location.replace(hash);
+          else window.location.hash = hash;
+        }
+        function parseHashRoute() {
+          const raw = window.location.hash.replace(/^#\/?/, '');
+          const [pathPart, query = ''] = raw.split('?');
+          const parts = pathPart.split('/').filter(Boolean);
+          const params = new URLSearchParams(query);
+          return { screen: parts[0] || 'home', id: parts[1] || null, mode: params.get('mode') || 'koen' };
+        }
+        function applyRoute() {
+          const route = parseHashRoute();
+          appState.isApplyingRoute = true;
+          try {
+            if (route.screen === 'dictionary') {
+              if (route.id) {
+                const expression = appState.dictionaryData.expressions.find(item => item.id === route.id);
+                if (expression) {
+                  appState.dictionaryData.selectedVerbId = expression.coreVerbId;
+                  appState.dictionaryData.selectedExpressionId = expression.id;
+                }
+              }
+              showScreen('dictionary', { skipRoute: true });
+            } else if (route.screen === 'quiz') {
+              startMode(route.mode || 'koen', route.id, { skipRoute: true });
+            } else if (document.getElementById(route.screen)) {
+              showScreen(route.screen, { skipRoute: true });
+            } else {
+              showScreen('home', { skipRoute: true });
+            }
+          } finally {
+            appState.isApplyingRoute = false;
+          }
+        }
 
     function shuffled(arr) { return [...arr].sort(() => Math.random() - .5); }
     const modeQuizTypes = { listen: 'listening', koen: 'koToEn', enko: 'enToKo', hint: 'hint', build: 'blank', review: 'koToEn' };
@@ -593,21 +642,23 @@
       if (mode === 'build') return shuffled(pool.filter(p => ['v_make','v_take','v_have','v_get','v_give'].includes(p.coreVerbId) || ['make','take','have','get','give'].includes(p.verb))).slice(0, 7);
       return shuffled(pool).slice(0, 7);
     }
-    function startMode(mode, expressionId = null) {
-      appState.selectedMode = mode;
-      appState.lessonItems = makeLesson(mode, expressionId);
-      appState.currentIndex = 0;
-      appState.hintStep = 0;
-      if (appState.dictionaryData.error && !appState.dictionaryData.gameExpressions.length) toast('사전 데이터를 불러오지 못해 기본 예비 표현으로 퀴즈를 시작해요.');
-      showScreen('lesson');
-      renderQuestion();
-    }
+        function startMode(mode, expressionId = null, options = {}) {
+          appState.selectedMode = mode;
+          appState.lessonItems = makeLesson(mode, expressionId);
+          appState.currentIndex = 0;
+          appState.hintStep = 0;
+          appState.questionAnswered = false;
+          if (appState.dictionaryData.error && !appState.dictionaryData.gameExpressions.length) toast('사전 데이터를 불러오지 못해 기본 예비 표현으로 퀴즈를 시작해요.');
+          showScreen('lesson', { skipRoute: options.skipRoute });
+          renderQuestion();
+        }
 
     function renderQuestion() {
       const item = appState.lessonItems[appState.currentIndex];
-      if (!item) return finishLesson();
-      appState.hintStep = 0;
-      rememberRecentExpression(item.id);
+          if (!item) return finishLesson();
+          appState.hintStep = 0;
+          appState.questionAnswered = false;
+          rememberRecentExpression(item.id);
       const mode = appState.selectedMode;
       const card = document.getElementById('questionCard');
       const progress = Math.round((appState.currentIndex) / appState.lessonItems.length * 100);
@@ -691,17 +742,34 @@
         markStudy(mode, item.id, true); showFeedback('good', `좋아요! <b>${item.en}</b><br><span class="answer-key">${item.frame} · ${item.verb} 엔진</span>`); btn.disabled = true; setTimeout(nextQuestion, 850);
       }));
       document.querySelectorAll('.show-answer').forEach(btn => btn.addEventListener('click', () => showFeedback('good', `<b>${item.en}</b><br><span class="answer-key">${item.ko} · ${item.frame}<br>직역 이미지: ${escapeHtml(item.literalMeaning || item.ko)}</span>`)));
-      document.querySelectorAll('.check-answer').forEach(btn => btn.addEventListener('click', () => checkTextAnswer(item, mode)));
-      document.querySelectorAll('.next-hint').forEach(btn => btn.addEventListener('click', () => showNextHint(item)));
-      document.querySelectorAll('.choice').forEach(btn => btn.addEventListener('click', () => chooseAnswer(item, mode, btn)));
-      const input = document.getElementById('answerInput');
-      if (input) input.addEventListener('keydown', e => { if (e.key === 'Enter') checkTextAnswer(item, mode); });
-    }
-    function normalize(s) { return s.toLowerCase().replace(/[.?!,']/g,'').replace(/\s+/g,' ').trim(); }
-    function checkTextAnswer(item, mode) {
-      const input = document.getElementById('answerInput');
-      const guess = normalize(input?.value || '');
-      if (!guess) { toast('먼저 문장을 직접 써 보세요.'); return; }
+          document.querySelectorAll('.check-answer').forEach(btn => btn.addEventListener('click', () => checkTextAnswer(item, mode)));
+          document.querySelectorAll('.next-hint').forEach(btn => btn.addEventListener('click', () => showNextHint(item)));
+          document.querySelectorAll('.choice').forEach(btn => btn.addEventListener('click', () => chooseAnswer(item, mode, btn)));
+          const input = document.getElementById('answerInput');
+          if (input) {
+            input.addEventListener('keydown', e => {
+              if (e.key !== 'Enter') return;
+              e.preventDefault();
+              if (appState.questionAnswered) nextQuestion();
+              else checkTextAnswer(item, mode);
+            });
+            requestAnimationFrame(() => input.focus());
+          }
+        }
+        function normalize(s) {
+          return String(s || '')
+            .normalize('NFKC')
+            .toLowerCase()
+            .replace(/[‘’`´]/g, "'")
+            .replace(/[.?!,;:"'()[\]{}]/g, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+        }
+        function checkTextAnswer(item, mode) {
+          if (appState.questionAnswered) { nextQuestion(); return; }
+          const input = document.getElementById('answerInput');
+          const guess = normalize(input?.value || '');
+          if (!guess) { toast('먼저 문장을 직접 써 보세요.'); return; }
       const expected = normalize(item.en);
       const correct = guess === expected || expected.includes(guess) && guess.length > Math.max(5, expected.length*.68);
       markStudy(mode, item.id, correct);
@@ -711,11 +779,12 @@
         showAnswerSummary('bad', item, '거의 다 왔어요. 정답을 보고 다시 연결해 보세요.');
       }
     }
-    function chooseAnswer(item, mode, button) {
-      document.querySelectorAll('.choice').forEach(c => c.classList.remove('selected'));
-      button.classList.add('selected');
-      const correct = normalize(button.dataset.value) === normalize(item.ko);
-      markStudy(mode, item.id, correct);
+        function chooseAnswer(item, mode, button) {
+          if (appState.questionAnswered) { nextQuestion(); return; }
+          document.querySelectorAll('.choice').forEach(c => c.classList.remove('selected'));
+          button.classList.add('selected');
+          const correct = normalize(button.dataset.value) === normalize(item.ko);
+          markStudy(mode, item.id, correct);
       if (correct) {
         button.style.borderColor = 'var(--good)';
         showFeedback('good', `맞았어요! <b>${item.en}</b> = ${item.ko}`);
@@ -742,10 +811,11 @@
         btn.disabled = appState.hintStep >= totalHints;
       }
     }
-    function showAnswerSummary(type, item, title) {
-      const totalHints = Math.min(3, item.hint.length || 3);
-      const usedHints = Math.min(appState.hintStep, totalHints);
-      showFeedback(type, `
+        function showAnswerSummary(type, item, title) {
+          appState.questionAnswered = true;
+          const totalHints = Math.min(3, item.hint.length || 3);
+          const usedHints = Math.min(appState.hintStep, totalHints);
+          showFeedback(type, `
         <div class="answer-summary">
           <b>${escapeHtml(title)}</b>
           <div class="answer-key">정답 영어 문장</div>
@@ -757,10 +827,11 @@
           <div class="answer-key">사용한 힌트 수: ${usedHints}/${totalHints} · ${escapeHtml(item.frame)} · ${escapeHtml(item.verb)} 엔진</div>
           <div class="question-actions"><button class="btn dark next-after-answer">다음 문제</button></div>
         </div>
-      `);
-      const next = document.querySelector('.next-after-answer');
-      if (next) next.addEventListener('click', nextQuestion);
-    }
+          `);
+          document.querySelectorAll('.check-answer').forEach(btn => { btn.textContent = appState.currentIndex + 1 >= appState.lessonItems.length ? '마무리하기' : '다음 문제'; });
+          const next = document.querySelector('.next-after-answer');
+          if (next) next.addEventListener('click', nextQuestion);
+        }
     function showFeedback(type, html) {
       const el = document.getElementById('feedback');
       if (!el) return;
@@ -831,9 +902,10 @@
         };
         toast('사전 데이터를 불러오지 못해 기본 예비 표현을 사용해요.');
       }
-      updateDashboard();
-      renderDictionaryExplorer();
-    }
+          updateDashboard();
+          renderDictionaryExplorer();
+          if (window.location.hash) applyRoute();
+        }
 
     function renderDictionaryExplorer() {
       const data = appState.dictionaryData;
@@ -872,11 +944,12 @@
       status.className = 'explorer-status';
       status.textContent = `${data.verbs.length}개 핵심 동사, ${data.patterns.length}개 표현 틀, ${data.expressions.length}개 표현 카드를 불러왔습니다.`;
       verbButtons.innerHTML = data.verbs.map(verb => `<button class="verb-chip ${verb.id === selectedVerb.id ? 'active' : ''}" data-verb-id="${verb.id}">${verb.word}</button>`).join('');
-      verbButtons.querySelectorAll('[data-verb-id]').forEach(button => button.addEventListener('click', () => {
-        appState.dictionaryData.selectedVerbId = button.dataset.verbId;
-        appState.dictionaryData.selectedExpressionId = null;
-        renderDictionaryExplorer();
-      }));
+          verbButtons.querySelectorAll('[data-verb-id]').forEach(button => button.addEventListener('click', () => {
+            appState.dictionaryData.selectedVerbId = button.dataset.verbId;
+            appState.dictionaryData.selectedExpressionId = null;
+            renderDictionaryExplorer();
+            updateRouteForScreen('dictionary');
+          }));
 
       verbPanel.innerHTML = `
         <h4>선택한 핵심 동사</h4>
@@ -892,11 +965,12 @@
           <span class="small-note">${escapeHtml(pattern.thinkingFrame)}</span>
         </button>
       `).join('') : '<p class="small-note">아직 연결된 표현 틀이 없습니다.</p>';
-      patternList.querySelectorAll('[data-pattern-id]').forEach(button => button.addEventListener('click', () => {
-        const first = data.expressions.find(e => e.patternId === button.dataset.patternId);
-        if (first) appState.dictionaryData.selectedExpressionId = first.id;
-        renderDictionaryExplorer();
-      }));
+          patternList.querySelectorAll('[data-pattern-id]').forEach(button => button.addEventListener('click', () => {
+            const first = data.expressions.find(e => e.patternId === button.dataset.patternId);
+            if (first) appState.dictionaryData.selectedExpressionId = first.id;
+            renderDictionaryExplorer();
+            updateRouteForScreen('dictionary');
+          }));
 
       expressionList.innerHTML = expressions.length ? expressions.map(expression => `
         <button class="expression-item ${selectedExpression?.id === expression.id ? 'active' : ''}" data-expression-id="${expression.id}">
@@ -904,10 +978,11 @@
           <span>${escapeHtml(expression.naturalKorean)}</span>
         </button>
       `).join('') : '<p class="small-note">아직 연결된 표현 카드가 없습니다.</p>';
-      expressionList.querySelectorAll('[data-expression-id]').forEach(button => button.addEventListener('click', () => {
-        appState.dictionaryData.selectedExpressionId = button.dataset.expressionId;
-        renderDictionaryExplorer();
-      }));
+          expressionList.querySelectorAll('[data-expression-id]').forEach(button => button.addEventListener('click', () => {
+            appState.dictionaryData.selectedExpressionId = button.dataset.expressionId;
+            renderDictionaryExplorer();
+            updateRouteForScreen('dictionary');
+          }));
 
       if (!selectedExpression) {
         detail.innerHTML = '<h3>표현 상세</h3><p>오른쪽의 실생활 표현을 선택하면 자세한 연결이 표시됩니다.</p>';
@@ -938,11 +1013,12 @@
       detail.querySelectorAll('.related-expression').forEach(button => button.addEventListener('click', () => {
         const related = data.expressions.find(expression => expression.id === button.dataset.expressionId);
         if (!related) return;
-        appState.dictionaryData.selectedVerbId = related.coreVerbId;
-        appState.dictionaryData.selectedExpressionId = related.id;
-        renderDictionaryExplorer();
-      }));
-    }
+            appState.dictionaryData.selectedVerbId = related.coreVerbId;
+            appState.dictionaryData.selectedExpressionId = related.id;
+            renderDictionaryExplorer();
+            updateRouteForScreen('dictionary');
+          }));
+        }
 
     function renderMap() {
       document.getElementById('mapFilters').innerHTML = Object.entries(mapSets).map(([key,val]) => `<button class="filter ${appState.currentMap === key ? 'active':''}" data-map="${key}">${key}</button>`).join('');
@@ -976,7 +1052,8 @@
     function toast(msg) { const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2200); }
     function escapeHtml(s) { return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
-    document.querySelectorAll('.nav button').forEach(btn => btn.addEventListener('click', () => showScreen(btn.dataset.screen)));
+        window.addEventListener('hashchange', applyRoute);
+        document.querySelectorAll('.nav button').forEach(btn => btn.addEventListener('click', () => showScreen(btn.dataset.screen)));
     document.getElementById('startDaily').addEventListener('click', () => startMode('koen'));
     document.getElementById('jumpDictionary').addEventListener('click', () => showScreen('dictionary'));
     document.getElementById('exitLesson').addEventListener('click', () => showScreen('play'));
@@ -990,7 +1067,8 @@
 
     renderModeCards('homeModes', 3);
     renderModeCards('gameModes', 6);
-    renderWords(); renderMap(); updateDashboard(); loadDictionaryExplorer();
-  </script>
+        renderWords(); renderMap(); updateDashboard(); loadDictionaryExplorer();
+        if (!window.location.hash) updateRouteForScreen('home', true);
+      </script>
 </body>
 </html>
