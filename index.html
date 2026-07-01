@@ -178,6 +178,15 @@
     .expression-detail h3 { font-size:22px; margin:0 0 7px; letter-spacing:-.7px; }
     .chunk-row { display:flex; flex-wrap:wrap; gap:6px; margin:11px 0; }
     .chunk { background:#eef7f6; color:#245c5a; border-radius:99px; padding:5px 8px; font-size:12px; font-weight:850; }
+    .connection-strip { display:inline-flex; align-items:center; gap:6px; flex-wrap:wrap; margin-top:12px; justify-content:center; }
+    .connection-dot { width:28px; height:28px; display:grid; place-items:center; border-radius:50%; border:1px solid var(--line); background:#fff; color:var(--ink); font-size:16px; font-weight:900; }
+    .connection-dot.connection-strong { background:var(--accent); color:#fff; border-color:var(--accent); }
+    .connection-dot.connection-weak { background:#eef7f6; color:var(--accent); border-color:#8ab3a8; }
+    .connection-dot.connection-empty { background:#fff; color:#9a9a9a; }
+    .connection-line { color:var(--muted); font-size:18px; }
+    .connection-link { margin-left:8px; color:var(--accent); font-size:18px; }
+    .connection-guide { max-width:620px; margin:14px auto 0; padding:12px 14px; background:#eef7f6; border-radius:16px; color:#245c5a; font-size:13px; line-height:1.6; }
+    .connection-strip-summary { margin-top:14px; }
     .hint-list { margin:10px 0 0; padding-left:18px; color:var(--muted); font-size:13px; line-height:1.6; }
 
     .map-wrap { overflow:auto; padding-bottom:5px; }
@@ -477,6 +486,22 @@
       audioSupported: true,
     };
 
+    function defaultHistoryEntry() {
+      return {
+        lastAttemptedAt: null,
+        lastCorrectAt: null,
+        lastMeaningHitAt: null,
+        timesSeen: 0,
+        timesCorrect: 0,
+        reviewPriority: 0,
+        lastHintLevel: 0,
+        connections: {
+          recognition: { strength: 0, updatedAt: null },
+          assembly: { strength: 0, updatedAt: null },
+          output: { strength: 0, updatedAt: null },
+        },
+      };
+    }
     function defaultProgress() {
       return {
         xp: 0,
@@ -487,9 +512,25 @@
         skipped: {},
         recentExpressionIds: [],
         daily: { date: null, done: [] },
-        settings: { soundEnabled: true },
+        settings: { soundEnabled: true, seenConnectionGuide: false },
         historyByExpressionId: {},
       };
+    }
+    function normalizeHistoryEntry(entry) {
+      const normalized = { ...defaultHistoryEntry(), ...entry };
+      normalized.lastHintLevel = entry.lastHintLevel || 0;
+      normalized.connections = {
+        ...defaultHistoryEntry().connections,
+        ...(entry.connections || {}),
+      };
+      Object.entries(normalized.connections).forEach(([key, value]) => {
+        normalized.connections[key] = {
+          ...defaultHistoryEntry().connections[key],
+          ...(value || {}),
+        };
+      });
+      normalized.reviewPriority = typeof entry.reviewPriority === 'number' ? entry.reviewPriority : normalized.reviewPriority;
+      return normalized;
     }
     function loadProgress() {
       try {
@@ -499,7 +540,7 @@
           ...saved,
           recentExpressionIds: saved.recentExpressionIds || [],
           settings: { ...defaultProgress().settings, ...(saved.settings || {}) },
-          historyByExpressionId: saved.historyByExpressionId || {},
+          historyByExpressionId: Object.fromEntries(Object.entries(saved.historyByExpressionId || {}).map(([id, history]) => [id, normalizeHistoryEntry(history)])),
         };
       }
       catch { return defaultProgress(); }
@@ -523,30 +564,42 @@
       if (!p.daily.done.includes(mode)) p.daily.done.push(mode);
       p.attempts[itemId] = (p.attempts[itemId] || 0) + 1;
       const now = new Date().toISOString();
-      const history = p.historyByExpressionId[itemId] || { lastAttemptedAt: null, lastCorrectAt: null, lastMeaningHitAt: null, timesSeen: 0, timesCorrect: 0, reviewPriority: 0 };
+      const history = p.historyByExpressionId[itemId] || defaultHistoryEntry();
       history.lastAttemptedAt = now;
       history.timesSeen = (history.timesSeen || 0) + 1;
+      history.lastOutcome = resultType;
       const signature = details.signature || resultType;
       const sessionRecord = appState.sessionStudyRecords[itemId] || {};
       const duplicateCorrect = sessionRecord.lastRecordedSignature === signature && (resultType === 'correct' || resultType === 'almost');
       const duplicateMeaning = sessionRecord.lastRecordedSignature === signature && resultType === 'meaning';
+      const connectionType = connectionTypeForMode(mode);
+      const hintLevel = Number.isFinite(details.hintLevel) ? details.hintLevel : appState.hintStep || 0;
+      const strength = (resultType === 'correct' || resultType === 'almost') ? strengthFromHints(hintLevel) : 0;
       if (resultType === 'correct' || resultType === 'almost') {
         if (!duplicateCorrect) {
           p.successes[itemId] = (p.successes[itemId] || 0) + 1;
           p.xp += 10;
           history.timesCorrect = (history.timesCorrect || 0) + 1;
           history.lastCorrectAt = now;
-          history.reviewPriority = Math.max(0, (history.reviewPriority || 0) - 1);
+          history.lastHintLevel = hintLevel;
+          updateHistoryConnections(itemId, connectionType, strength);
         }
         appState.sessionStudyRecords[itemId] = { lastRecordedSignature: signature };
       }
       else if (resultType === 'meaning') {
         history.lastMeaningHitAt = now;
+        history.lastHintLevel = hintLevel;
+        if (connectionType !== 'output') {
+          updateHistoryConnections(itemId, connectionType, strengthFromHints(hintLevel));
+        }
         if (!duplicateMeaning) {
-          history.reviewPriority = (history.reviewPriority || 0) + 1;
           appState.sessionStudyRecords[itemId] = { lastRecordedSignature: signature };
         }
       }
+      else if (resultType === 'retry') {
+        history.lastHintLevel = hintLevel;
+      }
+      history.reviewPriority = computeReviewPriority(itemId);
       p.historyByExpressionId[itemId] = history;
       saveProgress();
     }
@@ -684,6 +737,100 @@
         relatedExpressionIds: [],
       };
     }
+    function connectionTypeForMode(mode) {
+      if (mode === 'listen' || mode === 'enko') return 'recognition';
+      if (mode === 'build' || mode === 'hint') return 'assembly';
+      return 'output';
+    }
+    function strengthFromHints(hintLevel) {
+      return hintLevel >= 2 ? 0.5 : 1;
+    }
+    function clampValue(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+    function daysSince(value) {
+      if (!value) return Infinity;
+      return Math.floor((Date.now() - new Date(value).getTime()) / 86400000);
+    }
+    function getHistory(itemId) {
+      return appState.progress.historyByExpressionId[itemId] || defaultHistoryEntry();
+    }
+    function computeReviewPriority(itemId) {
+      const history = getHistory(itemId);
+      let score = 0;
+      if (history.lastOutcome === 'retry') score += 3;
+      if (history.lastOutcome === 'meaning') score += 2;
+      if (history.lastCorrectAt && history.lastHintLevel >= 3) score += 2;
+      const emptyPieces = ['recognition', 'assembly', 'output'].filter(key => (history.connections?.[key]?.strength || 0) === 0).length;
+      score += emptyPieces;
+      if (history.lastAttemptedAt && daysSince(history.lastAttemptedAt) >= 7) score += 1;
+      if (history.lastCorrectAt && history.lastHintLevel === 0) score -= 1;
+      const allStrong = ['recognition', 'assembly', 'output'].every(key => (history.connections?.[key]?.strength || 0) === 1);
+      if (allStrong) score -= 2;
+      return clampValue(Math.round(score), 0, 10);
+    }
+    function formatConnectionLabel(history) {
+      const pieces = [
+        ['recognition', '뜻 이해'],
+        ['assembly', '문장 조립'],
+        ['output', '직접 꺼내기'],
+      ];
+      return pieces.map(([key, label]) => {
+        const strength = history.connections?.[key]?.strength || 0;
+        const shape = strength === 1 ? '●' : strength === 0.5 ? '◐' : '○';
+        return `${shape}`;
+      }).join('—');
+    }
+    function renderConnectionStrip(item) {
+      const history = getHistory(item.id);
+      const dots = ['recognition', 'assembly', 'output'].map(key => {
+        const strength = history.connections?.[key]?.strength || 0;
+        const status = strength === 1 ? 'strong' : strength === 0.5 ? 'weak' : 'empty';
+        const title = key === 'recognition' ? '뜻 이해' : key === 'assembly' ? '문장 조립' : '직접 꺼내기';
+        return `<span class="connection-dot connection-${status}" role="img" aria-label="${title} ${status === 'strong' ? '강함' : status === 'weak' ? '약함' : '없음'}">${strength === 1 ? '●' : strength === 0.5 ? '◐' : '○'}</span>`;
+      }).join('<span class="connection-line">—</span>');
+      return `<div class="connection-strip" aria-label="뜻 이해, 문장 조립, 직접 꺼내기 연결 상태">${dots}${allStrongHistory(history) ? '<span class="connection-link">🔗</span>' : ''}</div>`;
+    }
+    function allStrongHistory(history) {
+      return ['recognition', 'assembly', 'output'].every(key => (history.connections?.[key]?.strength || 0) === 1);
+    }
+    function updateHistoryConnections(itemId, connectionType, strength) {
+      const history = getHistory(itemId);
+      const current = history.connections?.[connectionType] || { strength: 0, updatedAt: null };
+      if (strength > current.strength) {
+        history.connections[connectionType] = { strength, updatedAt: new Date().toISOString() };
+      }
+      appState.progress.historyByExpressionId[itemId] = history;
+    }
+    function getConnectionBeforeAfter(itemId, connectionType, newStrength) {
+      const history = getHistory(itemId);
+      const before = history.connections?.[connectionType]?.strength || 0;
+      return { before, after: Math.max(before, newStrength) };
+    }
+    function renderConnectionStripFromHistory(history) {
+      const dots = ['recognition', 'assembly', 'output'].map(key => {
+        const strength = history.connections?.[key]?.strength || 0;
+        const status = strength === 1 ? 'strong' : strength === 0.5 ? 'weak' : 'empty';
+        const title = key === 'recognition' ? '뜻 이해' : key === 'assembly' ? '문장 조립' : '직접 꺼내기';
+        return `<span class="connection-dot connection-${status}" role="img" aria-label="${title} ${status === 'strong' ? '강함' : status === 'weak' ? '약함' : '없음'}">${strength === 1 ? '●' : strength === 0.5 ? '◐' : '○'}</span>`;
+      }).join('<span class="connection-line">—</span>');
+      const allStrong = ['recognition', 'assembly', 'output'].every(key => (history.connections?.[key]?.strength || 0) === 1);
+      return `<div class="connection-strip" aria-label="뜻 이해, 문장 조립, 직접 꺼내기 연결 상태">${dots}${allStrong ? '<span class="connection-link">🔗</span>' : ''}</div>`;
+    }
+    function getConnectionGraph(item) {
+      return renderConnectionStripFromHistory(getHistory(item.id));
+    }
+    function getConnectionLine(item) {
+      return getConnectionGraph(item);
+    }
+    function getReviewPriorityLabel(item) {
+      const priority = computeReviewPriority(item.id);
+      return priority > 0 ? `약한 연결` : `새로운 연결`;
+    }
+    function getItemReviewPriority(item) {
+      return computeReviewPriority(item.id);
+    }
+    function clampPercent(value) { return clampValue(value, 0, 100); }
     function getGameBank() {
       return appState.dictionaryData.gameExpressions.length ? appState.dictionaryData.gameExpressions : phraseBank.map(normalizeFallbackPhrase);
     }
@@ -704,10 +851,19 @@
       const recent = new Set(appState.progress.recentExpressionIds || []);
       const eligible = bank.filter(item => supportsMode(item, mode));
       const basePool = eligible.length ? eligible : bank;
+      if (mode === 'review') {
+        const scored = basePool.map(item => ({ item, priority: getItemReviewPriority(item), recent: recent.has(item.id) }));
+        const topCandidates = scored.sort((a, b) => {
+          if (b.priority !== a.priority) return b.priority - a.priority;
+          if (a.recent !== b.recent) return a.recent ? 1 : -1;
+          return a.item.en.localeCompare(b.item.en);
+        });
+        const primary = topCandidates.filter(c => !c.recent).slice(0, 5).map(c => c.item);
+        const secondary = topCandidates.filter(c => c.recent).slice(0, 5).map(c => c.item);
+        return shuffled([...primary, ...secondary]).slice(0, 7);
+      }
       const lessRecent = basePool.filter(item => !recent.has(item.id));
       const pool = lessRecent.length >= 7 ? lessRecent : basePool;
-      const weak = [...pool].sort((a,b) => (appState.progress.successes[a.id] || 0) - (appState.progress.successes[b.id] || 0));
-      if (mode === 'review') return weak.slice(0, 7);
       if (mode === 'build') return shuffled(pool.filter(p => ['v_make','v_take','v_have','v_get','v_give'].includes(p.coreVerbId) || ['make','take','have','get','give'].includes(p.verb))).slice(0, 7);
       return shuffled(pool).slice(0, 7);
     }
@@ -735,6 +891,7 @@
       document.getElementById('lessonProgressText').textContent = `${appState.currentIndex + 1} / ${appState.lessonItems.length}`;
 
       const baseTop = `<div class="lesson-label">${modeTitle(mode)} · ${item.frame} · ${item.level || 1}단계</div>`;
+      const connectionSummary = `<div class="connection-strip-summary">${getConnectionGraph(item)}</div>`;
       let body = '';
       if (mode === 'listen') body = renderListen(item);
       else if (mode === 'koen') body = renderKoEn(item);
@@ -742,7 +899,7 @@
       else if (mode === 'hint') body = renderHint(item);
       else if (mode === 'build') body = renderBuild(item);
       else body = renderReview(item);
-      card.innerHTML = baseTop + body;
+      card.innerHTML = baseTop + connectionSummary + body;
       attachQuestionHandlers(item, mode);
     }
 
@@ -799,10 +956,10 @@
         <div class="hint-box hidden" id="hintBox"></div><div class="feedback hidden" id="feedback"></div>`;
     }
     function renderReview(item) {
-      const success = appState.progress.successes[item.id] || 0;
       return `
         <h2>${item.ko}</h2>
-        <p class="korean">이 표현은 지금까지 <b>${success}회</b> 성공했어요. 3회가 되면 내 표현으로 표시됩니다.</p>
+        <p class="korean">이 표현의 연결 상태를 다시 확인하고, 약한 연결을 더 단단하게 만들어 보세요.</p>
+        <div class="connection-strip-summary">${getConnectionGraph(item)}</div>
         <input class="answer-input" id="answerInput" placeholder="Type your English sentence" autocomplete="off" />
         ${renderQuizNav('다시 연결하기')}
         <div class="question-actions"><button class="btn soft next-hint">힌트 1/3</button></div>
@@ -936,16 +1093,21 @@
       if (!normalize(rawGuess)) { toast('먼저 문장을 직접 써 보세요.'); return; }
       const result = classifyAnswer(item, rawGuess);
       const signature = normalize(rawGuess);
+      const historyBefore = getHistory(item.id);
+      const connectionType = connectionTypeForMode(mode);
+      const beforeGraph = renderConnectionStripFromHistory(historyBefore);
       if (result.status === 'correct') {
-        markStudy(mode, item.id, 'correct', { signature });
+        markStudy(mode, item.id, 'correct', { signature, hintLevel: appState.hintStep });
       } else if (result.status === 'almost') {
-        markStudy(mode, item.id, 'almost', { signature });
+        markStudy(mode, item.id, 'almost', { signature, hintLevel: appState.hintStep });
       } else if (result.status === 'meaning') {
-        markStudy(mode, item.id, 'meaning', { signature });
+        markStudy(mode, item.id, 'meaning', { signature, hintLevel: appState.hintStep });
       } else {
-        markStudy(mode, item.id, 'retry', { signature });
+        markStudy(mode, item.id, 'retry', { signature, hintLevel: appState.hintStep });
       }
-      showAnswerSummary(result.feedbackClass, item, result, rawGuess);
+      const afterGraph = renderConnectionStripFromHistory(getHistory(item.id));
+      const connectionNote = beforeGraph !== afterGraph ? `${beforeGraph} → ${afterGraph}` : afterGraph;
+      showAnswerSummary(result.feedbackClass, item, result, rawGuess, connectionNote);
     }
     function chooseAnswer(item, mode, button) {
       if (appState.questionAnswered) { nextQuestion(); return; }
@@ -980,16 +1142,18 @@
         btn.disabled = appState.hintStep >= totalHints;
       }
     }
-    function showAnswerSummary(type, item, result, rawGuess) {
+    function showAnswerSummary(type, item, result, rawGuess, connectionNote = '') {
       appState.questionAnswered = true;
       pulseQuestion(type);
       const totalHints = Math.min(3, item.hint.length || 3);
       const usedHints = Math.min(appState.hintStep, totalHints);
       const nuance = result.nuance ? `<div class="answer-key">뉘앙스</div><div>${escapeHtml(result.nuance)}</div>` : '';
+      const buttonText = result.status === 'retry' || result.status === 'meaning' ? '한 번 더 해보기' : (appState.currentIndex + 1 >= appState.lessonItems.length ? '마무리하기' : '다음 문제');
       showFeedback(type, `
         <div class="answer-summary">
           <b>${escapeHtml(result.title)}</b>
           <div style="margin-top:6px">${escapeHtml(result.message || '')}</div>
+          ${connectionNote ? `<div class="answer-key">연결 상태</div><div>${connectionNote}</div>` : ''}
           <div class="answer-key">내 답</div>
           <div>${escapeHtml(rawGuess)}</div>
           <div class="answer-key">정답 영어 문장</div>
@@ -1000,10 +1164,10 @@
           <div class="answer-key">단어 덩어리</div>
           <div class="chunk-row">${(item.chunks || []).map(chunk => `<span class="chunk">${escapeHtml(chunk)}</span>`).join('')}</div>
           <div class="answer-key">사용한 힌트 수: ${usedHints}/${totalHints} · ${escapeHtml(item.frame)} · ${escapeHtml(item.verb)} 엔진</div>
-          <div class="question-actions"><button class="btn dark next-after-answer">다음 문제</button></div>
+          <div class="question-actions"><button class="btn dark next-after-answer">${buttonText}</button></div>
         </div>
       `);
-      document.querySelectorAll('.check-answer').forEach(btn => { btn.textContent = appState.currentIndex + 1 >= appState.lessonItems.length ? '마무리하기' : '다음 문제'; });
+      document.querySelectorAll('.check-answer').forEach(btn => { btn.textContent = buttonText; });
       const next = document.querySelector('.next-after-answer');
       if (next) next.addEventListener('click', nextQuestion);
     }
@@ -1173,6 +1337,7 @@
         <button class="expression-item ${selectedExpression?.id === expression.id ? 'active' : ''}" data-expression-id="${expression.id}">
           ${escapeHtml(expression.english)}
           <span>${escapeHtml(expression.naturalKorean)}</span>
+          <div class="connection-strip-summary">${renderConnectionStripFromHistory(getHistory(expression.id))}</div>
         </button>
       `).join('') : '<p class="small-note">아직 연결된 표현 카드가 없습니다.</p>';
           expressionList.querySelectorAll('[data-expression-id]').forEach(button => button.addEventListener('click', () => {
@@ -1187,10 +1352,17 @@
       }
       const pattern = data.patterns.find(p => p.id === selectedExpression.patternId);
       const nouns = selectedExpression.nounIds.map(id => data.nouns.find(noun => noun.id === id)?.word || id);
+      const guideBanner = appState.progress.settings.seenConnectionGuide ? '' : '<div class="connection-guide">뜻을 알고, 문장을 만들고, 직접 꺼내면 표현이 연결돼요.</div>';
+      if (!appState.progress.settings.seenConnectionGuide) {
+        appState.progress.settings.seenConnectionGuide = true;
+        saveProgress();
+      }
       detail.innerHTML = `
         <h4>표현 상세</h4>
+        ${guideBanner}
         <h3>${escapeHtml(selectedExpression.english)}</h3>
         <p><b>${escapeHtml(selectedExpression.naturalKorean)}</b></p>
+        <div class="connection-strip-summary">${getConnectionGraph(selectedExpression)}</div>
         <p class="small-note">직역 이미지: ${escapeHtml(selectedExpression.literalMeaning)}</p>
         <div class="chunk-row">${selectedExpression.chunks.map(chunk => `<span class="chunk">${escapeHtml(chunk)}</span>`).join('')}</div>
         <p class="explorer-guide">단어 덩어리를 보고 문장을 통째로 익힌 뒤, 아래 버튼으로 바로 퀴즈를 풀 수 있습니다.</p>
@@ -1229,13 +1401,36 @@
     function renderReviewList() {
       const target = document.getElementById('reviewList');
       if (!target) return;
-      const review = [...getGameBank()].sort((a,b) => (appState.progress.successes[a.id]||0)-(appState.progress.successes[b.id]||0)).slice(0,5);
-      target.innerHTML = review.map((p,i) => {
-        const n = appState.progress.successes[p.id] || 0;
-        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:${i===review.length-1?'0':'1px solid var(--line)'}"><span style="width:28px;height:28px;display:grid;place-items:center;border-radius:50%;background:#eef7f6;color:#286f6c;font-weight:900;font-size:12px">${n}/3</span><div style="flex:1"><b>${p.en}</b><div class="small-note" style="margin:2px 0 0">${p.ko} · ${p.frame}</div></div><button class="filter review-one" data-id="${p.id}">복습</button></div>`;
+      const review = [...getGameBank()]
+        .map(item => ({ item, priority: getItemReviewPriority(item), recent: appState.progress.recentExpressionIds.includes(item.id) }))
+        .filter(entry => entry.priority > 0)
+        .sort((a, b) => {
+          if (b.priority !== a.priority) return b.priority - a.priority;
+          if (a.recent !== b.recent) return a.recent ? 1 : -1;
+          return a.item.en.localeCompare(b.item.en);
+        })
+        .slice(0, 7);
+      if (!review.length) {
+        target.innerHTML = '<div class="card empty">약한 연결이 없습니다. 다른 퀘스트를 진행하며 연결을 더 단단하게 만들어 보세요.</div>';
+        return;
+      }
+      target.innerHTML = review.map((entry,i) => {
+        const p = entry.item;
+        const label = getReviewPriorityLabel(p);
+        return `<div class="card" style="display:flex;flex-direction:column;gap:10px;padding:14px 16px;margin-bottom:10px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+            <div><b>${escapeHtml(p.en)}</b><div class="small-note" style="margin:4px 0 0">${escapeHtml(p.ko)} · ${escapeHtml(p.frame)}</div></div>
+            <span class="small-note">${escapeHtml(label)}</span>
+          </div>
+          <div>${getConnectionGraph(p)}</div>
+          <div style="display:flex;justify-content:flex-end;">
+            <button class="btn soft review-one" data-id="${p.id}">다시 연결하기</button>
+          </div>
+        </div>`;
       }).join('');
       target.querySelectorAll('.review-one').forEach(btn => btn.addEventListener('click', () => {
         const item = getGameBank().find(p => p.id === btn.dataset.id);
+        if (!item) return;
         appState.selectedMode = 'review'; appState.lessonItems=[item]; appState.currentIndex=0; showScreen('lesson'); renderQuestion();
       }));
     }

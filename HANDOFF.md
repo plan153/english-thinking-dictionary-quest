@@ -36,7 +36,8 @@
 - 표현 카드: `data/expressions.json`
 - 학습 경로: `data/learning-paths.json`
 - 표현 카드는 `english`, `naturalKorean`, `literalMeaning`, `coreVerbId`, `patternId`, `nounIds`, `situationTags`, `level`, `chunks`, 3단계 `hints`, `quizTypes`, `audioText`, `relatedExpressionIds`를 가진다.
-- 이번 단계에서 추가된 `etdQuestProgress` 확장: `settings.soundEnabled`와 `historyByExpressionId` 기록 추가.
+- 이번 단계에서 추가된 `etdQuestProgress` 확장: `settings.soundEnabled`, `settings.seenConnectionGuide`, `historyByExpressionId` 기록과 `connections` 기반 리뷰 우선순위.
+- `historyByExpressionId`는 `recognition`/`assembly`/`output` 연결 강도와 `reviewPriority` 0~10을 저장한다.
 
 ## 현재 데이터 규모
 - 핵심 동사 15개: be, do, have, get, make, take, give, go, come, put, keep, find, feel, want, need
