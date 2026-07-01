@@ -121,6 +121,8 @@
     .feedback.good { background:#e9f7f0; color:#256b4d; }
     .feedback.bad { background:#fff0ee; color:#a7433b; }
     .answer-key { font-size: 14px; margin-top:8px; color:var(--muted); }
+    .answer-summary { text-align:left; }
+    .answer-summary .chunk-row { margin:9px 0 0; }
 
     .choices { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; max-width:650px; width:100%; align-self:center; margin-top: 12px; }
     .choice { background:#fff; color:var(--ink); border:1px solid var(--line); border-radius:14px; padding: 14px 12px; font-weight:750; text-align:left; }
@@ -146,6 +148,25 @@
     .word-card .meaning { margin-top:9px; color:var(--muted); font-size:13px; line-height:1.45; }
     .word-card .example { margin-top:9px; font-size:13px; line-height:1.45; }
     .word-card .connections { margin-top:9px; font-size:12px; color:#9a7028; }
+    .dictionary-explorer { margin-top:16px; }
+    .explorer-status { margin-top:10px; padding:12px 14px; border-radius:13px; background:#fff7dd; color:#745514; font-size:13px; line-height:1.5; }
+    .explorer-status.error { background:#fff0ee; color:#9d3d35; }
+    .explorer-guide { color:var(--muted); font-size:13px; line-height:1.55; margin: 7px 0 0; }
+    .verb-buttons { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+    .verb-chip { border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:13px; padding:9px 11px; font-weight:850; min-width:62px; }
+    .verb-chip.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+    .explorer-grid { display:grid; grid-template-columns: .9fr 1.15fr 1.2fr; gap:14px; margin-top:16px; align-items:start; }
+    .explorer-panel { border:1px solid var(--line); border-radius:16px; padding:14px; background:#fffdf9; min-height:170px; }
+    .explorer-panel h4 { margin:0 0 9px; font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
+    .verb-image { font-weight:900; font-size:20px; letter-spacing:-.5px; margin-bottom:7px; }
+    .pattern-list, .expression-list { display:grid; gap:8px; }
+    .pattern-item, .expression-item { border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:12px; padding:10px 11px; text-align:left; font-weight:760; line-height:1.35; }
+    .pattern-item.active, .expression-item.active { border-color:var(--accent); background:#eaf4f3; }
+    .expression-item span { display:block; margin-top:3px; color:var(--muted); font-size:12px; font-weight:650; }
+    .expression-detail h3 { font-size:22px; margin:0 0 7px; letter-spacing:-.7px; }
+    .chunk-row { display:flex; flex-wrap:wrap; gap:6px; margin:11px 0; }
+    .chunk { background:#eef7f6; color:#245c5a; border-radius:99px; padding:5px 8px; font-size:12px; font-weight:850; }
+    .hint-list { margin:10px 0 0; padding-left:18px; color:var(--muted); font-size:13px; line-height:1.6; }
 
     .map-wrap { overflow:auto; padding-bottom:5px; }
     .thinking-map { min-width:800px; display:grid; grid-template-columns: 1fr 1.35fr 1fr; gap:16px; align-items:stretch; }
@@ -172,6 +193,7 @@
 
     @media (max-width: 780px) {
       .grid.cols-3, .word-list { grid-template-columns:1fr 1fr; }
+      .explorer-grid { grid-template-columns:1fr; }
       .topbar { align-items:flex-start; flex-direction:column; }
       .top-stats { justify-content:flex-start; }
       .choices { grid-template-columns:1fr; }
@@ -207,7 +229,7 @@
     <nav class="nav" aria-label="주요 메뉴">
       <button class="active" data-screen="home">오늘의 퀘스트</button>
       <button data-screen="play">게임 모드</button>
-      <button data-screen="dictionary">생각 사전</button>
+      <button data-screen="dictionary">사전 탐험</button>
       <button data-screen="map">연결 지도</button>
       <button data-screen="progress">내 성장</button>
     </nav>
@@ -219,7 +241,7 @@
         <p><b>have · get · make · take · give · go · come · keep · put · feel</b> 같은 기본 동사와 핵심 명사를 연결합니다. 듣고, 따라 말하고, 힌트를 보며 직접 조립하면 한국어를 거치지 않고 말이 나옵니다.</p>
         <div class="hero-actions">
           <button class="btn primary" id="startDaily">오늘의 7분 퀘스트 시작</button>
-          <button class="btn ghost" id="jumpDictionary">생각 사전 보기</button>
+          <button class="btn ghost" id="jumpDictionary">사전 탐험하기</button>
         </div>
       </div>
 
@@ -275,7 +297,32 @@
 
     <section id="dictionary" class="screen">
       <div class="section-head">
-        <div><h2>생각 사전</h2><p>단어를 번역으로 외우지 말고, 쓰임과 연결로 익히세요.</p></div>
+        <div><h2>핵심 동사로 영어 표현 탐험하기</h2><p>동사를 누르면 연결된 표현 틀과 실제 생활 표현이 이어집니다.</p></div>
+      </div>
+      <article class="card dictionary-explorer">
+        <div class="section-head" style="margin-bottom:0">
+          <div><h2>사전 탐험</h2><p>1단계: 핵심 동사 선택 → 2단계: 표현 틀 확인 → 3단계: 표현을 눌러 뜻과 힌트 보기</p></div>
+        </div>
+        <div id="explorerStatus" class="explorer-status">사전 데이터를 불러오는 중입니다.</div>
+        <p class="explorer-guide">먼저 아래 동사 버튼을 눌러 보세요. 같은 동사가 어떤 표현 틀을 만들고, 어떤 문장으로 쓰이는지 한눈에 볼 수 있습니다.</p>
+        <div id="verbExplorerButtons" class="verb-buttons"></div>
+        <div class="explorer-grid">
+          <div class="explorer-panel" id="verbExplorerPanel"></div>
+          <div class="explorer-panel">
+            <h4>연결된 표현 틀</h4>
+            <p class="explorer-guide">선택한 동사가 자주 만드는 문장 뼈대입니다. 틀을 누르면 해당 예문으로 이동합니다.</p>
+            <div class="pattern-list" id="patternExplorerList"></div>
+          </div>
+          <div class="explorer-panel">
+            <h4>실생활 표현</h4>
+            <p class="explorer-guide">바로 말할 수 있는 생활 표현입니다. 표현을 누르면 상세 설명과 퀴즈 버튼이 열립니다.</p>
+            <div class="expression-list" id="expressionExplorerList"></div>
+          </div>
+        </div>
+        <div class="explorer-panel expression-detail" id="expressionExplorerDetail" style="margin-top:14px"></div>
+      </article>
+      <div class="section-head" style="margin-top:28px">
+        <div><h2>기존 생각 사전 검색</h2><p>단어를 번역으로 외우지 말고, 쓰임과 연결로 익히세요.</p></div>
       </div>
       <div class="dictionary-toolbar">
         <input id="wordSearch" class="search" placeholder="예: get, time, 약속, 이해하다" />
@@ -406,14 +453,18 @@
       currentMap: 'get',
       filter: '전체',
       search: '',
+      dictionaryData: { verbs: [], nouns: [], patterns: [], expressions: [], learningPaths: null, isLoaded: false, error: null, selectedVerbId: null, selectedExpressionId: null, gameExpressions: [], dataSource: 'fallback' },
       progress: loadProgress(),
     };
 
     function defaultProgress() {
-      return { xp: 0, streak: 0, lastStudyDate: null, successes: {}, attempts: {}, daily: { date: null, done: [] } };
+      return { xp: 0, streak: 0, lastStudyDate: null, successes: {}, attempts: {}, recentExpressionIds: [], daily: { date: null, done: [] } };
     }
     function loadProgress() {
-      try { return { ...defaultProgress(), ...JSON.parse(localStorage.getItem('etdQuestProgress') || '{}') }; }
+      try {
+        const saved = JSON.parse(localStorage.getItem('etdQuestProgress') || '{}');
+        return { ...defaultProgress(), ...saved, recentExpressionIds: saved.recentExpressionIds || [] };
+      }
       catch { return defaultProgress(); }
     }
     function saveProgress() { localStorage.setItem('etdQuestProgress', JSON.stringify(appState.progress)); updateDashboard(); }
@@ -444,7 +495,7 @@
       document.getElementById('streak').textContent = p.streak || 0;
       document.getElementById('xp').textContent = p.xp || 0;
       document.getElementById('mastered').textContent = masteredCount();
-      document.getElementById('totalWords').textContent = phraseBank.length;
+      document.getElementById('totalWords').textContent = getGameBank().length;
       document.getElementById('dailyPercent').textContent = percent + '%';
       document.getElementById('dailyRing').style.setProperty('--p', percent);
       document.getElementById('dailyBar').style.width = percent + '%';
@@ -473,22 +524,81 @@
       document.querySelectorAll('.nav button').forEach(b => b.classList.toggle('active', b.dataset.screen === id));
       window.scrollTo({ top: 0, behavior: 'smooth' });
       if (id === 'dictionary') renderWords();
+      if (id === 'dictionary') renderDictionaryExplorer();
       if (id === 'map') renderMap();
       if (id === 'progress') updateDashboard();
     }
 
     function shuffled(arr) { return [...arr].sort(() => Math.random() - .5); }
-    function makeLesson(mode) {
-      const weak = [...phraseBank].sort((a,b) => (appState.progress.successes[a.id] || 0) - (appState.progress.successes[b.id] || 0));
-      let pool = mode === 'review' ? weak : shuffled(phraseBank);
-      if (mode === 'build') pool = shuffled(phraseBank.filter(p => ['make','take','have','get','give'].includes(p.verb)));
-      return pool.slice(0, 7);
+    const modeQuizTypes = { listen: 'listening', koen: 'koToEn', enko: 'enToKo', hint: 'hint', build: 'blank', review: 'koToEn' };
+    function verbWordFromId(id, verbs = appState.dictionaryData.verbs) {
+      return verbs.find(v => v.id === id)?.word || String(id || '').replace(/^v_/, '');
     }
-    function startMode(mode) {
+    function patternLabelFromId(id, patterns = appState.dictionaryData.patterns) {
+      return patterns.find(p => p.id === id)?.label || id || '';
+    }
+    function normalizeExpression(expression, collections = appState.dictionaryData) {
+      return {
+        ...expression,
+        en: expression.english,
+        ko: expression.naturalKorean,
+        verb: verbWordFromId(expression.coreVerbId, collections.verbs || []),
+        frame: patternLabelFromId(expression.patternId, collections.patterns || []),
+        nouns: expression.nounIds || [],
+        hint: expression.hints || [],
+      };
+    }
+    function normalizeFallbackPhrase(phrase) {
+      return {
+        ...phrase,
+        english: phrase.en,
+        naturalKorean: phrase.ko,
+        literalMeaning: phrase.ko,
+        audioText: phrase.en,
+        chunks: phrase.en.split(' '),
+        hints: (phrase.hint || []).slice(0, 3),
+        quizTypes: ['listening', 'speaking', 'koToEn', 'enToKo', 'blank', 'hint'],
+        coreVerbId: `v_${phrase.verb}`,
+        patternId: phrase.frame,
+        nounIds: phrase.nouns || [],
+        situationTags: [],
+        level: 1,
+        relatedExpressionIds: [],
+      };
+    }
+    function getGameBank() {
+      return appState.dictionaryData.gameExpressions.length ? appState.dictionaryData.gameExpressions : phraseBank.map(normalizeFallbackPhrase);
+    }
+    function supportsMode(item, mode) {
+      const quizType = modeQuizTypes[mode] || 'koToEn';
+      return (item.quizTypes || []).includes(quizType);
+    }
+    function rememberRecentExpression(id) {
+      if (!id) return;
+      const recent = [id, ...(appState.progress.recentExpressionIds || []).filter(x => x !== id)].slice(0, 12);
+      appState.progress.recentExpressionIds = recent;
+      localStorage.setItem('etdQuestProgress', JSON.stringify(appState.progress));
+    }
+    function makeLesson(mode, expressionId = null) {
+      const bank = getGameBank();
+      const direct = expressionId ? bank.find(item => item.id === expressionId) : null;
+      if (direct) return [direct];
+      const recent = new Set(appState.progress.recentExpressionIds || []);
+      const eligible = bank.filter(item => supportsMode(item, mode));
+      const basePool = eligible.length ? eligible : bank;
+      const lessRecent = basePool.filter(item => !recent.has(item.id));
+      const pool = lessRecent.length >= 7 ? lessRecent : basePool;
+      const weak = [...pool].sort((a,b) => (appState.progress.successes[a.id] || 0) - (appState.progress.successes[b.id] || 0));
+      if (mode === 'review') return weak.slice(0, 7);
+      if (mode === 'build') return shuffled(pool.filter(p => ['v_make','v_take','v_have','v_get','v_give'].includes(p.coreVerbId) || ['make','take','have','get','give'].includes(p.verb))).slice(0, 7);
+      return shuffled(pool).slice(0, 7);
+    }
+    function startMode(mode, expressionId = null) {
       appState.selectedMode = mode;
-      appState.lessonItems = makeLesson(mode);
+      appState.lessonItems = makeLesson(mode, expressionId);
       appState.currentIndex = 0;
       appState.hintStep = 0;
+      if (appState.dictionaryData.error && !appState.dictionaryData.gameExpressions.length) toast('사전 데이터를 불러오지 못해 기본 예비 표현으로 퀴즈를 시작해요.');
       showScreen('lesson');
       renderQuestion();
     }
@@ -497,13 +607,14 @@
       const item = appState.lessonItems[appState.currentIndex];
       if (!item) return finishLesson();
       appState.hintStep = 0;
+      rememberRecentExpression(item.id);
       const mode = appState.selectedMode;
       const card = document.getElementById('questionCard');
       const progress = Math.round((appState.currentIndex) / appState.lessonItems.length * 100);
       document.getElementById('lessonProgress').style.width = progress + '%';
       document.getElementById('lessonProgressText').textContent = `${appState.currentIndex + 1} / ${appState.lessonItems.length}`;
 
-      const baseTop = `<div class="lesson-label">${modeTitle(mode)} · ${item.frame}</div>`;
+      const baseTop = `<div class="lesson-label">${modeTitle(mode)} · ${item.frame} · ${item.level || 1}단계</div>`;
       let body = '';
       if (mode === 'listen') body = renderListen(item);
       else if (mode === 'koen') body = renderKoEn(item);
@@ -520,7 +631,7 @@
       return `
         <h2>${item.en}</h2>
         <p class="korean">${item.ko}</p>
-        <button class="sound-btn speak" data-text="${escapeHtml(item.en)}" title="문장 듣기">🔊</button>
+        <button class="sound-btn speak" data-text="${escapeHtml(item.audioText || item.en)}" title="문장 듣기">🔊</button>
         <p class="sound-help">버튼을 눌러 3번 듣고, 문장 전체를 따라 말해 보세요.</p>
         <div class="repeat-panel"><strong>🎤 따라 말하기 미션</strong>입으로 문장을 2번 말한 뒤, “말했어요” 버튼을 눌러 경험치를 받으세요. 브라우저 음성 인식은 기기마다 다르게 지원됩니다.</div>
         <div class="question-actions"><button class="btn accent complete-repeat">말했어요 (+10 XP)</button><button class="btn soft show-answer">표현 연결 보기</button></div>
@@ -531,16 +642,16 @@
         <h2>${item.ko}</h2>
         <p class="korean">말하듯이 영어로 조립해 보세요. 대소문자와 마침표는 크게 신경 쓰지 않아도 됩니다.</p>
         <input class="answer-input" id="answerInput" placeholder="Type your English sentence" autocomplete="off" />
-        <div class="question-actions"><button class="btn dark check-answer">정답 확인</button><button class="btn soft next-hint">힌트 <span id="hintCount">1</span>/4</button></div>
+        <div class="question-actions"><button class="btn dark check-answer">정답 확인</button><button class="btn soft next-hint">힌트 1/3</button></div>
         <div class="hint-box hidden" id="hintBox"></div><div class="feedback hidden" id="feedback"></div>`;
     }
     function renderEnKo(item) {
-      const wrong = shuffled(phraseBank.filter(p => p.id !== item.id)).slice(0,3).map(p => p.ko);
+      const wrong = shuffled(getGameBank().filter(p => p.id !== item.id && supportsMode(p, 'enko'))).slice(0,3).map(p => p.ko);
       const choices = shuffled([item.ko, ...wrong]);
       return `
         <h2>${item.en}</h2>
         <p class="korean">가장 자연스러운 뜻이나 상황을 골라 보세요.</p>
-        <button class="sound-btn speak" data-text="${escapeHtml(item.en)}" title="문장 듣기">🔊</button>
+        <button class="sound-btn speak" data-text="${escapeHtml(item.audioText || item.en)}" title="문장 듣기">🔊</button>
         <div class="choices" id="choices">${choices.map(c => `<button class="choice" data-value="${escapeHtml(c)}">${c}</button>`).join('')}</div>
         <div class="feedback hidden" id="feedback"></div>`;
     }
@@ -550,19 +661,18 @@
         <p class="korean">답을 바로 보지 말고, 힌트 한 단계씩만 열어 보세요.</p>
         <div class="hint-box" id="hintBox"><div class="hint-title">힌트 0 — 아직 안 열었어요</div>막히면 “다음 힌트”를 눌러 보세요.</div>
         <input class="answer-input" id="answerInput" placeholder="Type your English sentence" autocomplete="off" />
-        <div class="question-actions"><button class="btn soft next-hint">다음 힌트</button><button class="btn dark check-answer">정답 확인</button></div>
+        <div class="question-actions"><button class="btn soft next-hint">힌트 1/3</button><button class="btn dark check-answer">정답 확인</button></div>
         <div class="feedback hidden" id="feedback"></div>`;
     }
     function renderBuild(item) {
       const verbs = shuffled(['get','make','take','give','have','keep', item.verb]).slice(0,5);
-      const frameOptions = shuffled([item.frame, 'get + thing', 'make + a plan', 'take + a break', 'have + a problem']).slice(0,4);
       return `
         <h2>${item.ko}</h2>
-        <p class="korean">아래의 동사와 생각 틀 중 가장 잘 맞는 것을 골라 문장을 완성하세요.</p>
+        <p class="korean">핵심 동사와 표현 덩어리를 보고 빈칸을 떠올린 뒤 문장을 완성하세요.</p>
         <div class="hint-box" style="background:#eef7f6; border-style:solid; border-color:#b8dcd9"><div class="hint-title" style="color:#286f6c">목표 문장</div><strong>${item.en}</strong>을 스스로 조립해 보세요.</div>
         <div class="choices" id="choices">${shuffled([item.verb, ...verbs.filter(v=>v!==item.verb)]).slice(0,4).map(c => `<button class="choice build-verb" data-value="${c}">${c}</button>`).join('')}</div>
         <input class="answer-input" id="answerInput" placeholder="Type the whole sentence" autocomplete="off" style="margin-top:14px" />
-        <div class="question-actions"><button class="btn dark check-answer">문장 완성</button><button class="btn soft next-hint">생각 틀 힌트</button></div>
+        <div class="question-actions"><button class="btn dark check-answer">문장 완성</button><button class="btn soft next-hint">힌트 1/3</button></div>
         <div class="hint-box hidden" id="hintBox"></div><div class="feedback hidden" id="feedback"></div>`;
     }
     function renderReview(item) {
@@ -571,7 +681,7 @@
         <h2>${item.ko}</h2>
         <p class="korean">이 표현은 지금까지 <b>${success}회</b> 성공했어요. 3회가 되면 내 표현으로 표시됩니다.</p>
         <input class="answer-input" id="answerInput" placeholder="Type your English sentence" autocomplete="off" />
-        <div class="question-actions"><button class="btn dark check-answer">다시 연결하기</button><button class="btn soft next-hint">힌트</button></div>
+        <div class="question-actions"><button class="btn dark check-answer">다시 연결하기</button><button class="btn soft next-hint">힌트 1/3</button></div>
         <div class="hint-box hidden" id="hintBox"></div><div class="feedback hidden" id="feedback"></div>`;
     }
 
@@ -580,7 +690,7 @@
       document.querySelectorAll('.complete-repeat').forEach(btn => btn.addEventListener('click', () => {
         markStudy(mode, item.id, true); showFeedback('good', `좋아요! <b>${item.en}</b><br><span class="answer-key">${item.frame} · ${item.verb} 엔진</span>`); btn.disabled = true; setTimeout(nextQuestion, 850);
       }));
-      document.querySelectorAll('.show-answer').forEach(btn => btn.addEventListener('click', () => showFeedback('good', `<b>${item.en}</b><br><span class="answer-key">${item.ko} · ${item.frame}</span>`)));
+      document.querySelectorAll('.show-answer').forEach(btn => btn.addEventListener('click', () => showFeedback('good', `<b>${item.en}</b><br><span class="answer-key">${item.ko} · ${item.frame}<br>직역 이미지: ${escapeHtml(item.literalMeaning || item.ko)}</span>`)));
       document.querySelectorAll('.check-answer').forEach(btn => btn.addEventListener('click', () => checkTextAnswer(item, mode)));
       document.querySelectorAll('.next-hint').forEach(btn => btn.addEventListener('click', () => showNextHint(item)));
       document.querySelectorAll('.choice').forEach(btn => btn.addEventListener('click', () => chooseAnswer(item, mode, btn)));
@@ -596,11 +706,9 @@
       const correct = guess === expected || expected.includes(guess) && guess.length > Math.max(5, expected.length*.68);
       markStudy(mode, item.id, correct);
       if (correct) {
-        showFeedback('good', `정답이에요! <b>${item.en}</b><br><span class="answer-key">${item.frame} — ${item.verb} 엔진을 잘 꺼냈어요.</span>`);
-        setTimeout(nextQuestion, 950);
+        showAnswerSummary('good', item, '정답이에요!');
       } else {
-        showFeedback('bad', `거의 다 왔어요. 다시 한번 조립해 볼까요?<br><span class="answer-key">정답: <b>${item.en}</b></span>`);
-        showNextHint(item);
+        showAnswerSummary('bad', item, '거의 다 왔어요. 정답을 보고 다시 연결해 보세요.');
       }
     }
     function chooseAnswer(item, mode, button) {
@@ -620,14 +728,38 @@
     function showNextHint(item) {
       const box = document.getElementById('hintBox');
       if (!box) return;
-      const step = Math.min(appState.hintStep, item.hint.length - 1);
-      const names = ['뜻/장면', '생각 틀', '문장 뼈대', '첫 글자'];
+      const totalHints = Math.min(3, item.hint.length || 3);
+      const step = Math.min(appState.hintStep, totalHints - 1);
+      const names = ['상황 힌트', '표현 틀/덩어리', '일부 공개'];
+      const hint = item.hint[step] || '더 이상 열 힌트가 없어요.';
       box.classList.remove('hidden');
-      box.innerHTML = `<div class="hint-title">힌트 ${step+1} — ${names[step] || '정답'}</div>${item.hint[step]}`;
+      box.innerHTML = `<div class="hint-title">현재 힌트 단계: ${step+1}/${totalHints} — ${names[step] || '정답'}</div><b>힌트 문장:</b> ${escapeHtml(hint)}`;
       appState.hintStep++;
       const btn = document.querySelector('.next-hint');
-      if (btn) btn.innerHTML = appState.hintStep >= item.hint.length ? '정답 보기' : `다음 힌트`;
-      if (appState.hintStep > item.hint.length) { showFeedback('good', `정답: <b>${item.en}</b>`); }
+      if (btn) {
+        const nextStep = Math.min(appState.hintStep + 1, totalHints);
+        btn.textContent = appState.hintStep >= totalHints ? `힌트 ${totalHints}/${totalHints} 열림` : `힌트 ${nextStep}/${totalHints}`;
+        btn.disabled = appState.hintStep >= totalHints;
+      }
+    }
+    function showAnswerSummary(type, item, title) {
+      const totalHints = Math.min(3, item.hint.length || 3);
+      const usedHints = Math.min(appState.hintStep, totalHints);
+      showFeedback(type, `
+        <div class="answer-summary">
+          <b>${escapeHtml(title)}</b>
+          <div class="answer-key">정답 영어 문장</div>
+          <div><b>${escapeHtml(item.en)}</b></div>
+          <div class="answer-key">자연스러운 한국어</div>
+          <div>${escapeHtml(item.ko)}</div>
+          <div class="answer-key">단어 덩어리</div>
+          <div class="chunk-row">${(item.chunks || []).map(chunk => `<span class="chunk">${escapeHtml(chunk)}</span>`).join('')}</div>
+          <div class="answer-key">사용한 힌트 수: ${usedHints}/${totalHints} · ${escapeHtml(item.frame)} · ${escapeHtml(item.verb)} 엔진</div>
+          <div class="question-actions"><button class="btn dark next-after-answer">다음 문제</button></div>
+        </div>
+      `);
+      const next = document.querySelector('.next-after-answer');
+      if (next) next.addEventListener('click', nextQuestion);
     }
     function showFeedback(type, html) {
       const el = document.getElementById('feedback');
@@ -666,6 +798,152 @@
         </article>
       `).join('') : `<div class="card empty">찾는 단어가 없어요. 영어·한국어·표현 일부로 다시 찾아 보세요.</div>`;
     }
+
+    async function loadDictionaryExplorer() {
+      const files = ['verbs', 'nouns', 'patterns', 'expressions', 'learning-paths'];
+      try {
+        const [verbs, nouns, patterns, expressions, learningPaths] = await Promise.all(files.map(name =>
+          fetch(`./data/${name}.json`).then(response => {
+            if (!response.ok) throw new Error(`${name}.json ${response.status}`);
+            return response.json();
+          })
+        ));
+        appState.dictionaryData = {
+          verbs,
+          nouns,
+          patterns,
+          expressions,
+          learningPaths,
+          gameExpressions: expressions.map(expression => normalizeExpression(expression, { verbs, patterns })),
+          isLoaded: true,
+          error: null,
+          dataSource: 'expressions.json',
+          selectedVerbId: appState.dictionaryData.selectedVerbId || verbs[0]?.id || null,
+          selectedExpressionId: null,
+        };
+      } catch (error) {
+        appState.dictionaryData = {
+          ...appState.dictionaryData,
+          isLoaded: false,
+          gameExpressions: [],
+          dataSource: 'fallback',
+          error: '사전 데이터 파일을 불러오지 못했어요. 로컬에서 파일을 직접 열었다면 `python3 -m http.server 8080` 실행 후 `http://localhost:8080`으로 접속해 주세요.',
+        };
+        toast('사전 데이터를 불러오지 못해 기본 예비 표현을 사용해요.');
+      }
+      updateDashboard();
+      renderDictionaryExplorer();
+    }
+
+    function renderDictionaryExplorer() {
+      const data = appState.dictionaryData;
+      const status = document.getElementById('explorerStatus');
+      const verbButtons = document.getElementById('verbExplorerButtons');
+      const verbPanel = document.getElementById('verbExplorerPanel');
+      const patternList = document.getElementById('patternExplorerList');
+      const expressionList = document.getElementById('expressionExplorerList');
+      const detail = document.getElementById('expressionExplorerDetail');
+      if (!status || !verbButtons || !verbPanel || !patternList || !expressionList || !detail) return;
+
+      if (data.error) {
+        status.className = 'explorer-status error';
+        status.textContent = data.error;
+        verbButtons.innerHTML = '';
+        verbPanel.innerHTML = '<h4>핵심 동사</h4><p>데이터를 불러오면 여기에 동사 이미지가 표시됩니다.</p>';
+        patternList.innerHTML = '';
+        expressionList.innerHTML = '';
+        detail.innerHTML = '<h3>표현 상세</h3><p>표현을 선택하면 영어 문장, 자연스러운 한국어, 단어 덩어리, 힌트가 여기에 표시됩니다.</p>';
+        return;
+      }
+      if (!data.isLoaded) {
+        status.className = 'explorer-status';
+        status.textContent = '사전 데이터를 불러오는 중입니다.';
+        return;
+      }
+
+      const selectedVerb = data.verbs.find(v => v.id === data.selectedVerbId) || data.verbs[0];
+      if (!selectedVerb) return;
+      appState.dictionaryData.selectedVerbId = selectedVerb.id;
+      const patterns = data.patterns.filter(p => selectedVerb.patternIds.includes(p.id));
+      const expressions = data.expressions.filter(e => e.coreVerbId === selectedVerb.id);
+      const selectedExpression = expressions.find(e => e.id === data.selectedExpressionId) || expressions[0] || null;
+      appState.dictionaryData.selectedExpressionId = selectedExpression?.id || null;
+
+      status.className = 'explorer-status';
+      status.textContent = `${data.verbs.length}개 핵심 동사, ${data.patterns.length}개 표현 틀, ${data.expressions.length}개 표현 카드를 불러왔습니다.`;
+      verbButtons.innerHTML = data.verbs.map(verb => `<button class="verb-chip ${verb.id === selectedVerb.id ? 'active' : ''}" data-verb-id="${verb.id}">${verb.word}</button>`).join('');
+      verbButtons.querySelectorAll('[data-verb-id]').forEach(button => button.addEventListener('click', () => {
+        appState.dictionaryData.selectedVerbId = button.dataset.verbId;
+        appState.dictionaryData.selectedExpressionId = null;
+        renderDictionaryExplorer();
+      }));
+
+      verbPanel.innerHTML = `
+        <h4>선택한 핵심 동사</h4>
+        <div class="verb-image">${escapeHtml(selectedVerb.word)} = ${escapeHtml(selectedVerb.coreImage)}</div>
+        <p>${escapeHtml(selectedVerb.easyKorean)}</p>
+        <p class="explorer-guide">이 동사를 중심으로 어떤 표현 틀이 생기는지 오른쪽에서 확인하세요.</p>
+        <p class="small-note">대표 상황: ${selectedVerb.representativeSituations.map(escapeHtml).join(' · ')}</p>
+        <p class="small-note">연결 동사: ${selectedVerb.connectedVerbIds.map(id => data.verbs.find(v => v.id === id)?.word || id).map(escapeHtml).join(' · ')}</p>
+      `;
+      patternList.innerHTML = patterns.length ? patterns.map(pattern => `
+        <button class="pattern-item" data-pattern-id="${pattern.id}">
+          ${escapeHtml(pattern.label)}
+          <span class="small-note">${escapeHtml(pattern.thinkingFrame)}</span>
+        </button>
+      `).join('') : '<p class="small-note">아직 연결된 표현 틀이 없습니다.</p>';
+      patternList.querySelectorAll('[data-pattern-id]').forEach(button => button.addEventListener('click', () => {
+        const first = data.expressions.find(e => e.patternId === button.dataset.patternId);
+        if (first) appState.dictionaryData.selectedExpressionId = first.id;
+        renderDictionaryExplorer();
+      }));
+
+      expressionList.innerHTML = expressions.length ? expressions.map(expression => `
+        <button class="expression-item ${selectedExpression?.id === expression.id ? 'active' : ''}" data-expression-id="${expression.id}">
+          ${escapeHtml(expression.english)}
+          <span>${escapeHtml(expression.naturalKorean)}</span>
+        </button>
+      `).join('') : '<p class="small-note">아직 연결된 표현 카드가 없습니다.</p>';
+      expressionList.querySelectorAll('[data-expression-id]').forEach(button => button.addEventListener('click', () => {
+        appState.dictionaryData.selectedExpressionId = button.dataset.expressionId;
+        renderDictionaryExplorer();
+      }));
+
+      if (!selectedExpression) {
+        detail.innerHTML = '<h3>표현 상세</h3><p>오른쪽의 실생활 표현을 선택하면 자세한 연결이 표시됩니다.</p>';
+        return;
+      }
+      const pattern = data.patterns.find(p => p.id === selectedExpression.patternId);
+      const nouns = selectedExpression.nounIds.map(id => data.nouns.find(noun => noun.id === id)?.word || id);
+      detail.innerHTML = `
+        <h4>표현 상세</h4>
+        <h3>${escapeHtml(selectedExpression.english)}</h3>
+        <p><b>${escapeHtml(selectedExpression.naturalKorean)}</b></p>
+        <p class="small-note">직역 이미지: ${escapeHtml(selectedExpression.literalMeaning)}</p>
+        <div class="chunk-row">${selectedExpression.chunks.map(chunk => `<span class="chunk">${escapeHtml(chunk)}</span>`).join('')}</div>
+        <p class="explorer-guide">단어 덩어리를 보고 문장을 통째로 익힌 뒤, 아래 버튼으로 바로 퀴즈를 풀 수 있습니다.</p>
+        <p class="small-note">표현 틀: ${escapeHtml(pattern?.label || selectedExpression.patternId)} · 핵심 명사: ${nouns.map(escapeHtml).join(' · ') || '없음'}</p>
+        <ol class="hint-list">${selectedExpression.hints.map(hint => `<li>${escapeHtml(hint)}</li>`).join('')}</ol>
+        <div class="question-actions" style="justify-content:flex-start">
+          <button class="btn dark quiz-expression" data-expression-id="${selectedExpression.id}">이 표현으로 퀴즈 풀기</button>
+        </div>
+        <div class="filter-row" style="margin-top:10px">
+          ${(selectedExpression.relatedExpressionIds || []).map(id => {
+            const related = data.expressions.find(expression => expression.id === id);
+            return related ? `<button class="filter related-expression" data-expression-id="${related.id}">${escapeHtml(related.english)}</button>` : '';
+          }).join('')}
+        </div>
+      `;
+      detail.querySelectorAll('.quiz-expression').forEach(button => button.addEventListener('click', () => startMode('koen', button.dataset.expressionId)));
+      detail.querySelectorAll('.related-expression').forEach(button => button.addEventListener('click', () => {
+        const related = data.expressions.find(expression => expression.id === button.dataset.expressionId);
+        if (!related) return;
+        appState.dictionaryData.selectedVerbId = related.coreVerbId;
+        appState.dictionaryData.selectedExpressionId = related.id;
+        renderDictionaryExplorer();
+      }));
+    }
+
     function renderMap() {
       document.getElementById('mapFilters').innerHTML = Object.entries(mapSets).map(([key,val]) => `<button class="filter ${appState.currentMap === key ? 'active':''}" data-map="${key}">${key}</button>`).join('');
       document.querySelectorAll('[data-map]').forEach(b => b.addEventListener('click', () => { appState.currentMap = b.dataset.map; renderMap(); }));
@@ -678,13 +956,13 @@
     function renderReviewList() {
       const target = document.getElementById('reviewList');
       if (!target) return;
-      const review = [...phraseBank].sort((a,b) => (appState.progress.successes[a.id]||0)-(appState.progress.successes[b.id]||0)).slice(0,5);
+      const review = [...getGameBank()].sort((a,b) => (appState.progress.successes[a.id]||0)-(appState.progress.successes[b.id]||0)).slice(0,5);
       target.innerHTML = review.map((p,i) => {
         const n = appState.progress.successes[p.id] || 0;
         return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:${i===review.length-1?'0':'1px solid var(--line)'}"><span style="width:28px;height:28px;display:grid;place-items:center;border-radius:50%;background:#eef7f6;color:#286f6c;font-weight:900;font-size:12px">${n}/3</span><div style="flex:1"><b>${p.en}</b><div class="small-note" style="margin:2px 0 0">${p.ko} · ${p.frame}</div></div><button class="filter review-one" data-id="${p.id}">복습</button></div>`;
       }).join('');
       target.querySelectorAll('.review-one').forEach(btn => btn.addEventListener('click', () => {
-        const item = phraseBank.find(p => p.id === btn.dataset.id);
+        const item = getGameBank().find(p => p.id === btn.dataset.id);
         appState.selectedMode = 'review'; appState.lessonItems=[item]; appState.currentIndex=0; showScreen('lesson'); renderQuestion();
       }));
     }
@@ -712,7 +990,7 @@
 
     renderModeCards('homeModes', 3);
     renderModeCards('gameModes', 6);
-    renderWords(); renderMap(); updateDashboard();
+    renderWords(); renderMap(); updateDashboard(); loadDictionaryExplorer();
   </script>
 </body>
 </html>

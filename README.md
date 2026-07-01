@@ -2,6 +2,8 @@
 
 핵심 동사와 명사를 조합해 실제 영어 표현을 만드는 **게임형 웹 앱**입니다.
 
+- [서비스 기획 및 마케팅 문서](docs/PRODUCT_STORY_AND_MARKETING.md)
+
 ## GitHub 자동 업로드·자동 배포·자동 판올림
 
 이 프로젝트는 GitHub Pages와 GitHub Actions를 기준으로 준비되어 있습니다.
@@ -104,24 +106,34 @@ python3 -m http.server 8080
 - 정답 횟수 3회 이상이면 “내 표현”으로 표시됩니다.
 - 학습 기록은 브라우저 `localStorage`에 저장됩니다.
 
-## 콘텐츠 구조 예시
+## 콘텐츠 구조
 
-```js
+콘텐츠의 단일 원본은 `data/expressions.json`입니다. 게임 모드는 이 표현 카드를 읽어 듣기, 따라 말하기, 한영, 영한, 빈칸, 힌트 퀴즈를 만듭니다. 기존 내장 `phraseBank`는 데이터 파일을 읽지 못했을 때만 쓰는 예비 데이터입니다.
+
+```json
 {
-  id: 'p3',
-  en: 'Let’s make a plan.',
-  ko: '계획을 세우자.',
-  verb: 'make',
-  nouns: ['plan'],
-  frame: 'make + plan',
-  hint: [
-    '계획을 “만들다” = make a plan',
-    'Let’s + make a plan',
-    'Let’s ____ _ ____.',
-    'L__’_ m___ _ p___.'
-  ]
+  "id": "e001",
+  "english": "I have a question.",
+  "naturalKorean": "질문이 있어요.",
+  "literalMeaning": "나는 질문 하나를 가지고 있어요.",
+  "coreVerbId": "v_have",
+  "patternId": "p_have_thing",
+  "nounIds": ["n_question"],
+  "situationTags": ["class", "work", "conversation"],
+  "level": 1,
+  "chunks": ["I", "have", "a question"],
+  "hints": [
+    "질문을 내 쪽에 가지고 있다고 생각해요.",
+    "have + a question",
+    "I ___ a ________."
+  ],
+  "quizTypes": ["listening", "speaking", "koToEn", "enToKo", "blank", "hint"],
+  "audioText": "I have a question.",
+  "relatedExpressionIds": ["e021", "e015"]
 }
 ```
+
+관련 파일은 `docs/DATA_MODEL.md`, `data/verbs.json`, `data/nouns.json`, `data/patterns.json`, `data/expressions.json`, `data/learning-paths.json`입니다.
 
 ## 권장 로컬 폴더
 
