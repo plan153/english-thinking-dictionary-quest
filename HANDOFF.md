@@ -38,6 +38,8 @@
 - 표현 카드는 `english`, `naturalKorean`, `literalMeaning`, `coreVerbId`, `patternId`, `nounIds`, `situationTags`, `level`, `chunks`, 3단계 `hints`, `quizTypes`, `audioText`, `relatedExpressionIds`를 가진다.
 - 이번 단계에서 추가된 `etdQuestProgress` 확장: `settings.soundEnabled`, `settings.seenConnectionGuide`, `historyByExpressionId` 기록과 `connections` 기반 리뷰 우선순위.
 - `historyByExpressionId`는 `recognition`/`assembly`/`output` 연결 강도와 `reviewPriority` 0~10을 저장한다.
+- 현재 Chapter 1 연결도는 `뜻 · 문장 · 말하기` 단계로 시각화되며, 복습 목록 우선순위는 `reviewPriority`를 통해 제어됩니다.
+- 다음 단계로는 연결 지도 확장, 의문문 연습, 마이크/음성 입력, 로그인 기반 학습 동기화가 계획되어 있습니다.
 
 ## 현재 데이터 규모
 - 핵심 동사 15개: be, do, have, get, make, take, give, go, come, put, keep, find, feel, want, need

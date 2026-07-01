@@ -179,11 +179,13 @@
     .chunk-row { display:flex; flex-wrap:wrap; gap:6px; margin:11px 0; }
     .chunk { background:#eef7f6; color:#245c5a; border-radius:99px; padding:5px 8px; font-size:12px; font-weight:850; }
     .connection-strip { display:inline-flex; align-items:center; gap:6px; flex-wrap:wrap; margin-top:12px; justify-content:center; }
+    .connection-step { display:flex; flex-direction:column; align-items:center; gap:4px; }
     .connection-dot { width:28px; height:28px; display:grid; place-items:center; border-radius:50%; border:1px solid var(--line); background:#fff; color:var(--ink); font-size:16px; font-weight:900; }
+    .connection-step-label { font-size:12px; color:var(--muted); letter-spacing:-.02em; }
     .connection-dot.connection-strong { background:var(--accent); color:#fff; border-color:var(--accent); }
     .connection-dot.connection-weak { background:#eef7f6; color:var(--accent); border-color:#8ab3a8; }
     .connection-dot.connection-empty { background:#fff; color:#9a9a9a; }
-    .connection-line { color:var(--muted); font-size:18px; }
+    .connection-line { color:var(--muted); font-size:18px; line-height:1.2; }
     .connection-link { margin-left:8px; color:var(--accent); font-size:18px; }
     .connection-guide { max-width:620px; margin:14px auto 0; padding:12px 14px; background:#eef7f6; border-radius:16px; color:#245c5a; font-size:13px; line-height:1.6; }
     .connection-strip-summary { margin-top:14px; }
@@ -783,13 +785,22 @@
     }
     function renderConnectionStrip(item) {
       const history = getHistory(item.id);
-      const dots = ['recognition', 'assembly', 'output'].map(key => {
-        const strength = history.connections?.[key]?.strength || 0;
+      const steps = [
+        { key: 'recognition', label: '뜻' },
+        { key: 'assembly', label: '문장' },
+        { key: 'output', label: '말하기' },
+      ];
+      const blocks = steps.map((step, index) => {
+        const strength = history.connections?.[step.key]?.strength || 0;
         const status = strength === 1 ? 'strong' : strength === 0.5 ? 'weak' : 'empty';
-        const title = key === 'recognition' ? '뜻 이해' : key === 'assembly' ? '문장 조립' : '직접 꺼내기';
-        return `<span class="connection-dot connection-${status}" role="img" aria-label="${title} ${status === 'strong' ? '강함' : status === 'weak' ? '약함' : '없음'}">${strength === 1 ? '●' : strength === 0.5 ? '◐' : '○'}</span>`;
-      }).join('<span class="connection-line">—</span>');
-      return `<div class="connection-strip" aria-label="뜻 이해, 문장 조립, 직접 꺼내기 연결 상태">${dots}${allStrongHistory(history) ? '<span class="connection-link">🔗</span>' : ''}</div>`;
+        return `
+          <div class="connection-step">
+            <span class="connection-dot connection-${status}" aria-label="${step.label} ${status === 'strong' ? '강함' : status === 'weak' ? '약함' : '없음'}">${strength === 1 ? '●' : strength === 0.5 ? '◐' : '○'}</span>
+            <span class="connection-step-label">${step.label}</span>
+          </div>
+          ${index < steps.length - 1 ? '<span class="connection-line">—</span>' : ''}`;
+      }).join('');
+      return `<div class="connection-strip" aria-label="뜻 이해, 문장 조립, 직접 꺼내기 연결 상태">${blocks}${allStrongHistory(history) ? '<span class="connection-link">🔗</span>' : ''}</div>`;
     }
     function allStrongHistory(history) {
       return ['recognition', 'assembly', 'output'].every(key => (history.connections?.[key]?.strength || 0) === 1);
@@ -808,14 +819,23 @@
       return { before, after: Math.max(before, newStrength) };
     }
     function renderConnectionStripFromHistory(history) {
-      const dots = ['recognition', 'assembly', 'output'].map(key => {
-        const strength = history.connections?.[key]?.strength || 0;
+      const steps = [
+        { key: 'recognition', label: '뜻' },
+        { key: 'assembly', label: '문장' },
+        { key: 'output', label: '말하기' },
+      ];
+      const blocks = steps.map((step, index) => {
+        const strength = history.connections?.[step.key]?.strength || 0;
         const status = strength === 1 ? 'strong' : strength === 0.5 ? 'weak' : 'empty';
-        const title = key === 'recognition' ? '뜻 이해' : key === 'assembly' ? '문장 조립' : '직접 꺼내기';
-        return `<span class="connection-dot connection-${status}" role="img" aria-label="${title} ${status === 'strong' ? '강함' : status === 'weak' ? '약함' : '없음'}">${strength === 1 ? '●' : strength === 0.5 ? '◐' : '○'}</span>`;
-      }).join('<span class="connection-line">—</span>');
+        return `
+          <div class="connection-step">
+            <span class="connection-dot connection-${status}" aria-label="${step.label} ${status === 'strong' ? '강함' : status === 'weak' ? '약함' : '없음'}">${strength === 1 ? '●' : strength === 0.5 ? '◐' : '○'}</span>
+            <span class="connection-step-label">${step.label}</span>
+          </div>
+          ${index < steps.length - 1 ? '<span class="connection-line">—</span>' : ''}`;
+      }).join('');
       const allStrong = ['recognition', 'assembly', 'output'].every(key => (history.connections?.[key]?.strength || 0) === 1);
-      return `<div class="connection-strip" aria-label="뜻 이해, 문장 조립, 직접 꺼내기 연결 상태">${dots}${allStrong ? '<span class="connection-link">🔗</span>' : ''}</div>`;
+      return `<div class="connection-strip" aria-label="뜻 이해, 문장 조립, 직접 꺼내기 연결 상태">${blocks}${allStrong ? '<span class="connection-link">🔗</span>' : ''}</div>`;
     }
     function getConnectionGraph(item) {
       return renderConnectionStripFromHistory(getHistory(item.id));
