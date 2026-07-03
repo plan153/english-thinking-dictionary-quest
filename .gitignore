@@ -2,3 +2,6 @@
 Thumbs.db
 *.log
 dist/
+
+# Generated local QA screenshots
+docs/qa-screenshots/
