@@ -1,4 +1,4 @@
-const CACHE = 'etd-quest-v1.0.0-data-v4';
+const CACHE = 'etd-quest-v1.0.0-data-v5';
 const ASSETS = [
   './',
   './index.html',
@@ -7,6 +7,7 @@ const ASSETS = [
   './data/nouns.json',
   './data/patterns.json',
   './data/expressions.json',
+  './data/verb-maps.json',
   './data/learning-paths.json',
 ];
 

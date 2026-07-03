@@ -27,6 +27,7 @@
     body {
       margin: 0;
       min-height: 100vh;
+      width: 100%;
       font-family: ui-rounded, "SF Pro Rounded", "Pretendard", "Apple SD Gothic Neo", system-ui, -apple-system, sans-serif;
       color: var(--ink);
       background:
@@ -36,7 +37,7 @@
     }
     button, input { font: inherit; }
     button { cursor: pointer; }
-    .app { width: min(1120px, calc(100% - 28px)); margin: 0 auto; padding: 22px 0 46px; }
+    .app { width: min(1240px, calc(100vw - 40px)); max-width: 1240px; margin: 0 auto; padding: 22px 0 46px; }
 
     .topbar {
       display: flex; align-items: center; gap: 16px; justify-content: space-between;
@@ -161,6 +162,12 @@
     .word-card .example { margin-top:9px; font-size:13px; line-height:1.45; }
     .word-card .connections { margin-top:9px; font-size:12px; color:#9a7028; }
     .dictionary-explorer { margin-top:16px; }
+    .dictionary-explorer.map-focused .explorer-grid { display:none; }
+    .dictionary-explorer.map-focused .expression-detail { display:none; }
+    .dictionary-explorer.map-focused.has-selected-expression .expression-detail { display:block; }
+    #dictionary.map-focus-mode #dictionaryLegacySearchSection { display:none; }
+    .map-focus-actions { display:none; margin-top:12px; }
+    #dictionary.map-focus-mode .map-focus-actions { display:flex; justify-content:flex-start; }
     .explorer-status { margin-top:10px; padding:12px 14px; border-radius:13px; background:#fff7dd; color:#745514; font-size:13px; line-height:1.5; }
     .explorer-status.error { background:#fff0ee; color:#9d3d35; }
     .explorer-guide { color:var(--muted); font-size:13px; line-height:1.55; margin: 7px 0 0; }
@@ -176,20 +183,114 @@
     .pattern-item.active, .expression-item.active { border-color:var(--accent); background:#eaf4f3; }
     .expression-item span { display:block; margin-top:3px; color:var(--muted); font-size:12px; font-weight:650; }
     .expression-detail h3 { font-size:22px; margin:0 0 7px; letter-spacing:-.7px; }
+    .expression-detail.highlighted { border-color: var(--accent); box-shadow: 0 0 0 18px rgba(40,111,108,.08); animation: highlightDetail .9s ease forwards; }
+    @keyframes highlightDetail { 0% { transform: translateY(10px); opacity: .75; } 50% { transform: none; opacity: 1; } 100% { transform: none; opacity: 1; } }
     .chunk-row { display:flex; flex-wrap:wrap; gap:6px; margin:11px 0; }
     .chunk { background:#eef7f6; color:#245c5a; border-radius:99px; padding:5px 8px; font-size:12px; font-weight:850; }
-    .connection-strip { display:inline-flex; align-items:center; gap:6px; flex-wrap:wrap; margin-top:12px; justify-content:center; }
-    .connection-step { display:flex; flex-direction:column; align-items:center; gap:4px; }
-    .connection-dot { width:28px; height:28px; display:grid; place-items:center; border-radius:50%; border:1px solid var(--line); background:#fff; color:var(--ink); font-size:16px; font-weight:900; }
-    .connection-step-label { font-size:12px; color:var(--muted); letter-spacing:-.02em; }
-    .connection-dot.connection-strong { background:var(--accent); color:#fff; border-color:var(--accent); }
-    .connection-dot.connection-weak { background:#eef7f6; color:var(--accent); border-color:#8ab3a8; }
-    .connection-dot.connection-empty { background:#fff; color:#9a9a9a; }
-    .connection-line { color:var(--muted); font-size:18px; line-height:1.2; }
-    .connection-link { margin-left:8px; color:var(--accent); font-size:18px; }
+    .connection-strip-container { display:flex; flex-direction:column; gap:10px; margin:14px auto 0; max-width:800px; width:100%; }
+    .connection-title { font-size:13px; font-weight:800; color:var(--ink); letter-spacing:-.02em; text-align:left; }
+    .connection-strip {
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      align-items:flex-start;
+      gap:0;
+      width:100%;
+      max-width:780px;
+      margin:0 auto;
+      position:relative;
+      padding:0 6px;
+    }
+    .connection-step { display:flex; flex-direction:column; align-items:center; gap:6px; min-width:0; position:relative; z-index:2; }
+    .connection-dot { width:42px; height:42px; display:grid; place-items:center; border-radius:50%; border:1.5px solid #cfd5d3; background:#fff; transition:all .2s ease; position:relative; z-index:3; }
+    .connection-number { font-size:17px; font-weight:900; color:#8d9592; line-height:1; }
+    .connection-labels { display:flex; flex-direction:column; align-items:center; gap:2px; text-align:center; width:100%; }
+    .connection-step-label { font-size:13.5px; font-weight:800; color:var(--ink); letter-spacing:-.02em; white-space:nowrap; }
+    .connection-step-subtitle { font-size:12.5px; font-weight:650; color:#3f4b54; letter-spacing:-.01em; white-space:nowrap; }
+    .connection-state-tag { font-size:9px; font-weight:800; line-height:1; letter-spacing:.02em; color:#1f6663; background:#e7f4f3; border:1px solid rgba(40,111,108,.2); border-radius:99px; padding:2px 5px; }
+    .connection-dot.connection-strong { background:var(--accent); border-color:var(--accent); }
+    .connection-dot.connection-strong svg { display:block; }
+    .connection-dot.connection-weak { border-color:#2b8682; background:conic-gradient(from 270deg, rgba(40,111,108,.22) 0 52%, #ffffff 52% 100%); }
+    .connection-dot.connection-weak .connection-number { color:#236e6b; }
+    .connection-dot.connection-empty { border-color:#cfd5d3; background:#fff; }
+
+    /* Connection lines styled as absolute overlay */
+    .connection-line {
+      position: absolute;
+      top: 21px;
+      height: 4px;
+      border: none;
+      background-color: #d8dddb;
+      border-radius: 999px;
+      z-index: 1;
+      transform: translateY(-50%);
+    }
+    .connection-strip > .connection-line:nth-of-type(1) {
+      left: 16.667%;
+      width: 33.3333%;
+    }
+    .connection-strip > .connection-line:nth-of-type(2) {
+      left: 50%;
+      width: 33.3333%;
+    }
+    .connection-line-strong {
+      background-color: var(--accent);
+    }
+
+    .connection-badge { align-self:flex-end; display:inline-flex; font-size:11px; font-weight:800; color:var(--accent); background:#eef7f6; padding:6px 10px; border-radius:99px; border:1px solid rgba(40,111,108,.2); }
     .connection-guide { max-width:620px; margin:14px auto 0; padding:12px 14px; background:#eef7f6; border-radius:16px; color:#245c5a; font-size:13px; line-height:1.6; }
     .connection-strip-summary { margin-top:14px; }
+    @media (max-width: 480px) {
+      .connection-title { font-size:12px; }
+      .connection-strip { max-width:none; padding:0; }
+      .connection-dot { width:34px; height:34px; }
+      .connection-number { font-size:13px; }
+      .connection-step-label { font-size:11px; white-space:normal; word-break:keep-all; }
+      .connection-step-subtitle { font-size:9.5px; white-space:normal; word-break:keep-all; }
+      .connection-line { top: 17px; height:3px; }
+      .connection-state-tag { font-size:8px; padding:2px 4px; }
+      .connection-badge { font-size:9px; padding:4px 7px; }
+    }
     .hint-list { margin:10px 0 0; padding-left:18px; color:var(--muted); font-size:13px; line-height:1.6; }
+
+    .verb-map { display:flex; flex-direction:column; gap:14px; margin-top:14px; }
+    .map-section { border:1px solid var(--line); border-radius:16px; background:#fff; padding:14px; }
+    .map-section h5,
+    .map-section summary { display:flex; align-items:center; justify-content:space-between; margin:0; font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; font-weight:700; cursor:pointer; }
+    .map-step-title { display:flex; align-items:center; gap:8px; }
+    .map-step-index { width:20px; height:20px; border-radius:50%; display:inline-grid; place-items:center; font-size:11px; font-weight:900; color:#fff; background:var(--accent); }
+    .map-section summary::-webkit-details-marker { display:none; }
+    .map-chip-row,
+    .map-chip-list { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+    .map-chip { border:1px solid var(--line); border-radius:999px; background:#f8fbfa; color:var(--ink); padding:10px 12px; font-size:13px; font-weight:800; transition:.16s ease; }
+    .map-chip:hover { border-color:var(--accent); background:#eaf4f3; }
+    .map-chip.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+    .map-sentence-card { border:1px solid rgba(40,111,108,.18); border-radius:14px; background:#fff; padding:12px; display:grid; gap:10px; }
+    .map-sentence-line { margin:0; font-weight:800; color:var(--ink); font-size:14px; }
+    .map-action-row { display:flex; flex-wrap:wrap; gap:8px; }
+    .map-action-btn { border:1px solid rgba(40,111,108,.28); border-radius:999px; background:#eef7f6; color:#1f5f5c; padding:8px 12px; font-size:12px; font-weight:800; }
+    .map-action-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+    .map-inline-panel { border:1px solid rgba(40,111,108,.18); border-radius:12px; padding:11px; background:#fbfefe; }
+    .map-inline-panel h6 { margin:0 0 8px; font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.8px; }
+    .map-inline-panel p { margin:0; font-size:13px; color:var(--ink); line-height:1.55; }
+    .map-practice-card { display:grid; gap:9px; }
+    .map-practice-title { margin:0; font-size:18px; letter-spacing:-.3px; }
+    .map-detail-card { border:1px solid rgba(40,111,108,.12); border-radius:14px; padding:12px 13px; background:#f8fbfa; text-align:left; }
+    .map-detail-card p { margin:6px 0 0; color:var(--muted); font-size:13px; line-height:1.5; }
+    .map-detail-card p:first-child { margin-top:0; }
+    .map-branch-block { border:1px dashed rgba(40,111,108,.25); border-radius:14px; padding:12px 13px; background:#fcfffe; }
+    .map-branch-title { margin:0; font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
+    .map-guide { margin: 10px 0 0 9px; color:var(--muted); font-size:13px; line-height:1.55; border-left:2px solid rgba(40,111,108,.18); padding-left:12px; }
+    .map-summary-note { color:var(--muted); font-size:12px; margin-top:8px; }
+    .verb-map .verb-tagline { font-size:12px; line-height:1.55; color:var(--accent-2); margin-top:8px; }
+    .verb-map .verb-guide { margin-top:10px; color:var(--muted); font-size:13px; }
+    .verb-map details summary::after { content:'▸'; font-size:14px; }
+    .verb-map details[open] summary::after { content:'▾'; }
+    .map-section .map-row { display:grid; gap:10px; }
+    .map-section .map-row.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .map-section .map-row.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .map-section dl { margin:0; }
+    .map-section dt { font-size:13px; font-weight:800; }
+    .map-section dd { margin:4px 0 0; color:var(--muted); font-size:13px; line-height:1.5; }
 
     .map-wrap { overflow:auto; padding-bottom:5px; }
     .thinking-map { min-width:800px; display:grid; grid-template-columns: 1fr 1.35fr 1fr; gap:16px; align-items:stretch; }
@@ -214,6 +315,18 @@
     .small-note { color:var(--muted); font-size:12px; line-height:1.5; margin-top:8px; }
     .hidden { display:none !important; }
 
+    @media (min-width: 1024px) {
+      main.app { width: min(1240px, calc(100vw - 40px)); max-width: 1240px; margin-left:auto; margin-right:auto; }
+      #dictionary { width:100%; }
+      #dictionary .dictionary-explorer { width:100%; max-width:none; }
+      #dictionary .explorer-grid { width:100%; }
+      #dictionary .explorer-panel { width:100%; min-width:0; }
+      #dictionary #dictionaryMap { width:100%; max-width:none; }
+      #dictionary.map-focus-mode .dictionary-explorer { padding:20px; }
+      #dictionary.map-focus-mode #dictionaryMap .map-section,
+      #dictionary.map-focus-mode #dictionaryMap .map-detail-card { width:100%; }
+    }
+
     @media (max-width: 780px) {
       .grid.cols-3, .word-list { grid-template-columns:1fr 1fr; }
       .explorer-grid { grid-template-columns:1fr; }
@@ -222,7 +335,7 @@
       .choices { grid-template-columns:1fr; }
     }
     @media (max-width: 530px) {
-      .app { width:min(100% - 20px, 1120px); padding-top:14px; }
+      .app { width:min(100% - 20px, 1120px); max-width:none; padding-top:14px; }
       .brand p { display:none; }
       .grid.cols-3, .grid.cols-2, .word-list { grid-template-columns:1fr; }
       .hero { border-radius:22px; }
@@ -346,15 +459,21 @@
           </div>
         </div>
         <div class="explorer-panel expression-detail" id="expressionExplorerDetail" style="margin-top:14px"></div>
+        <div class="explorer-panel verb-map" id="dictionaryMap" style="margin-top:14px"></div>
+        <div class="map-focus-actions" id="mapFocusActions">
+          <button class="btn soft" type="button" id="showDictionaryLegacy">연결 지도 닫고 전체 사전 보기</button>
+        </div>
       </article>
-      <div class="section-head" style="margin-top:28px">
-        <div><h2>기존 생각 사전 검색</h2><p>단어를 번역으로 외우지 말고, 쓰임과 연결로 익히세요.</p></div>
+      <div id="dictionaryLegacySearchSection">
+        <div class="section-head" style="margin-top:28px">
+          <div><h2>기존 생각 사전 검색</h2><p>단어를 번역으로 외우지 말고, 쓰임과 연결로 익히세요.</p></div>
+        </div>
+        <div class="dictionary-toolbar">
+          <input id="wordSearch" class="search" placeholder="예: get, time, 약속, 이해하다" />
+          <div class="filter-row" id="wordFilters"></div>
+        </div>
+        <div class="word-list" id="wordList"></div>
       </div>
-      <div class="dictionary-toolbar">
-        <input id="wordSearch" class="search" placeholder="예: get, time, 약속, 이해하다" />
-        <div class="filter-row" id="wordFilters"></div>
-      </div>
-      <div class="word-list" id="wordList"></div>
     </section>
 
     <section id="map" class="screen">
@@ -481,7 +600,7 @@
       currentMap: 'get',
       filter: '전체',
       search: '',
-      dictionaryData: { verbs: [], nouns: [], patterns: [], expressions: [], learningPaths: null, isLoaded: false, error: null, selectedVerbId: null, selectedExpressionId: null, gameExpressions: [], dataSource: 'fallback' },
+      dictionaryData: { verbs: [], nouns: [], patterns: [], expressions: [], verbMaps: [], learningPaths: null, isLoaded: false, error: null, selectedVerbId: null, selectedExpressionId: null, selectedRouteId: null, selectedPatternId: null, selectedSlotValue: null, selectedCombinationId: null, selectedMapSentenceId: null, isMapMeaningOpen: false, isMapPracticeOpen: false, gameExpressions: [], dataSource: 'fallback' },
       progress: loadProgress(),
       sessionStudyRecords: {},
       audioContext: null,
@@ -647,7 +766,7 @@
         function showScreen(id, options = {}) {
           document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id));
           document.querySelectorAll('.nav button').forEach(b => b.classList.toggle('active', b.dataset.screen === id));
-          window.scrollTo({ top: 0, behavior: 'smooth' });
+          if (!options.skipScroll) window.scrollTo({ top: 0, behavior: 'smooth' });
           if (id === 'dictionary') renderWords();
           if (id === 'dictionary') renderDictionaryExplorer();
           if (id === 'map') renderMap();
@@ -689,7 +808,7 @@
                   appState.dictionaryData.selectedExpressionId = expression.id;
                 }
               }
-              showScreen('dictionary', { skipRoute: true });
+              showScreen('dictionary', { skipRoute: true, skipScroll: true });
         } else if (route.screen === 'quiz') {
           startMode(route.mode || 'koen', route.id, { skipRoute: true });
             } else if (document.getElementById(route.screen)) {
@@ -784,23 +903,7 @@
       }).join('—');
     }
     function renderConnectionStrip(item) {
-      const history = getHistory(item.id);
-      const steps = [
-        { key: 'recognition', label: '뜻' },
-        { key: 'assembly', label: '문장' },
-        { key: 'output', label: '말하기' },
-      ];
-      const blocks = steps.map((step, index) => {
-        const strength = history.connections?.[step.key]?.strength || 0;
-        const status = strength === 1 ? 'strong' : strength === 0.5 ? 'weak' : 'empty';
-        return `
-          <div class="connection-step">
-            <span class="connection-dot connection-${status}" aria-label="${step.label} ${status === 'strong' ? '강함' : status === 'weak' ? '약함' : '없음'}">${strength === 1 ? '●' : strength === 0.5 ? '◐' : '○'}</span>
-            <span class="connection-step-label">${step.label}</span>
-          </div>
-          ${index < steps.length - 1 ? '<span class="connection-line">—</span>' : ''}`;
-      }).join('');
-      return `<div class="connection-strip" aria-label="뜻 이해, 문장 조립, 직접 꺼내기 연결 상태">${blocks}${allStrongHistory(history) ? '<span class="connection-link">🔗</span>' : ''}</div>`;
+      return renderConnectionStripFromHistory(getHistory(item.id));
     }
     function allStrongHistory(history) {
       return ['recognition', 'assembly', 'output'].every(key => (history.connections?.[key]?.strength || 0) === 1);
@@ -820,28 +923,341 @@
     }
     function renderConnectionStripFromHistory(history) {
       const steps = [
-        { key: 'recognition', label: '뜻' },
-        { key: 'assembly', label: '문장' },
-        { key: 'output', label: '말하기' },
+        { key: 'recognition', label: '뜻 이해', subtitle: '영어↔한국어', number: '1' },
+        { key: 'assembly', label: '문장 만들기', subtitle: '빈칸·조립', number: '2' },
+        { key: 'output', label: '직접 말하기', subtitle: '직접 입력·말하기', number: '3' },
       ];
+      const allStrong = allStrongHistory(history);
       const blocks = steps.map((step, index) => {
         const strength = history.connections?.[step.key]?.strength || 0;
         const status = strength === 1 ? 'strong' : strength === 0.5 ? 'weak' : 'empty';
+        const dotContent = strength === 1
+          ? '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.5 4L6 11.5L2.5 8" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+          : `<span class="connection-number">${step.number}</span>`;
+        const helperText = strength === 0.5 ? '<span class="connection-state-tag">복습</span>' : '';
+        const statusText = status === 'strong' ? '강한 완료' : status === 'weak' ? '진행 중' : '미완료';
+
+        let lineClass = '';
+        if (index < steps.length - 1) {
+          const isLineStrong = strength === 1;
+          lineClass = isLineStrong ? 'connection-line connection-line-strong' : 'connection-line';
+        }
+
         return `
           <div class="connection-step">
-            <span class="connection-dot connection-${status}" aria-label="${step.label} ${status === 'strong' ? '강함' : status === 'weak' ? '약함' : '없음'}">${strength === 1 ? '●' : strength === 0.5 ? '◐' : '○'}</span>
-            <span class="connection-step-label">${step.label}</span>
+            <div class="connection-dot connection-${status}" aria-label="${step.label} ${statusText}">
+              ${dotContent}
+            </div>
+            <div class="connection-labels">
+              <span class="connection-step-label">${step.label}</span>
+              <span class="connection-step-subtitle">${step.subtitle}</span>
+              ${helperText}
+            </div>
           </div>
-          ${index < steps.length - 1 ? '<span class="connection-line">—</span>' : ''}`;
+          ${index < steps.length - 1 ? `<span class="${lineClass}" aria-hidden="true"></span>` : ''}`;
       }).join('');
-      const allStrong = ['recognition', 'assembly', 'output'].every(key => (history.connections?.[key]?.strength || 0) === 1);
-      return `<div class="connection-strip" aria-label="뜻 이해, 문장 조립, 직접 꺼내기 연결 상태">${blocks}${allStrong ? '<span class="connection-link">🔗</span>' : ''}</div>`;
+      const badge = allStrong ? '<span class="connection-badge">표현 연결 완료</span>' : '';
+      const titleHtml = '<div class="connection-title">표현 연결도</div>';
+      return `<div class="connection-strip-container">${titleHtml}<div class="connection-strip" aria-label="뜻 이해, 문장 만들기, 직접 말하기 연결 상태">${blocks}</div>${badge}</div>`;
     }
     function getConnectionGraph(item) {
       return renderConnectionStripFromHistory(getHistory(item.id));
     }
     function getConnectionLine(item) {
       return getConnectionGraph(item);
+    }
+    function isVerbMapFocus(verbId) {
+      return ['v_get', 'v_want', 'v_need'].includes(verbId);
+    }
+    function getVerbMapText(verbId) {
+      return {
+        v_get: {
+          subtitle: '이해 · 상태 변화 · 도착',
+          guide: 'get 뒤에 자주 이어지는 표현 길이에요.',
+          note: '아래로 갈수록 이 동사와 자주 붙는 말을 더 구체적으로 볼 수 있어요.',
+        },
+        v_want: {
+          subtitle: '원하는 것 · 하고 싶은 행동',
+          guide: 'want 뒤에 자주 이어지는 표현 길이에요.',
+          note: '아래로 갈수록 원하는 것과 하고 싶은 행동이 어떻게 달라지는지 볼 수 있어요.',
+        },
+        v_need: {
+          subtitle: '필요한 것 · 해야 하는 행동 · 도움 요청',
+          guide: 'need 뒤에 자주 이어지는 표현 길이에요.',
+          note: '아래로 갈수록 필요한 것과 해야 하는 행동이 어떻게 나뉘는지 볼 수 있어요.',
+        },
+      }[verbId] || { subtitle:'', guide:'', note:'' };
+    }
+    function scrollAndHighlightExpressionDetail() {
+      const detail = document.getElementById('expressionExplorerDetail');
+      if (!detail) return;
+      window.requestAnimationFrame(() => {
+        detail.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        detail.classList.add('highlighted');
+        window.clearTimeout(detail._highlightTimeout);
+        detail._highlightTimeout = window.setTimeout(() => detail.classList.remove('highlighted'), 900);
+      });
+    }
+    function clearRouteProgress() {
+      appState.dictionaryData.selectedPatternId = null;
+      appState.dictionaryData.selectedSlotValue = null;
+      appState.dictionaryData.selectedCombinationId = null;
+      appState.dictionaryData.selectedExpressionId = null;
+      appState.dictionaryData.selectedMapSentenceId = null;
+      appState.dictionaryData.isMapMeaningOpen = false;
+      appState.dictionaryData.isMapPracticeOpen = false;
+    }
+    function clearRouteState() {
+      appState.dictionaryData.selectedRouteId = null;
+      clearRouteProgress();
+    }
+    function selectMapExpression(expressionId) {
+      if (!expressionId) return;
+      clearRouteState();
+      appState.dictionaryData.selectedExpressionId = expressionId;
+      renderDictionaryExplorer();
+      scrollAndHighlightExpressionDetail();
+    }
+    function getVerbMapConfig(selectedVerb, data) {
+      return (data.verbMaps || []).find(entry => entry.verbId === selectedVerb.id) || null;
+    }
+    function selectMapRoute(routeId) {
+      if (!routeId) return;
+      appState.dictionaryData.selectedRouteId = routeId;
+      clearRouteProgress();
+      renderDictionaryExplorer();
+    }
+    function selectRoutePattern(patternId) {
+      if (!patternId) return;
+      appState.dictionaryData.selectedPatternId = patternId;
+      appState.dictionaryData.selectedSlotValue = null;
+      appState.dictionaryData.selectedCombinationId = null;
+      appState.dictionaryData.selectedExpressionId = null;
+      appState.dictionaryData.selectedMapSentenceId = null;
+      appState.dictionaryData.isMapMeaningOpen = false;
+      appState.dictionaryData.isMapPracticeOpen = false;
+      renderDictionaryExplorer();
+    }
+    function selectRouteSlot(value) {
+      if (!value) return;
+      appState.dictionaryData.selectedSlotValue = value;
+      appState.dictionaryData.selectedCombinationId = null;
+      appState.dictionaryData.selectedExpressionId = null;
+      appState.dictionaryData.selectedMapSentenceId = null;
+      appState.dictionaryData.isMapMeaningOpen = false;
+      appState.dictionaryData.isMapPracticeOpen = false;
+      renderDictionaryExplorer();
+    }
+    function selectRouteCombination(combinationId) {
+      if (!combinationId) return;
+      appState.dictionaryData.selectedCombinationId = combinationId;
+      appState.dictionaryData.selectedExpressionId = null;
+      appState.dictionaryData.selectedMapSentenceId = null;
+      appState.dictionaryData.isMapMeaningOpen = false;
+      appState.dictionaryData.isMapPracticeOpen = false;
+      renderDictionaryExplorer();
+    }
+    function toggleMapMeaning(expressionId) {
+      if (!expressionId) return;
+      const sameSentence = appState.dictionaryData.selectedMapSentenceId === expressionId;
+      const willOpen = !(sameSentence && appState.dictionaryData.isMapMeaningOpen);
+      appState.dictionaryData.selectedMapSentenceId = expressionId;
+      appState.dictionaryData.isMapMeaningOpen = willOpen;
+      appState.dictionaryData.isMapPracticeOpen = false;
+      renderDictionaryExplorer();
+    }
+    function toggleMapPractice(expressionId) {
+      if (!expressionId) return;
+      const sameSentence = appState.dictionaryData.selectedMapSentenceId === expressionId;
+      const willOpen = !(sameSentence && appState.dictionaryData.isMapPracticeOpen);
+      appState.dictionaryData.selectedMapSentenceId = expressionId;
+      appState.dictionaryData.isMapPracticeOpen = willOpen;
+      appState.dictionaryData.isMapMeaningOpen = false;
+      renderDictionaryExplorer();
+    }
+    function closeMapPractice() {
+      appState.dictionaryData.isMapPracticeOpen = false;
+      renderDictionaryExplorer();
+    }
+    function startMapSentenceQuiz(expressionId) {
+      if (!expressionId) return;
+      appState.dictionaryData.selectedExpressionId = expressionId;
+      startMode('koen', expressionId);
+    }
+    function renderMapSentenceCard(expression, data, context) {
+      if (!expression) return '';
+      const isSelected = data.selectedMapSentenceId === expression.id;
+      const isMeaningOpen = isSelected && data.isMapMeaningOpen;
+      const isPracticeOpen = isSelected && data.isMapPracticeOpen;
+      const chunks = (expression.chunks || []).map(chunk => `<span class="chunk">${escapeHtml(chunk)}</span>`).join('');
+      const hints = (expression.hints || []).slice(0, 3).map(hint => `<li>${escapeHtml(hint)}</li>`).join('');
+      return `
+        <div class="map-sentence-card" data-map-sentence-card-id="${expression.id}">
+          <p class="map-sentence-line">${escapeHtml(expression.english)}</p>
+          <p class="map-summary-note">이 문장을 더 내 것으로 만들어 볼까요?</p>
+          <div class="map-action-row">
+            <button class="map-action-btn ${isMeaningOpen ? 'active' : ''}" data-map-meaning-toggle-id="${expression.id}">뜻·덩어리 보기</button>
+            <button class="map-action-btn ${isPracticeOpen ? 'active' : ''}" data-map-practice-toggle-id="${expression.id}">문장 연습하기</button>
+          </div>
+          ${isMeaningOpen ? `
+            <div class="map-inline-panel">
+              <h6>뜻</h6>
+              <p>${escapeHtml(expression.naturalKorean || '')}</p>
+              <h6 style="margin-top:10px">덩어리</h6>
+              <div class="chunk-row">${chunks}</div>
+              <h6 style="margin-top:10px">연결</h6>
+              <p>${escapeHtml(context.patternLabel)} → ${escapeHtml(context.slotLabel)} → ${escapeHtml(context.combinationLabel)}</p>
+            </div>
+          ` : ''}
+          ${isPracticeOpen ? `
+            <div class="map-inline-panel map-practice-card">
+              <h6>문장 연습하기</h6>
+              <h3 class="map-practice-title">${escapeHtml(expression.english)}</h3>
+              <p><b>${escapeHtml(expression.naturalKorean || '')}</b></p>
+              <div class="chunk-row">${chunks}</div>
+              <div class="connection-strip-summary">${getConnectionGraph(expression)}</div>
+              <ol class="hint-list">${hints}</ol>
+              <div class="map-action-row">
+                <button class="map-action-btn active" data-map-quiz-id="${expression.id}">이 문장으로 퀴즈 시작</button>
+                <button class="map-action-btn" data-map-practice-close="true">닫기</button>
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+    function renderStepChips(items, activeId, dataAttr, extraAttrs = item => '') {
+      return items.map(item => `<button class="map-chip ${activeId === item.id ? 'active' : ''}" ${dataAttr}="${item.id}"${extraAttrs(item)}>${escapeHtml(item.label)}</button>`).join('');
+    }
+    function renderVerbMap(selectedVerb, data) {
+      const config = getVerbMapConfig(selectedVerb, data);
+      if (!config) {
+        return `<h4>${escapeHtml(selectedVerb.word.toUpperCase())}</h4><p class="small-note">이 동사는 현재 연결 지도 뷰를 지원하지 않습니다.</p>`;
+      }
+      const selectedRoute = config.routes.find(route => route.routeId === data.selectedRouteId) || null;
+      return `
+        <h4>${escapeHtml(selectedVerb.word.toUpperCase())}</h4>
+        <p class="verb-guide">${escapeHtml(config.coreSense)}</p>
+        <div class="map-section">
+          <h5>${escapeHtml(selectedVerb.word.toUpperCase())}이 자주 가는 길</h5>
+          <div class="map-chip-row">
+            ${config.routes.map(route => `<button class="map-chip ${data.selectedRouteId === route.routeId ? 'active' : ''}" data-route-id="${route.routeId}">${escapeHtml(route.label)}</button>`).join('')}
+          </div>
+        </div>
+        ${selectedRoute ? renderRouteDetailPanel(selectedVerb, data, config, selectedRoute) : `<p class="map-summary-note">보고 싶은 의미를 한 번 누르면 아래 단계가 펼쳐집니다.</p>`}
+      `;
+    }
+    function renderRouteDetailPanel(selectedVerb, data, config, selectedRoute) {
+      const selectedPattern = selectedRoute.patterns.find(pattern => pattern.patternId === data.selectedPatternId) || null;
+      const selectedSlot = selectedPattern?.slots.find(slot => slot.value === data.selectedSlotValue) || null;
+      const selectedCombination = selectedPattern?.combinations.find(combination => combination.id === data.selectedCombinationId) || null;
+      const patternTitle = selectedPattern ? selectedPattern.slotLabel : '';
+      const slotPrompt = selectedPattern ? (selectedPattern.patternId === 'p_get_place'
+        ? '어디에 도착하는지 골라 보세요.'
+        : selectedPattern.patternId === 'p_need_help'
+          ? '어떤 도움이 필요한지 골라 보세요.'
+          : selectedPattern.patternId === 'p_want_to' || selectedPattern.patternId === 'p_need_to'
+            ? '어떤 행동인지 골라 보세요.'
+            : '넣을 말을 골라 보세요.') : '';
+      const routePatternButtons = selectedRoute.patterns.map(pattern => `<button class="map-chip ${selectedPattern?.patternId === pattern.patternId ? 'active' : ''}" data-route-pattern-id="${pattern.patternId}">${escapeHtml(pattern.label)}</button>`).join('');
+      const slotButtons = selectedPattern ? selectedPattern.slots.map(slot => `<button class="map-chip ${selectedSlot?.value === slot.value ? 'active' : ''}" data-route-slot-value="${escapeHtml(slot.value)}">${escapeHtml(slot.label)}</button>`).join('') : '';
+      const combinationButtons = selectedPattern && selectedSlot ? selectedPattern.combinations.filter(combination => combination.id === selectedSlot.combinationId).map(combination => `<button class="map-chip ${selectedCombination?.id === combination.id ? 'active' : ''}" data-route-combination-id="${combination.id}">${escapeHtml(combination.label)}</button>`).join('') : '';
+      const sentenceCards = selectedPattern && selectedCombination ? selectedCombination.expressionIds.map(expressionId => {
+        const expression = data.expressions.find(item => item.id === expressionId);
+        return renderMapSentenceCard(expression, data, {
+          patternLabel: selectedPattern.label,
+          slotLabel: selectedSlot?.label || '',
+          combinationLabel: selectedCombination?.label || '',
+        });
+      }).join('') : '';
+      const specialCases = selectedRoute.specialCases || config.specialCases || [];
+      const hasSpecialCases = specialCases.length > 0;
+      const showSpecialCases = hasSpecialCases && !selectedPattern && !selectedSlot && !selectedCombination;
+      const specialCaseMarkup = showSpecialCases ? specialCases.map(specialCase => {
+        const comboButtons = specialCase.combinations.map(combination => `<button class="map-chip ${data.selectedCombinationId === combination.id ? 'active' : ''}" data-route-combination-id="${combination.id}">${escapeHtml(combination.label)}</button>`).join('');
+        const combo = specialCase.combinations.find(combination => combination.id === data.selectedCombinationId) || null;
+        const sentenceCards = combo ? combo.expressionIds.map(expressionId => {
+          const expression = data.expressions.find(item => item.id === expressionId);
+          return renderMapSentenceCard(expression, data, {
+            patternLabel: specialCase.label,
+            slotLabel: specialCase.label,
+            combinationLabel: combo?.label || '',
+          });
+        }).join('') : '';
+        return `
+          <div class="map-section map-branch-block">
+            <h5 class="map-branch-title">${escapeHtml(specialCase.label)}</h5>
+            <p class="map-summary-note">${escapeHtml(specialCase.explanation)}</p>
+            <div class="map-chip-list">${comboButtons}</div>
+            ${combo ? `<div class="map-guide">↓</div><div class="map-detail-card"><p><b><span class="map-step-title"><span class="map-step-index">5</span>실생활 문장</span></b></p><div class="map-chip-list">${sentenceCards}</div></div>` : ''}
+          </div>
+        `;
+      }).join('') : '';
+      return `
+        <div class="map-section route-detail" data-route-panel="true">
+          <h5 class="map-step-title"><span class="map-step-index">1</span>선택한 의미</h5>
+          <div class="map-detail-card">
+            <p><b>${escapeHtml(selectedRoute.label)}</b></p>
+            <p>${escapeHtml(selectedRoute.explanation)}</p>
+          </div>
+          ${hasSpecialCases ? `<p class="map-summary-note"><b>${escapeHtml(selectedRoute.label)}</b>에는 두 가지 길이 있어요.</p>` : ''}
+          <div class="map-guide">↓</div>
+          <div class="map-detail-card">
+            <p><b><span class="map-step-title"><span class="map-step-index">2</span>문장 틀</span></b></p>
+            ${hasSpecialCases ? `<p class="map-summary-note">일반 장소</p>` : ''}
+            <div class="map-chip-list">${routePatternButtons}</div>
+          </div>
+          ${selectedPattern ? `
+            <div class="map-guide">↓</div>
+            <div class="map-detail-card">
+              <p><b><span class="map-step-title"><span class="map-step-index">3</span>${escapeHtml(patternTitle || '넣는 말')}</span></b></p>
+              <p class="map-summary-note">${escapeHtml(slotPrompt)}</p>
+              <div class="map-chip-list">${slotButtons}</div>
+            </div>
+          ` : ''}
+          ${selectedSlot ? `
+            <div class="map-guide">↓</div>
+            <div class="map-detail-card">
+              <p><b><span class="map-step-title"><span class="map-step-index">4</span>자주 쓰는 조합</span></b></p>
+              <div class="map-chip-list">${combinationButtons}</div>
+            </div>
+          ` : ''}
+          ${selectedCombination ? `
+            <div class="map-guide">↓</div>
+            <div class="map-detail-card">
+              <p><b><span class="map-step-title"><span class="map-step-index">5</span>실생활 문장</span></b></p>
+              <div class="map-chip-list">${sentenceCards}</div>
+            </div>
+          ` : ''}
+          ${specialCaseMarkup}
+        </div>
+      `;
+    }
+    function attachDictionaryMapHandlers(container) {
+      container.querySelectorAll('[data-route-id]').forEach(button => {
+        button.addEventListener('click', () => selectMapRoute(button.dataset.routeId));
+      });
+      container.querySelectorAll('[data-route-pattern-id]').forEach(button => {
+        button.addEventListener('click', () => selectRoutePattern(button.dataset.routePatternId));
+      });
+      container.querySelectorAll('[data-route-slot-value]').forEach(button => {
+        button.addEventListener('click', () => selectRouteSlot(button.dataset.routeSlotValue));
+      });
+      container.querySelectorAll('[data-route-combination-id]').forEach(button => {
+        button.addEventListener('click', () => selectRouteCombination(button.dataset.routeCombinationId));
+      });
+      container.querySelectorAll('[data-map-meaning-toggle-id]').forEach(button => {
+        button.addEventListener('click', () => toggleMapMeaning(button.dataset.mapMeaningToggleId));
+      });
+      container.querySelectorAll('[data-map-practice-toggle-id]').forEach(button => {
+        button.addEventListener('click', () => toggleMapPractice(button.dataset.mapPracticeToggleId));
+      });
+      container.querySelectorAll('[data-map-quiz-id]').forEach(button => {
+        button.addEventListener('click', () => startMapSentenceQuiz(button.dataset.mapQuizId));
+      });
+      container.querySelectorAll('[data-map-practice-close]').forEach(button => {
+        button.addEventListener('click', () => closeMapPractice());
+      });
     }
     function getReviewPriorityLabel(item) {
       const priority = computeReviewPriority(item.id);
@@ -1163,12 +1579,13 @@
       }
     }
     function showAnswerSummary(type, item, result, rawGuess, connectionNote = '') {
-      appState.questionAnswered = true;
+      const canAdvance = result.status === 'correct' || result.status === 'almost';
+      appState.questionAnswered = canAdvance;
       pulseQuestion(type);
       const totalHints = Math.min(3, item.hint.length || 3);
       const usedHints = Math.min(appState.hintStep, totalHints);
       const nuance = result.nuance ? `<div class="answer-key">뉘앙스</div><div>${escapeHtml(result.nuance)}</div>` : '';
-      const buttonText = result.status === 'retry' || result.status === 'meaning' ? '한 번 더 해보기' : (appState.currentIndex + 1 >= appState.lessonItems.length ? '마무리하기' : '다음 문제');
+      const buttonText = canAdvance ? (appState.currentIndex + 1 >= appState.lessonItems.length ? '마무리하기' : '다음 문제') : '같은 문제 다시 풀기';
       showFeedback(type, `
         <div class="answer-summary">
           <b>${escapeHtml(result.title)}</b>
@@ -1189,7 +1606,23 @@
       `);
       document.querySelectorAll('.check-answer').forEach(btn => { btn.textContent = buttonText; });
       const next = document.querySelector('.next-after-answer');
-      if (next) next.addEventListener('click', nextQuestion);
+      if (next) {
+        if (canAdvance) {
+          next.addEventListener('click', nextQuestion);
+        } else {
+          next.addEventListener('click', () => {
+            appState.questionAnswered = false;
+            document.querySelectorAll('.check-answer').forEach(btn => { btn.textContent = '정답 확인'; });
+            const feedback = document.getElementById('feedback');
+            if (feedback) {
+              feedback.className = 'feedback';
+              feedback.innerHTML = '';
+            }
+            const input = document.getElementById('answerInput');
+            if (input) input.focus();
+          });
+        }
+      }
     }
     function pulseQuestion(type) {
       const card = document.getElementById('questionCard');
@@ -1206,8 +1639,12 @@
       el.className = `feedback ${type}`;
       el.innerHTML = html;
     }
+    function playNextQuestionSound() {
+      playTone({ frequency: 620, duration: 0.06, type: 'sine', volume: 0.07 });
+    }
     function nextQuestion() {
       appState.currentIndex++;
+      playNextQuestionSound();
       renderQuestion();
     }
     function previousQuestion() {
@@ -1252,9 +1689,9 @@
     }
 
     async function loadDictionaryExplorer() {
-      const files = ['verbs', 'nouns', 'patterns', 'expressions', 'learning-paths'];
+      const files = ['verbs', 'nouns', 'patterns', 'expressions', 'verb-maps', 'learning-paths'];
       try {
-        const [verbs, nouns, patterns, expressions, learningPaths] = await Promise.all(files.map(name =>
+        const [verbs, nouns, patterns, expressions, verbMaps, learningPaths] = await Promise.all(files.map(name =>
           fetch(`./data/${name}.json`).then(response => {
             if (!response.ok) throw new Error(`${name}.json ${response.status}`);
             return response.json();
@@ -1265,6 +1702,7 @@
           nouns,
           patterns,
           expressions,
+          verbMaps,
           learningPaths,
           gameExpressions: expressions.map(expression => normalizeExpression(expression, { verbs, patterns })),
           isLoaded: true,
@@ -1272,6 +1710,13 @@
           dataSource: 'expressions.json',
           selectedVerbId: appState.dictionaryData.selectedVerbId || verbs[0]?.id || null,
           selectedExpressionId: null,
+          selectedRouteId: null,
+          selectedPatternId: null,
+          selectedSlotValue: null,
+          selectedCombinationId: null,
+          selectedMapSentenceId: null,
+          isMapMeaningOpen: false,
+          isMapPracticeOpen: false,
         };
       } catch (error) {
         appState.dictionaryData = {
@@ -1290,13 +1735,18 @@
 
     function renderDictionaryExplorer() {
       const data = appState.dictionaryData;
+      const dictionaryExplorer = document.querySelector('.dictionary-explorer');
+      const dictionaryScreen = document.getElementById('dictionary');
+      const mapFocusActions = document.getElementById('mapFocusActions');
+      const showDictionaryLegacy = document.getElementById('showDictionaryLegacy');
       const status = document.getElementById('explorerStatus');
       const verbButtons = document.getElementById('verbExplorerButtons');
       const verbPanel = document.getElementById('verbExplorerPanel');
       const patternList = document.getElementById('patternExplorerList');
       const expressionList = document.getElementById('expressionExplorerList');
       const detail = document.getElementById('expressionExplorerDetail');
-      if (!status || !verbButtons || !verbPanel || !patternList || !expressionList || !detail) return;
+      const dictionaryMap = document.getElementById('dictionaryMap');
+      if (!status || !verbButtons || !verbPanel || !patternList || !expressionList || !detail || !dictionaryMap) return;
 
       if (data.error) {
         status.className = 'explorer-status error';
@@ -1319,8 +1769,27 @@
       appState.dictionaryData.selectedVerbId = selectedVerb.id;
       const patterns = data.patterns.filter(p => selectedVerb.patternIds.includes(p.id));
       const expressions = data.expressions.filter(e => e.coreVerbId === selectedVerb.id);
-      const selectedExpression = expressions.find(e => e.id === data.selectedExpressionId) || expressions[0] || null;
-      appState.dictionaryData.selectedExpressionId = selectedExpression?.id || null;
+      const selectedExpression = data.selectedExpressionId ? expressions.find(e => e.id === data.selectedExpressionId) : null;
+      const routeActive = data.selectedRouteId || data.selectedPatternId || data.selectedSlotValue || data.selectedCombinationId;
+      const isRouteVerb = isVerbMapFocus(selectedVerb.id);
+      if (dictionaryExplorer) {
+        dictionaryExplorer.classList.toggle('map-focused', Boolean(routeActive));
+        dictionaryExplorer.classList.toggle('has-selected-expression', Boolean(routeActive && selectedExpression));
+      }
+      if (dictionaryScreen) dictionaryScreen.classList.toggle('map-focus-mode', Boolean(routeActive));
+      if (mapFocusActions) mapFocusActions.classList.toggle('hidden', !routeActive);
+      if (showDictionaryLegacy) {
+        showDictionaryLegacy.onclick = () => {
+          clearRouteState();
+          appState.dictionaryData.selectedExpressionId = null;
+          renderDictionaryExplorer();
+        };
+      }
+      if (!selectedExpression && !routeActive && !isRouteVerb) {
+        appState.dictionaryData.selectedExpressionId = expressions[0]?.id || null;
+      } else {
+        appState.dictionaryData.selectedExpressionId = selectedExpression?.id || null;
+      }
 
       status.className = 'explorer-status';
       status.textContent = `${data.verbs.length}개 핵심 동사, ${data.patterns.length}개 표현 틀, ${data.expressions.length}개 표현 카드를 불러왔습니다.`;
@@ -1328,6 +1797,7 @@
           verbButtons.querySelectorAll('[data-verb-id]').forEach(button => button.addEventListener('click', () => {
             appState.dictionaryData.selectedVerbId = button.dataset.verbId;
             appState.dictionaryData.selectedExpressionId = null;
+            clearRouteState();
             renderDictionaryExplorer();
             updateRouteForScreen('dictionary');
           }));
@@ -1347,10 +1817,11 @@
         </button>
       `).join('') : '<p class="small-note">아직 연결된 표현 틀이 없습니다.</p>';
           patternList.querySelectorAll('[data-pattern-id]').forEach(button => button.addEventListener('click', () => {
-            const first = data.expressions.find(e => e.patternId === button.dataset.patternId);
-            if (first) appState.dictionaryData.selectedExpressionId = first.id;
-            renderDictionaryExplorer();
-            updateRouteForScreen('dictionary');
+              clearRouteState();
+              const first = data.expressions.find(e => e.patternId === button.dataset.patternId);
+              if (first) appState.dictionaryData.selectedExpressionId = first.id;
+              renderDictionaryExplorer();
+              updateRouteForScreen('dictionary');
           }));
 
       expressionList.innerHTML = expressions.length ? expressions.map(expression => `
@@ -1361,13 +1832,16 @@
         </button>
       `).join('') : '<p class="small-note">아직 연결된 표현 카드가 없습니다.</p>';
           expressionList.querySelectorAll('[data-expression-id]').forEach(button => button.addEventListener('click', () => {
-            appState.dictionaryData.selectedExpressionId = button.dataset.expressionId;
-            renderDictionaryExplorer();
-            updateRouteForScreen('dictionary');
+              clearRouteState();
+              appState.dictionaryData.selectedExpressionId = button.dataset.expressionId;
+              renderDictionaryExplorer();
+              updateRouteForScreen('dictionary');
           }));
 
       if (!selectedExpression) {
         detail.innerHTML = '<h3>표현 상세</h3><p>오른쪽의 실생활 표현을 선택하면 자세한 연결이 표시됩니다.</p>';
+        dictionaryMap.innerHTML = renderVerbMap(selectedVerb, data);
+        attachDictionaryMapHandlers(dictionaryMap);
         return;
       }
       const pattern = data.patterns.find(p => p.id === selectedExpression.patternId);
@@ -1404,10 +1878,13 @@
         if (!related) return;
             appState.dictionaryData.selectedVerbId = related.coreVerbId;
             appState.dictionaryData.selectedExpressionId = related.id;
+            clearRouteState();
             renderDictionaryExplorer();
             updateRouteForScreen('dictionary');
           }));
-        }
+      dictionaryMap.innerHTML = renderVerbMap(selectedVerb, data);
+      attachDictionaryMapHandlers(dictionaryMap);
+    }
 
     function renderMap() {
       document.getElementById('mapFilters').innerHTML = Object.entries(mapSets).map(([key,val]) => `<button class="filter ${appState.currentMap === key ? 'active':''}" data-map="${key}">${key}</button>`).join('');
@@ -1498,8 +1975,10 @@
       }
     }
     function playSuccessSound() {
-      playTone({ frequency: 660, duration: 0.12, type: 'triangle', volume: 0.14 });
-      playTone({ frequency: 880, duration: 0.06, type: 'triangle', volume: 0.1, when: 0.07 });
+      // Stronger two-step chime so correct feedback is clearly distinguishable.
+      playTone({ frequency: 740, duration: 0.16, type: 'square', volume: 0.16 });
+      playTone({ frequency: 988, duration: 0.14, type: 'triangle', volume: 0.136, when: 0.1 });
+      playTone({ frequency: 1175, duration: 0.12, type: 'sine', volume: 0.096, when: 0.2 });
     }
     function playAlmostSound() {
       playTone({ frequency: 540, duration: 0.12, type: 'triangle', volume: 0.12 });
@@ -1529,6 +2008,13 @@
       else if (type === 'meaning') playMeaningSound();
       else playRetrySound();
     }
+    function updateSoundToggle() {
+      const button = document.getElementById('toggleSound');
+      if (!button) return;
+      const enabled = appState.progress.settings?.soundEnabled !== false;
+      button.textContent = enabled ? '🔊 소리 켬' : '🔇 소리 끔';
+      button.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+    }
     function toast(msg) { const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2200); }
     function escapeHtml(s) { return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
@@ -1550,10 +2036,11 @@
       updateSoundToggle();
       toast(settings.soundEnabled ? '소리를 켰어요.' : '소리를 껐어요.');
     });
-    document.getElementById('resetProgress').addEventListener('click', () => { localStorage.removeItem('etdQuestProgress'); appState.progress=defaultProgress(); updateDashboard(); toast('학습 기록을 초기화했어요.'); });
+    document.getElementById('resetProgress').addEventListener('click', () => { localStorage.removeItem('etdQuestProgress'); appState.progress=defaultProgress(); updateDashboard(); updateSoundToggle(); toast('학습 기록을 초기화했어요.'); });
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
 
     initSoundEngine();
+    updateSoundToggle();
     renderModeCards('homeModes', 3);
     renderModeCards('gameModes', 6);
     renderWords(); renderMap(); updateDashboard(); loadDictionaryExplorer();

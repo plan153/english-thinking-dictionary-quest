@@ -37,6 +37,54 @@ def main() -> None:
         if not (ROOT / required).exists():
             fail(f"Required file is missing: {required}")
 
+    patterns = json.loads((ROOT / "data" / "patterns.json").read_text(encoding="utf-8"))
+    expressions = json.loads((ROOT / "data" / "expressions.json").read_text(encoding="utf-8"))
+    verb_maps_path = ROOT / "data" / "verb-maps.json"
+    if not verb_maps_path.exists():
+        fail("Required file is missing: data/verb-maps.json")
+    verb_maps = json.loads(verb_maps_path.read_text(encoding="utf-8"))
+
+    pattern_ids = {item.get("id") for item in patterns}
+    expression_ids = {item.get("id") for item in expressions}
+    verb_ids = {item.get("id") for item in json.loads((ROOT / "data" / "verbs.json").read_text(encoding="utf-8"))}
+    seen_verb_ids = set()
+
+    for verb_map in verb_maps:
+        verb_id = verb_map.get("verbId")
+        if not verb_id or verb_id not in verb_ids:
+            fail(f"verb-maps.json references unknown verbId: {verb_id}")
+        if verb_id in seen_verb_ids:
+            fail(f"verb-maps.json contains duplicate verbId: {verb_id}")
+        seen_verb_ids.add(verb_id)
+
+        for route in verb_map.get("routes", []):
+            route_id = route.get("routeId")
+            if not route_id:
+                fail(f"verb-maps.json route missing routeId for verbId {verb_id}")
+            for pattern in route.get("patterns", []):
+                pattern_id = pattern.get("patternId")
+                if pattern_id not in pattern_ids:
+                    fail(f"verb-maps.json references unknown patternId: {pattern_id}")
+                combination_ids = {combo.get("id") for combo in pattern.get("combinations", [])}
+                for slot in pattern.get("slots", []):
+                    combination_id = slot.get("combinationId")
+                    if combination_id not in combination_ids:
+                        fail(f"verb-maps.json slot references unknown combinationId: {combination_id}")
+                for combination in pattern.get("combinations", []):
+                    if not combination.get("expressionIds"):
+                        fail(f"verb-maps.json combination {combination.get('id')} must reference at least one expressionId")
+                    for expression_id in combination.get("expressionIds", []):
+                        if expression_id not in expression_ids:
+                            fail(f"verb-maps.json references unknown expressionId: {expression_id}")
+
+        for special_case in verb_map.get("specialCases", []):
+            for combination in special_case.get("combinations", []):
+                if not combination.get("expressionIds"):
+                    fail(f"verb-maps.json special case combination {combination.get('id')} must reference at least one expressionId")
+                for expression_id in combination.get("expressionIds", []):
+                    if expression_id not in expression_ids:
+                        fail(f"verb-maps.json references unknown expressionId: {expression_id}")
+
     print(f"✅ Validation passed — v{version}")
 
 

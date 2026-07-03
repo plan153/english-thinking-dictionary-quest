@@ -39,6 +39,8 @@
   {"id":"n_name","word":"name","easyKorean":"이름","category":"identity","situationTags":["introduction"],"level":1},
   {"id":"n_job","word":"job","easyKorean":"일, 직업","category":"work","situationTags":["work"],"level":1},
   {"id":"n_work","word":"work","easyKorean":"일, 작업","category":"work","situationTags":["work"],"level":1},
+  {"id":"n_school","word":"school","easyKorean":"학교","category":"place","situationTags":["travel","study"],"level":1},
+  {"id":"n_station","word":"station","easyKorean":"역","category":"place","situationTags":["travel"],"level":1},
   {"id":"n_project","word":"project","easyKorean":"프로젝트","category":"work","situationTags":["work"],"level":1},
   {"id":"n_meeting","word":"meeting","easyKorean":"회의, 만남","category":"work","situationTags":["work"],"level":1},
   {"id":"n_today","word":"today","easyKorean":"오늘","category":"time","situationTags":["schedule"],"level":1},
