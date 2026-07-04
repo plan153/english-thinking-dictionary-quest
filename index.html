@@ -212,6 +212,11 @@
     .connection-dot.connection-weak { border-color:#2b8682; background:conic-gradient(from 270deg, rgba(40,111,108,.22) 0 52%, #ffffff 52% 100%); }
     .connection-dot.connection-weak .connection-number { color:#236e6b; }
     .connection-dot.connection-empty { border-color:#cfd5d3; background:#fff; }
+    .connection-step.current .connection-dot {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(40,111,108,.16);
+    }
+    .connection-step.current .connection-step-label { color: #1f6663; }
 
     /* Connection lines styled as absolute overlay */
     .connection-line {
@@ -308,6 +313,22 @@
     .ring strong { position:relative; z-index:1; font-size:18px; }
     .daily-card h3 { margin:0 0 5px; }
 
+    #questArea { margin-top:20px; }
+    #questArea .card { border: 2px solid var(--accent); background: linear-gradient(135deg, rgba(40,111,108,.04) 0%, rgba(255,253,249,1) 100%); }
+    #questArea ul { list-style: none; padding-left:0; }
+    #questArea li { padding:6px 0; border-bottom:1px solid var(--line); }
+    #questArea li:last-child { border-bottom:none; }
+    .quest-inline-confirm {
+      margin-top: 12px;
+      border: 1px solid rgba(40,111,108,.22);
+      background: #f8fcfb;
+      border-radius: 14px;
+      padding: 12px;
+    }
+    .quest-inline-confirm h4 { margin: 0 0 6px; font-size: 15px; }
+    .quest-inline-confirm p { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.5; }
+    .quest-confirm-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+
     .toast { position: fixed; left:50%; bottom:24px; transform:translate(-50%, 18px); background:var(--ink); color:#fff; padding:12px 15px; border-radius:12px; font-size:13px; font-weight:700; opacity:0; pointer-events:none; transition:.22s; box-shadow:var(--shadow); z-index:10; }
     .toast.show { transform:translate(-50%, 0); opacity:1; }
 
@@ -383,6 +404,8 @@
           <button class="btn ghost" id="jumpDictionary">사전 탐험하기</button>
         </div>
       </div>
+
+      <div id="questArea"></div>
 
       <div class="grid cols-2">
         <article class="card daily-card">
@@ -605,6 +628,9 @@
       sessionStudyRecords: {},
       audioContext: null,
       audioSupported: true,
+      naturalEnglishVoice: null,
+      questContext: null,
+      questRestartConfirmOpen: false,
     };
 
     function defaultHistoryEntry() {
@@ -623,6 +649,18 @@
         },
       };
     }
+    function defaultDailyQuestV1() {
+      return {
+        date: null,
+        expressionIds: [],
+        currentIndex: 0,
+        completedExpressionIds: [],
+        stepByExpressionId: {},
+        startedAt: null,
+        finishedAt: null,
+        isCompleted: false,
+      };
+    }
     function defaultProgress() {
       return {
         xp: 0,
@@ -633,6 +671,7 @@
         skipped: {},
         recentExpressionIds: [],
         daily: { date: null, done: [] },
+        dailyQuestV1: defaultDailyQuestV1(),
         settings: { soundEnabled: true, seenConnectionGuide: false },
         historyByExpressionId: {},
       };
@@ -660,6 +699,7 @@
           ...defaultProgress(),
           ...saved,
           recentExpressionIds: saved.recentExpressionIds || [],
+          dailyQuestV1: { ...defaultDailyQuestV1(), ...(saved.dailyQuestV1 || {}) },
           settings: { ...defaultProgress().settings, ...(saved.settings || {}) },
           historyByExpressionId: Object.fromEntries(Object.entries(saved.historyByExpressionId || {}).map(([id, history]) => [id, normalizeHistoryEntry(history)])),
         };
@@ -668,6 +708,9 @@
     }
     function saveProgress() { localStorage.setItem('etdQuestProgress', JSON.stringify(appState.progress)); updateDashboard(); }
     function todayKey() { return new Date().toISOString().slice(0,10); }
+    function seoulTodayKey() {
+      return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(new Date());
+    }
     function ensureToday() {
       const p = appState.progress;
       const today = todayKey();
@@ -706,6 +749,7 @@
           updateHistoryConnections(itemId, connectionType, strength);
         }
         appState.sessionStudyRecords[itemId] = { lastRecordedSignature: signature };
+        handleQuestStageCompletion(mode, itemId, resultType);
       }
       else if (resultType === 'meaning') {
         history.lastMeaningHitAt = now;
@@ -716,12 +760,35 @@
         if (!duplicateMeaning) {
           appState.sessionStudyRecords[itemId] = { lastRecordedSignature: signature };
         }
+        handleQuestStageCompletion(mode, itemId, resultType);
       }
       else if (resultType === 'retry') {
         history.lastHintLevel = hintLevel;
       }
       history.reviewPriority = computeReviewPriority(itemId);
       p.historyByExpressionId[itemId] = history;
+      saveProgress();
+    }
+
+    function handleQuestStageCompletion(mode, itemId, resultType) {
+      const questCtx = appState.questContext;
+      if (!questCtx || questCtx.source !== 'dailyQuestV1' || questCtx.expressionId !== itemId) return;
+      if (resultType !== 'correct' && resultType !== 'almost') return;
+      const quest = appState.progress.dailyQuestV1;
+      const step = quest.stepByExpressionId[itemId];
+      if (!step) return;
+      const stage = questCtx.stage;
+      if (stage === 'meaning' && mode === 'enko' && !step.meaningDone) {
+        step.meaningDone = true;
+      } else if (stage === 'assembly' && mode === 'build' && !step.assemblyDone) {
+        step.assemblyDone = true;
+      } else if (stage === 'output' && mode === 'speak' && !step.outputDone) {
+        step.outputDone = true;
+        step.completedAt = new Date().toISOString();
+        if (!quest.completedExpressionIds.includes(itemId)) {
+          quest.completedExpressionIds.push(itemId);
+        }
+      }
       saveProgress();
     }
     function markSkipped(mode, itemId) {
@@ -748,6 +815,7 @@
       document.getElementById('streakBig').textContent = `${p.streak || 0}일`;
       document.getElementById('masteredBig').textContent = masteredCount();
       renderReviewList();
+      updateQuestUI();
     }
 
     function renderModeCards(targetId, count = 6) {
@@ -763,10 +831,250 @@
       target.querySelectorAll('.start-mode').forEach(btn => btn.addEventListener('click', () => startMode(btn.dataset.mode)));
     }
 
+    function ensureDailyQuest() {
+      const seoulToday = seoulTodayKey();
+      const quest = appState.progress.dailyQuestV1;
+      const bank = getGameBank();
+      if (!appState.dictionaryData.gameExpressions.length && quest.date === seoulToday && quest.expressionIds.length > 0) {
+        return;
+      }
+      if (bank.length === 0) {
+        quest.expressionIds = [];
+        return;
+      }
+      const existingExpressions = quest.expressionIds.map(id => bank.find(item => item.id === id)).filter(Boolean);
+      const hasValidTodaySelection = quest.date === seoulToday
+        && quest.expressionIds.length > 0
+        && quest.expressionIds.length <= 3
+        && existingExpressions.length === quest.expressionIds.length;
+      if (hasValidTodaySelection) {
+        return;
+      }
+      const recent = new Set(appState.progress.recentExpressionIds || []);
+      const seenToday = new Set(hasValidTodaySelection ? quest.expressionIds : []);
+      const previousDayIds = new Set(quest.date && quest.date !== seoulToday ? (quest.expressionIds || []) : []);
+      const scored = bank.map(item => {
+        const history = getHistory(item.id);
+        const emptyPieces = ['recognition', 'assembly', 'output'].filter(key => (history.connections?.[key]?.strength || 0) === 0).length;
+        const priority = history.reviewPriority || 0;
+        const weakSuccess = history.timesCorrect > 0 && (history.lastHintLevel || 0) >= 2;
+        const hintHeavy = (history.lastHintLevel || 0) >= 2;
+        const allStrong = allStrongHistory(history);
+        let score = 0;
+        if (emptyPieces > 0) score += 10 + emptyPieces * 3;
+        else if (priority > 5) score += 8;
+        else if (weakSuccess || hintHeavy) score += 5;
+        else if (!allStrong) score += 3;
+        if (recent.has(item.id)) score -= 2;
+        if (seenToday.has(item.id)) score = -1000;
+        return { item, score };
+      });
+      scored.sort((a, b) => b.score - a.score);
+      const candidateIds = scored.filter(s => s.score > -999).map(s => s.item.id);
+      const freshIds = candidateIds.filter(id => !previousDayIds.has(id));
+      const selected = freshIds.slice(0, 3);
+      if (selected.length < 3) {
+        selected.push(...candidateIds.filter(id => !selected.includes(id)).slice(0, 3 - selected.length));
+      }
+      if (selected.length === 0) {
+        const fallback = bank.filter(item => !seenToday.has(item.id)).slice(0, 3).map(item => item.id);
+        appState.progress.dailyQuestV1 = {
+          ...defaultDailyQuestV1(),
+          date: seoulToday,
+          expressionIds: fallback,
+          stepByExpressionId: Object.fromEntries(fallback.map(id => [id, { meaningDone: false, assemblyDone: false, outputDone: false, completedAt: null }])),
+        };
+      } else {
+        appState.progress.dailyQuestV1 = {
+          ...defaultDailyQuestV1(),
+          date: seoulToday,
+          expressionIds: selected,
+          stepByExpressionId: Object.fromEntries(selected.map(id => [id, { meaningDone: false, assemblyDone: false, outputDone: false, completedAt: null }])),
+        };
+      }
+      saveProgress();
+    }
+
+    function updateQuestUI() {
+      ensureDailyQuest();
+      const quest = appState.progress.dailyQuestV1;
+      const questArea = document.getElementById('questArea');
+      if (!questArea) return;
+      const bank = getGameBank();
+      const expressions = quest.expressionIds.map(id => bank.find(item => item.id === id)).filter(Boolean);
+      const completed = quest.completedExpressionIds.length;
+      const total = expressions.length;
+      const restartConfirmMarkup = appState.questRestartConfirmOpen ? `
+        <div class="quest-inline-confirm" role="status" aria-live="polite">
+          <h4>오늘의 퀘스트를 처음부터 다시 할까요?</h4>
+          <p>오늘 선정된 3개 표현은 유지하고, 오늘의 퀘스트 단계만 처음부터 시작합니다.</p>
+          <p class="small-note">XP와 기존 학습 기록은 지워지지 않아요.</p>
+          <div class="quest-confirm-actions">
+            <button class="btn soft" id="cancelQuestRestartBtn" type="button">취소</button>
+            <button class="btn dark" id="confirmQuestRestartBtn" type="button">다시 시작</button>
+          </div>
+        </div>
+      ` : '';
+      if (quest.isCompleted) {
+        questArea.innerHTML = `
+          <div class="card">
+            <h3>✨ 오늘의 3문장 퀘스트 완료!</h3>
+            <p>3개 표현을 모두 연결했어요. 내일 또 새로운 3문장이 준비됩니다.</p>
+            <div style="margin-top:12px;">
+              <button class="btn soft" id="restartQuestBtn" type="button">오늘의 퀘스트 다시 시작</button>
+              <button class="btn soft" onclick="showScreen('dictionary')">사전 탐험하기</button>
+            </div>
+            ${restartConfirmMarkup}
+          </div>
+        `;
+      } else if (!quest.startedAt) {
+        const expressionList = expressions.map((item, i) => `<li>${i + 1}. ${item.ko} → <b>${item.en}</b></li>`).join('');
+        questArea.innerHTML = `
+          <div class="card">
+            <h3>오늘의 3문장 · ${completed}/${total} 완료</h3>
+            <p>오늘 연결할 3개 표현이에요. 각 표현마다 <b>뜻 이해 → 문장 만들기 → 직접 말하기</b> 순서로 진행합니다.</p>
+            <ul style="margin:10px 0; padding-left:20px; line-height:1.7;">${expressionList}</ul>
+            <button class="btn dark" id="startQuestBtn">퀘스트 시작하기</button>
+          </div>
+        `;
+      } else {
+        const currentExpression = expressions[quest.currentIndex];
+        const progressText = `${completed}/${total} 완료`;
+        const currentText = currentExpression ? `현재: ${currentExpression.ko}` : '완료 대기 중';
+        questArea.innerHTML = `
+          <div class="card">
+            <h3>오늘의 3문장 · ${progressText}</h3>
+            <p>${currentText}</p>
+            <div class="quest-confirm-actions">
+              <button class="btn dark" id="continueQuestBtn" type="button">퀘스트 이어하기</button>
+              <button class="btn soft" id="restartQuestBtn" type="button">오늘의 퀘스트 다시 시작</button>
+            </div>
+            ${restartConfirmMarkup}
+          </div>
+        `;
+      }
+      document.getElementById('startQuestBtn')?.addEventListener('click', startQuest);
+      document.getElementById('continueQuestBtn')?.addEventListener('click', continueQuest);
+      document.getElementById('restartQuestBtn')?.addEventListener('click', openQuestRestartConfirm);
+      document.getElementById('cancelQuestRestartBtn')?.addEventListener('click', cancelQuestRestartConfirm);
+      document.getElementById('confirmQuestRestartBtn')?.addEventListener('click', restartTodayQuest);
+    }
+
+    function openQuestRestartConfirm() {
+      appState.questRestartConfirmOpen = true;
+      updateQuestUI();
+    }
+
+    function cancelQuestRestartConfirm() {
+      appState.questRestartConfirmOpen = false;
+      updateQuestUI();
+    }
+
+    function restartTodayQuest() {
+      ensureDailyQuest();
+      const quest = appState.progress.dailyQuestV1;
+      const ids = (quest.expressionIds || []).slice();
+      if (!ids.length) {
+        appState.questRestartConfirmOpen = false;
+        updateQuestUI();
+        return;
+      }
+      quest.currentIndex = 0;
+      quest.completedExpressionIds = [];
+      quest.stepByExpressionId = Object.fromEntries(ids.map(id => [id, {
+        meaningDone: false,
+        assemblyDone: false,
+        outputDone: false,
+        completedAt: null,
+      }]));
+      quest.startedAt = new Date().toISOString();
+      quest.finishedAt = null;
+      quest.isCompleted = false;
+      appState.questContext = null;
+      appState.questRestartConfirmOpen = false;
+      saveProgress();
+      runQuestStage();
+    }
+
+    function startQuest() {
+      const quest = appState.progress.dailyQuestV1;
+      if (quest.startedAt && !quest.isCompleted) {
+        continueQuest();
+        return;
+      }
+      quest.startedAt = new Date().toISOString();
+      quest.currentIndex = 0;
+      saveProgress();
+      runQuestStage();
+    }
+
+    function continueQuest() {
+      runQuestStage();
+    }
+
+    function runQuestStage() {
+      const quest = appState.progress.dailyQuestV1;
+      const bank = getGameBank();
+      const currentExpressionId = quest.expressionIds[quest.currentIndex];
+      if (!currentExpressionId) {
+        finishQuest();
+        return;
+      }
+      const expression = bank.find(item => item.id === currentExpressionId);
+      if (!expression) {
+        finishQuest();
+        return;
+      }
+      const step = quest.stepByExpressionId[currentExpressionId] || { meaningDone: false, assemblyDone: false, outputDone: false, completedAt: null };
+      let stage = null;
+      if (!step.meaningDone) stage = 'meaning';
+      else if (!step.assemblyDone) stage = 'assembly';
+      else if (!step.outputDone) stage = 'output';
+      if (!stage) {
+        quest.currentIndex++;
+        if (quest.currentIndex >= quest.expressionIds.length) {
+          finishQuest();
+        } else {
+          saveProgress();
+          runQuestStage();
+        }
+        return;
+      }
+      const mode = stage === 'meaning' ? 'enko' : stage === 'assembly' ? 'build' : 'speak';
+      startMode(mode, currentExpressionId, {
+        skipRoute: false,
+        questContext: { expressionId: currentExpressionId, stage, source: 'dailyQuestV1' },
+      });
+    }
+
+    function finishQuest() {
+      const quest = appState.progress.dailyQuestV1;
+      quest.finishedAt = new Date().toISOString();
+      quest.isCompleted = true;
+      saveProgress();
+      showQuestComplete();
+    }
+
+    function showQuestComplete() {
+      appState.questContext = null;
+      showScreen('lesson', { skipRoute: true });
+      document.getElementById('lessonProgress').style.width = '100%';
+      document.getElementById('lessonProgressText').textContent = '3 / 3';
+      document.getElementById('questionCard').innerHTML = `
+        <div class="lesson-label">오늘의 퀘스트 v1 완료</div>
+        <h2>오늘의 3문장을 완료했어요.</h2>
+        <p class="korean">뜻 이해 → 문장 만들기 → 직접 말하기를 모두 마쳤습니다. 내일 새로운 3문장이 열립니다.</p>
+        <div class="question-actions"><button class="btn accent" id="questDoneHome">홈으로</button><button class="btn dark" id="questDoneProgress">내 성장 보기</button></div>`;
+      document.getElementById('questDoneHome')?.addEventListener('click', () => showScreen('home'));
+      document.getElementById('questDoneProgress')?.addEventListener('click', () => showScreen('progress'));
+      toast('오늘의 3문장 퀘스트를 모두 완료했어요!');
+    }
+
         function showScreen(id, options = {}) {
           document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id));
           document.querySelectorAll('.nav button').forEach(b => b.classList.toggle('active', b.dataset.screen === id));
           if (!options.skipScroll) window.scrollTo({ top: 0, behavior: 'smooth' });
+          if (id === 'home') updateQuestUI();
           if (id === 'dictionary') renderWords();
           if (id === 'dictionary') renderDictionaryExplorer();
           if (id === 'map') renderMap();
@@ -822,7 +1130,7 @@
         }
 
     function shuffled(arr) { return [...arr].sort(() => Math.random() - .5); }
-    const modeQuizTypes = { listen: 'listening', koen: 'koToEn', enko: 'enToKo', hint: 'hint', build: 'blank', review: 'koToEn' };
+    const modeQuizTypes = { listen: 'listening', koen: 'koToEn', enko: 'enToKo', hint: 'hint', build: 'blank', speak: 'speaking', review: 'koToEn' };
     function verbWordFromId(id, verbs = appState.dictionaryData.verbs) {
       return verbs.find(v => v.id === id)?.word || String(id || '').replace(/^v_/, '');
     }
@@ -921,7 +1229,7 @@
       const before = history.connections?.[connectionType]?.strength || 0;
       return { before, after: Math.max(before, newStrength) };
     }
-    function renderConnectionStripFromHistory(history) {
+    function renderConnectionStripFromHistory(history, activeStageKey = null) {
       const steps = [
         { key: 'recognition', label: '뜻 이해', subtitle: '영어↔한국어', number: '1' },
         { key: 'assembly', label: '문장 만들기', subtitle: '빈칸·조립', number: '2' },
@@ -936,6 +1244,7 @@
           : `<span class="connection-number">${step.number}</span>`;
         const helperText = strength === 0.5 ? '<span class="connection-state-tag">복습</span>' : '';
         const statusText = status === 'strong' ? '강한 완료' : status === 'weak' ? '진행 중' : '미완료';
+        const isCurrent = activeStageKey === step.key && status !== 'strong';
 
         let lineClass = '';
         if (index < steps.length - 1) {
@@ -944,8 +1253,8 @@
         }
 
         return `
-          <div class="connection-step">
-            <div class="connection-dot connection-${status}" aria-label="${step.label} ${statusText}">
+          <div class="connection-step ${isCurrent ? 'current' : ''}">
+            <div class="connection-dot connection-${status}" aria-label="${step.label} ${isCurrent ? '현재 단계' : statusText}">
               ${dotContent}
             </div>
             <div class="connection-labels">
@@ -960,8 +1269,14 @@
       const titleHtml = '<div class="connection-title">표현 연결도</div>';
       return `<div class="connection-strip-container">${titleHtml}<div class="connection-strip" aria-label="뜻 이해, 문장 만들기, 직접 말하기 연결 상태">${blocks}</div>${badge}</div>`;
     }
-    function getConnectionGraph(item) {
-      return renderConnectionStripFromHistory(getHistory(item.id));
+    function stageToConnectionKey(stage) {
+      if (stage === 'meaning') return 'recognition';
+      if (stage === 'assembly') return 'assembly';
+      if (stage === 'output') return 'output';
+      return null;
+    }
+    function getConnectionGraph(item, activeStageKey = null) {
+      return renderConnectionStripFromHistory(getHistory(item.id), activeStageKey);
     }
     function getConnectionLine(item) {
       return getConnectionGraph(item);
@@ -1309,6 +1624,7 @@
           appState.currentIndex = 0;
           appState.hintStep = 0;
           appState.questionAnswered = false;
+          appState.questContext = Object.prototype.hasOwnProperty.call(options, 'questContext') ? options.questContext : null;
           if (appState.dictionaryData.error && !appState.dictionaryData.gameExpressions.length) toast('사전 데이터를 불러오지 못해 기본 예비 표현으로 퀴즈를 시작해요.');
           showScreen('lesson', { skipRoute: options.skipRoute });
           renderQuestion();
@@ -1316,7 +1632,7 @@
 
     function renderQuestion() {
       const item = appState.lessonItems[appState.currentIndex];
-          if (!item) return finishLesson();
+          if (!item || appState.currentIndex >= appState.lessonItems.length) return finishLesson();
           appState.hintStep = 0;
           appState.questionAnswered = false;
           rememberRecentExpression(item.id);
@@ -1326,14 +1642,22 @@
       document.getElementById('lessonProgress').style.width = progress + '%';
       document.getElementById('lessonProgressText').textContent = `${appState.currentIndex + 1} / ${appState.lessonItems.length}`;
 
-      const baseTop = `<div class="lesson-label">${modeTitle(mode)} · ${item.frame} · ${item.level || 1}단계</div>`;
-      const connectionSummary = `<div class="connection-strip-summary">${getConnectionGraph(item)}</div>`;
+      const questStage = appState.questContext?.source === 'dailyQuestV1' && appState.questContext?.expressionId === item.id
+        ? appState.questContext.stage
+        : null;
+      const stageLabel = questStage === 'meaning' ? '뜻 이해 · 1단계'
+        : questStage === 'assembly' ? '문장 만들기 · 2단계'
+        : questStage === 'output' ? '직접 말하기 · 3단계'
+        : `${modeTitle(mode)} · ${item.frame} · ${item.level || 1}단계`;
+      const baseTop = `<div class="lesson-label">${stageLabel}</div>`;
+      const connectionSummary = `<div class="connection-strip-summary">${getConnectionGraph(item, stageToConnectionKey(questStage))}</div>`;
       let body = '';
       if (mode === 'listen') body = renderListen(item);
       else if (mode === 'koen') body = renderKoEn(item);
       else if (mode === 'enko') body = renderEnKo(item);
       else if (mode === 'hint') body = renderHint(item);
       else if (mode === 'build') body = renderBuild(item);
+      else if (mode === 'speak') body = renderSpeak(item);
       else body = renderReview(item);
       card.innerHTML = baseTop + connectionSummary + body;
       attachQuestionHandlers(item, mode);
@@ -1354,17 +1678,44 @@
       return `
         <h2>${item.ko}</h2>
         <p class="korean">말하듯이 영어로 조립해 보세요. 대소문자와 마침표는 크게 신경 쓰지 않아도 됩니다.</p>
+        <div class="question-actions" style="margin-bottom:10px"><button class="btn soft mic-start" type="button">🎤 말하고 확인하기</button></div>
+        <div class="hint-box hidden" id="speechResultBox"></div>
         <input class="answer-input" id="answerInput" placeholder="Type your English sentence" autocomplete="off" />
         ${renderQuizNav('정답 확인')}
         <div class="question-actions"><button class="btn soft next-hint">힌트 1/3</button></div>
         <div class="hint-box hidden" id="hintBox"></div><div class="feedback hidden" id="feedback"></div>`;
     }
-    function renderEnKo(item) {
-      const wrong = shuffled(getGameBank().filter(p => p.id !== item.id && supportsMode(p, 'enko'))).slice(0,3).map(p => p.ko);
-      const choices = shuffled([item.ko, ...wrong]);
+    function renderSpeak(item) {
       return `
         <h2>${item.en}</h2>
-        <p class="korean">가장 자연스러운 뜻이나 상황을 골라 보세요.</p>
+        <p class="korean">문장을 마이크로 말해 보세요.</p>
+        <div class="question-actions" style="margin-bottom:10px"><button class="btn accent mic-start" type="button">🎤 말하고 확인하기</button></div>
+        <div class="hint-box hidden" id="speechResultBox"></div>
+        <div class="hint-box hidden" id="textPracticeBox">
+          <div class="hint-title">텍스트로 연습하기</div>
+          <p class="small-note" style="margin:0 0 10px">텍스트 연습은 피드백만 제공하고 직접 말하기 완료로 체크하지 않아요.</p>
+          <input class="answer-input" id="answerInput" placeholder="Type your English sentence" autocomplete="off" />
+          <div class="question-actions"><button class="btn soft text-practice-check" type="button">연습 답안 확인</button></div>
+        </div>
+        <div class="question-actions"><button class="btn soft text-practice-toggle" type="button">텍스트로 연습하기</button></div>
+        <div class="feedback hidden" id="feedback"></div>`;
+    }
+    function buildMeaningChoices(item) {
+      const bank = getGameBank();
+      const uniq = values => [...new Set(values.filter(Boolean).map(value => String(value).trim()))];
+      const sameVerb = bank.filter(p => p.id !== item.id && p.coreVerbId === item.coreVerbId && supportsMode(p, 'enko')).map(p => p.ko);
+      const samePattern = bank.filter(p => p.id !== item.id && p.patternId === item.patternId && supportsMode(p, 'enko')).map(p => p.ko);
+      const sameTag = bank.filter(p => p.id !== item.id && (p.situationTags || []).some(tag => (item.situationTags || []).includes(tag)) && supportsMode(p, 'enko')).map(p => p.ko);
+      const fallback = bank.filter(p => p.id !== item.id && supportsMode(p, 'enko')).map(p => p.ko);
+      const pool = uniq([...sameVerb, ...samePattern, ...sameTag, ...fallback]).filter(value => normalize(value) !== normalize(item.ko));
+      const wrong = shuffled(pool).slice(0, 3);
+      return shuffled([item.ko, ...wrong]);
+    }
+    function renderEnKo(item) {
+      const choices = buildMeaningChoices(item);
+      return `
+        <h2>${item.en}</h2>
+        <p class="korean">이 문장의 자연스러운 한국어 뜻을 고르세요.</p>
         <button class="sound-btn speak" data-text="${escapeHtml(item.audioText || item.en)}" title="문장 듣기">🔊</button>
         <div class="choices" id="choices">${choices.map(c => `<button class="choice" data-value="${escapeHtml(c)}">${c}</button>`).join('')}</div>
         <div class="feedback hidden" id="feedback"></div>`;
@@ -1385,7 +1736,10 @@
         <h2>${item.ko}</h2>
         <p class="korean">핵심 동사와 표현 덩어리를 보고 빈칸을 떠올린 뒤 문장을 완성하세요.</p>
         <div class="hint-box" style="background:#eef7f6; border-style:solid; border-color:#b8dcd9"><div class="hint-title" style="color:#286f6c">목표 문장</div><strong>${item.en}</strong>을 스스로 조립해 보세요.</div>
+        <div class="answer-key" style="margin-top:12px">핵심 동사를 고르세요.</div>
+        <p class="small-note" style="margin:6px 0 10px">문장 뼈대를 만드는 동사를 먼저 찾습니다.</p>
         <div class="choices" id="choices">${shuffled([item.verb, ...verbs.filter(v=>v!==item.verb)]).slice(0,4).map(c => `<button class="choice build-verb" data-value="${c}">${c}</button>`).join('')}</div>
+        <div class="hint-box hidden" id="buildVerbReason" style="margin-top:10px"></div>
         <input class="answer-input" id="answerInput" placeholder="Type the whole sentence" autocomplete="off" style="margin-top:14px" />
         ${renderQuizNav('문장 완성')}
         <div class="question-actions"><button class="btn soft next-hint">힌트 1/3</button></div>
@@ -1413,6 +1767,167 @@
         </div>`;
     }
 
+    function buildVerbHintText(item, selectedVerb) {
+      const frame = String(item.frame || '').toLowerCase();
+      const frameSlot = (String(item.frame || '').split('+')[1] || '핵심 표현').trim();
+      const meaningByVerb = {
+        get: frame.includes('adjective') ? '상태가 변하다' : '얻다/받다/변화하다',
+        make: '만들다/결정하다/변화를 만들다',
+        take: '취하다/시간이 들다/행동하다',
+        have: '가지다/경험하다/상태를 갖다',
+        give: '주다/전달하다',
+        keep: '유지하다/계속하다',
+      };
+      if (selectedVerb === item.verb) {
+        if (selectedVerb === 'get' && /\bgot home\b/i.test(item.en || '')) {
+          return 'get home = 집에 도착하다 · 특별 규칙: home 앞에는 to를 쓰지 않아요.';
+        }
+        const meaning = meaningByVerb[selectedVerb] || '핵심 동사 의미를 만든다';
+        return `${selectedVerb} + ${frameSlot}: ${meaning}`;
+      }
+      return `${selectedVerb}는 비교용 선택지예요. 이 문장은 ${item.verb} 엔진을 사용합니다.`;
+    }
+
+    function supportsSpeechRecognition() {
+      return Boolean(window.SpeechRecognition || window.webkitSpeechRecognition);
+    }
+
+    function speechStatus(message, type = 'info') {
+      const box = document.getElementById('speechResultBox');
+      if (!box) return;
+      box.classList.remove('hidden');
+      const title = type === 'error' ? '음성 인식 안내' : '마이크 상태';
+      box.innerHTML = `<div class="hint-title">${title}</div><div>${escapeHtml(message)}</div>`;
+    }
+
+    function speechRetryStatus(message, item, mode, type = 'error') {
+      const box = document.getElementById('speechResultBox');
+      if (!box) return;
+      box.classList.remove('hidden');
+      const title = type === 'error' ? '음성 인식 안내' : '마이크 상태';
+      box.innerHTML = `
+        <div class="hint-title">${title}</div>
+        <div>${escapeHtml(message)}</div>
+        <p class="small-note" style="margin:8px 0 0">버튼을 누른 뒤 바로 영어 문장을 또렷하게 말해 주세요.</p>
+        <div class="question-actions" style="margin-top:8px">
+          <button class="btn dark mic-retry" type="button">다시 말하기</button>
+          <button class="btn soft text-practice-toggle" type="button">텍스트로 연습하기</button>
+        </div>
+      `;
+      box.querySelector('.mic-retry')?.addEventListener('click', () => startSpeechCapture(item, mode));
+      box.querySelector('.text-practice-toggle')?.addEventListener('click', () => showTextPractice());
+    }
+
+    function showTextPractice() {
+      const box = document.getElementById('textPracticeBox');
+      const input = document.getElementById('answerInput');
+      if (!box) return;
+      box.classList.remove('hidden');
+      if (input) requestAnimationFrame(() => input.focus());
+    }
+
+    function renderSpeechResult(transcript, item, mode) {
+      const box = document.getElementById('speechResultBox');
+      if (!box) return;
+      box.classList.remove('hidden');
+      box.innerHTML = `
+        <div class="hint-title">내가 말한 문장</div>
+        <div class="answer-key">인식된 텍스트</div>
+        <input class="answer-input" id="answerInput" value="${escapeHtml(transcript)}" autocomplete="off" />
+        <div class="question-actions" style="margin-top:8px">
+          <button class="btn soft mic-retry" type="button">다시 말하기</button>
+          <button class="btn soft mic-edit" type="button">텍스트 수정</button>
+          <button class="btn dark mic-confirm" type="button">확인하기</button>
+        </div>
+      `;
+      box.querySelector('.mic-retry')?.addEventListener('click', () => startSpeechCapture(item, mode));
+      box.querySelector('.mic-edit')?.addEventListener('click', () => {
+        const input = document.getElementById('answerInput');
+        if (!input) return;
+        input.focus();
+        input.select();
+      });
+      box.querySelector('.mic-confirm')?.addEventListener('click', () => checkTextAnswer(item, mode, { fromSpeech: true }));
+    }
+
+    async function warmUpMicrophone() {
+      if (!navigator.mediaDevices?.getUserMedia) return { ok: true, skipped: true };
+      let stream = null;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        return { ok: true };
+      } catch (error) {
+        return { ok: false, name: error?.name || 'MicrophoneError' };
+      } finally {
+        if (stream) stream.getTracks().forEach(track => track.stop());
+      }
+    }
+
+    async function startSpeechCapture(item, mode) {
+      if (!supportsSpeechRecognition()) {
+        speechStatus('이 브라우저에서는 음성 인식을 사용할 수 없어요.', 'error');
+        showTextPractice();
+        return;
+      }
+      speechStatus('마이크를 여는 중이에요…');
+      const mic = await warmUpMicrophone();
+      if (!mic.ok) {
+        if (mic.name === 'NotAllowedError' || mic.name === 'SecurityError') {
+          speechRetryStatus('마이크 권한이 필요해요. Chrome 주소창의 마이크 권한을 허용한 뒤 다시 말해 주세요.', item, mode);
+        } else if (mic.name === 'NotFoundError' || mic.name === 'DevicesNotFoundError') {
+          speechRetryStatus('사용할 수 있는 마이크를 찾지 못했어요. 입력 장치를 확인해 주세요.', item, mode);
+        } else {
+          speechRetryStatus('마이크를 열지 못했어요. Chrome 마이크 설정을 확인한 뒤 다시 시도해 주세요.', item, mode);
+        }
+        showTextPractice();
+        return;
+      }
+      speechStatus('듣고 있어요… 지금 영어 문장을 말해 주세요.');
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      let receivedResult = false;
+      let receivedError = false;
+      recognition.lang = 'en-US';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+      recognition.onstart = () => {
+        speechStatus('듣고 있어요… 지금 영어 문장을 말해 주세요.');
+      };
+      recognition.onresult = event => {
+        receivedResult = true;
+        const transcript = (event.results?.[0]?.[0]?.transcript || '').trim();
+        if (!transcript) {
+          speechRetryStatus('인식된 문장이 비어 있어요. 다시 말해 주세요.', item, mode);
+          return;
+        }
+        renderSpeechResult(transcript, item, mode);
+      };
+      recognition.onerror = event => {
+        receivedError = true;
+        const error = event?.error || '';
+        if (error === 'not-allowed' || error === 'service-not-allowed') {
+          speechRetryStatus('마이크 권한이 필요해요. Chrome 주소창의 마이크 권한을 허용한 뒤 다시 말해 주세요.', item, mode);
+        } else if (error === 'no-speech') {
+          speechRetryStatus('말소리가 들리지 않았어요. 마이크 입력 장치를 확인하고 다시 말해 주세요.', item, mode);
+        } else {
+          speechRetryStatus('음성 인식에 실패했어요. 다시 말하거나 텍스트로 연습해 주세요.', item, mode);
+        }
+        showTextPractice();
+      };
+      recognition.onend = () => {
+        if (!receivedResult && !receivedError) {
+          speechRetryStatus('인식이 끝났지만 문장이 잡히지 않았어요. 다시 말해 주세요.', item, mode);
+          showTextPractice();
+        }
+      };
+      try {
+        recognition.start();
+      } catch {
+        speechRetryStatus('음성 인식을 시작하지 못했어요. 다시 시도해 주세요.', item, mode);
+        showTextPractice();
+      }
+    }
+
     function attachQuestionHandlers(item, mode) {
       document.querySelectorAll('.speak').forEach(btn => btn.addEventListener('click', () => speak(btn.dataset.text)));
       document.querySelectorAll('.complete-repeat').forEach(btn => btn.addEventListener('click', () => {
@@ -1424,6 +1939,15 @@
       document.querySelectorAll('.show-answer').forEach(btn => btn.addEventListener('click', () => showFeedback('good', `<b>${item.en}</b><br><span class="answer-key">${item.ko} · ${item.frame}<br>직역 이미지: ${escapeHtml(item.literalMeaning || item.ko)}</span>`)));
       document.querySelectorAll('.check-answer').forEach(btn => btn.addEventListener('click', () => checkTextAnswer(item, mode)));
       document.querySelectorAll('.next-hint').forEach(btn => btn.addEventListener('click', () => showNextHint(item)));
+      document.querySelectorAll('.build-verb').forEach(btn => btn.addEventListener('click', () => {
+        const reason = document.getElementById('buildVerbReason');
+        if (!reason) return;
+        reason.classList.remove('hidden');
+        reason.innerHTML = `<b>선택 이유</b><br>${escapeHtml(buildVerbHintText(item, btn.dataset.value || ''))}`;
+      }));
+      document.querySelectorAll('.mic-start').forEach(btn => btn.addEventListener('click', () => startSpeechCapture(item, mode)));
+      document.querySelectorAll('.text-practice-toggle').forEach(btn => btn.addEventListener('click', () => showTextPractice()));
+      document.querySelectorAll('.text-practice-check').forEach(btn => btn.addEventListener('click', () => checkTextAnswer(item, mode, { practiceOnly: true })));
       document.querySelectorAll('.choice').forEach(btn => btn.addEventListener('click', () => chooseAnswer(item, mode, btn)));
       document.querySelectorAll('.prev-question').forEach(btn => btn.addEventListener('click', () => previousQuestion()));
       document.querySelectorAll('.next-question').forEach(btn => btn.addEventListener('click', () => advanceFromNav(item, mode)));
@@ -1433,7 +1957,7 @@
           if (e.key !== 'Enter') return;
           e.preventDefault();
           if (appState.questionAnswered) nextQuestion();
-          else checkTextAnswer(item, mode);
+          else checkTextAnswer(item, mode, { practiceOnly: mode === 'speak' });
         });
         requestAnimationFrame(() => input.focus());
       }
@@ -1522,43 +2046,57 @@
       }
       return { status: 'retry', feedbackClass: 'bad', title: '다시 연결이 필요해요.', message: item.mistakeExplanation || '오늘 목표 표현과는 아직 조금 달라요. 정답을 보고 한 번 더 입으로 붙여 볼게요.', countsAsSuccess: false };
     }
-    function checkTextAnswer(item, mode) {
+    function checkTextAnswer(item, mode, options = {}) {
       if (appState.questionAnswered) { nextQuestion(); return; }
       const input = document.getElementById('answerInput');
       const rawGuess = input?.value || '';
-      if (!normalize(rawGuess)) { toast('먼저 문장을 직접 써 보세요.'); return; }
+      if (!normalize(rawGuess)) { toast(mode === 'speak' ? '먼저 문장을 말해 보세요.' : '먼저 문장을 직접 써 보세요.'); return; }
       const result = classifyAnswer(item, rawGuess);
-      const signature = normalize(rawGuess);
-      const historyBefore = getHistory(item.id);
-      const connectionType = connectionTypeForMode(mode);
-      const beforeGraph = renderConnectionStripFromHistory(historyBefore);
-      if (result.status === 'correct') {
-        markStudy(mode, item.id, 'correct', { signature, hintLevel: appState.hintStep });
-      } else if (result.status === 'almost') {
-        markStudy(mode, item.id, 'almost', { signature, hintLevel: appState.hintStep });
-      } else if (result.status === 'meaning') {
-        markStudy(mode, item.id, 'meaning', { signature, hintLevel: appState.hintStep });
-      } else {
-        markStudy(mode, item.id, 'retry', { signature, hintLevel: appState.hintStep });
+      const signature = `${mode}:${normalize(rawGuess)}`;
+      const isSpeechQuestAnswer = mode === 'speak' && options.fromSpeech === true;
+      const practiceOnly = options.practiceOnly === true || (mode === 'speak' && !isSpeechQuestAnswer);
+      if (!practiceOnly) {
+        if (result.status === 'correct') {
+          markStudy(mode, item.id, 'correct', { signature, hintLevel: appState.hintStep });
+        } else if (result.status === 'almost') {
+          markStudy(mode, item.id, 'almost', { signature, hintLevel: appState.hintStep });
+        } else if (result.status === 'meaning') {
+          markStudy(mode, item.id, 'meaning', { signature, hintLevel: appState.hintStep });
+        } else {
+          markStudy(mode, item.id, 'retry', { signature, hintLevel: appState.hintStep });
+        }
       }
       const afterGraph = renderConnectionStripFromHistory(getHistory(item.id));
-      const connectionNote = beforeGraph !== afterGraph ? `${beforeGraph} → ${afterGraph}` : afterGraph;
-      showAnswerSummary(result.feedbackClass, item, result, rawGuess, connectionNote);
+      const connectionNote = practiceOnly ? '텍스트 연습 결과예요. 직접 말하기 완료에는 반영하지 않았어요.' : afterGraph;
+      showAnswerSummary(result.feedbackClass, item, result, rawGuess, connectionNote, { allowAdvance: !practiceOnly });
     }
     function chooseAnswer(item, mode, button) {
       if (appState.questionAnswered) { nextQuestion(); return; }
       document.querySelectorAll('.choice').forEach(c => c.classList.remove('selected'));
       button.classList.add('selected');
       const correct = normalize(button.dataset.value) === normalize(item.ko);
+      const isQuestMeaningStage = appState.questContext
+        && appState.questContext.source === 'dailyQuestV1'
+        && appState.questContext.expressionId === item.id
+        && appState.questContext.stage === 'meaning'
+        && mode === 'enko';
       if (correct) {
         markStudy(mode, item.id, 'correct', { signature: `choice-${item.id}-${button.dataset.value}` });
         button.style.borderColor = 'var(--good)';
-        showFeedback('good', `맞았어요! <b>${item.en}</b> = ${item.ko}`);
-        setTimeout(nextQuestion, 850);
+        if (isQuestMeaningStage) {
+          showFeedback('good', `정답이에요! <b>${item.en}</b><br><span class="answer-key">자연스러운 한국어 뜻: ${item.ko}</span>`);
+        } else {
+          showFeedback('good', `맞았어요! <b>${item.en}</b> = ${item.ko}`);
+        }
+        setTimeout(nextQuestion, isQuestMeaningStage ? 700 : 850);
       } else {
         markStudy(mode, item.id, 'retry', { signature: `choice-${item.id}-${button.dataset.value}` });
         button.style.borderColor = 'var(--bad)';
-        showFeedback('bad', `이 문장은 <b>${item.ko}</b>라는 뜻이에요. 소리도 다시 들어 보세요.`);
+        if (isQuestMeaningStage) {
+          showFeedback('bad', '다시 생각해 보세요.');
+        } else {
+          showFeedback('bad', `이 문장은 <b>${item.ko}</b>라는 뜻이에요. 소리도 다시 들어 보세요.`);
+        }
       }
     }
     function showNextHint(item) {
@@ -1578,8 +2116,8 @@
         btn.disabled = appState.hintStep >= totalHints;
       }
     }
-    function showAnswerSummary(type, item, result, rawGuess, connectionNote = '') {
-      const canAdvance = result.status === 'correct' || result.status === 'almost';
+    function showAnswerSummary(type, item, result, rawGuess, connectionNote = '', options = {}) {
+      const canAdvance = options.allowAdvance !== false && (result.status === 'correct' || result.status === 'almost');
       appState.questionAnswered = canAdvance;
       pulseQuestion(type);
       const totalHints = Math.min(3, item.hint.length || 3);
@@ -1590,7 +2128,7 @@
         <div class="answer-summary">
           <b>${escapeHtml(result.title)}</b>
           <div style="margin-top:6px">${escapeHtml(result.message || '')}</div>
-          ${connectionNote ? `<div class="answer-key">연결 상태</div><div>${connectionNote}</div>` : ''}
+          ${connectionNote ? `<div class="answer-key">이번 문장 연결 상태</div><div>${connectionNote}</div>` : ''}
           <div class="answer-key">내 답</div>
           <div>${escapeHtml(rawGuess)}</div>
           <div class="answer-key">정답 영어 문장</div>
@@ -1643,6 +2181,10 @@
       playTone({ frequency: 620, duration: 0.06, type: 'sine', volume: 0.07 });
     }
     function nextQuestion() {
+      if (appState.questContext && appState.questContext.source === 'dailyQuestV1') {
+        runQuestStage();
+        return;
+      }
       appState.currentIndex++;
       playNextQuestionSound();
       renderQuestion();
@@ -1661,6 +2203,12 @@
       nextQuestion();
     }
     function finishLesson() {
+      if (appState.questContext && appState.questContext.source === 'dailyQuestV1') {
+        appState.questContext = null;
+        showScreen('home');
+        updateQuestUI();
+        return;
+      }
       document.getElementById('lessonProgress').style.width = '100%';
       document.getElementById('questionCard').innerHTML = `
         <div class="lesson-label">퀘스트 완료</div>
@@ -1718,6 +2266,7 @@
           isMapMeaningOpen: false,
           isMapPracticeOpen: false,
         };
+        updateQuestUI();
       } catch (error) {
         appState.dictionaryData = {
           ...appState.dictionaryData,
@@ -1931,11 +2480,52 @@
         appState.selectedMode = 'review'; appState.lessonItems=[item]; appState.currentIndex=0; showScreen('lesson'); renderQuestion();
       }));
     }
+    function naturalVoiceScore(voice) {
+      const name = `${voice.name || ''} ${voice.voiceURI || ''}`.toLowerCase();
+      const lang = String(voice.lang || '').toLowerCase();
+      if (!lang.startsWith('en')) return -100;
+      let score = lang === 'en-us' ? 40 : lang.startsWith('en-') ? 24 : 12;
+      if (/samantha|alex|ava|allison|susan|victoria|karen|moira|tessa|daniel|serena/.test(name)) score += 35;
+      if (/google us english|google uk english/.test(name)) score += 30;
+      if (/premium|enhanced|neural|natural|online/.test(name)) score += 24;
+      if (/compact|basic|default|espeak|festival/.test(name)) score -= 30;
+      if (voice.localService) score += 4;
+      return score;
+    }
+
+    function selectNaturalEnglishVoice() {
+      if (!('speechSynthesis' in window)) return null;
+      const voices = window.speechSynthesis.getVoices();
+      if (!voices.length) return null;
+      return voices
+        .filter(voice => String(voice.lang || '').toLowerCase().startsWith('en'))
+        .sort((a, b) => naturalVoiceScore(b) - naturalVoiceScore(a))[0] || null;
+    }
+
+    function prepareSpeechVoices() {
+      if (!('speechSynthesis' in window)) return;
+      const load = () => {
+        appState.naturalEnglishVoice = selectNaturalEnglishVoice();
+      };
+      load();
+      window.speechSynthesis.onvoiceschanged = load;
+    }
+
     function speak(text) {
       if (!('speechSynthesis' in window)) { toast('이 브라우저에서는 음성 재생을 지원하지 않아요.'); return; }
       window.speechSynthesis.cancel();
       const utter = new SpeechSynthesisUtterance(text);
-      utter.lang = 'en-US'; utter.rate = .82; utter.pitch = 1;
+      const voice = appState.naturalEnglishVoice || selectNaturalEnglishVoice();
+      if (voice) {
+        appState.naturalEnglishVoice = voice;
+        utter.voice = voice;
+        utter.lang = voice.lang || 'en-US';
+      } else {
+        utter.lang = 'en-US';
+      }
+      utter.rate = 0.78;
+      utter.pitch = 1.02;
+      utter.volume = 1;
       window.speechSynthesis.speak(utter);
     }
     function initSoundEngine() {
@@ -2020,7 +2610,7 @@
 
         window.addEventListener('hashchange', applyRoute);
         document.querySelectorAll('.nav button').forEach(btn => btn.addEventListener('click', () => showScreen(btn.dataset.screen)));
-    document.getElementById('startDaily').addEventListener('click', () => startMode('koen'));
+    document.getElementById('startDaily').addEventListener('click', () => startQuest());
     document.getElementById('jumpDictionary').addEventListener('click', () => showScreen('dictionary'));
     document.getElementById('exitLesson').addEventListener('click', () => showScreen('play'));
     document.getElementById('wordSearch').addEventListener('input', e => { appState.search=e.target.value; renderWords(); });
@@ -2040,6 +2630,7 @@
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
 
     initSoundEngine();
+    prepareSpeechVoices();
     updateSoundToggle();
     renderModeCards('homeModes', 3);
     renderModeCards('gameModes', 6);
