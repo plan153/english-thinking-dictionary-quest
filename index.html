@@ -463,7 +463,7 @@
         </article>
         <article class="card">
           <h3>오늘의 연결</h3>
-          <p>하나의 기본 동사는 “한 단어”가 아니라 여러 표현을 만드는 <b>엔진</b>입니다.</p>
+          <p>하나의 기본 엔진은 “한 단어”가 아니라 여러 표현을 만드는 출발점입니다.</p>
           <div style="margin-top:14px; display:flex; flex-wrap:wrap; gap:8px;">
             <button class="filter active" data-map-focus="get">get</button>
             <button class="filter" data-map-focus="make">make</button>
@@ -554,12 +554,12 @@
 
     <section id="map" class="screen">
       <div class="section-head">
-        <div><h2>연결 지도</h2><p>기본 동사 → 생각틀 → 예시 단어로 문장을 만듭니다. 사전 탐험의 문장 빌드 맵을 더 크게 펼쳐 보는 곳입니다.</p></div>
+        <div><h2>연결 지도</h2><p>기본 엔진 → 생각틀 → 다양한 표현으로 문장을 만듭니다. 사전 탐험의 문장 빌드 맵을 더 크게 펼쳐 보는 곳입니다.</p></div>
       </div>
       <article class="card">
         <div class="filter-row" id="mapFilters" style="margin-bottom:15px"></div>
         <div class="map-wrap"><div class="thinking-map" id="thinkingMap"></div></div>
-        <p class="small-note">예: <b>make + a decision</b> = 결정을 만들다 → “결정하다”. 단어 하나씩 번역하는 대신, 기본 엔진·생각틀·예시 단어를 함께 묶어 봅니다.</p>
+        <p class="small-note">예: <b>make + a decision</b> = 결정을 만들다 → “결정하다”. 단어 하나씩 번역하는 대신, 기본 엔진·생각틀·다양한 표현을 함께 묶어 봅니다.</p>
       </article>
     </section>
 
@@ -2897,8 +2897,8 @@
       const m = mapSets[appState.currentMap];
       document.getElementById('thinkingMap').innerHTML = `
         <div class="map-col"><h3>1. 기본 엔진</h3>${m.verbs.map(x => `<div class="node verb">${x}</div>`).join('')}</div>
-        <div class="map-col"><h3>2. 생각틀</h3>${m.frames.map(x => `<div class="node frame">${x}</div><div class="map-arrow">↓ 자주 붙는 말</div>`).join('')}</div>
-        <div class="map-col"><h3>3. 예시 단어</h3>${m.examples.map((x,i) => `<div class="node noun">${x}</div>${m.sampleSentences?.[i] ? `<div class="small-note" style="margin:0 0 10px">${m.sampleSentences[i]}</div>`:''}`).join('')}</div>`;
+        <div class="map-col"><h3>2. 생각틀</h3><p class="small-note" style="margin:0 0 10px">자주 쓰는 덩어리예요.</p>${m.frames.map(x => `<div class="node frame">${x}</div><div class="map-arrow">↓ 자주 붙는 말</div>`).join('')}</div>
+        <div class="map-col"><h3>3. 다양한 표현</h3>${m.examples.map((x,i) => `<div class="node noun">${x}</div>${m.sampleSentences?.[i] ? `<div class="small-note" style="margin:0 0 10px">${m.sampleSentences[i]}</div>`:''}`).join('')}</div>`;
     }
     function renderReviewList() {
       const target = document.getElementById('reviewList');
@@ -2924,7 +2924,7 @@
             <div><b>${escapeHtml(p.en)}</b><div class="small-note" style="margin:4px 0 0">${escapeHtml(p.ko)} · ${escapeHtml(p.frame)}</div></div>
             <span class="small-note">${escapeHtml(label)}</span>
           </div>
-          <div>${getConnectionGraph(p)}</div>
+          <div class="small-note">약한 연결은 뜻 이해 · 문장 만들기 · 직접 말하기에서 다시 만나게 됩니다.</div>
           <div style="display:flex;justify-content:flex-end;">
             <button class="btn soft review-one" data-id="${p.id}">다시 연결하기</button>
           </div>
