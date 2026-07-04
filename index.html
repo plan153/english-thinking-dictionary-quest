@@ -203,6 +203,15 @@
     .dictionary-explorer.map-focused .explorer-grid { display:none; }
     .dictionary-explorer.map-focused .expression-detail { display:none; }
     .dictionary-explorer.map-focused.has-selected-expression .expression-detail { display:block; }
+    .dictionary-explorer.legacy-focused #verbExplorerButtons,
+    .dictionary-explorer.legacy-focused #dictionaryLocation,
+    .dictionary-explorer.legacy-focused .explorer-grid,
+    .dictionary-explorer.legacy-focused .expression-detail,
+    .dictionary-explorer.legacy-focused #dictionaryMap,
+    .dictionary-explorer.legacy-focused #mapFocusActions,
+    .dictionary-explorer.legacy-focused #explorerStatus {
+      display:none;
+    }
     #dictionary.map-focus-mode #dictionaryLegacySearchSection { display:none; }
     .map-focus-actions { display:none; margin-top:12px; }
     #dictionary.map-focus-mode .map-focus-actions { display:flex; justify-content:flex-start; }
@@ -500,8 +509,6 @@
         <div class="section-head" style="margin-bottom:0">
           <div><h2>사전 탐험</h2><p>동사를 먼저 보고, 표현과 빌드맵을 봅니다.</p></div>
         </div>
-        <div id="explorerStatus" class="explorer-status">사전 데이터를 불러오는 중입니다.</div>
-        <div id="verbExplorerButtons" class="verb-buttons"></div>
         <div class="dictionary-subnav" id="dictionarySubnav" role="tablist" aria-label="사전 탐험 서브메뉴">
           <button class="dictionary-tab" type="button" data-dictionary-view="legacy">기존 생각 사전 검색</button>
           <button class="dictionary-tab active" type="button" data-dictionary-view="verbs">동사 탐험</button>
@@ -509,6 +516,8 @@
           <button class="dictionary-tab" type="button" data-dictionary-view="build">문장 빌드 맵</button>
         </div>
         <p class="dictionary-subnav-note">같은 데이터를 네 방식으로 봅니다.</p>
+        <div id="explorerStatus" class="explorer-status">사전 데이터를 불러오는 중입니다.</div>
+        <div id="verbExplorerButtons" class="verb-buttons"></div>
         <div class="dictionary-location" id="dictionaryLocation" aria-live="polite"></div>
         <div class="explorer-grid" data-dictionary-view="verbs">
           <div class="explorer-panel" id="verbExplorerPanel"></div>
@@ -2748,11 +2757,13 @@
       if (dictionaryExplorer) {
         dictionaryExplorer.classList.toggle('map-focused', buildViewActive);
         dictionaryExplorer.classList.toggle('has-selected-expression', Boolean(selectedView !== 'build' && !legacyViewActive && selectedExpression));
+        dictionaryExplorer.classList.toggle('legacy-focused', legacyViewActive);
       }
       if (dictionaryScreen) dictionaryScreen.classList.toggle('map-focus-mode', buildViewActive);
       if (mapFocusActions) mapFocusActions.classList.toggle('hidden', !buildViewActive);
       if (legacySearchSection) legacySearchSection.hidden = selectedView !== 'legacy';
       const dictionaryLocation = document.getElementById('dictionaryLocation');
+      if (dictionaryLocation) dictionaryLocation.hidden = legacyViewActive;
       if (dictionaryLocation) dictionaryLocation.innerHTML = selectedLocationMarkup;
       dictionarySubnav.querySelectorAll('[data-dictionary-view]').forEach(button => {
         button.classList.toggle('active', button.dataset.dictionaryView === selectedView);
