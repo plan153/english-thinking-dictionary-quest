@@ -445,7 +445,7 @@
           <div class="ring" id="dailyRing" style="--p: 0"><strong id="dailyPercent">0%</strong></div>
           <div>
             <h3>오늘의 최소 루프</h3>
-            <p id="dailyCopy">듣고 따라 말하기 2회 → 영어 장면 고르기 2회 → 한글→영어 조립 2회 → 약한 연결 복습 1회</p>
+            <p id="dailyCopy">듣고 따라 말하기 1세트 → 영어 장면 고르기 2회 → 한글→영어 조립 2회 → 약한 연결 복습 1회</p>
             <div class="mini-progress"><div class="progress-track"><span id="dailyBar" style="width:0%"></span></div><strong id="dailyCount">0 / 7</strong></div>
           </div>
         </article>
@@ -1048,7 +1048,7 @@
         questArea.innerHTML = `
           <div class="card">
             <h3>오늘의 퀘스트 · ${completed}/${total} 완료</h3>
-            <p>오늘은 <b>듣고 따라 말하기 2회 → 영어 장면 고르기 2회 → 한글→영어 조립 2회 → 약한 연결 복습 1회</b> 순서로 자동 진행됩니다.</p>
+            <p>오늘은 <b>듣고 따라 말하기 1세트 → 영어 장면 고르기 2회 → 한글→영어 조립 2회 → 약한 연결 복습 1회</b> 순서로 자동 진행됩니다.</p>
             <ul style="margin:10px 0; padding-left:20px; line-height:1.7;">${stepSummary}</ul>
             <button class="btn dark" id="startQuestBtn">퀘스트 시작하기</button>
           </div>
@@ -1184,7 +1184,7 @@
       document.getElementById('questionCard').innerHTML = `
         <div class="lesson-label">오늘의 퀘스트 v2 완료</div>
         <h2>오늘의 퀘스트를 완료했어요.</h2>
-        <p class="korean">듣고 따라 말하기 2회 → 영어 장면 고르기 2회 → 한글→영어 조립 2회 → 약한 연결 복습 1회까지 모두 마쳤습니다. 내일 새로운 표현들이 열립니다.</p>
+        <p class="korean">듣고 따라 말하기 1세트 → 영어 장면 고르기 2회 → 한글→영어 조립 2회 → 약한 연결 복습 1회까지 모두 마쳤습니다. 내일 새로운 표현들이 열립니다.</p>
         <div class="question-actions"><button class="btn accent" id="questDoneHome">홈으로</button><button class="btn dark" id="questDoneProgress">내 성장 보기</button></div>`;
       document.getElementById('questDoneHome')?.addEventListener('click', () => showScreen('home'));
       document.getElementById('questDoneProgress')?.addEventListener('click', () => showScreen('progress'));
