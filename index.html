@@ -167,6 +167,30 @@
     .filter-row { display:flex; gap:7px; flex-wrap:wrap; }
     .filter { border:1px solid var(--line); background:#fffdfa; color:var(--muted); border-radius:99px; padding:9px 11px; font-weight:750; font-size:13px; }
     .filter.active { background:var(--ink); color:#fff; border-color:var(--ink); }
+    .dictionary-subnav { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+    .dictionary-tab {
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--muted);
+      border-radius:99px;
+      padding:10px 13px;
+      font-weight:850;
+      font-size:13px;
+    }
+    .dictionary-tab.active { background:var(--ink); color:#fff; border-color:var(--ink); }
+    .dictionary-subnav-note { margin-top:10px; color:var(--muted); font-size:12px; line-height:1.5; }
+    .dictionary-location {
+      margin-top: 10px;
+      padding: 11px 13px;
+      border: 1px solid rgba(222,216,207,.95);
+      border-radius: 14px;
+      background: #fbfefe;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+    .dictionary-location strong { color: var(--ink); }
+    .dictionary-location .location-label { color: var(--accent); font-weight: 900; margin-right: 4px; }
     .word-list { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
     .word-card { padding:15px; position:relative; overflow:hidden; }
     .word-card:before { content:""; position:absolute; left:0; top:0; bottom:0; width:5px; background:var(--accent); }
@@ -363,6 +387,8 @@
       .topbar { align-items:flex-start; flex-direction:column; }
       .top-stats { justify-content:flex-start; }
       .choices { grid-template-columns:1fr; }
+      .dictionary-subnav { gap:6px; }
+      .dictionary-tab { flex:1 1 calc(50% - 6px); }
     }
     @media (max-width: 530px) {
       .app { width:min(100% - 20px, 1120px); max-width:none; padding-top:14px; }
@@ -419,7 +445,7 @@
           <div class="ring" id="dailyRing" style="--p: 0"><strong id="dailyPercent">0%</strong></div>
           <div>
             <h3>오늘의 최소 루프</h3>
-            <p id="dailyCopy">듣기 1개 → 따라 말하기 1개 → 한영 2개 → 영한 2개 → 연결 1개</p>
+            <p id="dailyCopy">듣고 따라 말하기 2회 → 영어 장면 고르기 2회 → 한글→영어 조립 2회 → 약한 연결 복습 1회</p>
             <div class="mini-progress"><div class="progress-track"><span id="dailyBar" style="width:0%"></span></div><strong id="dailyCount">0 / 7</strong></div>
           </div>
         </article>
@@ -440,6 +466,7 @@
         <div><h2>오늘 바로 할 게임</h2><p>틀려도 힌트로 길을 찾는 방식입니다.</p></div>
       </div>
       <div class="grid cols-3" id="homeModes"></div>
+      <p class="small-note" style="margin-top:12px">힌트 사다리는 한글 → 영어 조립 안의 보조 풀이로, 문장 빌드 맵은 사전 탐험 안의 코너로 들어가 있어요.</p>
     </section>
 
     <section id="play" class="screen">
@@ -447,6 +474,7 @@
         <div><h2>게임 모드</h2><p>같은 표현을 다른 통로로 만날수록 오래 기억됩니다.</p></div>
       </div>
       <div class="grid cols-3" id="gameModes"></div>
+      <p class="small-note" style="margin-top:12px">힌트 사다리는 한글 → 영어 조립 안에서, 문장 빌드 맵은 사전 탐험 안에서 이어집니다.</p>
       <article class="card" style="margin-top:16px">
         <h3>왜 여러 채널로 하나요?</h3>
         <p>뜻만 보면 “알 것 같은 단어”가 됩니다. 소리로 듣고, 입으로 말하고, 한국어에서 영어를 만들고, 영어에서 장면을 떠올리면 그 표현이 실제로 꺼내 쓰는 말이 됩니다.</p>
@@ -466,20 +494,26 @@
 
     <section id="dictionary" class="screen">
       <div class="section-head">
-        <div><h2>핵심 동사로 영어 표현 탐험하기</h2><p>동사를 누르면 연결된 표현 틀과 실제 생활 표현이 이어집니다.</p></div>
+        <div><h2>핵심 동사로 영어 표현 탐험하기</h2><p>서브메뉴로 동사 탐험, 실생활 표현, 문장 빌드 맵을 번갈아 보세요.</p></div>
       </div>
       <article class="card dictionary-explorer">
         <div class="section-head" style="margin-bottom:0">
-          <div><h2>사전 탐험</h2><p>1단계: 핵심 동사 선택 → 2단계: 표현 틀 확인 → 3단계: 표현을 눌러 뜻과 힌트 보기</p></div>
+          <div><h2>사전 탐험</h2><p>동사를 먼저 잡고, 표현과 빌드맵을 번갈아 확인하는 구조예요.</p></div>
         </div>
         <div id="explorerStatus" class="explorer-status">사전 데이터를 불러오는 중입니다.</div>
-        <p class="explorer-guide">먼저 아래 동사 버튼을 눌러 보세요. 같은 동사가 어떤 표현 틀을 만들고, 어떤 문장으로 쓰이는지 한눈에 볼 수 있습니다.</p>
         <div id="verbExplorerButtons" class="verb-buttons"></div>
-        <div class="explorer-grid">
+        <div class="dictionary-subnav" id="dictionarySubnav" role="tablist" aria-label="사전 탐험 서브메뉴">
+          <button class="dictionary-tab active" type="button" data-dictionary-view="verbs">동사 탐험</button>
+          <button class="dictionary-tab" type="button" data-dictionary-view="expressions">실생활 표현</button>
+          <button class="dictionary-tab" type="button" data-dictionary-view="build">문장 빌드 맵</button>
+        </div>
+        <p class="dictionary-subnav-note">같은 사전 데이터를 상황에 맞게 나눠 봅니다. 동사 탐험은 구조를, 실생활 표현은 바로 쓰는 말을, 빌드 맵은 어떤 동사를 먼저 고를지 보여줘요.</p>
+        <div class="dictionary-location" id="dictionaryLocation" aria-live="polite"></div>
+        <div class="explorer-grid" data-dictionary-view="verbs">
           <div class="explorer-panel" id="verbExplorerPanel"></div>
           <div class="explorer-panel">
             <h4>연결된 표현 틀</h4>
-            <p class="explorer-guide">선택한 동사가 자주 만드는 문장 뼈대입니다. 틀을 누르면 해당 예문으로 이동합니다.</p>
+            <p class="explorer-guide">선택한 동사가 자주 만드는 문장 뼈대입니다. 틀을 누르면 해당 예문으로 이동하고, 어떤 동사를 먼저 써야 하는지도 감이 잡힙니다.</p>
             <div class="pattern-list" id="patternExplorerList"></div>
           </div>
           <div class="explorer-panel">
@@ -488,10 +522,10 @@
             <div class="expression-list" id="expressionExplorerList"></div>
           </div>
         </div>
-        <div class="explorer-panel expression-detail" id="expressionExplorerDetail" style="margin-top:14px"></div>
-        <div class="explorer-panel verb-map" id="dictionaryMap" style="margin-top:14px"></div>
+        <div class="explorer-panel expression-detail" id="expressionExplorerDetail" style="margin-top:14px" data-dictionary-view="expressions"></div>
+        <div class="explorer-panel verb-map" id="dictionaryMap" style="margin-top:14px" data-dictionary-view="build"></div>
         <div class="map-focus-actions" id="mapFocusActions">
-          <button class="btn soft" type="button" id="showDictionaryLegacy">연결 지도 닫고 전체 사전 보기</button>
+          <button class="btn soft" type="button" id="showDictionaryLegacy">문장 빌드 맵 닫고 전체 사전 보기</button>
         </div>
       </article>
       <div id="dictionaryLegacySearchSection">
@@ -508,7 +542,7 @@
 
     <section id="map" class="screen">
       <div class="section-head">
-        <div><h2>연결 지도</h2><p>기본 동사 → 생각 틀 → 핵심 명사로 문장을 만듭니다.</p></div>
+        <div><h2>연결 지도</h2><p>기본 동사 → 생각 틀 → 핵심 명사로 문장을 만듭니다. 사전 탐험의 문장 빌드 맵을 더 크게 펼쳐 보는 곳입니다.</p></div>
       </div>
       <article class="card">
         <div class="filter-row" id="mapFilters" style="margin-bottom:15px"></div>
@@ -603,11 +637,9 @@
     ];
 
     const modeCards = [
-      { id:'listen', icon:'🔊', title:'듣고 따라 말하기', desc:'문장을 듣고, 입으로 말하며 리듬과 덩어리를 익혀요.', cta:'소리로 시작' },
-      { id:'koen', icon:'🧩', title:'한글 → 영어 조립', desc:'한국어 뜻을 보고 핵심 동사와 표현 덩어리를 꺼내요.', cta:'영어 만들기' },
+      { id:'listen', icon:'🔊', title:'듣고 따라 말하기', desc:'문장을 듣고 바로 따라 말하며 리듬과 덩어리를 익혀요.', cta:'소리로 시작' },
+      { id:'koen', icon:'🧩', title:'한글 → 영어 조립', desc:'한국어 뜻을 보고 핵심 동사와 표현 덩어리를 빠르게 골라요. 힌트는 안쪽에서 좁혀요.', cta:'영어 만들기' },
       { id:'enko', icon:'🎯', title:'영어 → 장면 고르기', desc:'영어를 번역하지 말고, 가장 가까운 상황과 뜻을 골라요.', cta:'뜻 연결하기' },
-      { id:'hint', icon:'💡', title:'힌트 사다리', desc:'의미 → 틀 → 빈칸 → 첫 글자 순서로 스스로 답에 도착해요.', cta:'힌트로 풀기' },
-      { id:'build', icon:'🧱', title:'문장 빌드 랩', desc:'동사·틀·명사를 연결해 새 문장을 만드는 훈련이에요.', cta:'문장 조립' },
       { id:'review', icon:'🔁', title:'약한 연결 복습', desc:'틀린 표현과 아직 덜 익은 연결만 다시 만나요.', cta:'복습 시작' },
     ];
 
@@ -630,7 +662,7 @@
       currentMap: 'get',
       filter: '전체',
       search: '',
-      dictionaryData: { verbs: [], nouns: [], patterns: [], expressions: [], verbMaps: [], learningPaths: null, isLoaded: false, error: null, selectedVerbId: null, selectedExpressionId: null, selectedRouteId: null, selectedPatternId: null, selectedSlotValue: null, selectedCombinationId: null, selectedMapSentenceId: null, isMapMeaningOpen: false, isMapPracticeOpen: false, gameExpressions: [], dataSource: 'fallback' },
+      dictionaryData: { verbs: [], nouns: [], patterns: [], expressions: [], verbMaps: [], learningPaths: null, isLoaded: false, error: null, selectedVerbId: null, selectedExpressionId: null, selectedRouteId: null, selectedPatternId: null, selectedSlotValue: null, selectedCombinationId: null, selectedMapSentenceId: null, selectedExplorerView: 'verbs', isMapMeaningOpen: false, isMapPracticeOpen: false, gameExpressions: [], dataSource: 'fallback' },
       progress: loadProgress(),
       sessionStudyRecords: {},
       audioContext: null,
@@ -659,11 +691,11 @@
     }
     function defaultDailyQuestV1() {
       return {
+        version: 2,
         date: null,
-        expressionIds: [],
+        stepPlan: [],
         currentIndex: 0,
-        completedExpressionIds: [],
-        stepByExpressionId: {},
+        completedStepKeys: [],
         startedAt: null,
         finishedAt: null,
         isCompleted: false,
@@ -781,7 +813,6 @@
     function markStudy(mode, itemId, resultType, details = {}) {
       ensureToday();
       const p = appState.progress;
-      if (!p.daily.done.includes(mode)) p.daily.done.push(mode);
       p.attempts[itemId] = (p.attempts[itemId] || 0) + 1;
       const now = new Date().toISOString();
       const history = p.historyByExpressionId[itemId] || defaultHistoryEntry();
@@ -805,7 +836,7 @@
           updateHistoryConnections(itemId, connectionType, strength);
         }
         appState.sessionStudyRecords[itemId] = { lastRecordedSignature: signature };
-        handleQuestStageCompletion(mode, itemId, resultType);
+        handleQuestStageCompletion(mode, itemId, resultType, details);
       }
       else if (resultType === 'meaning') {
         history.lastMeaningHitAt = now;
@@ -816,7 +847,7 @@
         if (!duplicateMeaning) {
           appState.sessionStudyRecords[itemId] = { lastRecordedSignature: signature };
         }
-        handleQuestStageCompletion(mode, itemId, resultType);
+        handleQuestStageCompletion(mode, itemId, resultType, details);
       }
       else if (resultType === 'retry') {
         history.lastHintLevel = hintLevel;
@@ -826,38 +857,98 @@
       saveProgress();
     }
 
-    function handleQuestStageCompletion(mode, itemId, resultType) {
+    function handleQuestStageCompletion(mode, itemId, resultType, details = {}) {
       const questCtx = appState.questContext;
       if (!questCtx || questCtx.source !== 'dailyQuestV1' || questCtx.expressionId !== itemId) return;
       if (resultType !== 'correct' && resultType !== 'almost') return;
       const quest = appState.progress.dailyQuestV1;
-      const step = quest.stepByExpressionId[itemId];
+      const step = (quest.stepPlan || [])[questCtx.stepIndex];
       if (!step) return;
-      const stage = questCtx.stage;
-      if (stage === 'meaning' && mode === 'enko' && !step.meaningDone) {
-        step.meaningDone = true;
-      } else if (stage === 'assembly' && mode === 'build' && !step.assemblyDone) {
-        step.assemblyDone = true;
-      } else if (stage === 'output' && mode === 'speak' && !step.outputDone) {
-        step.outputDone = true;
-        step.completedAt = new Date().toISOString();
-        if (!quest.completedExpressionIds.includes(itemId)) {
-          quest.completedExpressionIds.push(itemId);
-        }
-      }
+      if (step.key !== questCtx.stepKey || step.mode !== mode) return;
+      if (step.mode === 'listen' && !details.questStepComplete) return;
+      if (step.completedAt) return;
+      step.completedAt = new Date().toISOString();
+      step.resultType = resultType;
+      if (!Array.isArray(quest.completedStepKeys)) quest.completedStepKeys = [];
+      if (!quest.completedStepKeys.includes(step.key)) quest.completedStepKeys.push(step.key);
+      ensureToday();
+      const token = getDailyQuestStepToken(step);
+      if (!appState.progress.daily.done.includes(token)) appState.progress.daily.done.push(token);
       saveProgress();
     }
     function markSkipped(mode, itemId) {
       ensureToday();
       const p = appState.progress;
-      if (!p.daily.done.includes(mode)) p.daily.done.push(mode);
       p.skipped = p.skipped || {};
       p.skipped[itemId] = (p.skipped[itemId] || 0) + 1;
       saveProgress();
     }
+    function countDailyQuestDoneTokens(doneList) {
+      return (doneList || []).filter(token => String(token || '').startsWith('quest:')).length;
+    }
+    function getDailyQuestStepToken(step) {
+      return `quest:${step.key}`;
+    }
+    function scoreDailyQuestCandidate(item, recent, seenToday, previousDayIds) {
+      const history = getHistory(item.id);
+      const emptyPieces = ['recognition', 'assembly', 'output'].filter(key => (history.connections?.[key]?.strength || 0) === 0).length;
+      const priority = history.reviewPriority || 0;
+      const weakSuccess = history.timesCorrect > 0 && (history.lastHintLevel || 0) >= 2;
+      const hintHeavy = (history.lastHintLevel || 0) >= 2;
+      const allStrong = allStrongHistory(history);
+      let score = 0;
+      if (emptyPieces > 0) score += 10 + emptyPieces * 3;
+      else if (priority > 5) score += 8;
+      else if (weakSuccess || hintHeavy) score += 5;
+      else if (!allStrong) score += 3;
+      if (recent.has(item.id)) score -= 2;
+      if (seenToday.has(item.id)) score = -1000;
+      if (previousDayIds.has(item.id)) score -= 1;
+      return score;
+    }
+    function buildDailyQuestStepPlan(bank, questDate) {
+      const recent = new Set(appState.progress.recentExpressionIds || []);
+      const seenToday = new Set();
+      const previousDayIds = new Set();
+      const scored = bank.map(item => ({ item, score: scoreDailyQuestCandidate(item, recent, seenToday, previousDayIds) }))
+        .sort((a, b) => b.score - a.score);
+      const picks = [];
+      for (const entry of scored) {
+        if (!entry.item || picks.includes(entry.item.id)) continue;
+        picks.push(entry.item.id);
+        if (picks.length >= 6) break;
+      }
+      if (picks.length < 6) {
+        for (const item of bank) {
+          if (picks.includes(item.id)) continue;
+          picks.push(item.id);
+          if (picks.length >= 6) break;
+        }
+      }
+      const first = picks[0] || bank[0]?.id || null;
+      const second = picks[1] || first;
+      const third = picks[2] || second || first;
+      const fourth = picks[3] || third;
+      const fifth = picks[4] || fourth;
+      const sixth = picks[5] || fifth;
+      const seventh = picks[6] || sixth;
+      return [
+        { key: 'step-1', label: '듣고 따라 말하기', mode: 'listen', expressionId: first, questStage: 'meaning' },
+        { key: 'step-2', label: '듣고 따라 말하기', mode: 'speak', expressionId: first, questStage: 'output' },
+        { key: 'step-3', label: '영어 장면 고르기', mode: 'enko', expressionId: third || second || first, questStage: 'meaning' },
+        { key: 'step-4', label: '영어 장면 고르기', mode: 'enko', expressionId: fourth || third || second || first, questStage: 'meaning' },
+        { key: 'step-5', label: '한글→영어 조립', mode: 'koen', expressionId: fifth || fourth || third || second || first, questStage: 'assembly' },
+        { key: 'step-6', label: '한글→영어 조립', mode: 'koen', expressionId: sixth || fifth || fourth || third || second || first, questStage: 'assembly' },
+        { key: 'step-7', label: '약한 연결 복습', mode: 'review', expressionId: seventh || sixth || fifth || fourth || third || second || first, questStage: 'output' },
+      ].filter(step => step.expressionId);
+    }
+    function getQuestStepTitle(step) {
+      if (!step) return '오늘의 퀘스트';
+      return step.label;
+    }
     function updateDashboard() {
       const p = appState.progress;
-      const done = p.daily?.date === todayKey() ? p.daily.done.length : 0;
+      const done = p.daily?.date === todayKey() ? countDailyQuestDoneTokens(p.daily.done) : 0;
       const percent = Math.min(100, Math.round(done / 7 * 100));
       document.getElementById('streak').textContent = p.streak || 0;
       document.getElementById('xp').textContent = p.xp || 0;
@@ -891,70 +982,32 @@
       const seoulToday = seoulTodayKey();
       const quest = appState.progress.dailyQuestV1;
       const bank = getGameBank();
-      if (!appState.dictionaryData.gameExpressions.length && quest.date === seoulToday && quest.expressionIds.length > 0) {
-        return;
-      }
       if (bank.length === 0) {
-        quest.expressionIds = [];
+        quest.stepPlan = [];
+        quest.currentIndex = 0;
         return;
       }
-      const existingExpressions = quest.expressionIds.map(id => bank.find(item => item.id === id)).filter(Boolean);
-      const hasValidTodaySelection = quest.date === seoulToday
-        && quest.expressionIds.length > 0
-        && quest.expressionIds.length <= 3
-        && existingExpressions.length === quest.expressionIds.length;
-      if (hasValidTodaySelection) {
+      const validPlan = Array.isArray(quest.stepPlan)
+        && quest.stepPlan.length === 7
+        && quest.stepPlan.every(step => step && step.key && step.mode && step.expressionId && bank.some(item => item.id === step.expressionId));
+      if (quest.version === 2 && quest.date === seoulToday && validPlan) {
+        quest.currentIndex = clampValue(Number.isFinite(quest.currentIndex) ? quest.currentIndex : 0, 0, quest.stepPlan.length);
+        quest.completedStepKeys = Array.isArray(quest.completedStepKeys) ? quest.completedStepKeys.filter(key => quest.stepPlan.some(step => step.key === key)) : [];
         return;
       }
-      const recent = new Set(appState.progress.recentExpressionIds || []);
-      const seenToday = new Set(hasValidTodaySelection ? quest.expressionIds : []);
-      const previousDayIds = new Set(quest.date && quest.date !== seoulToday ? (quest.expressionIds || []) : []);
-      const scored = bank.map(item => {
-        const history = getHistory(item.id);
-        const emptyPieces = ['recognition', 'assembly', 'output'].filter(key => (history.connections?.[key]?.strength || 0) === 0).length;
-        const priority = history.reviewPriority || 0;
-        const weakSuccess = history.timesCorrect > 0 && (history.lastHintLevel || 0) >= 2;
-        const hintHeavy = (history.lastHintLevel || 0) >= 2;
-        const allStrong = allStrongHistory(history);
-        let score = 0;
-        if (emptyPieces > 0) score += 10 + emptyPieces * 3;
-        else if (priority > 5) score += 8;
-        else if (weakSuccess || hintHeavy) score += 5;
-        else if (!allStrong) score += 3;
-        if (recent.has(item.id)) score -= 2;
-        if (seenToday.has(item.id)) score = -1000;
-        return { item, score };
-      });
-      scored.sort((a, b) => b.score - a.score);
-      const candidateIds = scored.filter(s => s.score > -999).map(s => s.item.id);
-      const freshIds = candidateIds.filter(id => !previousDayIds.has(id));
-      const selected = freshIds.slice(0, 3);
-      if (selected.length < 3) {
-        selected.push(...candidateIds.filter(id => !selected.includes(id)).slice(0, 3 - selected.length));
-      }
-      if (selected.length === 0) {
-        const fallback = bank.filter(item => !seenToday.has(item.id)).slice(0, 3).map(item => item.id);
-        appState.progress.dailyQuestV1 = {
-          ...defaultDailyQuestV1(),
-          date: seoulToday,
-          expressionIds: fallback,
-          stepByExpressionId: Object.fromEntries(fallback.map(id => [id, { meaningDone: false, assemblyDone: false, outputDone: false, completedAt: null }])),
-        };
-      } else {
-        appState.progress.dailyQuestV1 = {
-          ...defaultDailyQuestV1(),
-          date: seoulToday,
-          expressionIds: selected,
-          stepByExpressionId: Object.fromEntries(selected.map(id => [id, { meaningDone: false, assemblyDone: false, outputDone: false, completedAt: null }])),
-        };
-      }
+      const stepPlan = buildDailyQuestStepPlan(bank, seoulToday);
+      appState.progress.dailyQuestV1 = {
+        ...defaultDailyQuestV1(),
+        version: 2,
+        date: seoulToday,
+        stepPlan,
+        currentIndex: 0,
+        completedStepKeys: [],
+        startedAt: null,
+        finishedAt: null,
+        isCompleted: false,
+      };
       saveProgress();
-    }
-
-    function getCompletedQuestExpressionIds(quest) {
-      const byStep = (quest.expressionIds || []).filter(id => quest.stepByExpressionId?.[id]?.outputDone);
-      const stored = Array.isArray(quest.completedExpressionIds) ? quest.completedExpressionIds : [];
-      return [...new Set([...stored, ...byStep])];
     }
 
     function updateQuestUI() {
@@ -962,18 +1015,13 @@
       const quest = appState.progress.dailyQuestV1;
       const questArea = document.getElementById('questArea');
       if (!questArea) return;
-      const bank = getGameBank();
-      const expressions = quest.expressionIds.map(id => bank.find(item => item.id === id)).filter(Boolean);
-      const completedIds = getCompletedQuestExpressionIds(quest);
-      if (completedIds.length !== (quest.completedExpressionIds || []).length) {
-        quest.completedExpressionIds = completedIds;
-      }
-      const completed = completedIds.length;
-      const total = expressions.length;
+      const stepPlan = Array.isArray(quest.stepPlan) ? quest.stepPlan : [];
+      const completed = Array.isArray(quest.completedStepKeys) ? quest.completedStepKeys.length : 0;
+      const total = stepPlan.length || 7;
       const restartConfirmMarkup = appState.questRestartConfirmOpen ? `
         <div class="quest-inline-confirm" role="status" aria-live="polite">
           <h4>오늘의 퀘스트를 처음부터 다시 할까요?</h4>
-          <p>오늘 선정된 3개 표현은 유지하고, 오늘의 퀘스트 단계만 처음부터 시작합니다.</p>
+          <p>오늘 선택된 7단계는 유지하고, 진행 상태만 처음부터 다시 시작합니다.</p>
           <p class="small-note">XP와 기존 학습 기록은 지워지지 않아요.</p>
           <div class="quest-confirm-actions">
             <button class="btn soft" id="cancelQuestRestartBtn" type="button">취소</button>
@@ -981,11 +1029,14 @@
           </div>
         </div>
       ` : '';
+      const stepSummary = stepPlan.map((step, index) => `<li>${index + 1}. ${escapeHtml(step.label)}</li>`).join('');
+      const currentStep = stepPlan[quest.currentIndex] || null;
+      const currentLabel = currentStep ? `${quest.currentIndex + 1}/${total} · ${currentStep.label}` : `완료 대기 중 · ${completed}/${total}`;
       if (quest.isCompleted) {
         questArea.innerHTML = `
           <div class="card">
-            <h3>✨ 오늘의 3문장 퀘스트 완료!</h3>
-            <p>3개 표현을 모두 연결했어요. 내일 또 새로운 3문장이 준비됩니다.</p>
+            <h3>✨ 오늘의 퀘스트 완료!</h3>
+            <p>7단계 루프를 모두 끝냈어요. 내일 또 새로운 표현들이 준비됩니다.</p>
             <div style="margin-top:12px;">
               <button class="btn soft" id="restartQuestBtn" type="button">오늘의 퀘스트 다시 시작</button>
               <button class="btn soft" onclick="showScreen('dictionary')">사전 탐험하기</button>
@@ -994,23 +1045,23 @@
           </div>
         `;
       } else if (!quest.startedAt) {
-        const expressionList = expressions.map((item, i) => `<li>${i + 1}. ${item.ko} → <b>${item.en}</b></li>`).join('');
         questArea.innerHTML = `
           <div class="card">
-            <h3>오늘의 3문장 · ${completed}/${total} 완료</h3>
-            <p>오늘 연결할 3개 표현이에요. 각 표현마다 <b>뜻 이해 → 문장 만들기 → 직접 말하기</b> 순서로 진행합니다.</p>
-            <ul style="margin:10px 0; padding-left:20px; line-height:1.7;">${expressionList}</ul>
+            <h3>오늘의 퀘스트 · ${completed}/${total} 완료</h3>
+            <p>오늘은 <b>듣고 따라 말하기 2회 → 영어 장면 고르기 2회 → 한글→영어 조립 2회 → 약한 연결 복습 1회</b> 순서로 자동 진행됩니다.</p>
+            <ul style="margin:10px 0; padding-left:20px; line-height:1.7;">${stepSummary}</ul>
             <button class="btn dark" id="startQuestBtn">퀘스트 시작하기</button>
           </div>
         `;
       } else {
-        const currentExpression = expressions[quest.currentIndex];
-        const progressText = `${completed}/${total} 완료`;
-        const currentText = currentExpression ? `현재: ${currentExpression.ko}` : '완료 대기 중';
         questArea.innerHTML = `
           <div class="card">
-            <h3>오늘의 3문장 · ${progressText}</h3>
-            <p>${currentText}</p>
+            <h3>오늘의 퀘스트 · ${completed}/${total} 완료</h3>
+            <p>현재 단계: <b>${escapeHtml(currentLabel)}</b></p>
+            <p class="small-note">7단계가 순서대로 이어지고, 완료되면 다음 단계가 자동으로 열립니다.</p>
+            <div style="margin:10px 0; padding-left:0;">
+              <ul style="margin:0; padding-left:20px; line-height:1.6;">${stepSummary}</ul>
+            </div>
             <div class="quest-confirm-actions">
               <button class="btn dark" id="continueQuestBtn" type="button">퀘스트 이어하기</button>
               <button class="btn soft" id="restartQuestBtn" type="button">오늘의 퀘스트 다시 시작</button>
@@ -1039,30 +1090,26 @@
     function restartTodayQuest() {
       ensureDailyQuest();
       const quest = appState.progress.dailyQuestV1;
-      const ids = (quest.expressionIds || []).slice();
-      if (!ids.length) {
+      const stepPlan = Array.isArray(quest.stepPlan) ? quest.stepPlan.slice() : [];
+      if (!stepPlan.length) {
         appState.questRestartConfirmOpen = false;
         updateQuestUI();
         return;
       }
       quest.currentIndex = 0;
-      quest.completedExpressionIds = [];
-      quest.stepByExpressionId = Object.fromEntries(ids.map(id => [id, {
-        meaningDone: false,
-        assemblyDone: false,
-        outputDone: false,
-        completedAt: null,
-      }]));
+      quest.completedStepKeys = [];
       quest.startedAt = new Date().toISOString();
       quest.finishedAt = null;
       quest.isCompleted = false;
       appState.questContext = null;
       appState.questRestartConfirmOpen = false;
       saveProgress();
-      runQuestStage();
+      runQuestStep();
     }
 
     function startQuest() {
+      ensureDailyQuest();
+      window.clearTimeout(appState.questAutoAdvanceTimer);
       const quest = appState.progress.dailyQuestV1;
       if (quest.startedAt && !quest.isCompleted) {
         continueQuest();
@@ -1070,52 +1117,59 @@
       }
       quest.startedAt = new Date().toISOString();
       quest.currentIndex = 0;
+      quest.completedStepKeys = [];
       saveProgress();
-      runQuestStage();
+      runQuestStep();
     }
 
     function continueQuest() {
-      runQuestStage();
+      runQuestStep();
     }
 
-    function runQuestStage() {
+    function runQuestStep() {
       const quest = appState.progress.dailyQuestV1;
-      const bank = getGameBank();
-      const currentExpressionId = quest.expressionIds[quest.currentIndex];
-      if (!currentExpressionId) {
+      const stepPlan = Array.isArray(quest.stepPlan) ? quest.stepPlan : [];
+      const step = stepPlan[quest.currentIndex];
+      if (!step) {
         finishQuest();
         return;
       }
-      const expression = bank.find(item => item.id === currentExpressionId);
+      const bank = getGameBank();
+      const expression = bank.find(item => item.id === step.expressionId);
       if (!expression) {
         finishQuest();
         return;
       }
-      const step = quest.stepByExpressionId[currentExpressionId] || { meaningDone: false, assemblyDone: false, outputDone: false, completedAt: null };
-      let stage = null;
-      if (!step.meaningDone) stage = 'meaning';
-      else if (!step.assemblyDone) stage = 'assembly';
-      else if (!step.outputDone) stage = 'output';
-      if (!stage) {
-        quest.currentIndex++;
-        if (quest.currentIndex >= quest.expressionIds.length) {
-          finishQuest();
-        } else {
-          saveProgress();
-          runQuestStage();
-        }
+      const questContext = {
+        source: 'dailyQuestV1',
+        stepKey: step.key,
+        stepIndex: quest.currentIndex,
+        expressionId: step.expressionId,
+        mode: step.mode,
+        label: step.label,
+        questStage: step.questStage,
+      };
+      appState.questContext = questContext;
+      startMode(step.mode, step.expressionId, {
+        skipRoute: false,
+        questContext,
+      });
+    }
+
+    function advanceQuestStep() {
+      const quest = appState.progress.dailyQuestV1;
+      quest.currentIndex += 1;
+      if (quest.currentIndex >= (quest.stepPlan || []).length) {
+        finishQuest();
         return;
       }
-      const mode = stage === 'meaning' ? 'enko' : stage === 'assembly' ? 'build' : 'speak';
-      startMode(mode, currentExpressionId, {
-        skipRoute: false,
-        questContext: { expressionId: currentExpressionId, stage, source: 'dailyQuestV1' },
-      });
+      saveProgress();
+      runQuestStep();
     }
 
     function finishQuest() {
       const quest = appState.progress.dailyQuestV1;
-      quest.completedExpressionIds = getCompletedQuestExpressionIds(quest);
+      quest.completedStepKeys = Array.isArray(quest.completedStepKeys) ? [...new Set(quest.completedStepKeys)] : [];
       quest.finishedAt = new Date().toISOString();
       quest.isCompleted = true;
       saveProgress();
@@ -1126,15 +1180,15 @@
       appState.questContext = null;
       showScreen('lesson', { skipRoute: true });
       document.getElementById('lessonProgress').style.width = '100%';
-      document.getElementById('lessonProgressText').textContent = '3 / 3';
+      document.getElementById('lessonProgressText').textContent = '7 / 7';
       document.getElementById('questionCard').innerHTML = `
-        <div class="lesson-label">오늘의 퀘스트 v1 완료</div>
-        <h2>오늘의 3문장을 완료했어요.</h2>
-        <p class="korean">뜻 이해 → 문장 만들기 → 직접 말하기를 모두 마쳤습니다. 내일 새로운 3문장이 열립니다.</p>
+        <div class="lesson-label">오늘의 퀘스트 v2 완료</div>
+        <h2>오늘의 퀘스트를 완료했어요.</h2>
+        <p class="korean">듣고 따라 말하기 2회 → 영어 장면 고르기 2회 → 한글→영어 조립 2회 → 약한 연결 복습 1회까지 모두 마쳤습니다. 내일 새로운 표현들이 열립니다.</p>
         <div class="question-actions"><button class="btn accent" id="questDoneHome">홈으로</button><button class="btn dark" id="questDoneProgress">내 성장 보기</button></div>`;
       document.getElementById('questDoneHome')?.addEventListener('click', () => showScreen('home'));
       document.getElementById('questDoneProgress')?.addEventListener('click', () => showScreen('progress'));
-      toast('오늘의 3문장 퀘스트를 모두 완료했어요!');
+      toast('오늘의 퀘스트를 모두 완료했어요!');
     }
 
         function showScreen(id, options = {}) {
@@ -1181,7 +1235,11 @@
                 if (expression) {
                   appState.dictionaryData.selectedVerbId = expression.coreVerbId;
                   appState.dictionaryData.selectedExpressionId = expression.id;
+                  appState.dictionaryData.selectedExplorerView = 'expressions';
                 }
+              }
+              if (!route.id && !appState.dictionaryData.selectedExplorerView) {
+                appState.dictionaryData.selectedExplorerView = 'verbs';
               }
               showScreen('dictionary', { skipRoute: true, skipScroll: true });
         } else if (route.screen === 'quiz') {
@@ -1393,24 +1451,129 @@
       appState.dictionaryData.selectedRouteId = null;
       clearRouteProgress();
     }
+    function getPatternDefaultExpression(pattern, selectedVerb, data) {
+      if (!pattern) return null;
+      const preferredIds = pattern.exampleExpressionIds || [];
+      for (const id of preferredIds) {
+        const preferred = data.expressions.find(expression => expression.id === id && expression.coreVerbId === selectedVerb.id);
+        if (preferred) return preferred;
+      }
+      return data.expressions.find(expression => expression.patternId === pattern.id && expression.coreVerbId === selectedVerb.id) || null;
+    }
+    function getBuildDefaultRoute(config, data) {
+      if (!config || !config.routes?.length) return { route: null, pattern: null };
+      const currentRoute = config.routes.find(route => route.routeId === data.selectedRouteId) || config.routes[0];
+      const currentPattern = currentRoute?.patterns?.find(pattern => pattern.patternId === data.selectedPatternId) || currentRoute?.patterns?.[0] || null;
+      return { route: currentRoute || null, pattern: currentPattern || null };
+    }
+    function renderDictionaryLocation(selectedView, selectedVerb, selectedPattern, selectedExpression, selectedRoute, data) {
+      const viewLabel = {
+        verbs: '동사 탐험',
+        expressions: '실생활 표현',
+        build: '문장 빌드 맵',
+      }[selectedView] || '사전 탐험';
+      const segments = [`<span class="location-label">현재 위치</span><strong>${escapeHtml(viewLabel)}</strong>`];
+      if (selectedView === 'verbs') {
+        segments.push(`핵심 동사: <strong>${escapeHtml(selectedVerb.word)}</strong>`);
+        if (selectedPattern) segments.push(`연결된 표현 틀: <strong>${escapeHtml(selectedPattern.label)}</strong>`);
+        if (selectedExpression) segments.push(`연결 표현: <strong>${escapeHtml(selectedExpression.english)}</strong>`);
+      } else if (selectedView === 'expressions') {
+        if (selectedExpression) segments.push(`선택 표현: <strong>${escapeHtml(selectedExpression.english)}</strong>`);
+        if (selectedPattern) segments.push(`표현 틀: <strong>${escapeHtml(selectedPattern.label)}</strong>`);
+        segments.push(`아래에서 표현을 누르면 상세와 퀴즈가 바로 열려요.`);
+      } else if (selectedView === 'build') {
+        if (selectedRoute) segments.push(`선택 경로: <strong>${escapeHtml(selectedRoute.label)}</strong>`);
+        if (selectedPattern) segments.push(`패턴: <strong>${escapeHtml(selectedPattern.label)}</strong>`);
+        segments.push(`아래에서 route와 패턴을 고르면 문장 카드가 펼쳐져요.`);
+      }
+      if (selectedView === 'verbs' && !selectedExpression) {
+        segments.push(`아래에서 연결된 표현 틀을 누르면 실생활 표현으로 이동해요.`);
+      }
+      return `<div class="location-line">${segments.join(' · ')}</div>`;
+    }
+    function setDictionaryExplorerView(view) {
+      appState.dictionaryData.selectedExplorerView = view || 'verbs';
+      const subnav = document.getElementById('dictionarySubnav');
+      if (subnav) {
+        subnav.querySelectorAll('[data-dictionary-view]').forEach(button => {
+          button.classList.toggle('active', button.dataset.dictionaryView === appState.dictionaryData.selectedExplorerView);
+        });
+      }
+    }
     function selectMapExpression(expressionId) {
       if (!expressionId) return;
-      clearRouteState();
       appState.dictionaryData.selectedExpressionId = expressionId;
+      const expression = appState.dictionaryData.expressions.find(item => item.id === expressionId);
+      if (expression) appState.dictionaryData.selectedVerbId = expression.coreVerbId;
+      if (expression) appState.dictionaryData.selectedPatternId = expression.patternId;
+      setDictionaryExplorerView('expressions');
       renderDictionaryExplorer();
       scrollAndHighlightExpressionDetail();
     }
     function getVerbMapConfig(selectedVerb, data) {
       return (data.verbMaps || []).find(entry => entry.verbId === selectedVerb.id) || null;
     }
+    function renderGenericVerbMap(selectedVerb, data) {
+      const patterns = (selectedVerb.patternIds || [])
+        .map(patternId => data.patterns.find(pattern => pattern.id === patternId))
+        .filter(Boolean);
+      const selectedPattern = patterns.find(pattern => pattern.id === data.selectedPatternId) || patterns[0] || null;
+      const patternExamples = pattern => data.expressions
+        .filter(expression => expression.coreVerbId === selectedVerb.id && expression.patternId === pattern.id)
+        .slice(0, 4);
+      const patternButtons = patterns.length
+        ? patterns.map(pattern => `
+            <button class="map-chip ${selectedPattern?.id === pattern.id ? 'active' : ''}" data-route-pattern-id="${pattern.id}">
+              ${escapeHtml(pattern.label)}
+            </button>
+          `).join('')
+        : '<p class="small-note">이 동사가 연결된 표현 틀이 아직 없습니다.</p>';
+      return `
+        <h4>문장 빌드 맵</h4>
+        <p class="verb-guide">명사와 장면을 보고 어떤 동사를 먼저 써야 하는지 빠르게 고르는 연습입니다.</p>
+        <p class="small-note">${escapeHtml(selectedVerb.word.toUpperCase())} 중심으로 동사 선택 감각을 넓혀요. ${escapeHtml(selectedVerb.easyKorean)}</p>
+        <div class="map-section">
+          <h5>${escapeHtml(selectedVerb.word.toUpperCase())}이 자주 가는 길</h5>
+          <div class="map-chip-row">${patternButtons}</div>
+        </div>
+        ${selectedPattern ? `
+          <div class="map-section">
+            <h5><span class="map-step-title"><span class="map-step-index">1</span>${escapeHtml(selectedPattern.label)}</span></h5>
+            <div class="map-detail-card">
+              <p><b>${escapeHtml(selectedPattern.thinkingFrame)}</b></p>
+              <p class="small-note">구조: ${escapeHtml(selectedPattern.structure)}</p>
+              <p class="small-note">이 패턴에서 먼저 고를 것: ${escapeHtml((selectedPattern.slotTypes || []).join(' · ') || '장면을 먼저 떠올리기')}</p>
+            </div>
+            <div class="map-guide">↓ 예문으로 확인</div>
+            <div class="map-chip-list">
+              ${patternExamples(selectedPattern).map(expression => `
+                <button class="map-chip" data-map-quiz-id="${expression.id}">
+                  ${escapeHtml(expression.english)}
+                </button>
+              `).join('') || '<p class="small-note">이 패턴의 예문이 아직 없습니다.</p>'}
+            </div>
+          </div>
+        ` : ''}
+        ${patterns.length ? `
+          <div class="map-section">
+            <h5>한눈에 정리</h5>
+            <div class="map-chip-list">
+              ${patterns.map(pattern => `<button class="map-chip ${selectedPattern?.id === pattern.id ? 'active' : ''}" data-route-pattern-id="${pattern.id}">${escapeHtml(pattern.thinkingFrame)}</button>`).join('')}
+            </div>
+          </div>
+        ` : ''}
+      `;
+    }
     function selectMapRoute(routeId) {
       if (!routeId) return;
       appState.dictionaryData.selectedRouteId = routeId;
+      setDictionaryExplorerView('build');
       clearRouteProgress();
       renderDictionaryExplorer();
     }
     function selectRoutePattern(patternId) {
       if (!patternId) return;
+      setDictionaryExplorerView('build');
       appState.dictionaryData.selectedPatternId = patternId;
       appState.dictionaryData.selectedSlotValue = null;
       appState.dictionaryData.selectedCombinationId = null;
@@ -1422,6 +1585,7 @@
     }
     function selectRouteSlot(value) {
       if (!value) return;
+      setDictionaryExplorerView('build');
       appState.dictionaryData.selectedSlotValue = value;
       appState.dictionaryData.selectedCombinationId = null;
       appState.dictionaryData.selectedExpressionId = null;
@@ -1432,6 +1596,7 @@
     }
     function selectRouteCombination(combinationId) {
       if (!combinationId) return;
+      setDictionaryExplorerView('build');
       appState.dictionaryData.selectedCombinationId = combinationId;
       appState.dictionaryData.selectedExpressionId = null;
       appState.dictionaryData.selectedMapSentenceId = null;
@@ -1441,6 +1606,7 @@
     }
     function toggleMapMeaning(expressionId) {
       if (!expressionId) return;
+      setDictionaryExplorerView('build');
       const sameSentence = appState.dictionaryData.selectedMapSentenceId === expressionId;
       const willOpen = !(sameSentence && appState.dictionaryData.isMapMeaningOpen);
       appState.dictionaryData.selectedMapSentenceId = expressionId;
@@ -1450,6 +1616,7 @@
     }
     function toggleMapPractice(expressionId) {
       if (!expressionId) return;
+      setDictionaryExplorerView('build');
       const sameSentence = appState.dictionaryData.selectedMapSentenceId === expressionId;
       const willOpen = !(sameSentence && appState.dictionaryData.isMapPracticeOpen);
       appState.dictionaryData.selectedMapSentenceId = expressionId;
@@ -1464,6 +1631,7 @@
     function startMapSentenceQuiz(expressionId) {
       if (!expressionId) return;
       appState.dictionaryData.selectedExpressionId = expressionId;
+      setDictionaryExplorerView('expressions');
       startMode('koen', expressionId);
     }
     function renderMapSentenceCard(expression, data, context) {
@@ -1514,12 +1682,13 @@
     function renderVerbMap(selectedVerb, data) {
       const config = getVerbMapConfig(selectedVerb, data);
       if (!config) {
-        return `<h4>${escapeHtml(selectedVerb.word.toUpperCase())}</h4><p class="small-note">이 동사는 현재 연결 지도 뷰를 지원하지 않습니다.</p>`;
+        return renderGenericVerbMap(selectedVerb, data);
       }
       const selectedRoute = config.routes.find(route => route.routeId === data.selectedRouteId) || null;
       return `
-        <h4>${escapeHtml(selectedVerb.word.toUpperCase())}</h4>
-        <p class="verb-guide">${escapeHtml(config.coreSense)}</p>
+        <h4>문장 빌드 맵</h4>
+        <p class="verb-guide">명사와 장면을 보고 어떤 동사를 먼저 써야 하는지 빠르게 고르는 연습입니다.</p>
+        <p class="small-note">${escapeHtml(selectedVerb.word.toUpperCase())} 중심으로 동사 선택 감각을 넓혀요. ${escapeHtml(config.coreSense)}</p>
         <div class="map-section">
           <h5>${escapeHtml(selectedVerb.word.toUpperCase())}이 자주 가는 길</h5>
           <div class="map-chip-row">
@@ -1699,6 +1868,7 @@
         }
 
     function renderQuestion() {
+      window.clearTimeout(appState.questAutoAdvanceTimer);
       const item = appState.lessonItems[appState.currentIndex];
           if (!item || appState.currentIndex >= appState.lessonItems.length) return finishLesson();
           appState.hintStep = 0;
@@ -1710,15 +1880,15 @@
       document.getElementById('lessonProgress').style.width = progress + '%';
       document.getElementById('lessonProgressText').textContent = `${appState.currentIndex + 1} / ${appState.lessonItems.length}`;
 
-      const questStage = appState.questContext?.source === 'dailyQuestV1' && appState.questContext?.expressionId === item.id
-        ? appState.questContext.stage
+      const questStep = appState.questContext?.source === 'dailyQuestV1' && appState.questContext?.expressionId === item.id
+        ? appState.questContext
         : null;
-      const stageLabel = questStage === 'meaning' ? '뜻 이해 · 1단계'
-        : questStage === 'assembly' ? '문장 만들기 · 2단계'
-        : questStage === 'output' ? '직접 말하기 · 3단계'
+      const questStepNumber = questStep ? questStep.stepIndex + 1 : null;
+      const stageLabel = questStep ? `${questStepNumber} / 7 · ${questStep.label}`
+        : mode === 'listen' ? '듣고 따라 말하기'
         : `${modeTitle(mode)} · ${item.frame} · ${item.level || 1}단계`;
       const baseTop = `<div class="lesson-label">${stageLabel}</div>`;
-      const connectionSummary = `<div class="connection-strip-summary">${getConnectionGraph(item, stageToConnectionKey(questStage))}</div>`;
+      const connectionSummary = `<div class="connection-strip-summary">${getConnectionGraph(item, stageToConnectionKey(questStep?.questStage))}</div>`;
       let body = '';
       if (mode === 'listen') body = renderListen(item);
       else if (mode === 'koen') body = renderKoEn(item);
@@ -2058,7 +2228,7 @@
           const result = classifyAnswer(item, transcript);
           if (result.status === 'correct' || result.status === 'almost') {
             const signature = `listen-${item.id}-${captureId}`;
-            markStudy(mode, item.id, result.status, { signature, hintLevel: 0 });
+            markStudy(mode, item.id, result.status, { signature, hintLevel: 0, questStepComplete: listenSession.successCount + 1 >= 3 });
             listenSession.successCount = Math.min(3, (listenSession.successCount || 0) + 1);
             updateListenCountDisplay();
             renderListenResult(transcript, item, result, { boxId });
@@ -2256,7 +2426,7 @@
       const isQuestMeaningStage = appState.questContext
         && appState.questContext.source === 'dailyQuestV1'
         && appState.questContext.expressionId === item.id
-        && appState.questContext.stage === 'meaning'
+        && appState.questContext.questStage === 'meaning'
         && mode === 'enko';
       if (correct) {
         markStudy(mode, item.id, 'correct', { signature: `choice-${item.id}-${button.dataset.value}` });
@@ -2321,6 +2491,12 @@
         </div>
       `);
       document.querySelectorAll('.check-answer').forEach(btn => { btn.textContent = buttonText; });
+      if (appState.questContext && canAdvance) {
+        window.clearTimeout(appState.questAutoAdvanceTimer);
+        appState.questAutoAdvanceTimer = window.setTimeout(() => {
+          if (appState.questionAnswered) nextQuestion();
+        }, 700);
+      }
       const next = document.querySelector('.next-after-answer');
       if (next) {
         if (canAdvance) {
@@ -2358,8 +2534,9 @@
       playTone({ frequency: 620, duration: 0.06, type: 'sine', volume: 0.07 });
     }
     function nextQuestion() {
+      window.clearTimeout(appState.questAutoAdvanceTimer);
       if (appState.questContext && appState.questContext.source === 'dailyQuestV1') {
-        runQuestStage();
+        finishLesson();
         return;
       }
       appState.currentIndex++;
@@ -2380,10 +2557,10 @@
       nextQuestion();
     }
     function finishLesson() {
+      window.clearTimeout(appState.questAutoAdvanceTimer);
       if (appState.questContext && appState.questContext.source === 'dailyQuestV1') {
         appState.questContext = null;
-        showScreen('home');
-        updateQuestUI();
+        advanceQuestStep();
         return;
       }
       document.getElementById('lessonProgress').style.width = '100%';
@@ -2440,6 +2617,7 @@
           selectedSlotValue: null,
           selectedCombinationId: null,
           selectedMapSentenceId: null,
+          selectedExplorerView: appState.dictionaryData.selectedExplorerView || 'verbs',
           isMapMeaningOpen: false,
           isMapPracticeOpen: false,
         };
@@ -2451,6 +2629,7 @@
           gameExpressions: [],
           dataSource: 'fallback',
           error: '사전 데이터 파일을 불러오지 못했어요. 로컬에서 파일을 직접 열었다면 `python3 -m http.server 8080` 실행 후 `http://localhost:8080`으로 접속해 주세요.',
+          selectedExplorerView: appState.dictionaryData.selectedExplorerView || 'verbs',
         };
         toast('사전 데이터를 불러오지 못해 기본 예비 표현을 사용해요.');
       }
@@ -2465,14 +2644,17 @@
       const dictionaryScreen = document.getElementById('dictionary');
       const mapFocusActions = document.getElementById('mapFocusActions');
       const showDictionaryLegacy = document.getElementById('showDictionaryLegacy');
+      const dictionarySubnav = document.getElementById('dictionarySubnav');
+      const legacySearchSection = document.getElementById('dictionaryLegacySearchSection');
       const status = document.getElementById('explorerStatus');
       const verbButtons = document.getElementById('verbExplorerButtons');
+      const explorerGrid = document.querySelector('.explorer-grid');
       const verbPanel = document.getElementById('verbExplorerPanel');
       const patternList = document.getElementById('patternExplorerList');
       const expressionList = document.getElementById('expressionExplorerList');
       const detail = document.getElementById('expressionExplorerDetail');
       const dictionaryMap = document.getElementById('dictionaryMap');
-      if (!status || !verbButtons || !verbPanel || !patternList || !expressionList || !detail || !dictionaryMap) return;
+      if (!status || !verbButtons || !verbPanel || !patternList || !expressionList || !detail || !dictionaryMap || !dictionarySubnav) return;
 
       if (data.error) {
         status.className = 'explorer-status error';
@@ -2495,26 +2677,76 @@
       appState.dictionaryData.selectedVerbId = selectedVerb.id;
       const patterns = data.patterns.filter(p => selectedVerb.patternIds.includes(p.id));
       const expressions = data.expressions.filter(e => e.coreVerbId === selectedVerb.id);
-      const selectedExpression = data.selectedExpressionId ? expressions.find(e => e.id === data.selectedExpressionId) : null;
+      const buildConfig = getVerbMapConfig(selectedVerb, data);
+      let selectedExpression = data.selectedExpressionId ? expressions.find(e => e.id === data.selectedExpressionId) : null;
+      let selectedRoute = buildConfig?.routes?.find(route => route.routeId === data.selectedRouteId) || null;
+      let selectedPattern = null;
       const routeActive = data.selectedRouteId || data.selectedPatternId || data.selectedSlotValue || data.selectedCombinationId;
       const isRouteVerb = isVerbMapFocus(selectedVerb.id);
-      if (dictionaryExplorer) {
-        dictionaryExplorer.classList.toggle('map-focused', Boolean(routeActive));
-        dictionaryExplorer.classList.toggle('has-selected-expression', Boolean(routeActive && selectedExpression));
+      const selectedView = data.selectedExplorerView || (routeActive ? 'build' : selectedExpression ? 'expressions' : 'verbs');
+      if (!data.selectedExplorerView) appState.dictionaryData.selectedExplorerView = selectedView;
+      let needsRerender = false;
+      if (selectedView === 'expressions' && !selectedExpression && expressions.length) {
+        appState.dictionaryData.selectedExpressionId = expressions[0].id;
+        selectedExpression = expressions[0];
+        needsRerender = true;
       }
-      if (dictionaryScreen) dictionaryScreen.classList.toggle('map-focus-mode', Boolean(routeActive));
-      if (mapFocusActions) mapFocusActions.classList.toggle('hidden', !routeActive);
-      if (showDictionaryLegacy) {
-        showDictionaryLegacy.onclick = () => {
-          clearRouteState();
-          appState.dictionaryData.selectedExpressionId = null;
+      if (selectedView === 'build') {
+        if (buildConfig?.routes?.length) {
+          const defaultRoute = buildConfig.routes.find(route => route.routeId === data.selectedRouteId) || buildConfig.routes[0];
+          const defaultPattern = defaultRoute?.patterns?.find(pattern => pattern.patternId === data.selectedPatternId) || defaultRoute?.patterns?.[0] || null;
+          const routeChanged = data.selectedRouteId !== defaultRoute?.routeId;
+          const patternChanged = data.selectedPatternId !== defaultPattern?.patternId;
+          if (routeChanged || patternChanged || data.selectedExpressionId || data.selectedSlotValue || data.selectedCombinationId) {
+            clearRouteProgress();
+            appState.dictionaryData.selectedRouteId = defaultRoute?.routeId || null;
+            appState.dictionaryData.selectedPatternId = defaultPattern?.patternId || null;
+            needsRerender = true;
+          }
+        } else {
+          const defaultPattern = patterns.find(pattern => pattern.id === data.selectedPatternId) || patterns[0] || null;
+          const patternChanged = data.selectedPatternId !== defaultPattern?.id;
+          if (patternChanged || data.selectedRouteId || data.selectedExpressionId || data.selectedSlotValue || data.selectedCombinationId) {
+            clearRouteProgress();
+            appState.dictionaryData.selectedPatternId = defaultPattern?.id || null;
+            needsRerender = true;
+          }
+        }
+      }
+      if (needsRerender) {
+        renderDictionaryExplorer();
+        return;
+      }
+      selectedExpression = data.selectedExpressionId ? expressions.find(e => e.id === data.selectedExpressionId) : null;
+      selectedRoute = buildConfig?.routes?.find(route => route.routeId === data.selectedRouteId) || null;
+      selectedPattern = selectedRoute
+        ? selectedRoute.patterns.find(pattern => pattern.patternId === data.selectedPatternId) || null
+        : patterns.find(pattern => pattern.id === data.selectedPatternId) || null;
+      const buildViewActive = selectedView === 'build';
+      const selectedLocationMarkup = renderDictionaryLocation(selectedView, selectedVerb, selectedPattern, selectedExpression, selectedRoute, data);
+      if (dictionaryExplorer) {
+        dictionaryExplorer.classList.toggle('map-focused', buildViewActive);
+        dictionaryExplorer.classList.toggle('has-selected-expression', Boolean(selectedView !== 'build' && selectedExpression));
+      }
+      if (dictionaryScreen) dictionaryScreen.classList.toggle('map-focus-mode', buildViewActive);
+      if (mapFocusActions) mapFocusActions.classList.toggle('hidden', !buildViewActive);
+      if (legacySearchSection) legacySearchSection.hidden = selectedView === 'build';
+      const dictionaryLocation = document.getElementById('dictionaryLocation');
+      if (dictionaryLocation) dictionaryLocation.innerHTML = selectedLocationMarkup;
+      dictionarySubnav.querySelectorAll('[data-dictionary-view]').forEach(button => {
+        button.classList.toggle('active', button.dataset.dictionaryView === selectedView);
+        button.onclick = () => {
+          setDictionaryExplorerView(button.dataset.dictionaryView);
           renderDictionaryExplorer();
         };
-      }
-      if (!selectedExpression && !routeActive && !isRouteVerb) {
-        appState.dictionaryData.selectedExpressionId = expressions[0]?.id || null;
-      } else {
-        appState.dictionaryData.selectedExpressionId = selectedExpression?.id || null;
+      });
+      if (showDictionaryLegacy) {
+        showDictionaryLegacy.textContent = '문장 빌드 맵 닫고 전체 사전 보기';
+        showDictionaryLegacy.onclick = () => {
+          appState.dictionaryData.selectedExpressionId = null;
+          setDictionaryExplorerView('verbs');
+          renderDictionaryExplorer();
+        };
       }
 
       status.className = 'explorer-status';
@@ -2523,16 +2755,23 @@
           verbButtons.querySelectorAll('[data-verb-id]').forEach(button => button.addEventListener('click', () => {
             appState.dictionaryData.selectedVerbId = button.dataset.verbId;
             appState.dictionaryData.selectedExpressionId = null;
-            clearRouteState();
+            setDictionaryExplorerView('verbs');
             renderDictionaryExplorer();
             updateRouteForScreen('dictionary');
           }));
+
+      if (explorerGrid) explorerGrid.hidden = selectedView === 'build';
+      verbPanel.hidden = selectedView === 'build';
+      patternList.hidden = selectedView !== 'verbs';
+      expressionList.hidden = selectedView === 'build';
+      detail.hidden = selectedView === 'build';
+      dictionaryMap.hidden = selectedView !== 'build';
 
       verbPanel.innerHTML = `
         <h4>선택한 핵심 동사</h4>
         <div class="verb-image">${escapeHtml(selectedVerb.word)} = ${escapeHtml(selectedVerb.coreImage)}</div>
         <p>${escapeHtml(selectedVerb.easyKorean)}</p>
-        <p class="explorer-guide">이 동사를 중심으로 어떤 표현 틀이 생기는지 오른쪽에서 확인하세요.</p>
+        <p class="explorer-guide">이 동사를 중심으로 어떤 표현 틀이 생기는지 오른쪽에서 확인하세요. 아래 문장 빌드 맵에서는 어떤 동사를 먼저 써야 하는지도 더 빨리 고를 수 있어요.</p>
         <p class="small-note">대표 상황: ${selectedVerb.representativeSituations.map(escapeHtml).join(' · ')}</p>
         <p class="small-note">연결 동사: ${selectedVerb.connectedVerbIds.map(id => data.verbs.find(v => v.id === id)?.word || id).map(escapeHtml).join(' · ')}</p>
       `;
@@ -2543,10 +2782,16 @@
         </button>
       `).join('') : '<p class="small-note">아직 연결된 표현 틀이 없습니다.</p>';
           patternList.querySelectorAll('[data-pattern-id]').forEach(button => button.addEventListener('click', () => {
-              clearRouteState();
-              const first = data.expressions.find(e => e.patternId === button.dataset.patternId);
-              if (first) appState.dictionaryData.selectedExpressionId = first.id;
+              const pattern = data.patterns.find(item => item.id === button.dataset.patternId);
+              const targetExpression = getPatternDefaultExpression(pattern, selectedVerb, data);
+              appState.dictionaryData.selectedPatternId = button.dataset.patternId;
+              if (targetExpression) {
+                appState.dictionaryData.selectedVerbId = targetExpression.coreVerbId;
+                appState.dictionaryData.selectedExpressionId = targetExpression.id;
+              }
+              setDictionaryExplorerView('verbs');
               renderDictionaryExplorer();
+              if (targetExpression) scrollAndHighlightExpressionDetail();
               updateRouteForScreen('dictionary');
           }));
 
@@ -2558,58 +2803,57 @@
         </button>
       `).join('') : '<p class="small-note">아직 연결된 표현 카드가 없습니다.</p>';
           expressionList.querySelectorAll('[data-expression-id]').forEach(button => button.addEventListener('click', () => {
-              clearRouteState();
-              appState.dictionaryData.selectedExpressionId = button.dataset.expressionId;
-              renderDictionaryExplorer();
+              selectMapExpression(button.dataset.expressionId);
               updateRouteForScreen('dictionary');
           }));
 
-      if (!selectedExpression) {
-        detail.innerHTML = '<h3>표현 상세</h3><p>오른쪽의 실생활 표현을 선택하면 자세한 연결이 표시됩니다.</p>';
+      if (selectedExpression) {
+        const pattern = data.patterns.find(p => p.id === selectedExpression.patternId);
+        const nouns = selectedExpression.nounIds.map(id => data.nouns.find(noun => noun.id === id)?.word || id);
+        const guideBanner = appState.progress.settings.seenConnectionGuide ? '' : '<div class="connection-guide">뜻을 알고, 문장을 만들고, 직접 꺼내면 표현이 연결돼요.</div>';
+        if (!appState.progress.settings.seenConnectionGuide) {
+          appState.progress.settings.seenConnectionGuide = true;
+          saveProgress();
+        }
+        detail.innerHTML = `
+          <h4>표현 상세</h4>
+          ${guideBanner}
+          <h3>${escapeHtml(selectedExpression.english)}</h3>
+          <p><b>${escapeHtml(selectedExpression.naturalKorean)}</b></p>
+          <div class="connection-strip-summary">${getConnectionGraph(selectedExpression)}</div>
+          <p class="small-note">직역 이미지: ${escapeHtml(selectedExpression.literalMeaning)}</p>
+          <div class="chunk-row">${selectedExpression.chunks.map(chunk => `<span class="chunk">${escapeHtml(chunk)}</span>`).join('')}</div>
+          <p class="explorer-guide">단어 덩어리를 보고 문장을 통째로 익힌 뒤, 아래 버튼으로 바로 퀴즈를 풀 수 있습니다.</p>
+          <p class="small-note">표현 틀: ${escapeHtml(pattern?.label || selectedExpression.patternId)} · 핵심 명사: ${nouns.map(escapeHtml).join(' · ') || '없음'}</p>
+          <ol class="hint-list">${selectedExpression.hints.map(hint => `<li>${escapeHtml(hint)}</li>`).join('')}</ol>
+          <div class="question-actions" style="justify-content:flex-start">
+            <button class="btn dark quiz-expression" data-expression-id="${selectedExpression.id}">이 표현으로 퀴즈 풀기</button>
+          </div>
+          <div class="filter-row" style="margin-top:10px">
+            ${(selectedExpression.relatedExpressionIds || []).map(id => {
+              const related = data.expressions.find(expression => expression.id === id);
+              return related ? `<button class="filter related-expression" data-expression-id="${related.id}">${escapeHtml(related.english)}</button>` : '';
+            }).join('')}
+          </div>
+        `;
+        detail.querySelectorAll('.quiz-expression').forEach(button => button.addEventListener('click', () => startMode('koen', button.dataset.expressionId)));
+        detail.querySelectorAll('.related-expression').forEach(button => button.addEventListener('click', () => {
+          const related = data.expressions.find(expression => expression.id === button.dataset.expressionId);
+          if (!related) return;
+          selectMapExpression(related.id);
+          updateRouteForScreen('dictionary');
+            }));
+      } else {
+        detail.innerHTML = selectedView === 'build'
+          ? '<h3>문장 빌드 맵</h3><p>동사부터 먼저 고르는 연습을 하려면 위의 빌드 맵을 보세요.</p>'
+          : '<h3>표현 상세</h3><p>표현을 선택하면 영어 문장, 자연스러운 한국어, 단어 덩어리, 힌트가 여기에 표시됩니다.</p>';
+      }
+      if (selectedView === 'build') {
         dictionaryMap.innerHTML = renderVerbMap(selectedVerb, data);
         attachDictionaryMapHandlers(dictionaryMap);
-        return;
+      } else {
+        dictionaryMap.innerHTML = '';
       }
-      const pattern = data.patterns.find(p => p.id === selectedExpression.patternId);
-      const nouns = selectedExpression.nounIds.map(id => data.nouns.find(noun => noun.id === id)?.word || id);
-      const guideBanner = appState.progress.settings.seenConnectionGuide ? '' : '<div class="connection-guide">뜻을 알고, 문장을 만들고, 직접 꺼내면 표현이 연결돼요.</div>';
-      if (!appState.progress.settings.seenConnectionGuide) {
-        appState.progress.settings.seenConnectionGuide = true;
-        saveProgress();
-      }
-      detail.innerHTML = `
-        <h4>표현 상세</h4>
-        ${guideBanner}
-        <h3>${escapeHtml(selectedExpression.english)}</h3>
-        <p><b>${escapeHtml(selectedExpression.naturalKorean)}</b></p>
-        <div class="connection-strip-summary">${getConnectionGraph(selectedExpression)}</div>
-        <p class="small-note">직역 이미지: ${escapeHtml(selectedExpression.literalMeaning)}</p>
-        <div class="chunk-row">${selectedExpression.chunks.map(chunk => `<span class="chunk">${escapeHtml(chunk)}</span>`).join('')}</div>
-        <p class="explorer-guide">단어 덩어리를 보고 문장을 통째로 익힌 뒤, 아래 버튼으로 바로 퀴즈를 풀 수 있습니다.</p>
-        <p class="small-note">표현 틀: ${escapeHtml(pattern?.label || selectedExpression.patternId)} · 핵심 명사: ${nouns.map(escapeHtml).join(' · ') || '없음'}</p>
-        <ol class="hint-list">${selectedExpression.hints.map(hint => `<li>${escapeHtml(hint)}</li>`).join('')}</ol>
-        <div class="question-actions" style="justify-content:flex-start">
-          <button class="btn dark quiz-expression" data-expression-id="${selectedExpression.id}">이 표현으로 퀴즈 풀기</button>
-        </div>
-        <div class="filter-row" style="margin-top:10px">
-          ${(selectedExpression.relatedExpressionIds || []).map(id => {
-            const related = data.expressions.find(expression => expression.id === id);
-            return related ? `<button class="filter related-expression" data-expression-id="${related.id}">${escapeHtml(related.english)}</button>` : '';
-          }).join('')}
-        </div>
-      `;
-      detail.querySelectorAll('.quiz-expression').forEach(button => button.addEventListener('click', () => startMode('koen', button.dataset.expressionId)));
-      detail.querySelectorAll('.related-expression').forEach(button => button.addEventListener('click', () => {
-        const related = data.expressions.find(expression => expression.id === button.dataset.expressionId);
-        if (!related) return;
-            appState.dictionaryData.selectedVerbId = related.coreVerbId;
-            appState.dictionaryData.selectedExpressionId = related.id;
-            clearRouteState();
-            renderDictionaryExplorer();
-            updateRouteForScreen('dictionary');
-          }));
-      dictionaryMap.innerHTML = renderVerbMap(selectedVerb, data);
-      attachDictionaryMapHandlers(dictionaryMap);
     }
 
     function renderMap() {
@@ -2787,7 +3031,7 @@
 
         window.addEventListener('hashchange', applyRoute);
         document.querySelectorAll('.nav button').forEach(btn => btn.addEventListener('click', () => showScreen(btn.dataset.screen)));
-    document.getElementById('startDaily').addEventListener('click', () => showScreen('play'));
+    document.getElementById('startDaily').addEventListener('click', () => startQuest());
     document.getElementById('jumpDictionary').addEventListener('click', () => showScreen('dictionary'));
     document.getElementById('exitLesson').addEventListener('click', () => showScreen('play'));
     document.getElementById('wordSearch').addEventListener('input', e => { appState.search=e.target.value; renderWords(); });
@@ -2810,7 +3054,7 @@
     prepareSpeechVoices();
     updateSoundToggle();
     renderModeCards('homeModes', 3);
-    renderModeCards('gameModes', 6);
+    renderModeCards('gameModes', modeCards.length);
     renderWords(); renderMap(); updateDashboard(); loadDictionaryExplorer();
     if (!window.location.hash) updateRouteForScreen('home', true);
       </script>
