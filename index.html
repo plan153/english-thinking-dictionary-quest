@@ -197,6 +197,9 @@
     .word-card .word { font-weight:900; font-size:20px; letter-spacing:-.6px; }
     .word-card .tag { display:inline-block; margin-top:5px; color:var(--accent); background:#eaf4f3; border-radius:99px; padding:3px 7px; font-weight:800; font-size:11px; }
     .word-card .meaning { margin-top:9px; color:var(--muted); font-size:13px; line-height:1.45; }
+    .word-card .meaning-label { display:inline-block; margin-right:6px; color:var(--accent); font-weight:900; letter-spacing:-.02em; }
+    .word-card .meaning-word { color:var(--ink); font-weight:850; margin-right:4px; }
+    .word-card .meaning-gloss { display:inline; }
     .word-card .example { margin-top:9px; font-size:13px; line-height:1.45; }
     .word-card .connections { margin-top:9px; font-size:12px; color:#9a7028; }
     .dictionary-explorer { margin-top:16px; }
@@ -467,7 +470,7 @@
             <button class="filter" data-map-focus="take">take</button>
             <button class="filter" data-map-focus="have">have</button>
           </div>
-          <p class="small-note" id="connectionText" style="margin-top:12px">get = 받다 / 얻다 / 도착하다 / 이해하다 / 상태가 되다</p>
+          <p class="small-note" id="connectionText" style="margin-top:12px">기본 엔진 get · 얻다 · 받다 · 도착하다 · 이해하다 · 상태가 되다</p>
         </article>
       </div>
 
@@ -551,12 +554,12 @@
 
     <section id="map" class="screen">
       <div class="section-head">
-        <div><h2>연결 지도</h2><p>기본 동사 → 생각 틀 → 핵심 명사로 문장을 만듭니다. 사전 탐험의 문장 빌드 맵을 더 크게 펼쳐 보는 곳입니다.</p></div>
+        <div><h2>연결 지도</h2><p>기본 동사 → 생각틀 → 예시 단어로 문장을 만듭니다. 사전 탐험의 문장 빌드 맵을 더 크게 펼쳐 보는 곳입니다.</p></div>
       </div>
       <article class="card">
         <div class="filter-row" id="mapFilters" style="margin-bottom:15px"></div>
         <div class="map-wrap"><div class="thinking-map" id="thinkingMap"></div></div>
-        <p class="small-note">예: <b>make + a decision</b> = 결정을 만들다 → “결정하다”. 단어 하나씩 번역하는 대신, 자주 붙는 조합을 덩어리로 저장합니다.</p>
+        <p class="small-note">예: <b>make + a decision</b> = 결정을 만들다 → “결정하다”. 단어 하나씩 번역하는 대신, 기본 엔진·생각틀·예시 단어를 함께 묶어 봅니다.</p>
       </article>
     </section>
 
@@ -653,12 +656,12 @@
     ];
 
     const mapSets = {
-      get: { title:'get 엔진', verbs:['get'], frames:['get + thing', 'get + place', 'get + adjective', 'get + it'], nouns:['a message', 'home', 'better', 'the point'], examples:['I got your message.', 'I got home late.', 'I’m getting better.', 'I get it.'] },
-      make: { title:'make 엔진', verbs:['make'], frames:['make + a thing', 'make + a change', 'make + sure'], nouns:['a plan', 'a decision', 'progress', 'a mistake'], examples:['Let’s make a plan.', 'I need to make a decision.', 'You’re making progress.', 'I made a mistake.'] },
-      take: { title:'take 엔진', verbs:['take'], frames:['take + time', 'take + a thing', 'take + action'], nouns:['time', 'a break', 'a look', 'care'], examples:['It takes time.', 'Take a break.', 'Take a look.', 'Take care.'] },
-      have: { title:'have 엔진', verbs:['have'], frames:['have + thing', 'have + experience', 'have + meal'], nouns:['time', 'a problem', 'an idea', 'lunch'], examples:['Do you have time?', 'We have a problem.', 'I have an idea.', 'Let’s have lunch.'] },
-      want: { title:'want 엔진', verbs:['want'], frames:['want to + verb', 'want + thing'], nouns:['try', 'know', 'help', 'more time'], examples:['I want to try.', 'I want to know.', 'I want help.', 'I want more time.'] },
-      need: { title:'need 엔진', verbs:['need'], frames:['need + thing', 'need to + verb'], nouns:['help', 'time', 'a break', 'to go'], examples:['I need help.', 'I need more time.', 'I need a break.', 'I need to go.'] },
+      get: { title:'get 엔진', engineSummary:'얻다 · 받다 · 도착하다 · 이해하다 · 상태가 되다', verbs:['get'], frames:['get + thing', 'get + place', 'get + adjective', 'get + it'], examples:['a message', 'home', 'better', 'the point'], sampleSentences:['I got your message.', 'I got home late.', 'I’m getting better.', 'I get it.'] },
+      make: { title:'make 엔진', engineSummary:'만들다 · 결정/계획/변화를 만들다', verbs:['make'], frames:['make + a thing', 'make + a change', 'make + sure'], examples:['a plan', 'a decision', 'progress', 'a mistake'], sampleSentences:['Let’s make a plan.', 'I need to make a decision.', 'You’re making progress.', 'I made a mistake.'] },
+      take: { title:'take 엔진', engineSummary:'가지고 가다 · 시간을 들이다 · 선택하다 · 행동하다', verbs:['take'], frames:['take + time', 'take + a thing', 'take + action'], examples:['time', 'a break', 'a look', 'care'], sampleSentences:['It takes time.', 'Take a break.', 'Take a look.', 'Take care.'] },
+      have: { title:'have 엔진', engineSummary:'가지다 · 먹다/마시다 · 경험하다 · 시간을 보내다', verbs:['have'], frames:['have + thing', 'have + experience', 'have + meal'], examples:['time', 'a problem', 'an idea', 'lunch'], sampleSentences:['Do you have time?', 'We have a problem.', 'I have an idea.', 'Let’s have lunch.'] },
+      want: { title:'want 엔진', engineSummary:'원하다 · 하고 싶다', verbs:['want'], frames:['want to + verb', 'want + thing'], examples:['try', 'know', 'help', 'more time'], sampleSentences:['I want to try.', 'I want to know.', 'I want help.', 'I want more time.'] },
+      need: { title:'need 엔진', engineSummary:'필요하다 · 해야 한다', verbs:['need'], frames:['need + thing', 'need to + verb'], examples:['help', 'time', 'a break', 'to go'], sampleSentences:['I need help.', 'I need more time.', 'I need a break.', 'I need to go.'] },
     };
 
     const appState = {
@@ -2596,7 +2599,7 @@
       document.getElementById('wordList').innerHTML = results.length ? results.map(w => `
         <article class="card word-card">
           <div class="word">${w.word}</div><span class="tag">${w.type}</span>
-          <div class="meaning">${w.korean}</div>
+          <div class="meaning">${w.type.includes('동사') ? `<span class="meaning-label">기본 엔진</span> <span class="meaning-word">${w.word}</span> <span class="meaning-gloss">${w.korean}</span>` : escapeHtml(w.korean)}</div>
           <div class="example"><b>${w.example}</b><br>${w.exKo}</div>
           <div class="connections">↳ ${w.connections}</div>
         </article>
@@ -2894,8 +2897,8 @@
       const m = mapSets[appState.currentMap];
       document.getElementById('thinkingMap').innerHTML = `
         <div class="map-col"><h3>1. 기본 엔진</h3>${m.verbs.map(x => `<div class="node verb">${x}</div>`).join('')}</div>
-        <div class="map-col"><h3>2. 생각 틀</h3>${m.frames.map(x => `<div class="node frame">${x}</div><div class="map-arrow">↓ 자주 붙는 조합</div>`).join('')}</div>
-        <div class="map-col"><h3>3. 장면 / 명사</h3>${m.nouns.map((x,i) => `<div class="node noun">${x}</div>${m.examples[i] ? `<div class="small-note" style="margin:0 0 10px">${m.examples[i]}</div>`:''}`).join('')}</div>`;
+        <div class="map-col"><h3>2. 생각틀</h3>${m.frames.map(x => `<div class="node frame">${x}</div><div class="map-arrow">↓ 자주 붙는 말</div>`).join('')}</div>
+        <div class="map-col"><h3>3. 예시 단어</h3>${m.examples.map((x,i) => `<div class="node noun">${x}</div>${m.sampleSentences?.[i] ? `<div class="small-note" style="margin:0 0 10px">${m.sampleSentences[i]}</div>`:''}`).join('')}</div>`;
     }
     function renderReviewList() {
       const target = document.getElementById('reviewList');
@@ -3069,7 +3072,8 @@
     document.getElementById('wordSearch').addEventListener('input', e => { appState.search=e.target.value; renderWords(); });
     document.querySelectorAll('[data-map-focus]').forEach(btn => btn.addEventListener('click', () => {
       appState.currentMap = btn.dataset.mapFocus; document.querySelectorAll('[data-map-focus]').forEach(x=>x.classList.toggle('active',x===btn));
-      document.getElementById('connectionText').textContent = mapSets[appState.currentMap].examples.join(' · ');
+      const currentMap = mapSets[appState.currentMap];
+      document.getElementById('connectionText').textContent = `기본 엔진 ${appState.currentMap} · ${currentMap.engineSummary}`;
     }));
     document.getElementById('toggleSound').addEventListener('click', () => {
       const settings = appState.progress.settings || { soundEnabled: true };
