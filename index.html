@@ -503,11 +503,12 @@
         <div id="explorerStatus" class="explorer-status">사전 데이터를 불러오는 중입니다.</div>
         <div id="verbExplorerButtons" class="verb-buttons"></div>
         <div class="dictionary-subnav" id="dictionarySubnav" role="tablist" aria-label="사전 탐험 서브메뉴">
+          <button class="dictionary-tab" type="button" data-dictionary-view="legacy">기존 생각 사전 검색</button>
           <button class="dictionary-tab active" type="button" data-dictionary-view="verbs">동사 탐험</button>
           <button class="dictionary-tab" type="button" data-dictionary-view="expressions">실생활 표현</button>
           <button class="dictionary-tab" type="button" data-dictionary-view="build">문장 빌드 맵</button>
         </div>
-        <p class="dictionary-subnav-note">같은 데이터를 세 방식으로 봅니다.</p>
+        <p class="dictionary-subnav-note">같은 데이터를 네 방식으로 봅니다.</p>
         <div class="dictionary-location" id="dictionaryLocation" aria-live="polite"></div>
         <div class="explorer-grid" data-dictionary-view="verbs">
           <div class="explorer-panel" id="verbExplorerPanel"></div>
@@ -528,7 +529,7 @@
           <button class="btn soft" type="button" id="showDictionaryLegacy">문장 빌드 맵 닫고 전체 사전 보기</button>
         </div>
       </article>
-      <div id="dictionaryLegacySearchSection">
+      <div id="dictionaryLegacySearchSection" hidden>
         <div class="section-head" style="margin-top:28px">
           <div><h2>기존 생각 사전 검색</h2><p>단어를 번역으로 외우지 말고, 쓰임과 연결로 익히세요.</p></div>
         </div>
@@ -1468,11 +1469,15 @@
     }
     function renderDictionaryLocation(selectedView, selectedVerb, selectedPattern, selectedExpression, selectedRoute, data) {
       const viewLabel = {
+        legacy: '기존 생각 사전 검색',
         verbs: '동사 탐험',
         expressions: '실생활 표현',
         build: '문장 빌드 맵',
       }[selectedView] || '사전 탐험';
       const segments = [`<span class="location-label">현재 위치</span><strong>${escapeHtml(viewLabel)}</strong>`];
+      if (selectedView === 'legacy') {
+        segments.push(`단어를 찾아 바로 뜻을 봅니다.`);
+      }
       if (selectedView === 'verbs') {
         segments.push(`핵심 동사: <strong>${escapeHtml(selectedVerb.word)}</strong>`);
         if (selectedPattern) segments.push(`연결된 표현 틀: <strong>${escapeHtml(selectedPattern.label)}</strong>`);
@@ -2686,6 +2691,7 @@
       const selectedView = data.selectedExplorerView || (routeActive ? 'build' : selectedExpression ? 'expressions' : 'verbs');
       if (!data.selectedExplorerView) appState.dictionaryData.selectedExplorerView = selectedView;
       let needsRerender = false;
+      const legacyViewActive = selectedView === 'legacy';
       if (selectedView === 'expressions' && !selectedExpression && expressions.length) {
         appState.dictionaryData.selectedExpressionId = expressions[0].id;
         selectedExpression = expressions[0];
@@ -2741,11 +2747,11 @@
       const selectedLocationMarkup = renderDictionaryLocation(selectedView, selectedVerb, selectedPattern, selectedExpression, selectedRoute, data);
       if (dictionaryExplorer) {
         dictionaryExplorer.classList.toggle('map-focused', buildViewActive);
-        dictionaryExplorer.classList.toggle('has-selected-expression', Boolean(selectedView !== 'build' && selectedExpression));
+        dictionaryExplorer.classList.toggle('has-selected-expression', Boolean(selectedView !== 'build' && !legacyViewActive && selectedExpression));
       }
       if (dictionaryScreen) dictionaryScreen.classList.toggle('map-focus-mode', buildViewActive);
       if (mapFocusActions) mapFocusActions.classList.toggle('hidden', !buildViewActive);
-      if (legacySearchSection) legacySearchSection.hidden = selectedView === 'build';
+      if (legacySearchSection) legacySearchSection.hidden = selectedView !== 'legacy';
       const dictionaryLocation = document.getElementById('dictionaryLocation');
       if (dictionaryLocation) dictionaryLocation.innerHTML = selectedLocationMarkup;
       dictionarySubnav.querySelectorAll('[data-dictionary-view]').forEach(button => {
@@ -2775,14 +2781,16 @@
             updateRouteForScreen('dictionary');
           }));
 
-      if (explorerGrid) explorerGrid.hidden = selectedView === 'build';
-      verbPanel.hidden = selectedView === 'build';
+      if (explorerGrid) explorerGrid.hidden = selectedView === 'build' || legacyViewActive;
+      verbPanel.hidden = selectedView === 'build' || legacyViewActive;
+      if (verbButtons) verbButtons.hidden = legacyViewActive;
+      if (status) status.hidden = legacyViewActive;
       patternList.hidden = selectedView !== 'verbs';
       const expressionPanel = document.getElementById('expressionExplorerPanel');
-      if (expressionPanel) expressionPanel.hidden = selectedView !== 'expressions';
-      expressionList.hidden = selectedView !== 'expressions';
-      detail.hidden = selectedView !== 'expressions';
-      dictionaryMap.hidden = selectedView !== 'build';
+      if (expressionPanel) expressionPanel.hidden = selectedView !== 'expressions' || legacyViewActive;
+      expressionList.hidden = selectedView !== 'expressions' || legacyViewActive;
+      detail.hidden = selectedView !== 'expressions' || legacyViewActive;
+      dictionaryMap.hidden = selectedView !== 'build' || legacyViewActive;
 
       verbPanel.innerHTML = `
         <h4>선택한 핵심 동사</h4>
