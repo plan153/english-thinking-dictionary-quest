@@ -147,6 +147,20 @@
 
     .repeat-panel { max-width:620px; align-self:center; padding:13px; background:#eef7f6; border-radius:16px; color:#245c5a; font-size:13px; margin-top:16px; }
     .repeat-panel strong { display:block; margin-bottom:4px; }
+    .listen-count {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+      margin:12px auto 0;
+      padding:7px 12px;
+      border-radius:99px;
+      background:#eaf4f3;
+      color:#245c5a;
+      font-size:12px;
+      font-weight:900;
+      letter-spacing:0;
+    }
 
     .dictionary-toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; }
     .search { flex: 1 1 280px; border:1px solid var(--line); background:#fff; padding:12px 14px; border-radius:13px; outline:none; }
@@ -313,11 +327,6 @@
     .ring strong { position:relative; z-index:1; font-size:18px; }
     .daily-card h3 { margin:0 0 5px; }
 
-    #questArea { margin-top:20px; }
-    #questArea .card { border: 2px solid var(--accent); background: linear-gradient(135deg, rgba(40,111,108,.04) 0%, rgba(255,253,249,1) 100%); }
-    #questArea ul { list-style: none; padding-left:0; }
-    #questArea li { padding:6px 0; border-bottom:1px solid var(--line); }
-    #questArea li:last-child { border-bottom:none; }
     .quest-inline-confirm {
       margin-top: 12px;
       border: 1px solid rgba(40,111,108,.22);
@@ -404,8 +413,6 @@
           <button class="btn ghost" id="jumpDictionary">사전 탐험하기</button>
         </div>
       </div>
-
-      <div id="questArea"></div>
 
       <div class="grid cols-2">
         <article class="card daily-card">
@@ -631,6 +638,7 @@
       naturalEnglishVoice: null,
       questContext: null,
       questRestartConfirmOpen: false,
+      listenSession: null,
     };
 
     function defaultHistoryEntry() {
@@ -692,9 +700,57 @@
       normalized.reviewPriority = typeof entry.reviewPriority === 'number' ? entry.reviewPriority : normalized.reviewPriority;
       return normalized;
     }
+    const progressStorageKey = 'etdQuestProgress';
+    const progressNamePrefix = 'ETD_PROGRESS:';
+    function readProgressPayload() {
+      try {
+        if (typeof localStorage !== 'undefined') {
+          const raw = localStorage.getItem(progressStorageKey);
+          if (raw) return JSON.parse(raw);
+        }
+      } catch {}
+      try {
+        if (typeof window !== 'undefined' && typeof window.name === 'string' && window.name.startsWith(progressNamePrefix)) {
+          return JSON.parse(window.name.slice(progressNamePrefix.length));
+        }
+      } catch {}
+      return null;
+    }
+    function writeProgressPayload(progress) {
+      const payload = JSON.stringify(progress);
+      let saved = false;
+      try {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem(progressStorageKey, payload);
+          saved = true;
+        }
+      } catch {}
+      if (!saved && typeof window !== 'undefined') {
+        try {
+          window.name = `${progressNamePrefix}${payload}`;
+          saved = true;
+        } catch {}
+      }
+      if (!saved) {
+        window.__etdQuestProgressFallback = payload;
+      }
+    }
+    function clearProgressPayload() {
+      try {
+        if (typeof localStorage !== 'undefined') localStorage.removeItem(progressStorageKey);
+      } catch {}
+      try {
+        if (typeof window !== 'undefined' && typeof window.name === 'string' && window.name.startsWith(progressNamePrefix)) {
+          window.name = '';
+        }
+      } catch {}
+      if (typeof window !== 'undefined') {
+        window.__etdQuestProgressFallback = '';
+      }
+    }
     function loadProgress() {
       try {
-        const saved = JSON.parse(localStorage.getItem('etdQuestProgress') || '{}');
+        const saved = readProgressPayload() || {};
         return {
           ...defaultProgress(),
           ...saved,
@@ -706,7 +762,7 @@
       }
       catch { return defaultProgress(); }
     }
-    function saveProgress() { localStorage.setItem('etdQuestProgress', JSON.stringify(appState.progress)); updateDashboard(); }
+    function saveProgress() { writeProgressPayload(appState.progress); updateDashboard(); }
     function todayKey() { return new Date().toISOString().slice(0,10); }
     function seoulTodayKey() {
       return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(new Date());
@@ -895,6 +951,12 @@
       saveProgress();
     }
 
+    function getCompletedQuestExpressionIds(quest) {
+      const byStep = (quest.expressionIds || []).filter(id => quest.stepByExpressionId?.[id]?.outputDone);
+      const stored = Array.isArray(quest.completedExpressionIds) ? quest.completedExpressionIds : [];
+      return [...new Set([...stored, ...byStep])];
+    }
+
     function updateQuestUI() {
       ensureDailyQuest();
       const quest = appState.progress.dailyQuestV1;
@@ -902,7 +964,11 @@
       if (!questArea) return;
       const bank = getGameBank();
       const expressions = quest.expressionIds.map(id => bank.find(item => item.id === id)).filter(Boolean);
-      const completed = quest.completedExpressionIds.length;
+      const completedIds = getCompletedQuestExpressionIds(quest);
+      if (completedIds.length !== (quest.completedExpressionIds || []).length) {
+        quest.completedExpressionIds = completedIds;
+      }
+      const completed = completedIds.length;
       const total = expressions.length;
       const restartConfirmMarkup = appState.questRestartConfirmOpen ? `
         <div class="quest-inline-confirm" role="status" aria-live="polite">
@@ -1049,6 +1115,7 @@
 
     function finishQuest() {
       const quest = appState.progress.dailyQuestV1;
+      quest.completedExpressionIds = getCompletedQuestExpressionIds(quest);
       quest.finishedAt = new Date().toISOString();
       quest.isCompleted = true;
       saveProgress();
@@ -1593,7 +1660,7 @@
       if (!id) return;
       const recent = [id, ...(appState.progress.recentExpressionIds || []).filter(x => x !== id)].slice(0, 12);
       appState.progress.recentExpressionIds = recent;
-      localStorage.setItem('etdQuestProgress', JSON.stringify(appState.progress));
+      writeProgressPayload(appState.progress);
     }
     function makeLesson(mode, expressionId = null) {
       const bank = getGameBank();
@@ -1624,6 +1691,7 @@
           appState.currentIndex = 0;
           appState.hintStep = 0;
           appState.questionAnswered = false;
+          if (mode === 'listen') appState.listenSession = null;
           appState.questContext = Object.prototype.hasOwnProperty.call(options, 'questContext') ? options.questContext : null;
           if (appState.dictionaryData.error && !appState.dictionaryData.gameExpressions.length) toast('사전 데이터를 불러오지 못해 기본 예비 표현으로 퀴즈를 시작해요.');
           showScreen('lesson', { skipRoute: options.skipRoute });
@@ -1665,13 +1733,16 @@
 
     function modeTitle(mode) { return (modeCards.find(x => x.id === mode) || {}).title || '퀘스트'; }
     function renderListen(item) {
+      const session = getListenSession(item.id);
       return `
         <h2>${item.en}</h2>
         <p class="korean">${item.ko}</p>
         <button class="sound-btn speak" data-text="${escapeHtml(item.audioText || item.en)}" title="문장 듣기">🔊</button>
         <p class="sound-help">버튼을 눌러 3번 듣고, 문장 전체를 따라 말해 보세요.</p>
-        <div class="repeat-panel"><strong>🎤 따라 말하기 미션</strong>입으로 문장을 2번 말한 뒤, “말했어요” 버튼을 눌러 경험치를 받으세요. 브라우저 음성 인식은 기기마다 다르게 지원됩니다.</div>
-        <div class="question-actions"><button class="btn accent complete-repeat">말했어요 (+10 XP)</button><button class="btn soft show-answer">표현 연결 보기</button></div>
+        <div class="repeat-panel"><strong>🎤 따라 말하기 미션</strong>마이크 버튼을 눌러 문장을 3번 말해 보세요. 인식 결과가 맞거나 거의 맞으면 1번 성공으로 셉니다.</div>
+        <div class="listen-count" id="listenCount">${session.successCount || 0} / 3 완료</div>
+        <div class="question-actions"><button class="btn accent mic-start" type="button">🎤 마이크로 말하기</button><button class="btn soft show-answer">표현 연결 보기</button></div>
+        <div class="hint-box hidden" id="listenResultBox"></div>
         <div class="feedback hidden" id="feedback"></div>`;
     }
     function renderKoEn(item) {
@@ -1694,7 +1765,7 @@
         <div class="hint-box hidden" id="textPracticeBox">
           <div class="hint-title">텍스트로 연습하기</div>
           <p class="small-note" style="margin:0 0 10px">텍스트 연습은 피드백만 제공하고 직접 말하기 완료로 체크하지 않아요.</p>
-          <input class="answer-input" id="answerInput" placeholder="Type your English sentence" autocomplete="off" />
+          <input class="answer-input" id="textPracticeAnswerInput" placeholder="Type your English sentence" autocomplete="off" />
           <div class="question-actions"><button class="btn soft text-practice-check" type="button">연습 답안 확인</button></div>
         </div>
         <div class="question-actions"><button class="btn soft text-practice-toggle" type="button">텍스트로 연습하기</button></div>
@@ -1749,7 +1820,6 @@
       return `
         <h2>${item.ko}</h2>
         <p class="korean">이 표현의 연결 상태를 다시 확인하고, 약한 연결을 더 단단하게 만들어 보세요.</p>
-        <div class="connection-strip-summary">${getConnectionGraph(item)}</div>
         <input class="answer-input" id="answerInput" placeholder="Type your English sentence" autocomplete="off" />
         ${renderQuizNav('다시 연결하기')}
         <div class="question-actions"><button class="btn soft next-hint">힌트 1/3</button></div>
@@ -1792,26 +1862,30 @@
       return Boolean(window.SpeechRecognition || window.webkitSpeechRecognition);
     }
 
-    function speechStatus(message, type = 'info') {
-      const box = document.getElementById('speechResultBox');
+    function speechStatus(message, type = 'info', options = {}) {
+      const box = document.getElementById(options.boxId || 'speechResultBox');
       if (!box) return;
       box.classList.remove('hidden');
-      const title = type === 'error' ? '음성 인식 안내' : '마이크 상태';
+      const title = options.title || (type === 'error' ? '음성 인식 안내' : '마이크 상태');
       box.innerHTML = `<div class="hint-title">${title}</div><div>${escapeHtml(message)}</div>`;
     }
 
-    function speechRetryStatus(message, item, mode, type = 'error') {
-      const box = document.getElementById('speechResultBox');
+    function speechRetryStatus(message, item, mode, type = 'error', options = {}) {
+      const box = document.getElementById(options.boxId || 'speechResultBox');
       if (!box) return;
       box.classList.remove('hidden');
-      const title = type === 'error' ? '음성 인식 안내' : '마이크 상태';
+      const title = options.title || (type === 'error' ? '음성 인식 안내' : '마이크 상태');
+      const allowTextPractice = options.allowTextPractice !== false;
+      const practiceButton = allowTextPractice ? `
+        <button class="btn soft text-practice-toggle" type="button">텍스트로 연습하기</button>
+      ` : '';
       box.innerHTML = `
         <div class="hint-title">${title}</div>
         <div>${escapeHtml(message)}</div>
         <p class="small-note" style="margin:8px 0 0">버튼을 누른 뒤 바로 영어 문장을 또렷하게 말해 주세요.</p>
         <div class="question-actions" style="margin-top:8px">
           <button class="btn dark mic-retry" type="button">다시 말하기</button>
-          <button class="btn soft text-practice-toggle" type="button">텍스트로 연습하기</button>
+          ${practiceButton}
         </div>
       `;
       box.querySelector('.mic-retry')?.addEventListener('click', () => startSpeechCapture(item, mode));
@@ -1820,9 +1894,68 @@
 
     function showTextPractice() {
       const box = document.getElementById('textPracticeBox');
-      const input = document.getElementById('answerInput');
+      const input = document.getElementById('textPracticeAnswerInput');
       if (!box) return;
       box.classList.remove('hidden');
+      if (input) requestAnimationFrame(() => input.focus());
+    }
+
+    function getListenSession(itemId) {
+      if (!appState.listenSession || appState.listenSession.itemId !== itemId) {
+        appState.listenSession = {
+          itemId,
+          successCount: 0,
+          captureSerial: 0,
+          activeCaptureId: null,
+        };
+      }
+      return appState.listenSession;
+    }
+
+    function resetListenSession() {
+      appState.listenSession = null;
+    }
+
+    function updateListenCountDisplay() {
+      const session = appState.listenSession;
+      const box = document.getElementById('listenCount');
+      if (!box) return;
+      const count = session?.successCount || 0;
+      box.textContent = `${count} / 3 완료`;
+    }
+
+    function renderListenResult(transcript, item, result, options = {}) {
+      const box = document.getElementById(options.boxId || 'listenResultBox');
+      if (!box) return;
+      box.classList.remove('hidden');
+      const session = getListenSession(item.id);
+      const successCount = session.successCount || 0;
+      const statusClass = result.status === 'correct' || result.status === 'almost' ? 'good' : result.status === 'meaning' ? 'meaning' : 'bad';
+      const statusMessage = result.status === 'correct' || result.status === 'almost'
+        ? `${successCount} / 3 성공했어요.${successCount >= 3 ? ' 다음 문제로 이동할게요.' : ' 같은 문장을 2번 더 말해 주세요.'}`
+        : result.status === 'meaning'
+          ? '뜻은 비슷하지만 따라 말하기에는 아직 조금 달라요.'
+          : '다시 말해 주세요.';
+      const retryButton = successCount >= 3 ? '' : '<button class="btn dark mic-retry" type="button">다시 말하기</button>';
+      box.innerHTML = `
+        <div class="hint-title">${result.status === 'correct' || result.status === 'almost' ? '성공!' : '인식 결과'}</div>
+        <div class="answer-key">인식된 텍스트</div>
+        <div><b>${escapeHtml(transcript)}</b></div>
+        <div class="feedback ${statusClass}" style="margin:10px 0 0; max-width:none; padding:10px 12px;">${escapeHtml(statusMessage)}</div>
+        <div class="question-actions" style="margin-top:10px">
+          ${retryButton}
+        </div>
+      `;
+      box.querySelector('.mic-retry')?.addEventListener('click', () => startSpeechCapture(item, 'listen'));
+    }
+
+    function focusVisibleAnswerInput() {
+      const candidates = [
+        document.getElementById('speechAnswerInput'),
+        document.getElementById('textPracticeAnswerInput'),
+        document.getElementById('answerInput'),
+      ];
+      const input = candidates.find(el => el && el.offsetParent !== null);
       if (input) requestAnimationFrame(() => input.focus());
     }
 
@@ -1833,7 +1966,7 @@
       box.innerHTML = `
         <div class="hint-title">내가 말한 문장</div>
         <div class="answer-key">인식된 텍스트</div>
-        <input class="answer-input" id="answerInput" value="${escapeHtml(transcript)}" autocomplete="off" />
+        <input class="answer-input" id="speechAnswerInput" value="${escapeHtml(transcript)}" autocomplete="off" />
         <div class="question-actions" style="margin-top:8px">
           <button class="btn soft mic-retry" type="button">다시 말하기</button>
           <button class="btn soft mic-edit" type="button">텍스트 수정</button>
@@ -1842,12 +1975,20 @@
       `;
       box.querySelector('.mic-retry')?.addEventListener('click', () => startSpeechCapture(item, mode));
       box.querySelector('.mic-edit')?.addEventListener('click', () => {
-        const input = document.getElementById('answerInput');
+        const input = document.getElementById('speechAnswerInput');
         if (!input) return;
         input.focus();
         input.select();
       });
-      box.querySelector('.mic-confirm')?.addEventListener('click', () => checkTextAnswer(item, mode, { fromSpeech: true }));
+      box.querySelector('.mic-confirm')?.addEventListener('click', () => checkTextAnswer(item, mode, { fromSpeech: true, inputId: 'speechAnswerInput' }));
+      const speechInput = document.getElementById('speechAnswerInput');
+      if (speechInput) {
+        speechInput.addEventListener('keydown', e => {
+          if (e.key !== 'Enter') return;
+          e.preventDefault();
+          checkTextAnswer(item, mode, { fromSpeech: true, inputId: 'speechAnswerInput' });
+        });
+      }
     }
 
     async function warmUpMicrophone() {
@@ -1865,39 +2006,71 @@
 
     async function startSpeechCapture(item, mode) {
       if (!supportsSpeechRecognition()) {
-        speechStatus('이 브라우저에서는 음성 인식을 사용할 수 없어요.', 'error');
-        showTextPractice();
+        if (mode === 'listen') {
+          speechStatus('이 브라우저에서는 음성 인식을 사용할 수 없어요.', 'error', { boxId: 'listenResultBox', title: '음성 인식 안내' });
+        } else {
+          speechStatus('이 브라우저에서는 음성 인식을 사용할 수 없어요.', 'error');
+          showTextPractice();
+        }
         return;
       }
-      speechStatus('마이크를 여는 중이에요…');
+      const listenMode = mode === 'listen';
+      const boxId = listenMode ? 'listenResultBox' : 'speechResultBox';
+      speechStatus('마이크를 여는 중이에요…', 'info', { boxId, title: listenMode ? '마이크 상태' : '마이크 상태' });
       const mic = await warmUpMicrophone();
       if (!mic.ok) {
         if (mic.name === 'NotAllowedError' || mic.name === 'SecurityError') {
-          speechRetryStatus('마이크 권한이 필요해요. Chrome 주소창의 마이크 권한을 허용한 뒤 다시 말해 주세요.', item, mode);
+          speechRetryStatus('마이크 권한이 필요해요. Chrome 주소창의 마이크 권한을 허용한 뒤 다시 말해 주세요.', item, mode, 'error', { boxId, allowTextPractice: !listenMode });
         } else if (mic.name === 'NotFoundError' || mic.name === 'DevicesNotFoundError') {
-          speechRetryStatus('사용할 수 있는 마이크를 찾지 못했어요. 입력 장치를 확인해 주세요.', item, mode);
+          speechRetryStatus('사용할 수 있는 마이크를 찾지 못했어요. 입력 장치를 확인해 주세요.', item, mode, 'error', { boxId, allowTextPractice: !listenMode });
         } else {
-          speechRetryStatus('마이크를 열지 못했어요. Chrome 마이크 설정을 확인한 뒤 다시 시도해 주세요.', item, mode);
+          speechRetryStatus('마이크를 열지 못했어요. Chrome 마이크 설정을 확인한 뒤 다시 시도해 주세요.', item, mode, 'error', { boxId, allowTextPractice: !listenMode });
         }
-        showTextPractice();
+        if (!listenMode) showTextPractice();
         return;
       }
-      speechStatus('듣고 있어요… 지금 영어 문장을 말해 주세요.');
+      if (listenMode) {
+        getListenSession(item.id);
+      }
+      speechStatus('듣고 있어요… 지금 영어 문장을 말해 주세요.', 'info', { boxId, title: listenMode ? '마이크 상태' : '마이크 상태' });
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognition = new SpeechRecognition();
       let receivedResult = false;
       let receivedError = false;
+      const listenSession = listenMode ? getListenSession(item.id) : null;
+      const captureId = listenMode ? ++listenSession.captureSerial : Date.now();
+      if (listenMode) listenSession.activeCaptureId = captureId;
       recognition.lang = 'en-US';
       recognition.interimResults = false;
       recognition.maxAlternatives = 1;
       recognition.onstart = () => {
-        speechStatus('듣고 있어요… 지금 영어 문장을 말해 주세요.');
+        speechStatus('듣고 있어요… 지금 영어 문장을 말해 주세요.', 'info', { boxId, title: '마이크 상태' });
       };
       recognition.onresult = event => {
+        if (listenMode && appState.listenSession?.activeCaptureId !== captureId) return;
         receivedResult = true;
         const transcript = (event.results?.[0]?.[0]?.transcript || '').trim();
         if (!transcript) {
-          speechRetryStatus('인식된 문장이 비어 있어요. 다시 말해 주세요.', item, mode);
+          speechRetryStatus('인식된 문장이 비어 있어요. 다시 말해 주세요.', item, mode, 'error', { boxId, allowTextPractice: !listenMode });
+          return;
+        }
+        if (listenMode) {
+          const result = classifyAnswer(item, transcript);
+          if (result.status === 'correct' || result.status === 'almost') {
+            const signature = `listen-${item.id}-${captureId}`;
+            markStudy(mode, item.id, result.status, { signature, hintLevel: 0 });
+            listenSession.successCount = Math.min(3, (listenSession.successCount || 0) + 1);
+            updateListenCountDisplay();
+            renderListenResult(transcript, item, result, { boxId });
+            if (listenSession.successCount >= 3) {
+              appState.questionAnswered = true;
+              document.getElementById('questionCard')?.querySelectorAll('.mic-start').forEach(btn => { btn.disabled = true; });
+              toast('3번 성공했어요. 다음 문제로 이동할게요.');
+              setTimeout(nextQuestion, 900);
+            }
+          } else {
+            renderListenResult(transcript, item, result, { boxId });
+          }
           return;
         }
         renderSpeechResult(transcript, item, mode);
@@ -1906,36 +2079,30 @@
         receivedError = true;
         const error = event?.error || '';
         if (error === 'not-allowed' || error === 'service-not-allowed') {
-          speechRetryStatus('마이크 권한이 필요해요. Chrome 주소창의 마이크 권한을 허용한 뒤 다시 말해 주세요.', item, mode);
+          speechRetryStatus('마이크 권한이 필요해요. Chrome 주소창의 마이크 권한을 허용한 뒤 다시 말해 주세요.', item, mode, 'error', { boxId, allowTextPractice: !listenMode });
         } else if (error === 'no-speech') {
-          speechRetryStatus('말소리가 들리지 않았어요. 마이크 입력 장치를 확인하고 다시 말해 주세요.', item, mode);
+          speechRetryStatus('말소리가 들리지 않았어요. 마이크 입력 장치를 확인하고 다시 말해 주세요.', item, mode, 'error', { boxId, allowTextPractice: !listenMode });
         } else {
-          speechRetryStatus('음성 인식에 실패했어요. 다시 말하거나 텍스트로 연습해 주세요.', item, mode);
+          speechRetryStatus('음성 인식에 실패했어요. 다시 말하거나 텍스트로 연습해 주세요.', item, mode, 'error', { boxId, allowTextPractice: !listenMode });
         }
-        showTextPractice();
+        if (!listenMode) showTextPractice();
       };
       recognition.onend = () => {
         if (!receivedResult && !receivedError) {
-          speechRetryStatus('인식이 끝났지만 문장이 잡히지 않았어요. 다시 말해 주세요.', item, mode);
-          showTextPractice();
+          speechRetryStatus('인식이 끝났지만 문장이 잡히지 않았어요. 다시 말해 주세요.', item, mode, 'error', { boxId, allowTextPractice: !listenMode });
+          if (!listenMode) showTextPractice();
         }
       };
       try {
         recognition.start();
       } catch {
-        speechRetryStatus('음성 인식을 시작하지 못했어요. 다시 시도해 주세요.', item, mode);
-        showTextPractice();
+        speechRetryStatus('음성 인식을 시작하지 못했어요. 다시 시도해 주세요.', item, mode, 'error', { boxId, allowTextPractice: !listenMode });
+        if (!listenMode) showTextPractice();
       }
     }
 
     function attachQuestionHandlers(item, mode) {
       document.querySelectorAll('.speak').forEach(btn => btn.addEventListener('click', () => speak(btn.dataset.text)));
-      document.querySelectorAll('.complete-repeat').forEach(btn => btn.addEventListener('click', () => {
-        markStudy(mode, item.id, 'correct', { signature: `complete-repeat-${item.id}` });
-        showFeedback('good', `좋아요! <b>${item.en}</b><br><span class="answer-key">${item.frame} · ${item.verb} 엔진</span>`);
-        btn.disabled = true;
-        setTimeout(nextQuestion, 850);
-      }));
       document.querySelectorAll('.show-answer').forEach(btn => btn.addEventListener('click', () => showFeedback('good', `<b>${item.en}</b><br><span class="answer-key">${item.ko} · ${item.frame}<br>직역 이미지: ${escapeHtml(item.literalMeaning || item.ko)}</span>`)));
       document.querySelectorAll('.check-answer').forEach(btn => btn.addEventListener('click', () => checkTextAnswer(item, mode)));
       document.querySelectorAll('.next-hint').forEach(btn => btn.addEventListener('click', () => showNextHint(item)));
@@ -1947,19 +2114,29 @@
       }));
       document.querySelectorAll('.mic-start').forEach(btn => btn.addEventListener('click', () => startSpeechCapture(item, mode)));
       document.querySelectorAll('.text-practice-toggle').forEach(btn => btn.addEventListener('click', () => showTextPractice()));
-      document.querySelectorAll('.text-practice-check').forEach(btn => btn.addEventListener('click', () => checkTextAnswer(item, mode, { practiceOnly: true })));
+      document.querySelectorAll('.text-practice-check').forEach(btn => btn.addEventListener('click', () => checkTextAnswer(item, mode, { practiceOnly: true, inputId: 'textPracticeAnswerInput' })));
       document.querySelectorAll('.choice').forEach(btn => btn.addEventListener('click', () => chooseAnswer(item, mode, btn)));
       document.querySelectorAll('.prev-question').forEach(btn => btn.addEventListener('click', () => previousQuestion()));
       document.querySelectorAll('.next-question').forEach(btn => btn.addEventListener('click', () => advanceFromNav(item, mode)));
-      const input = document.getElementById('answerInput');
-      if (input) {
+      const textInputs = ['answerInput', 'textPracticeAnswerInput'].map(id => document.getElementById(id)).filter(Boolean);
+      textInputs.forEach(input => {
         input.addEventListener('keydown', e => {
           if (e.key !== 'Enter') return;
           e.preventDefault();
           if (appState.questionAnswered) nextQuestion();
-          else checkTextAnswer(item, mode, { practiceOnly: mode === 'speak' });
+          else checkTextAnswer(item, mode, { practiceOnly: mode === 'speak', inputId: input.id });
         });
-        requestAnimationFrame(() => input.focus());
+      });
+      focusVisibleAnswerInput();
+      if (mode === 'speak') {
+        const speechInput = document.getElementById('speechAnswerInput');
+        if (speechInput) {
+          speechInput.addEventListener('keydown', e => {
+            if (e.key !== 'Enter') return;
+            e.preventDefault();
+            checkTextAnswer(item, mode, { fromSpeech: true, inputId: 'speechAnswerInput' });
+          });
+        }
       }
     }
     function normalize(s) {
@@ -2048,7 +2225,8 @@
     }
     function checkTextAnswer(item, mode, options = {}) {
       if (appState.questionAnswered) { nextQuestion(); return; }
-      const input = document.getElementById('answerInput');
+      const inputId = options.inputId || (options.fromSpeech ? 'speechAnswerInput' : 'answerInput');
+      const input = document.getElementById(inputId);
       const rawGuess = input?.value || '';
       if (!normalize(rawGuess)) { toast(mode === 'speak' ? '먼저 문장을 말해 보세요.' : '먼저 문장을 직접 써 보세요.'); return; }
       const result = classifyAnswer(item, rawGuess);
@@ -2156,8 +2334,7 @@
               feedback.className = 'feedback';
               feedback.innerHTML = '';
             }
-            const input = document.getElementById('answerInput');
-            if (input) input.focus();
+            focusVisibleAnswerInput();
           });
         }
       }
@@ -2610,7 +2787,7 @@
 
         window.addEventListener('hashchange', applyRoute);
         document.querySelectorAll('.nav button').forEach(btn => btn.addEventListener('click', () => showScreen(btn.dataset.screen)));
-    document.getElementById('startDaily').addEventListener('click', () => startQuest());
+    document.getElementById('startDaily').addEventListener('click', () => showScreen('play'));
     document.getElementById('jumpDictionary').addEventListener('click', () => showScreen('dictionary'));
     document.getElementById('exitLesson').addEventListener('click', () => showScreen('play'));
     document.getElementById('wordSearch').addEventListener('input', e => { appState.search=e.target.value; renderWords(); });
@@ -2626,7 +2803,7 @@
       updateSoundToggle();
       toast(settings.soundEnabled ? '소리를 켰어요.' : '소리를 껐어요.');
     });
-    document.getElementById('resetProgress').addEventListener('click', () => { localStorage.removeItem('etdQuestProgress'); appState.progress=defaultProgress(); updateDashboard(); updateSoundToggle(); toast('학습 기록을 초기화했어요.'); });
+    document.getElementById('resetProgress').addEventListener('click', () => { clearProgressPayload(); appState.progress=defaultProgress(); updateDashboard(); updateSoundToggle(); toast('학습 기록을 초기화했어요.'); });
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
 
     initSoundEngine();
