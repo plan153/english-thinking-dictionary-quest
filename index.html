@@ -494,11 +494,11 @@
 
     <section id="dictionary" class="screen">
       <div class="section-head">
-        <div><h2>핵심 동사로 영어 표현 탐험하기</h2><p>서브메뉴로 동사 탐험, 실생활 표현, 문장 빌드 맵을 번갈아 보세요.</p></div>
+        <div><h2>핵심 동사로 영어 표현 탐험하기</h2><p>동사, 표현, 빌드맵을 나눠 봅니다.</p></div>
       </div>
       <article class="card dictionary-explorer">
         <div class="section-head" style="margin-bottom:0">
-          <div><h2>사전 탐험</h2><p>동사를 먼저 잡고, 표현과 빌드맵을 번갈아 확인하는 구조예요.</p></div>
+          <div><h2>사전 탐험</h2><p>동사를 먼저 보고, 표현과 빌드맵을 봅니다.</p></div>
         </div>
         <div id="explorerStatus" class="explorer-status">사전 데이터를 불러오는 중입니다.</div>
         <div id="verbExplorerButtons" class="verb-buttons"></div>
@@ -507,18 +507,18 @@
           <button class="dictionary-tab" type="button" data-dictionary-view="expressions">실생활 표현</button>
           <button class="dictionary-tab" type="button" data-dictionary-view="build">문장 빌드 맵</button>
         </div>
-        <p class="dictionary-subnav-note">같은 사전 데이터를 상황에 맞게 나눠 봅니다. 동사 탐험은 구조를, 실생활 표현은 바로 쓰는 말을, 빌드 맵은 어떤 동사를 먼저 고를지 보여줘요.</p>
+        <p class="dictionary-subnav-note">같은 데이터를 세 방식으로 봅니다.</p>
         <div class="dictionary-location" id="dictionaryLocation" aria-live="polite"></div>
         <div class="explorer-grid" data-dictionary-view="verbs">
           <div class="explorer-panel" id="verbExplorerPanel"></div>
           <div class="explorer-panel">
             <h4>연결된 표현 틀</h4>
-            <p class="explorer-guide">선택한 동사가 자주 만드는 문장 뼈대입니다. 틀을 누르면 해당 예문으로 이동하고, 어떤 동사를 먼저 써야 하는지도 감이 잡힙니다.</p>
+            <p class="explorer-guide">선택한 동사가 자주 쓰는 패턴입니다.</p>
             <div class="pattern-list" id="patternExplorerList"></div>
           </div>
-          <div class="explorer-panel">
+          <div class="explorer-panel" id="expressionExplorerPanel">
             <h4>실생활 표현</h4>
-            <p class="explorer-guide">바로 말할 수 있는 생활 표현입니다. 표현을 누르면 상세 설명과 퀴즈 버튼이 열립니다.</p>
+            <p class="explorer-guide">바로 말하는 표현입니다.</p>
             <div class="expression-list" id="expressionExplorerList"></div>
           </div>
         </div>
@@ -1480,14 +1480,14 @@
       } else if (selectedView === 'expressions') {
         if (selectedExpression) segments.push(`선택 표현: <strong>${escapeHtml(selectedExpression.english)}</strong>`);
         if (selectedPattern) segments.push(`표현 틀: <strong>${escapeHtml(selectedPattern.label)}</strong>`);
-        segments.push(`아래에서 표현을 누르면 상세와 퀴즈가 바로 열려요.`);
+        segments.push(`아래에서 표현을 누르면 상세가 열려요.`);
       } else if (selectedView === 'build') {
         if (selectedRoute) segments.push(`선택 경로: <strong>${escapeHtml(selectedRoute.label)}</strong>`);
         if (selectedPattern) segments.push(`패턴: <strong>${escapeHtml(selectedPattern.label)}</strong>`);
-        segments.push(`아래에서 route와 패턴을 고르면 문장 카드가 펼쳐져요.`);
+        segments.push(`아래에서 route와 패턴을 고르면 카드가 열려요.`);
       }
       if (selectedView === 'verbs' && !selectedExpression) {
-        segments.push(`아래에서 연결된 표현 틀을 누르면 실생활 표현으로 이동해요.`);
+        segments.push(`패턴을 누르면 실생활 표현으로 이동해요.`);
       }
       return `<div class="location-line">${segments.join(' · ')}</div>`;
     }
@@ -2691,6 +2691,10 @@
         selectedExpression = expressions[0];
         needsRerender = true;
       }
+      if (selectedView === 'expressions' && !data.selectedPatternId && patterns.length) {
+        appState.dictionaryData.selectedPatternId = patterns[0].id;
+        needsRerender = true;
+      }
       if (selectedView === 'build') {
         if (buildConfig?.routes?.length) {
           const defaultRoute = buildConfig.routes.find(route => route.routeId === data.selectedRouteId) || buildConfig.routes[0];
@@ -2722,6 +2726,17 @@
       selectedPattern = selectedRoute
         ? selectedRoute.patterns.find(pattern => pattern.patternId === data.selectedPatternId) || null
         : patterns.find(pattern => pattern.id === data.selectedPatternId) || null;
+      const visibleExpressions = selectedView === 'expressions'
+        ? (selectedPattern ? expressions.filter(expression => expression.patternId === selectedPattern.id) : expressions)
+        : expressions;
+      if (selectedView === 'expressions' && visibleExpressions.length && (!selectedExpression || !visibleExpressions.some(expression => expression.id === selectedExpression.id))) {
+        appState.dictionaryData.selectedExpressionId = visibleExpressions[0].id;
+        needsRerender = true;
+      }
+      if (needsRerender) {
+        renderDictionaryExplorer();
+        return;
+      }
       const buildViewActive = selectedView === 'build';
       const selectedLocationMarkup = renderDictionaryLocation(selectedView, selectedVerb, selectedPattern, selectedExpression, selectedRoute, data);
       if (dictionaryExplorer) {
@@ -2763,15 +2778,17 @@
       if (explorerGrid) explorerGrid.hidden = selectedView === 'build';
       verbPanel.hidden = selectedView === 'build';
       patternList.hidden = selectedView !== 'verbs';
-      expressionList.hidden = selectedView === 'build';
-      detail.hidden = selectedView === 'build';
+      const expressionPanel = document.getElementById('expressionExplorerPanel');
+      if (expressionPanel) expressionPanel.hidden = selectedView !== 'expressions';
+      expressionList.hidden = selectedView !== 'expressions';
+      detail.hidden = selectedView !== 'expressions';
       dictionaryMap.hidden = selectedView !== 'build';
 
       verbPanel.innerHTML = `
         <h4>선택한 핵심 동사</h4>
         <div class="verb-image">${escapeHtml(selectedVerb.word)} = ${escapeHtml(selectedVerb.coreImage)}</div>
         <p>${escapeHtml(selectedVerb.easyKorean)}</p>
-        <p class="explorer-guide">이 동사를 중심으로 어떤 표현 틀이 생기는지 오른쪽에서 확인하세요. 아래 문장 빌드 맵에서는 어떤 동사를 먼저 써야 하는지도 더 빨리 고를 수 있어요.</p>
+        <p class="explorer-guide">이 동사의 패턴만 먼저 봅니다.</p>
         <p class="small-note">대표 상황: ${selectedVerb.representativeSituations.map(escapeHtml).join(' · ')}</p>
         <p class="small-note">연결 동사: ${selectedVerb.connectedVerbIds.map(id => data.verbs.find(v => v.id === id)?.word || id).map(escapeHtml).join(' · ')}</p>
       `;
@@ -2786,22 +2803,20 @@
               const targetExpression = getPatternDefaultExpression(pattern, selectedVerb, data);
               appState.dictionaryData.selectedPatternId = button.dataset.patternId;
               if (targetExpression) {
-                appState.dictionaryData.selectedVerbId = targetExpression.coreVerbId;
-                appState.dictionaryData.selectedExpressionId = targetExpression.id;
+                selectMapExpression(targetExpression.id);
+              } else {
+                setDictionaryExplorerView('expressions');
+                renderDictionaryExplorer();
               }
-              setDictionaryExplorerView('verbs');
-              renderDictionaryExplorer();
-              if (targetExpression) scrollAndHighlightExpressionDetail();
               updateRouteForScreen('dictionary');
           }));
 
-      expressionList.innerHTML = expressions.length ? expressions.map(expression => `
+      expressionList.innerHTML = visibleExpressions.length ? visibleExpressions.map(expression => `
         <button class="expression-item ${selectedExpression?.id === expression.id ? 'active' : ''}" data-expression-id="${expression.id}">
           ${escapeHtml(expression.english)}
           <span>${escapeHtml(expression.naturalKorean)}</span>
-          <div class="connection-strip-summary">${renderConnectionStripFromHistory(getHistory(expression.id))}</div>
         </button>
-      `).join('') : '<p class="small-note">아직 연결된 표현 카드가 없습니다.</p>';
+      `).join('') : '<p class="small-note">선택한 표현 틀에 해당하는 실생활 표현이 아직 없습니다.</p>';
           expressionList.querySelectorAll('[data-expression-id]').forEach(button => button.addEventListener('click', () => {
               selectMapExpression(button.dataset.expressionId);
               updateRouteForScreen('dictionary');
@@ -2810,7 +2825,7 @@
       if (selectedExpression) {
         const pattern = data.patterns.find(p => p.id === selectedExpression.patternId);
         const nouns = selectedExpression.nounIds.map(id => data.nouns.find(noun => noun.id === id)?.word || id);
-        const guideBanner = appState.progress.settings.seenConnectionGuide ? '' : '<div class="connection-guide">뜻을 알고, 문장을 만들고, 직접 꺼내면 표현이 연결돼요.</div>';
+          const guideBanner = appState.progress.settings.seenConnectionGuide ? '' : '<div class="connection-guide">뜻, 문장, 말하기가 연결돼요.</div>';
         if (!appState.progress.settings.seenConnectionGuide) {
           appState.progress.settings.seenConnectionGuide = true;
           saveProgress();
@@ -2820,10 +2835,9 @@
           ${guideBanner}
           <h3>${escapeHtml(selectedExpression.english)}</h3>
           <p><b>${escapeHtml(selectedExpression.naturalKorean)}</b></p>
-          <div class="connection-strip-summary">${getConnectionGraph(selectedExpression)}</div>
           <p class="small-note">직역 이미지: ${escapeHtml(selectedExpression.literalMeaning)}</p>
           <div class="chunk-row">${selectedExpression.chunks.map(chunk => `<span class="chunk">${escapeHtml(chunk)}</span>`).join('')}</div>
-          <p class="explorer-guide">단어 덩어리를 보고 문장을 통째로 익힌 뒤, 아래 버튼으로 바로 퀴즈를 풀 수 있습니다.</p>
+          <p class="explorer-guide">덩어리를 보고 바로 퀴즈로 넘어가세요.</p>
           <p class="small-note">표현 틀: ${escapeHtml(pattern?.label || selectedExpression.patternId)} · 핵심 명사: ${nouns.map(escapeHtml).join(' · ') || '없음'}</p>
           <ol class="hint-list">${selectedExpression.hints.map(hint => `<li>${escapeHtml(hint)}</li>`).join('')}</ol>
           <div class="question-actions" style="justify-content:flex-start">
