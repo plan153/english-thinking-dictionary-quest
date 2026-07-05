@@ -699,9 +699,21 @@
         engineSummary: "상태 · 정체성 · 위치를 그대로 말하기",
         coreImage: "바뀌지 않은 상태를 보여 주는 엔진",
         frames: [
-          { label: "be + state", meaning: "상태나 정체성을 말하기", combos: ["be ready", "be busy", "be calm"] },
-          { label: "be + place", meaning: "어디에 있는지 말하기", combos: ["be at home", "be at work", "be in the car"] },
-          { label: "be on one's way", meaning: "이동 중임을 말하기", combos: ["be on my way", "be on your way", "be on the way"] },
+          { label: "be + state", meaning: "상태나 정체성을 말하기", patternId: "p_be_state", combos: ["be ready", "be busy", "be calm"] },
+          {
+            label: "be + place",
+            meaning: "어디에 있는지 말하기",
+            patternId: "p_be_place",
+            combos: ["be at home", "be at work", "be in the car"],
+            examples: [
+              { en: "I’m at home.", ko: "나 집에 있어." },
+              { en: "She’s at work.", ko: "그녀는 일하는 중이야." },
+              { en: "The key is on the table.", ko: "열쇠는 테이블 위에 있어." },
+              { en: "We’re in the car.", ko: "우린 차 안에 있어." },
+              { en: "They’re at the station.", ko: "그들은 역에 있어." },
+            ],
+          },
+          { label: "be on one's way", meaning: "이동 중임을 말하기", patternId: "p_be_on_way", combos: ["be on my way", "be on your way", "be on the way"] },
         ],
         examples: [
           { en: "I’m ready.", ko: "준비됐어." },
@@ -716,9 +728,45 @@
         engineSummary: "일 · 행동 · 해야 할 일을 실제로 처리하기",
         coreImage: "손으로 직접 해내는 느낌의 엔진",
         frames: [
-          { label: "do + action", meaning: "일이나 행동을 처리하기", combos: ["do the dishes", "do homework", "do your best"] },
-          { label: "do + task", meaning: "맡은 일을 해내기", combos: ["do the laundry", "do a favor", "do the shopping"] },
-          { label: "do + need", meaning: "필요를 묻고 돕기", combos: ["Do you need help?", "What do you need?", "Do what you can"] },
+          {
+            label: "do + action",
+            meaning: "일이나 행동을 처리하기",
+            patternId: "p_do_action",
+            combos: ["do the dishes", "do homework", "do your best"],
+            examples: [
+              { en: "Do it now.", ko: "지금 해." },
+              { en: "I’ll do it.", ko: "내가 할게." },
+              { en: "Do your best.", ko: "최선을 다해." },
+              { en: "Do the dishes, please.", ko: "설거지 좀 해 줘." },
+              { en: "I did my homework.", ko: "숙제했어." },
+            ],
+          },
+          {
+            label: "do + task",
+            meaning: "맡은 일을 해내기",
+            patternId: "p_do_action",
+            combos: ["do the laundry", "do a favor", "do the shopping"],
+            examples: [
+              { en: "I have to do the laundry.", ko: "빨래를 해야 해." },
+              { en: "Can you do me a favor?", ko: "부탁 하나 해줄래?" },
+              { en: "I need to do the shopping.", ko: "장보러 가야 해." },
+              { en: "She does the cleaning on Fridays.", ko: "그녀는 금요일마다 청소를 해." },
+              { en: "Let’s do the paperwork now.", ko: "서류 작업을 지금 하자." },
+            ],
+          },
+          {
+            label: "do + need",
+            meaning: "필요를 묻고 돕기",
+            patternId: "p_do_action",
+            combos: ["Do you need help?", "What do you need?", "Do what you can"],
+            examples: [
+              { en: "Do you need help?", ko: "도움 필요해?" },
+              { en: "What do you need?", ko: "뭐가 필요해?" },
+              { en: "Do what you can.", ko: "할 수 있는 만큼만 해." },
+              { en: "We can do this together.", ko: "우리 같이 할 수 있어." },
+              { en: "Just do your part.", ko: "네 몫만 해." },
+            ],
+          },
         ],
         examples: [
           { en: "Do your best.", ko: "최선을 다해." },
@@ -733,9 +781,9 @@
         engineSummary: "가지고 있거나 경험하고 있는 상태",
         coreImage: "내 쪽에 들어온 것을 붙잡아 두는 느낌",
         frames: [
-          { label: "have + noun", meaning: "가지고 있다", combos: ["have a question", "have a problem", "have an idea"] },
-          { label: "have + time", meaning: "쓸 시간이 있다", combos: ["have time", "have a minute", "have all day"] },
-          { label: "have + meal", meaning: "먹거나 마시다", combos: ["have coffee", "have lunch", "have dinner"] },
+          { label: "have + noun", meaning: "가지고 있다", patternId: "p_have_thing", combos: ["have a question", "have a problem", "have an idea"] },
+          { label: "have + time", meaning: "쓸 시간이 있다", patternId: "p_have_time", combos: ["have time", "have a minute", "have all day"] },
+          { label: "have + meal", meaning: "먹거나 마시다", patternId: "p_have_meal", combos: ["have coffee", "have lunch", "have dinner"] },
         ],
         examples: [
           { en: "I have a question.", ko: "질문이 있어." },
@@ -812,9 +860,9 @@
         engineSummary: "없던 것을 만들어 결과를 내기",
         coreImage: "손으로 새 결과를 빚어내는 느낌",
         frames: [
-          { label: "make + thing", meaning: "계획 · 결정 · 변화를 만들기", combos: ["make a plan", "make a decision", "make a change"] },
-          { label: "make + sure", meaning: "확실하게 확인하기", combos: ["make sure", "make sure to", "make sure you"] },
-          { label: "make + person state", meaning: "누군가를 어떤 상태로 만들기", combos: ["make me happy", "make him angry", "make it easy"] },
+          { label: "make + thing", meaning: "계획 · 결정 · 변화를 만들기", patternId: "p_make_thing", combos: ["make a plan", "make a decision", "make a change"] },
+          { label: "make + sure", meaning: "확실하게 확인하기", patternId: "p_make_sure", combos: ["make sure", "make sure to", "make sure you"] },
+          { label: "make + person state", meaning: "누군가를 어떤 상태로 만들기", patternId: "p_make_person_state", combos: ["make me happy", "make him angry", "make it easy"] },
         ],
         examples: [
           { en: "Let’s make a plan.", ko: "계획 세우자." },
@@ -829,9 +877,9 @@
         engineSummary: "시간을 들이거나 무언가를 가져가기",
         coreImage: "상황을 내 쪽으로 잠시 끌어오는 느낌",
         frames: [
-          { label: "take + time", meaning: "시간이 걸리다", combos: ["take time", "take a while", "take patience"] },
-          { label: "take + action", meaning: "행동을 취하다", combos: ["take a break", "take a look", "take care"] },
-          { label: "take + transport", meaning: "교통수단을 타다", combos: ["take the bus", "take a taxi", "take the train"] },
+          { label: "take + time", meaning: "시간이 걸리다", patternId: "p_take_time", combos: ["take time", "take a while", "take patience"] },
+          { label: "take + action", meaning: "행동을 취하다", patternId: "p_take_break", combos: ["take a break", "take a look", "take care"] },
+          { label: "take + transport", meaning: "교통수단을 타다", patternId: "p_take_transport", combos: ["take the bus", "take a taxi", "take the train"] },
         ],
         examples: [
           { en: "It takes time.", ko: "시간이 걸려." },
@@ -846,9 +894,9 @@
         engineSummary: "내 쪽에서 상대에게 넘겨주기",
         coreImage: "손에 든 것을 건네주는 느낌",
         frames: [
-          { label: "give + thing", meaning: "무언가를 건네주기", combos: ["give me a call", "give me a hand", "give me a minute"] },
-          { label: "give it a try", meaning: "한번 시도해 보기", combos: ["give it a try", "give it a shot", "give it a go"] },
-          { label: "give + chance", meaning: "기회를 주기", combos: ["give her a chance", "give him a chance", "give it a chance"] },
+          { label: "give + thing", meaning: "무언가를 건네주기", patternId: "p_give_person_thing", combos: ["give me a call", "give me a hand", "give me a minute"] },
+          { label: "give it a try", meaning: "한번 시도해 보기", patternId: "p_give_it_try", combos: ["give it a try", "give it a shot", "give it a go"] },
+          { label: "give + chance", meaning: "기회를 주기", patternId: "p_give_call", combos: ["give her a chance", "give him a chance", "give it a chance"] },
         ],
         examples: [
           { en: "Give me a call.", ko: "전화해 줘." },
@@ -863,9 +911,9 @@
         engineSummary: "앞으로 움직이거나 일이 진행되기",
         coreImage: "출발과 진행을 표현하는 느낌",
         frames: [
-          { label: "go + place", meaning: "어디로 가다", combos: ["go home", "go to school", "go somewhere"] },
-          { label: "go + well", meaning: "잘 진행되다", combos: ["go well", "go smoothly", "go wrong"] },
-          { label: "go + on/ahead", meaning: "계속되거나 먼저 하다", combos: ["go ahead", "go on", "go on with"] },
+          { label: "go + place", meaning: "어디로 가다", patternId: "p_go_place", combos: ["go home", "go to school", "go somewhere"] },
+          { label: "go + well", meaning: "잘 진행되다", patternId: "p_go_well", combos: ["go well", "go smoothly", "go wrong"] },
+          { label: "go + on/ahead", meaning: "계속되거나 먼저 하다", patternId: "p_go_on", combos: ["go ahead", "go on", "go on with"] },
         ],
         examples: [
           { en: "I’m going home.", ko: "나 집에 가는 중이야." },
@@ -880,9 +928,9 @@
         engineSummary: "말하는 사람 쪽으로 오거나 일이 생기기",
         coreImage: "화자의 자리로 다가오는 느낌",
         frames: [
-          { label: "come + with", meaning: "같이 오다", combos: ["come with me", "come with us", "come along"] },
-          { label: "come + back", meaning: "돌아오다", combos: ["come back soon", "come back later", "come back home"] },
-          { label: "come + up", meaning: "일이 생기다", combos: ["come up", "something comes up", "come up again"] },
+          { label: "come + with", meaning: "같이 오다", patternId: "p_come_with", combos: ["come with me", "come with us", "come along"] },
+          { label: "come + back", meaning: "돌아오다", patternId: "p_come_back", combos: ["come back soon", "come back later", "come back home"] },
+          { label: "come + up", meaning: "일이 생기다", patternId: "p_come_up", combos: ["come up", "something comes up", "come up again"] },
         ],
         examples: [
           { en: "Come with me.", ko: "같이 가자." },
@@ -897,9 +945,9 @@
         engineSummary: "어딘가에 놓아 위치시키기",
         coreImage: "물건을 제자리에 놓는 느낌",
         frames: [
-          { label: "put + place", meaning: "어딘가에 놓다", combos: ["put it here", "put it on the table", "put it back"] },
-          { label: "put on / take off", meaning: "입거나 벗거나 켜고 끄기", combos: ["put on a coat", "put on glasses", "take off your shoes"] },
-          { label: "put + together", meaning: "조립하거나 맞추기", combos: ["put it together", "put the pieces together", "put words together"] },
+          { label: "put + place", meaning: "어딘가에 놓다", patternId: "p_put_place", combos: ["put it here", "put it on the table", "put it back"] },
+          { label: "put on / take off", meaning: "입거나 벗거나 켜고 끄기", patternId: "p_put_on", combos: ["put on a coat", "put on glasses", "take off your shoes"] },
+          { label: "put + together", meaning: "조립하거나 맞추기", patternId: "p_put_off", combos: ["put it together", "put the pieces together", "put words together"] },
         ],
         examples: [
           { en: "Put it on the table.", ko: "테이블 위에 올려 둬." },
@@ -914,9 +962,9 @@
         engineSummary: "상태나 행동을 계속 유지하기",
         coreImage: "멈추지 않고 이어 가는 느낌",
         frames: [
-          { label: "keep + -ing", meaning: "계속 ~하다", combos: ["keep going", "keep trying", "keep walking"] },
-          { label: "keep + state", meaning: "상태를 유지하다", combos: ["keep quiet", "keep calm", "keep warm"] },
-          { label: "keep + contact", meaning: "연락을 유지하다", combos: ["keep in touch", "keep in mind", "keep posted"] },
+          { label: "keep + -ing", meaning: "계속 ~하다", patternId: "p_keep_ing", combos: ["keep going", "keep trying", "keep walking"] },
+          { label: "keep + state", meaning: "상태를 유지하다", patternId: "p_keep_state", combos: ["keep quiet", "keep calm", "keep warm"] },
+          { label: "keep + contact", meaning: "연락을 유지하다", patternId: "p_keep_in_touch", combos: ["keep in touch", "keep in mind", "keep posted"] },
         ],
         examples: [
           { en: "Keep going.", ko: "계속 가." },
@@ -931,9 +979,9 @@
         engineSummary: "찾아서 눈앞에 두거나 알게 되기",
         coreImage: "숨은 것을 찾아 손에 올려놓는 느낌",
         frames: [
-          { label: "find + thing", meaning: "무언가를 찾아내다", combos: ["find my keys", "find a seat", "find money"] },
-          { label: "find + way", meaning: "방법을 찾다", combos: ["find a way", "find your way", "find a better way"] },
-          { label: "find out", meaning: "알아내다", combos: ["find out", "find out the truth", "find out later"] },
+          { label: "find + thing", meaning: "무언가를 찾아내다", patternId: "p_find_thing", combos: ["find my keys", "find a seat", "find money"] },
+          { label: "find + way", meaning: "방법을 찾다", patternId: "p_find_way", combos: ["find a way", "find your way", "find a better way"] },
+          { label: "find out", meaning: "알아내다", patternId: "p_find_out", combos: ["find out", "find out the truth", "find out later"] },
         ],
         examples: [
           { en: "I found my keys.", ko: "열쇠를 찾았어." },
@@ -948,9 +996,9 @@
         engineSummary: "몸과 마음의 상태를 느끼기",
         coreImage: "감각과 기분이 몸에서 바로 올라오는 느낌",
         frames: [
-          { label: "feel + state", meaning: "몸/기분이 어떻다", combos: ["feel tired", "feel better", "feel sick"] },
-          { label: "feel like + noun/verb", meaning: "~하고 싶다/같다", combos: ["feel like coffee", "feel like going", "feel like a nap"] },
-          { label: "feel free", meaning: "편하게 하다", combos: ["feel free to ask", "feel free to call", "feel free to join"] },
+          { label: "feel + state", meaning: "몸/기분이 어떻다", patternId: "p_feel_state", combos: ["feel tired", "feel better", "feel sick"] },
+          { label: "feel like + noun/verb", meaning: "~하고 싶다/같다", patternId: "p_feel_like", combos: ["feel like coffee", "feel like going", "feel like a nap"] },
+          { label: "feel free", meaning: "편하게 하다", patternId: "p_feel_free", combos: ["feel free to ask", "feel free to call", "feel free to join"] },
         ],
         examples: [
           { en: "I feel tired.", ko: "피곤해." },
@@ -965,9 +1013,21 @@
         engineSummary: "마음이 어떤 쪽으로 가기",
         coreImage: "마음이 끌리는 쪽을 향하는 느낌",
         frames: [
-          { label: "want + thing", meaning: "무엇을 원하다", combos: ["want a break", "want more time", "want coffee"] },
-          { label: "want to + verb", meaning: "~하고 싶다", combos: ["want to try", "want to know", "want to go"] },
-          { label: "want + result", meaning: "어떤 결과를 원하다", combos: ["want it now", "want it done", "want a change"] },
+          { label: "want + thing", meaning: "무엇을 원하다", patternId: "p_want_thing", combos: ["want a break", "want more time", "want coffee"] },
+          { label: "want to + verb", meaning: "~하고 싶다", patternId: "p_want_to", combos: ["want to try", "want to know", "want to go"] },
+          {
+            label: "want + result",
+            meaning: "어떤 결과를 원하다",
+            patternId: "p_want_thing",
+            combos: ["want it now", "want it done", "want a change"],
+            examples: [
+              { en: "I want it now.", ko: "지금 그걸 원해." },
+              { en: "I want it done by noon.", ko: "정오까지 끝났으면 해." },
+              { en: "I want a change.", ko: "변화가 필요해." },
+              { en: "I want the job done.", ko: "일이 끝나길 원해." },
+              { en: "I want more time.", ko: "시간이 더 필요해." },
+            ],
+          },
         ],
         examples: [
           { en: "I want a break.", ko: "쉬고 싶어." },
@@ -982,9 +1042,9 @@
         engineSummary: "없으면 곤란해서 필요한 것",
         coreImage: "빠져 있는 부분을 채우려는 느낌",
         frames: [
-          { label: "need + thing", meaning: "무엇이 필요하다", combos: ["need help", "need a break", "need more time"] },
-          { label: "need to + verb", meaning: "~해야 한다", combos: ["need to go", "need to leave", "need to study"] },
-          { label: "need + help", meaning: "도움이 필요하다", combos: ["need help", "need someone", "need support"] },
+          { label: "need + thing", meaning: "무엇이 필요하다", patternId: "p_need_thing", combos: ["need help", "need a break", "need more time"] },
+          { label: "need to + verb", meaning: "~해야 한다", patternId: "p_need_to", combos: ["need to go", "need to leave", "need to study"] },
+          { label: "need + help", meaning: "도움이 필요하다", patternId: "p_need_help", combos: ["need help", "need someone", "need support"] },
         ],
         examples: [
           { en: "I need help.", ko: "도움이 필요해." },
@@ -3276,6 +3336,49 @@
       appState.currentMapFrameIndexByVerb[verbId] = nextIndex;
       return nextIndex;
     }
+    function getMapFrameExamples(verbId, frame, map) {
+      const limit = 5;
+      const results = [];
+      const seen = new Set();
+      const pushExample = example => {
+        if (!example?.en) return;
+        const key = `${example.en}::${example.ko || ''}`;
+        if (seen.has(key)) return;
+        seen.add(key);
+        results.push({
+          en: example.en,
+          ko: example.ko || '',
+          note: example.note || '',
+        });
+      };
+
+      (frame?.examples || []).forEach(pushExample);
+      if (results.length >= limit) return results.slice(0, limit);
+
+      const expressions = appState.dictionaryData.expressions || [];
+      const coreVerbId = `v_${verbId}`;
+      const verbExpressions = expressions.filter(item => item.coreVerbId === coreVerbId);
+      const patternExpressions = frame?.patternId
+        ? verbExpressions.filter(item => item.patternId === frame.patternId)
+        : [];
+
+      const preferredExpressions = patternExpressions.length ? patternExpressions : verbExpressions;
+      preferredExpressions.forEach(expression => {
+        pushExample({
+          en: expression.english,
+          ko: expression.naturalKorean || expression.literalMeaning || '',
+          note: expression.mapCombination && expression.mapCombination !== expression.english
+            ? expression.mapCombination
+            : '',
+        });
+      });
+
+      if (results.length < limit) {
+        (map?.examples || []).forEach(pushExample);
+      }
+
+      return results.slice(0, limit);
+    }
     function updateMapConnectionText(verbId) {
       const target = document.getElementById('connectionText');
       const map = mapSets[verbId] || mapSets.get;
@@ -3303,7 +3406,7 @@
       const m = mapSets[currentMapId] || mapSets.get;
       const activeFrameIndex = ensureMapFrameSelection(currentMapId);
       const activeFrame = m.frames?.[activeFrameIndex] || m.frames?.[0] || null;
-      const activeFrameExamples = (activeFrame?.examples?.length ? activeFrame.examples : m.examples || []).slice(0, 5);
+      const activeFrameExamples = getMapFrameExamples(currentMapId, activeFrame, m);
       const thinkingMap = document.getElementById('thinkingMap');
       if (!thinkingMap || !m) return;
       thinkingMap.innerHTML = `
