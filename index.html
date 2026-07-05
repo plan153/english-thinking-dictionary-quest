@@ -45,7 +45,7 @@
       flex-wrap: wrap;
     }
     .top-controls { display:flex; align-items:center; gap:10px; }
-    .brand { display:flex; align-items:center; gap: 12px; }
+    .brand { display:flex; align-items:center; gap: 12px; cursor: pointer; }
     .brand-mark {
       width: 48px; height: 48px; display: grid; place-items: center; border-radius: 16px;
       background: var(--ink); color: #fff; font-size: 24px; box-shadow: var(--shadow);
@@ -477,10 +477,9 @@
     </header>
 
     <nav class="nav" aria-label="주요 메뉴">
-      <button class="active" data-screen="home">오늘의 퀘스트</button>
-      <button data-screen="play">게임 모드</button>
-      <button data-screen="dictionary">사전 탐험</button>
-      <button data-screen="map">연결 지도</button>
+      <button class="active" data-screen="play">게임 모드</button>
+      <button data-screen="dictionary">동사 카드</button>
+      <button data-screen="map">문장빌드맵</button>
       <button data-screen="progress">내 성장</button>
     </nav>
 
@@ -491,7 +490,7 @@
         <p><b>be · do · have · get · make · take · give · go · come · put · keep · find · feel · want · need</b> 같은 기본 동사와 핵심 명사를 연결합니다. 듣고, 따라 말하고, 힌트를 보며 직접 조립하면 한국어를 거치지 않고 말이 나옵니다.</p>
         <div class="hero-actions">
           <button class="btn primary" id="startDaily">오늘의 7분 퀘스트 시작</button>
-          <button class="btn ghost" id="jumpDictionary">사전 탐험하기</button>
+          <button class="btn ghost" id="jumpDictionary">동사 카드 보기</button>
         </div>
       </div>
 
@@ -516,7 +515,7 @@
         <div><h2>오늘 바로 할 게임</h2><p>틀려도 힌트로 길을 찾는 방식입니다.</p></div>
       </div>
       <div class="grid cols-3" id="homeModes"></div>
-      <p class="small-note" style="margin-top:12px">힌트 사다리는 한글 → 영어 조립 안의 보조 풀이로, 문장 빌드 맵은 사전 탐험 안의 코너로 들어가 있어요.</p>
+      <p class="small-note" style="margin-top:12px">힌트 사다리는 한글 → 영어 조립 안의 보조 풀이로, 문장빌드맵은 동사 카드에서 열어 보는 콘텐츠 원본이에요.</p>
     </section>
 
     <section id="play" class="screen">
@@ -524,7 +523,7 @@
         <div><h2>게임 모드</h2><p>같은 표현을 다른 통로로 만날수록 오래 기억됩니다.</p></div>
       </div>
       <div class="grid cols-3" id="gameModes"></div>
-      <p class="small-note" style="margin-top:12px">힌트 사다리는 한글 → 영어 조립 안에서, 문장 빌드 맵은 사전 탐험 안에서 이어집니다.</p>
+      <p class="small-note" style="margin-top:12px">힌트 사다리는 한글 → 영어 조립 안에서, 문장빌드맵은 동사 카드와 같은 데이터 원본에서 이어집니다.</p>
       <article class="card" style="margin-top:16px">
         <h3>왜 여러 채널로 하나요?</h3>
         <p>뜻만 보면 “알 것 같은 단어”가 됩니다. 소리로 듣고, 입으로 말하고, 한국어에서 영어를 만들고, 영어에서 장면을 떠올리면 그 표현이 실제로 꺼내 쓰는 말이 됩니다.</p>
@@ -544,60 +543,30 @@
 
     <section id="dictionary" class="screen">
       <div class="section-head">
-        <div><h2>핵심 동사로 영어 표현 탐험하기</h2><p>동사, 표현, 빌드맵을 나눠 봅니다.</p></div>
+        <div><h2>동사 카드</h2><p>15개 핵심 동사를 찾아 기본 엔진, 생각틀, 실생활 표현으로 넘어갑니다.</p></div>
       </div>
       <article class="card dictionary-explorer">
         <div class="section-head" style="margin-bottom:0">
-          <div><h2>사전 탐험</h2><p>동사를 먼저 보고, 표현과 빌드맵을 봅니다.</p></div>
-        </div>
-        <div class="dictionary-subnav" id="dictionarySubnav" role="tablist" aria-label="사전 탐험 서브메뉴">
-          <button class="dictionary-tab" type="button" data-dictionary-view="legacy">기존 생각 사전 검색</button>
-          <button class="dictionary-tab active" type="button" data-dictionary-view="verbs">동사 탐험</button>
-          <button class="dictionary-tab" type="button" data-dictionary-view="expressions">실생활 표현</button>
-          <button class="dictionary-tab" type="button" data-dictionary-view="build">문장 빌드 맵</button>
+          <div><h2>동사 카드</h2><p>동사를 검색하면 바로 문장빌드맵으로 이어집니다.</p></div>
         </div>
         <div id="explorerStatus" class="explorer-status">사전 데이터를 불러오는 중입니다.</div>
-        <div id="verbExplorerButtons" class="verb-buttons"></div>
-        <div class="dictionary-location" id="dictionaryLocation" aria-live="polite"></div>
-        <div class="explorer-grid" data-dictionary-view="verbs">
-          <div class="explorer-panel" id="verbExplorerPanel"></div>
-          <div class="explorer-panel">
-            <h4>연결된 표현 틀</h4>
-            <p class="explorer-guide">선택한 동사가 자주 쓰는 패턴입니다.</p>
-            <div class="pattern-list" id="patternExplorerList"></div>
-          </div>
-          <div class="explorer-panel" id="expressionExplorerPanel">
-            <h4>실생활 표현</h4>
-            <p class="explorer-guide">바로 말하는 표현입니다.</p>
-            <div class="expression-list" id="expressionExplorerList"></div>
-          </div>
-        </div>
-        <div class="explorer-panel expression-detail" id="expressionExplorerDetail" style="margin-top:14px" data-dictionary-view="expressions"></div>
-        <div class="explorer-panel verb-map" id="dictionaryMap" style="margin-top:14px" data-dictionary-view="build"></div>
-        <div class="map-focus-actions" id="mapFocusActions">
-          <button class="btn soft" type="button" id="showDictionaryLegacy">문장 빌드 맵 닫고 전체 사전 보기</button>
-        </div>
-      </article>
-      <div id="dictionaryLegacySearchSection" hidden>
-        <div class="section-head" style="margin-top:28px">
-          <div><h2>기존 생각 사전 검색</h2><p>단어를 번역으로 외우지 말고, 쓰임과 연결로 익히세요.</p></div>
-        </div>
         <div class="dictionary-toolbar">
-          <input id="wordSearch" class="search" placeholder="예: get, time, 약속, 이해하다" />
+          <input id="wordSearch" class="search" placeholder="예: get, take, 도착, 상태" />
           <div class="filter-row" id="wordFilters"></div>
         </div>
+        <div class="dictionary-location" id="dictionaryLocation" aria-live="polite"></div>
         <div class="word-list" id="wordList"></div>
-      </div>
+      </article>
     </section>
 
     <section id="map" class="screen">
       <div class="section-head">
-        <div><h2>연결 지도</h2><p>기본 엔진 → 생각틀 → 다양한 표현 5개를 함께 봅니다. 사전 탐험의 문장 빌드 맵을 더 크게 펼쳐 보는 곳입니다.</p></div>
+        <div><h2>문장빌드맵</h2><p>기본 엔진 → 생각틀 → 실생활 표현 5개를 함께 봅니다. 동사 카드의 문장 원본을 더 크게 펼쳐 보는 곳입니다.</p></div>
       </div>
       <article class="card">
         <div class="filter-row" id="mapFilters" style="margin-bottom:15px"></div>
         <div class="map-wrap"><div class="thinking-map" id="thinkingMap"></div></div>
-        <p class="small-note">예: <b>make + a decision</b> = 결정을 만들다 → “결정하다”. 단어 하나씩 번역하는 대신, 기본 엔진·생각틀·다양한 표현 5개를 함께 묶어 봅니다.</p>
+        <p class="small-note">예: <b>make + a decision</b> = 결정을 만들다 → “결정하다”. 단어 하나씩 번역하는 대신, 기본 엔진·생각틀·실생활 표현 5개를 함께 묶어 봅니다.</p>
       </article>
     </section>
 
@@ -1888,7 +1857,7 @@
             <p>7단계 루프를 모두 끝냈어요. 내일 또 새로운 표현들이 준비됩니다.</p>
             <div style="margin-top:12px;">
               <button class="btn soft" id="restartQuestBtn" type="button">오늘의 퀘스트 다시 시작</button>
-              <button class="btn soft" onclick="showScreen('dictionary')">사전 탐험하기</button>
+              <button class="btn soft" onclick="showScreen('dictionary')">동사 카드 보기</button>
             </div>
             ${restartConfirmMarkup}
           </div>
@@ -2046,14 +2015,13 @@
           if (!options.skipScroll) window.scrollTo({ top: 0, behavior: 'smooth' });
           if (id === 'home') updateQuestUI();
           if (id === 'dictionary') renderWords();
-          if (id === 'dictionary') renderDictionaryExplorer();
           if (id === 'map') renderMap();
           if (id === 'progress') updateDashboard();
           if (!options.skipRoute && !appState.isApplyingRoute) updateRouteForScreen(id);
         }
 
         function routeExpressionId() {
-          return appState.dictionaryData.selectedExpressionId || '';
+          return appState.dictionaryData.selectedVerbId || appState.dictionaryData.selectedExpressionId || '';
         }
         function updateRouteForScreen(id, replace = false) {
           let hash = `#/${id}`;
@@ -2080,15 +2048,13 @@
           try {
             if (route.screen === 'dictionary') {
               if (route.id) {
-                const expression = appState.dictionaryData.expressions.find(item => item.id === route.id);
-                if (expression) {
-                  appState.dictionaryData.selectedVerbId = expression.coreVerbId;
-                  appState.dictionaryData.selectedExpressionId = expression.id;
-                  appState.dictionaryData.selectedExplorerView = 'expressions';
+                const selectedVerb = appState.dictionaryData.verbs.find(item => item.id === route.id || item.word === route.id);
+                const selectedExpression = appState.dictionaryData.expressions.find(item => item.id === route.id);
+                if (selectedVerb) {
+                  appState.dictionaryData.selectedVerbId = selectedVerb.id;
+                } else if (selectedExpression) {
+                  appState.dictionaryData.selectedVerbId = selectedExpression.coreVerbId;
                 }
-              }
-              if (!route.id && !appState.dictionaryData.selectedExplorerView) {
-                appState.dictionaryData.selectedExplorerView = 'verbs';
               }
               showScreen('dictionary', { skipRoute: true, skipScroll: true });
         } else if (route.screen === 'quiz') {
@@ -2317,11 +2283,11 @@
     }
     function renderDictionaryLocation(selectedView, selectedVerb, selectedPattern, selectedExpression, selectedRoute, data) {
       const viewLabel = {
-        legacy: '기존 생각 사전 검색',
-        verbs: '동사 탐험',
+        legacy: '동사 카드',
+        verbs: '동사 카드',
         expressions: '실생활 표현',
-        build: '문장 빌드 맵',
-      }[selectedView] || '사전 탐험';
+        build: '문장빌드맵',
+      }[selectedView] || '동사 카드';
       const segments = [`<span class="location-label">현재 위치</span><strong>${escapeHtml(viewLabel)}</strong>`];
       if (selectedView === 'legacy') {
         segments.push(`단어를 찾아 바로 뜻을 봅니다.`);
@@ -2345,7 +2311,7 @@
       return `<div class="location-line">${segments.join(' · ')}</div>`;
     }
     function setDictionaryExplorerView(view) {
-      appState.dictionaryData.selectedExplorerView = view || 'verbs';
+      appState.dictionaryData.selectedExplorerView = view || 'legacy';
       const subnav = document.getElementById('dictionarySubnav');
       if (subnav) {
         subnav.querySelectorAll('[data-dictionary-view]').forEach(button => {
@@ -2370,7 +2336,7 @@
       const map = mapSets[selectedVerb.word];
       if (map) {
         return `
-          <h4>문장 빌드 맵</h4>
+          <h4>문장빌드맵</h4>
           <p class="verb-guide">${escapeHtml(map.engineSummary)}</p>
           <p class="small-note">${escapeHtml(selectedVerb.easyKorean)}</p>
           <div class="map-section">
@@ -2393,7 +2359,7 @@
             `).join('')}
           </div>
           <div class="map-section">
-            <h5>3. 다양한 표현</h5>
+            <h5>3. 실생활 표현</h5>
             <p class="small-note" style="margin:0 0 10px">실생활에서 자주 쓰는 표현 5개입니다.</p>
             ${map.examples.map(example => `
               <div class="map-detail-card map-example-card">
@@ -2420,7 +2386,7 @@
           `).join('')
         : '<p class="small-note">이 동사가 연결된 표현 틀이 아직 없습니다.</p>';
       return `
-        <h4>문장 빌드 맵</h4>
+        <h4>문장빌드맵</h4>
         <p class="verb-guide">명사와 장면을 보고 어떤 동사를 먼저 써야 하는지 빠르게 고르는 연습입니다.</p>
         <p class="small-note">${escapeHtml(selectedVerb.word.toUpperCase())} 중심으로 동사 선택 감각을 넓혀요. ${escapeHtml(selectedVerb.easyKorean)}</p>
         <div class="map-section">
@@ -2577,7 +2543,7 @@
       }
       const selectedRoute = config.routes.find(route => route.routeId === data.selectedRouteId) || null;
       return `
-        <h4>문장 빌드 맵</h4>
+        <h4>문장빌드맵</h4>
         <p class="verb-guide">명사와 장면을 보고 어떤 동사를 먼저 써야 하는지 빠르게 고르는 연습입니다.</p>
         <p class="small-note">${escapeHtml(selectedVerb.word.toUpperCase())} 중심으로 동사 선택 감각을 넓혀요. ${escapeHtml(config.coreSense)}</p>
         <div class="map-section">
@@ -3466,19 +3432,96 @@
     }
 
     function renderWords() {
-      const filters = ['전체', ...new Set(wordBank.map(w => w.type))];
-      document.getElementById('wordFilters').innerHTML = filters.map(f => `<button class="filter ${appState.filter === f ? 'active':''}" data-filter="${f}">${f}</button>`).join('');
-      document.querySelectorAll('[data-filter]').forEach(b => b.addEventListener('click', () => { appState.filter = b.dataset.filter; renderWords(); }));
+      const data = appState.dictionaryData;
+      const status = document.getElementById('explorerStatus');
+      const wordFilters = document.getElementById('wordFilters');
+      const wordList = document.getElementById('wordList');
+      const location = document.getElementById('dictionaryLocation');
+      if (!status || !wordList || !location) return;
+      if (data.error) {
+        status.className = 'explorer-status error';
+        status.textContent = data.error;
+        wordList.innerHTML = '';
+        if (wordFilters) wordFilters.hidden = true;
+        location.innerHTML = '';
+        return;
+      }
+      if (!data.isLoaded) {
+        status.className = 'explorer-status';
+        status.textContent = '동사 카드를 불러오는 중입니다.';
+        wordList.innerHTML = '';
+        if (wordFilters) wordFilters.hidden = true;
+        return;
+      }
+
+      const verbs = data.verbs || [];
       const q = appState.search.trim().toLowerCase();
-      const results = wordBank.filter(w => (appState.filter === '전체' || w.type === appState.filter) && (!q || [w.word,w.korean,w.example,w.exKo,w.connections,w.type].join(' ').toLowerCase().includes(q)));
-      document.getElementById('wordList').innerHTML = results.length ? results.map(w => `
-        <article class="card word-card">
-          <div class="word">${w.word}</div><span class="tag">${w.type}</span>
-          <div class="meaning">${w.type.includes('동사') ? `<span class="meaning-label">기본 엔진</span> <span class="meaning-word">${w.word}</span> <span class="meaning-gloss">${w.korean}</span>` : escapeHtml(w.korean)}</div>
-          <div class="example"><b>${w.example}</b><br>${w.exKo}</div>
-          <div class="connections">↳ ${w.connections}</div>
-        </article>
-      `).join('') : `<div class="card empty">찾는 단어가 없어요. 영어·한국어·표현 일부로 다시 찾아 보세요.</div>`;
+      const results = verbs.filter(verb => {
+        const map = mapSets[verb.word];
+        const frameText = (map?.frames || []).flatMap(frame => [
+          frame.label,
+          frame.meaning,
+          ...(frame.combos || []),
+          ...(frame.examples || []).map(example => `${example.en} ${example.ko || ''} ${example.note || ''}`),
+        ]).join(' ');
+        const haystack = [
+          verb.word,
+          verb.easyKorean || verb.korean || '',
+          verb.coreImage || '',
+          map?.title || '',
+          map?.engineSummary || '',
+          frameText,
+        ].join(' ').toLowerCase();
+        return !q || haystack.includes(q);
+      });
+      const selectedVerb = verbs.find(verb => verb.id === data.selectedVerbId) || results[0] || verbs[0] || null;
+      if (selectedVerb && selectedVerb.id !== data.selectedVerbId) {
+        appState.dictionaryData.selectedVerbId = selectedVerb.id;
+      }
+      status.className = 'explorer-status';
+      status.textContent = `${verbs.length}개 핵심 동사, ${Object.keys(mapSets).length}개 문장빌드맵을 불러왔습니다.`;
+      if (wordFilters) {
+        wordFilters.hidden = true;
+        wordFilters.innerHTML = '';
+      }
+      location.innerHTML = selectedVerb ? `
+        <div class="location-line">
+          <span class="location-label">현재 위치</span>
+          <strong>동사 카드</strong>
+          · 선택 동사: <strong>${escapeHtml(selectedVerb.word)}</strong>
+          · 문장빌드맵에서 기본 엔진 · 생각틀 · 실생활 표현으로 이어집니다.
+        </div>
+      ` : '';
+
+      wordList.innerHTML = results.length ? results.map(verb => {
+        const map = mapSets[verb.word];
+        const frames = (map?.frames || []).slice(0, 3);
+        return `
+          <article class="card word-card verb-card ${selectedVerb?.id === verb.id ? 'active' : ''}" data-verb-card-id="${verb.id}">
+            <div class="word">${escapeHtml(verb.word)}</div>
+            <span class="tag">기본 엔진</span>
+            <div class="meaning">
+              <span class="meaning-label">${escapeHtml(map?.title || '기본 엔진')}</span>
+              <span class="meaning-word">${escapeHtml(map?.engineSummary || verb.easyKorean || verb.korean || '')}</span>
+              <span class="meaning-gloss">${escapeHtml(map?.coreImage || verb.coreImage || '')}</span>
+            </div>
+            <div class="example"><b>생각틀</b><br>${frames.map(frame => escapeHtml(frame.label)).join(' · ') || '문장빌드맵에서 펼칩니다.'}</div>
+            <div class="connections">${frames.map(frame => `<span class="mini-chip">${escapeHtml(frame.combos?.[0] || frame.meaning || '')}</span>`).join('')}</div>
+            <p class="small-note" style="margin-top:10px">클릭하면 문장빌드맵에서 이 동사의 5개 예문을 바로 봅니다.</p>
+          </article>
+        `;
+      }).join('') : `<div class="card empty">찾는 동사가 없어요. 영어 동사나 뜻 일부로 다시 찾아 보세요.</div>`;
+      wordList.querySelectorAll('[data-verb-card-id]').forEach(button => {
+        button.addEventListener('click', () => {
+          const verbId = button.dataset.verbCardId;
+          const verb = verbs.find(item => item.id === verbId);
+          if (!verb) return;
+          appState.dictionaryData.selectedVerbId = verb.id;
+          appState.currentMap = verb.word;
+          appState.currentMapFrameIndexByVerb[verb.word] = appState.currentMapFrameIndexByVerb?.[verb.word] ?? 0;
+          showScreen('map');
+        });
+      });
     }
 
     async function loadDictionaryExplorer() {
@@ -3508,7 +3551,7 @@
           selectedSlotValue: null,
           selectedCombinationId: null,
           selectedMapSentenceId: null,
-          selectedExplorerView: appState.dictionaryData.selectedExplorerView || 'verbs',
+          selectedExplorerView: appState.dictionaryData.selectedExplorerView || 'legacy',
           isMapMeaningOpen: false,
           isMapPracticeOpen: false,
         };
@@ -3520,250 +3563,17 @@
           gameExpressions: [],
           dataSource: 'fallback',
           error: '사전 데이터 파일을 불러오지 못했어요. 로컬에서 파일을 직접 열었다면 `python3 -m http.server 8080` 실행 후 `http://localhost:8080`으로 접속해 주세요.',
-          selectedExplorerView: appState.dictionaryData.selectedExplorerView || 'verbs',
+          selectedExplorerView: appState.dictionaryData.selectedExplorerView || 'legacy',
         };
         toast('사전 데이터를 불러오지 못해 기본 예비 표현을 사용해요.');
       }
           updateDashboard();
-          renderDictionaryExplorer();
+          renderWords();
           if (window.location.hash) applyRoute();
         }
 
     function renderDictionaryExplorer() {
-      const data = appState.dictionaryData;
-      const dictionaryExplorer = document.querySelector('.dictionary-explorer');
-      const dictionaryScreen = document.getElementById('dictionary');
-      const mapFocusActions = document.getElementById('mapFocusActions');
-      const showDictionaryLegacy = document.getElementById('showDictionaryLegacy');
-      const dictionarySubnav = document.getElementById('dictionarySubnav');
-      const legacySearchSection = document.getElementById('dictionaryLegacySearchSection');
-      const status = document.getElementById('explorerStatus');
-      const verbButtons = document.getElementById('verbExplorerButtons');
-      const explorerGrid = document.querySelector('.explorer-grid');
-      const verbPanel = document.getElementById('verbExplorerPanel');
-      const patternList = document.getElementById('patternExplorerList');
-      const expressionList = document.getElementById('expressionExplorerList');
-      const detail = document.getElementById('expressionExplorerDetail');
-      const dictionaryMap = document.getElementById('dictionaryMap');
-      if (!status || !verbButtons || !verbPanel || !patternList || !expressionList || !detail || !dictionaryMap || !dictionarySubnav) return;
-
-      if (data.error) {
-        status.className = 'explorer-status error';
-        status.textContent = data.error;
-        verbButtons.innerHTML = '';
-        verbPanel.innerHTML = '<h4>핵심 동사</h4><p>데이터를 불러오면 여기에 동사 이미지가 표시됩니다.</p>';
-        patternList.innerHTML = '';
-        expressionList.innerHTML = '';
-        detail.innerHTML = '<h3>표현 상세</h3><p>표현을 선택하면 영어 문장, 자연스러운 한국어, 단어 덩어리, 힌트가 여기에 표시됩니다.</p>';
-        return;
-      }
-      if (!data.isLoaded) {
-        status.className = 'explorer-status';
-        status.textContent = '사전 데이터를 불러오는 중입니다.';
-        return;
-      }
-
-      const selectedVerb = data.verbs.find(v => v.id === data.selectedVerbId) || data.verbs[0];
-      if (!selectedVerb) return;
-      appState.dictionaryData.selectedVerbId = selectedVerb.id;
-      const patterns = data.patterns.filter(p => selectedVerb.patternIds.includes(p.id));
-      const expressions = data.expressions.filter(e => e.coreVerbId === selectedVerb.id);
-      const buildConfig = getVerbMapConfig(selectedVerb, data);
-      let selectedExpression = data.selectedExpressionId ? expressions.find(e => e.id === data.selectedExpressionId) : null;
-      let selectedRoute = buildConfig?.routes?.find(route => route.routeId === data.selectedRouteId) || null;
-      let selectedPattern = null;
-      const routeActive = data.selectedRouteId || data.selectedPatternId || data.selectedSlotValue || data.selectedCombinationId;
-      const isRouteVerb = isVerbMapFocus(selectedVerb.id);
-      const selectedView = data.selectedExplorerView || (routeActive ? 'build' : selectedExpression ? 'expressions' : 'verbs');
-      if (!data.selectedExplorerView) appState.dictionaryData.selectedExplorerView = selectedView;
-      let needsRerender = false;
-      const legacyViewActive = selectedView === 'legacy';
-      if (selectedView === 'expressions' && !selectedExpression && expressions.length) {
-        appState.dictionaryData.selectedExpressionId = expressions[0].id;
-        selectedExpression = expressions[0];
-        needsRerender = true;
-      }
-      if (selectedView === 'expressions' && !data.selectedPatternId && patterns.length) {
-        appState.dictionaryData.selectedPatternId = patterns[0].id;
-        needsRerender = true;
-      }
-      if (selectedView === 'build') {
-        if (buildConfig?.routes?.length) {
-          const defaultRoute = buildConfig.routes.find(route => route.routeId === data.selectedRouteId) || buildConfig.routes[0];
-          const defaultPattern = defaultRoute?.patterns?.find(pattern => pattern.patternId === data.selectedPatternId) || defaultRoute?.patterns?.[0] || null;
-          const routeChanged = data.selectedRouteId !== defaultRoute?.routeId;
-          const patternChanged = data.selectedPatternId !== defaultPattern?.patternId;
-          if (routeChanged || patternChanged || data.selectedExpressionId || data.selectedSlotValue || data.selectedCombinationId) {
-            clearRouteProgress();
-            appState.dictionaryData.selectedRouteId = defaultRoute?.routeId || null;
-            appState.dictionaryData.selectedPatternId = defaultPattern?.patternId || null;
-            needsRerender = true;
-          }
-        } else {
-          const defaultPattern = patterns.find(pattern => pattern.id === data.selectedPatternId) || patterns[0] || null;
-          const patternChanged = data.selectedPatternId !== defaultPattern?.id;
-          if (patternChanged || data.selectedRouteId || data.selectedExpressionId || data.selectedSlotValue || data.selectedCombinationId) {
-            clearRouteProgress();
-            appState.dictionaryData.selectedPatternId = defaultPattern?.id || null;
-            needsRerender = true;
-          }
-        }
-      }
-      if (needsRerender) {
-        renderDictionaryExplorer();
-        return;
-      }
-      selectedExpression = data.selectedExpressionId ? expressions.find(e => e.id === data.selectedExpressionId) : null;
-      selectedRoute = buildConfig?.routes?.find(route => route.routeId === data.selectedRouteId) || null;
-      selectedPattern = selectedRoute
-        ? selectedRoute.patterns.find(pattern => pattern.patternId === data.selectedPatternId) || null
-        : patterns.find(pattern => pattern.id === data.selectedPatternId) || null;
-      const visibleExpressions = selectedView === 'expressions'
-        ? (selectedPattern ? expressions.filter(expression => expression.patternId === selectedPattern.id) : expressions)
-        : expressions;
-      if (selectedView === 'expressions' && visibleExpressions.length && (!selectedExpression || !visibleExpressions.some(expression => expression.id === selectedExpression.id))) {
-        appState.dictionaryData.selectedExpressionId = visibleExpressions[0].id;
-        needsRerender = true;
-      }
-      if (needsRerender) {
-        renderDictionaryExplorer();
-        return;
-      }
-      const buildViewActive = selectedView === 'build';
-      const selectedLocationMarkup = renderDictionaryLocation(selectedView, selectedVerb, selectedPattern, selectedExpression, selectedRoute, data);
-      if (dictionaryExplorer) {
-        dictionaryExplorer.classList.toggle('map-focused', buildViewActive);
-        dictionaryExplorer.classList.toggle('has-selected-expression', Boolean(selectedView !== 'build' && !legacyViewActive && selectedExpression));
-        dictionaryExplorer.classList.toggle('legacy-focused', legacyViewActive);
-      }
-      if (dictionaryScreen) dictionaryScreen.classList.toggle('map-focus-mode', buildViewActive);
-      if (mapFocusActions) mapFocusActions.classList.toggle('hidden', !buildViewActive);
-      if (legacySearchSection) legacySearchSection.hidden = selectedView !== 'legacy';
-      const dictionaryLocation = document.getElementById('dictionaryLocation');
-      if (dictionaryLocation) dictionaryLocation.hidden = legacyViewActive;
-      if (dictionaryLocation) dictionaryLocation.innerHTML = selectedLocationMarkup;
-      dictionarySubnav.querySelectorAll('[data-dictionary-view]').forEach(button => {
-        button.classList.toggle('active', button.dataset.dictionaryView === selectedView);
-        button.onclick = () => {
-          setDictionaryExplorerView(button.dataset.dictionaryView);
-          renderDictionaryExplorer();
-        };
-      });
-      if (showDictionaryLegacy) {
-        showDictionaryLegacy.textContent = '문장 빌드 맵 닫고 전체 사전 보기';
-        showDictionaryLegacy.onclick = () => {
-          appState.dictionaryData.selectedExpressionId = null;
-          setDictionaryExplorerView('verbs');
-          renderDictionaryExplorer();
-        };
-      }
-
-      status.className = 'explorer-status';
-      status.textContent = `${data.verbs.length}개 핵심 동사, ${data.patterns.length}개 표현 틀, ${data.expressions.length}개 표현 카드를 불러왔습니다.`;
-      verbButtons.innerHTML = data.verbs.map(verb => `<button class="verb-chip ${verb.id === selectedVerb.id ? 'active' : ''}" data-verb-id="${verb.id}">${verb.word}</button>`).join('');
-          verbButtons.querySelectorAll('[data-verb-id]').forEach(button => button.addEventListener('click', () => {
-            appState.dictionaryData.selectedVerbId = button.dataset.verbId;
-            appState.dictionaryData.selectedExpressionId = null;
-            setDictionaryExplorerView('verbs');
-            renderDictionaryExplorer();
-            updateRouteForScreen('dictionary');
-          }));
-
-      if (explorerGrid) explorerGrid.hidden = selectedView === 'build' || legacyViewActive;
-      verbPanel.hidden = selectedView === 'build' || legacyViewActive;
-      if (verbButtons) verbButtons.hidden = legacyViewActive;
-      if (status) status.hidden = legacyViewActive;
-      patternList.hidden = selectedView !== 'verbs';
-      const expressionPanel = document.getElementById('expressionExplorerPanel');
-      if (expressionPanel) expressionPanel.hidden = selectedView !== 'expressions' || legacyViewActive;
-      expressionList.hidden = selectedView !== 'expressions' || legacyViewActive;
-      detail.hidden = selectedView !== 'expressions' || legacyViewActive;
-      dictionaryMap.hidden = selectedView !== 'build' || legacyViewActive;
-
-      verbPanel.innerHTML = `
-        <h4>선택한 핵심 동사</h4>
-        <div class="verb-image">${escapeHtml(selectedVerb.word)} = ${escapeHtml(selectedVerb.coreImage)}</div>
-        <p>${escapeHtml(selectedVerb.easyKorean)}</p>
-        <p class="explorer-guide">이 동사의 패턴만 먼저 봅니다.</p>
-        <p class="small-note">대표 상황: ${selectedVerb.representativeSituations.map(escapeHtml).join(' · ')}</p>
-        <p class="small-note">연결 동사: ${selectedVerb.connectedVerbIds.map(id => data.verbs.find(v => v.id === id)?.word || id).map(escapeHtml).join(' · ')}</p>
-      `;
-      patternList.innerHTML = patterns.length ? patterns.map(pattern => `
-        <button class="pattern-item" data-pattern-id="${pattern.id}">
-          ${escapeHtml(pattern.label)}
-          <span class="small-note">${escapeHtml(pattern.thinkingFrame)}</span>
-        </button>
-      `).join('') : '<p class="small-note">아직 연결된 표현 틀이 없습니다.</p>';
-          patternList.querySelectorAll('[data-pattern-id]').forEach(button => button.addEventListener('click', () => {
-              const pattern = data.patterns.find(item => item.id === button.dataset.patternId);
-              const targetExpression = getPatternDefaultExpression(pattern, selectedVerb, data);
-              appState.dictionaryData.selectedPatternId = button.dataset.patternId;
-              if (targetExpression) {
-                selectMapExpression(targetExpression.id);
-              } else {
-                setDictionaryExplorerView('expressions');
-                renderDictionaryExplorer();
-              }
-              updateRouteForScreen('dictionary');
-          }));
-
-      expressionList.innerHTML = visibleExpressions.length ? visibleExpressions.map(expression => `
-        <button class="expression-item ${selectedExpression?.id === expression.id ? 'active' : ''}" data-expression-id="${expression.id}">
-          ${escapeHtml(expression.english)}
-          <span>${escapeHtml(expression.naturalKorean)}</span>
-        </button>
-      `).join('') : '<p class="small-note">선택한 표현 틀에 해당하는 실생활 표현이 아직 없습니다.</p>';
-          expressionList.querySelectorAll('[data-expression-id]').forEach(button => button.addEventListener('click', () => {
-              selectMapExpression(button.dataset.expressionId);
-              updateRouteForScreen('dictionary');
-          }));
-
-      if (selectedExpression) {
-        const pattern = data.patterns.find(p => p.id === selectedExpression.patternId);
-        const nouns = selectedExpression.nounIds.map(id => data.nouns.find(noun => noun.id === id)?.word || id);
-          const guideBanner = appState.progress.settings.seenConnectionGuide ? '' : '<div class="connection-guide">뜻, 문장, 말하기가 연결돼요.</div>';
-        if (!appState.progress.settings.seenConnectionGuide) {
-          appState.progress.settings.seenConnectionGuide = true;
-          saveProgress();
-        }
-        detail.innerHTML = `
-          <h4>표현 상세</h4>
-          ${guideBanner}
-          <h3>${escapeHtml(selectedExpression.english)}</h3>
-          <p><b>${escapeHtml(selectedExpression.naturalKorean)}</b></p>
-          <p class="small-note">직역 이미지: ${escapeHtml(selectedExpression.literalMeaning)}</p>
-          <div class="chunk-row">${selectedExpression.chunks.map(chunk => `<span class="chunk">${escapeHtml(chunk)}</span>`).join('')}</div>
-          <p class="explorer-guide">덩어리를 보고 바로 퀴즈로 넘어가세요.</p>
-          <p class="small-note">표현 틀: ${escapeHtml(pattern?.label || selectedExpression.patternId)} · 핵심 명사: ${nouns.map(escapeHtml).join(' · ') || '없음'}</p>
-          <ol class="hint-list">${selectedExpression.hints.map(hint => `<li>${escapeHtml(hint)}</li>`).join('')}</ol>
-          <div class="question-actions" style="justify-content:flex-start">
-            <button class="btn dark quiz-expression" data-expression-id="${selectedExpression.id}">이 표현으로 퀴즈 풀기</button>
-          </div>
-          <div class="filter-row" style="margin-top:10px">
-            ${(selectedExpression.relatedExpressionIds || []).map(id => {
-              const related = data.expressions.find(expression => expression.id === id);
-              return related ? `<button class="filter related-expression" data-expression-id="${related.id}">${escapeHtml(related.english)}</button>` : '';
-            }).join('')}
-          </div>
-        `;
-        detail.querySelectorAll('.quiz-expression').forEach(button => button.addEventListener('click', () => startMode('koen', button.dataset.expressionId)));
-        detail.querySelectorAll('.related-expression').forEach(button => button.addEventListener('click', () => {
-          const related = data.expressions.find(expression => expression.id === button.dataset.expressionId);
-          if (!related) return;
-          selectMapExpression(related.id);
-          updateRouteForScreen('dictionary');
-            }));
-      } else {
-        detail.innerHTML = selectedView === 'build'
-          ? '<h3>문장 빌드 맵</h3><p>동사부터 먼저 고르는 연습을 하려면 위의 빌드 맵을 보세요.</p>'
-          : '<h3>표현 상세</h3><p>표현을 선택하면 영어 문장, 자연스러운 한국어, 단어 덩어리, 힌트가 여기에 표시됩니다.</p>';
-      }
-      if (selectedView === 'build') {
-        dictionaryMap.innerHTML = renderVerbMap(selectedVerb, data);
-        attachDictionaryMapHandlers(dictionaryMap);
-      } else {
-        dictionaryMap.innerHTML = '';
-      }
+      renderWords();
     }
 
     function renderMapVerbButtons(targetId, attrName) {
@@ -3797,25 +3607,9 @@
       };
 
       (frame?.examples || []).forEach(pushExample);
-      if (results.length >= limit) return results.slice(0, limit);
-
-      const expressions = appState.dictionaryData.expressions || [];
-      const coreVerbId = `v_${verbId}`;
-      const verbExpressions = expressions.filter(item => item.coreVerbId === coreVerbId);
-      const patternExpressions = frame?.patternId
-        ? verbExpressions.filter(item => item.patternId === frame.patternId)
-        : [];
-
-      const preferredExpressions = patternExpressions.length ? patternExpressions : verbExpressions;
-      preferredExpressions.forEach(expression => {
-        pushExample({
-          en: expression.english,
-          ko: expression.naturalKorean || expression.literalMeaning || '',
-          note: expression.mapCombination && expression.mapCombination !== expression.english
-            ? expression.mapCombination
-            : '',
-        });
-      });
+      if (!results.length && Array.isArray(map?.examples)) {
+        map.examples.forEach(pushExample);
+      }
 
       return results.slice(0, limit);
     }
@@ -3870,7 +3664,7 @@
           `).join('')}
         </div>
         <div class="map-col">
-          <h3>3. 다양한 표현</h3>
+          <h3>3. 실생활 표현</h3>
           <p class="small-note" style="margin:0 0 10px">${escapeHtml(activeFrame ? `${activeFrame.label} 예문 5개를 바로 보여줘요.` : '생각틀을 고르면 예문 5개가 바로 보여줘요.')}</p>
           <p class="small-note" style="margin:0 0 10px"><b>선택됨:</b> ${escapeHtml(activeFrame?.label || '생각틀이 없습니다.')}${activeFrame?.meaning ? ` · ${escapeHtml(activeFrame.meaning)}` : ''}</p>
           ${activeFrameExamples.map(example => `
@@ -4057,6 +3851,7 @@
 
         window.addEventListener('hashchange', applyRoute);
         document.querySelectorAll('.nav button').forEach(btn => btn.addEventListener('click', () => showScreen(btn.dataset.screen)));
+    document.querySelector('.brand')?.addEventListener('click', () => showScreen('home'));
     document.getElementById('startDaily').addEventListener('click', () => startQuest());
     document.getElementById('jumpDictionary').addEventListener('click', () => showScreen('dictionary'));
     document.getElementById('exitLesson').addEventListener('click', () => showScreen('play'));

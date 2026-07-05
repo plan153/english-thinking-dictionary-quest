@@ -1,4 +1,4 @@
-const CACHE = 'etd-quest-v1.0.0-data-v9';
+const CACHE = 'etd-quest-v1.0.0-data-v10';
 const ASSETS = [
   './',
   './index.html',
