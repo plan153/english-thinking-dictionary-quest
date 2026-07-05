@@ -54,6 +54,18 @@
     .brand p { font-size: 12px; color: var(--muted); margin: 3px 0 0; }
     .top-stats { display:flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
     .stat-pill { background: rgba(255,255,255,.72); border: 1px solid var(--line); padding: 9px 11px; border-radius: 99px; font-size: 13px; font-weight: 760; }
+    .sound-pill {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width: 62px;
+      padding-inline: 12px;
+      color: var(--accent);
+      background: rgba(232, 246, 245, .92);
+      font-size: 18px;
+      line-height: 1;
+      border: 1px solid rgba(40,111,108,.12);
+    }
 
     .nav { display:flex; gap: 8px; overflow-x:auto; padding-bottom: 6px; margin-bottom: 22px; }
     .nav button { border: 1px solid var(--line); background: rgba(255,255,255,.58); color: var(--muted); border-radius: 12px; padding: 10px 13px; white-space: nowrap; font-weight: 760; }
@@ -316,7 +328,21 @@
     .map-section summary::-webkit-details-marker { display:none; }
     .map-chip-row,
     .map-chip-list { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
-    .map-chip { border:1px solid var(--line); border-radius:999px; background:#f8fbfa; color:var(--ink); padding:10px 12px; font-size:13px; font-weight:800; transition:.16s ease; }
+    .map-chip {
+      border:1px solid var(--line);
+      border-radius:999px;
+      background:#f8fbfa;
+      color:var(--ink);
+      padding:10px 12px;
+      font-size:13px;
+      font-weight:800;
+      transition:.16s ease;
+      display:inline-flex;
+      align-items:center;
+      min-width:0;
+      max-width:100%;
+      box-sizing:border-box;
+    }
     .map-chip:hover { border-color:var(--accent); background:#eaf4f3; }
     .map-chip.active { background:var(--accent); color:#fff; border-color:var(--accent); }
     .map-sentence-card { border:1px solid rgba(40,111,108,.18); border-radius:14px; background:#fff; padding:12px; display:grid; gap:10px; }
@@ -354,7 +380,18 @@
     .map-frame-card { width:100%; display:block; margin-top:10px; text-align:left; }
     .map-frame-card:first-of-type { margin-top: 0; }
     .map-frame-card.active { border-color: var(--accent); background: #eef7f6; box-shadow: inset 0 0 0 1px rgba(40,111,108,.08); }
-    .map-frame-card .map-frame-combos { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+    .map-frame-card .map-frame-combos {
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-top:10px;
+      max-width:100%;
+    }
+    .map-frame-card .map-frame-combos .map-chip {
+      flex:0 1 auto;
+      white-space:nowrap;
+      line-height:1.35;
+    }
     .map-example-card { margin-top:10px; }
     .map-example-card:first-of-type { margin-top: 0; }
     .node { padding:10px 11px; border-radius:12px; background:#fff; border:1px solid var(--line); margin-bottom:8px; font-weight:800; font-size:14px; }
@@ -430,7 +467,7 @@
         </div>
       </div>
       <div class="top-controls">
-        <button class="btn soft" id="toggleSound" type="button">🔊 소리 켬</button>
+        <button class="stat-pill sound-pill" id="toggleSound" type="button" aria-label="소리 켬" title="소리 켬">🔊</button>
         <div class="top-stats">
           <div class="stat-pill">🔥 <span id="streak">0</span>일</div>
           <div class="stat-pill">⚡ <span id="xp">0</span> XP</div>
@@ -713,10 +750,54 @@
         engineSummary: "얻다 · 받다 · 도착하다 · 이해하다 · 상태가 되다",
         coreImage: "밖의 것을 내 쪽으로 가져오거나 상태를 바꾸는 느낌",
         frames: [
-          { label: "get + thing", meaning: "얻다 · 받다", combos: ["get a text", "get coffee", "get some rest"] },
-          { label: "get + it", meaning: "이해하다 · 알아듣다", combos: ["get it", "get the point", "get the idea"] },
-          { label: "get + place", meaning: "도착하다", combos: ["get home", "get to school", "get there"] },
-          { label: "get + adjective", meaning: "상태가 되다", combos: ["get ready", "get better", "get tired"] },
+          {
+            label: "get + thing",
+            meaning: "얻다 · 받다",
+            combos: ["get a text", "get coffee", "get some rest"],
+            examples: [
+              { en: "I got a text.", ko: "문자 받았어." },
+              { en: "I got a call.", ko: "전화 받았어." },
+              { en: "Did you get my email?", ko: "내 이메일 받았어?" },
+              { en: "Can I get coffee?", ko: "커피 좀 받을 수 있을까?" },
+              { en: "She got a gift.", ko: "그녀는 선물을 받았어." },
+            ],
+          },
+          {
+            label: "get + it",
+            meaning: "이해하다 · 알아듣다",
+            combos: ["get it", "get the point", "get the idea"],
+            examples: [
+              { en: "I get it.", ko: "이해했어." },
+              { en: "Did you get the point?", ko: "요점 이해했어?" },
+              { en: "Now I get what you mean.", ko: "이제 네 말이 무슨 뜻인지 알겠어." },
+              { en: "I don’t get the joke.", ko: "농담이 이해가 안 돼." },
+              { en: "Get it?", ko: "알겠지?" },
+            ],
+          },
+          {
+            label: "get + place",
+            meaning: "도착하다",
+            combos: ["get home", "get to school", "get there"],
+            examples: [
+              { en: "I got home late.", ko: "나 집에 늦게 도착했어.", note: "home 앞에는 to를 쓰지 않아요." },
+              { en: "I got to school early.", ko: "나 학교에 일찍 도착했어." },
+              { en: "When did you get there?", ko: "너 거기 언제 도착했어?", note: "there 앞에도 to를 쓰지 않아요." },
+              { en: "I need to get home now.", ko: "나 지금 집에 가야 해.", note: "집에 갈 때는 get home을 많이 써요." },
+              { en: "We got to the office before nine.", ko: "우린 9시 전에 사무실에 도착했어." },
+            ],
+          },
+          {
+            label: "get + adjective",
+            meaning: "상태가 되다",
+            combos: ["get ready", "get better", "get tired"],
+            examples: [
+              { en: "I get ready early.", ko: "나 일찍 준비해." },
+              { en: "I’m getting better.", ko: "점점 나아지고 있어." },
+              { en: "It gets cold at night.", ko: "밤엔 추워져." },
+              { en: "She got angry.", ko: "그녀는 화가 났어." },
+              { en: "We got tired quickly.", ko: "우린 금방 피곤해졌어." },
+            ],
+          },
         ],
         examples: [
           { en: "I got a text.", ko: "문자 받았어." },
@@ -3222,6 +3303,7 @@
       const m = mapSets[currentMapId] || mapSets.get;
       const activeFrameIndex = ensureMapFrameSelection(currentMapId);
       const activeFrame = m.frames?.[activeFrameIndex] || m.frames?.[0] || null;
+      const activeFrameExamples = (activeFrame?.examples?.length ? activeFrame.examples : m.examples || []).slice(0, 5);
       const thinkingMap = document.getElementById('thinkingMap');
       if (!thinkingMap || !m) return;
       thinkingMap.innerHTML = `
@@ -3235,13 +3317,7 @@
         </div>
         <div class="map-col">
           <h3>2. 생각틀</h3>
-          <p class="small-note" style="margin:0 0 10px">자주 쓰는 덩어리 2~3개만 모았습니다. 하나를 누르면 대표 생각틀이 바뀝니다.</p>
-          <div class="map-detail-card">
-            <p><b>대표 생각틀</b></p>
-            <p>${escapeHtml(activeFrame?.label || '생각틀이 없습니다.')}</p>
-            ${activeFrame?.meaning ? `<p class="small-note" style="margin-top:8px">${escapeHtml(activeFrame.meaning)}</p>` : ''}
-            ${activeFrame?.combos?.length ? `<div class="map-frame-combos">${activeFrame.combos.map(combo => `<span class="map-chip">${escapeHtml(combo)}</span>`).join('')}</div>` : ''}
-          </div>
+          <p class="small-note" style="margin:0 0 10px">생각틀을 누르면 바로 아래 예문이 바뀝니다. 처음에는 랜덤으로 하나가 선택돼 있어요.</p>
           ${m.frames.map((frame, index) => `
             <button class="map-detail-card map-frame-card ${index === activeFrameIndex ? 'active' : ''}" type="button" data-map-frame-index="${index}">
               <p><b>${escapeHtml(frame.label)}</b></p>
@@ -3252,8 +3328,9 @@
         </div>
         <div class="map-col">
           <h3>3. 다양한 표현</h3>
-          <p class="small-note" style="margin:0 0 10px">${escapeHtml(activeFrame ? `${activeFrame.label}을 기준으로 자주 쓰는 표현 5개를 보여줘요.` : '자주 쓰는 표현 5개를 보여줘요.')}</p>
-          ${m.examples.map(example => `
+          <p class="small-note" style="margin:0 0 10px">${escapeHtml(activeFrame ? `${activeFrame.label} 예문 5개를 바로 보여줘요.` : '생각틀을 고르면 예문 5개가 바로 보여줘요.')}</p>
+          <p class="small-note" style="margin:0 0 10px"><b>선택됨:</b> ${escapeHtml(activeFrame?.label || '생각틀이 없습니다.')}${activeFrame?.meaning ? ` · ${escapeHtml(activeFrame.meaning)}` : ''}</p>
+          ${activeFrameExamples.map(example => `
             <div class="map-detail-card map-example-card">
               <p><b>${escapeHtml(example.en)}</b></p>
               <p>${escapeHtml(example.ko)}</p>
@@ -3427,8 +3504,10 @@
       const button = document.getElementById('toggleSound');
       if (!button) return;
       const enabled = appState.progress.settings?.soundEnabled !== false;
-      button.textContent = enabled ? '🔊 소리 켬' : '🔇 소리 끔';
+      button.textContent = enabled ? '🔊' : '🔇';
       button.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+      button.setAttribute('aria-label', enabled ? '소리 켬' : '소리 끔');
+      button.setAttribute('title', enabled ? '소리 켬' : '소리 끔');
     }
     function toast(msg) { const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2200); }
     function escapeHtml(s) { return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
