@@ -351,6 +351,12 @@
     .thinking-map { min-width:800px; display:grid; grid-template-columns: 1fr 1.35fr 1fr; gap:16px; align-items:stretch; }
     .map-col { border-radius:20px; padding:15px; border:1px solid var(--line); background:rgba(255,253,249,.8); }
     .map-col h3 { font-size:13px; margin:0 0 11px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
+    .map-frame-card { width:100%; display:block; margin-top:10px; text-align:left; }
+    .map-frame-card:first-of-type { margin-top: 0; }
+    .map-frame-card.active { border-color: var(--accent); background: #eef7f6; box-shadow: inset 0 0 0 1px rgba(40,111,108,.08); }
+    .map-frame-card .map-frame-combos { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+    .map-example-card { margin-top:10px; }
+    .map-example-card:first-of-type { margin-top: 0; }
     .node { padding:10px 11px; border-radius:12px; background:#fff; border:1px solid var(--line); margin-bottom:8px; font-weight:800; font-size:14px; }
     .node.verb { border-color:#b8dcd9; background:#eff9f8; }
     .node.frame { border-color:#f3d5c9; background:#fff5f0; }
@@ -445,7 +451,7 @@
       <div class="hero">
         <div class="eyebrow">Think in building blocks</div>
         <h2>영어 문장을 외우지 말고,<br>핵심 단어를 조립하세요.</h2>
-        <p><b>have · get · make · take · give · go · come · keep · put · feel</b> 같은 기본 동사와 핵심 명사를 연결합니다. 듣고, 따라 말하고, 힌트를 보며 직접 조립하면 한국어를 거치지 않고 말이 나옵니다.</p>
+        <p><b>be · do · have · get · make · take · give · go · come · put · keep · find · feel · want · need</b> 같은 기본 동사와 핵심 명사를 연결합니다. 듣고, 따라 말하고, 힌트를 보며 직접 조립하면 한국어를 거치지 않고 말이 나옵니다.</p>
         <div class="hero-actions">
           <button class="btn primary" id="startDaily">오늘의 7분 퀘스트 시작</button>
           <button class="btn ghost" id="jumpDictionary">사전 탐험하기</button>
@@ -464,12 +470,7 @@
         <article class="card">
           <h3>오늘의 연결</h3>
           <p>하나의 기본 엔진은 “한 단어”가 아니라 여러 표현을 만드는 출발점입니다.</p>
-          <div style="margin-top:14px; display:flex; flex-wrap:wrap; gap:8px;">
-            <button class="filter active" data-map-focus="get">get</button>
-            <button class="filter" data-map-focus="make">make</button>
-            <button class="filter" data-map-focus="take">take</button>
-            <button class="filter" data-map-focus="have">have</button>
-          </div>
+          <div id="homeConnectionChips" style="margin-top:14px; display:flex; flex-wrap:wrap; gap:8px;"></div>
           <p class="small-note" id="connectionText" style="margin-top:12px">기본 엔진 get · 얻다 · 받다 · 도착하다 · 이해하다 · 상태가 되다</p>
         </article>
       </div>
@@ -554,12 +555,12 @@
 
     <section id="map" class="screen">
       <div class="section-head">
-        <div><h2>연결 지도</h2><p>기본 엔진 → 생각틀 → 다양한 표현으로 문장을 만듭니다. 사전 탐험의 문장 빌드 맵을 더 크게 펼쳐 보는 곳입니다.</p></div>
+        <div><h2>연결 지도</h2><p>기본 엔진 → 생각틀 → 다양한 표현 5개를 함께 봅니다. 사전 탐험의 문장 빌드 맵을 더 크게 펼쳐 보는 곳입니다.</p></div>
       </div>
       <article class="card">
         <div class="filter-row" id="mapFilters" style="margin-bottom:15px"></div>
         <div class="map-wrap"><div class="thinking-map" id="thinkingMap"></div></div>
-        <p class="small-note">예: <b>make + a decision</b> = 결정을 만들다 → “결정하다”. 단어 하나씩 번역하는 대신, 기본 엔진·생각틀·다양한 표현을 함께 묶어 봅니다.</p>
+        <p class="small-note">예: <b>make + a decision</b> = 결정을 만들다 → “결정하다”. 단어 하나씩 번역하는 대신, 기본 엔진·생각틀·다양한 표현 5개를 함께 묶어 봅니다.</p>
       </article>
     </section>
 
@@ -656,12 +657,262 @@
     ];
 
     const mapSets = {
-      get: { title:'get 엔진', engineSummary:'얻다 · 받다 · 도착하다 · 이해하다 · 상태가 되다', verbs:['get'], frames:['get + thing', 'get + place', 'get + adjective', 'get + it'], examples:['a message', 'home', 'better', 'the point'], sampleSentences:['I got your message.', 'I got home late.', 'I’m getting better.', 'I get it.'] },
-      make: { title:'make 엔진', engineSummary:'만들다 · 결정/계획/변화를 만들다', verbs:['make'], frames:['make + a thing', 'make + a change', 'make + sure'], examples:['a plan', 'a decision', 'progress', 'a mistake'], sampleSentences:['Let’s make a plan.', 'I need to make a decision.', 'You’re making progress.', 'I made a mistake.'] },
-      take: { title:'take 엔진', engineSummary:'가지고 가다 · 시간을 들이다 · 선택하다 · 행동하다', verbs:['take'], frames:['take + time', 'take + a thing', 'take + action'], examples:['time', 'a break', 'a look', 'care'], sampleSentences:['It takes time.', 'Take a break.', 'Take a look.', 'Take care.'] },
-      have: { title:'have 엔진', engineSummary:'가지다 · 먹다/마시다 · 경험하다 · 시간을 보내다', verbs:['have'], frames:['have + thing', 'have + experience', 'have + meal'], examples:['time', 'a problem', 'an idea', 'lunch'], sampleSentences:['Do you have time?', 'We have a problem.', 'I have an idea.', 'Let’s have lunch.'] },
-      want: { title:'want 엔진', engineSummary:'원하다 · 하고 싶다', verbs:['want'], frames:['want to + verb', 'want + thing'], examples:['try', 'know', 'help', 'more time'], sampleSentences:['I want to try.', 'I want to know.', 'I want help.', 'I want more time.'] },
-      need: { title:'need 엔진', engineSummary:'필요하다 · 해야 한다', verbs:['need'], frames:['need + thing', 'need to + verb'], examples:['help', 'time', 'a break', 'to go'], sampleSentences:['I need help.', 'I need more time.', 'I need a break.', 'I need to go.'] },
+      be: {
+        title: "be 기본 엔진",
+        engineSummary: "상태 · 정체성 · 위치를 그대로 말하기",
+        coreImage: "바뀌지 않은 상태를 보여 주는 엔진",
+        frames: [
+          { label: "be + state", meaning: "상태나 정체성을 말하기", combos: ["be ready", "be busy", "be calm"] },
+          { label: "be + place", meaning: "어디에 있는지 말하기", combos: ["be at home", "be at work", "be in the car"] },
+          { label: "be on one's way", meaning: "이동 중임을 말하기", combos: ["be on my way", "be on your way", "be on the way"] },
+        ],
+        examples: [
+          { en: "I’m ready.", ko: "준비됐어." },
+          { en: "I’m busy now.", ko: "나 지금 바빠." },
+          { en: "She’s at work.", ko: "그녀는 일하는 중이야." },
+          { en: "I’m on my way.", ko: "지금 가는 중이야." },
+          { en: "The key is on the table.", ko: "열쇠는 테이블 위에 있어." },
+        ],
+      },
+      do: {
+        title: "do 기본 엔진",
+        engineSummary: "일 · 행동 · 해야 할 일을 실제로 처리하기",
+        coreImage: "손으로 직접 해내는 느낌의 엔진",
+        frames: [
+          { label: "do + action", meaning: "일이나 행동을 처리하기", combos: ["do the dishes", "do homework", "do your best"] },
+          { label: "do + task", meaning: "맡은 일을 해내기", combos: ["do the laundry", "do a favor", "do the shopping"] },
+          { label: "do + need", meaning: "필요를 묻고 돕기", combos: ["Do you need help?", "What do you need?", "Do what you can"] },
+        ],
+        examples: [
+          { en: "Do your best.", ko: "최선을 다해." },
+          { en: "I did my homework.", ko: "숙제했어." },
+          { en: "Do the dishes, please.", ko: "설거지 좀 해줘." },
+          { en: "Do you need help?", ko: "도움 필요해?" },
+          { en: "Please do it now.", ko: "지금 해줘." },
+        ],
+      },
+      have: {
+        title: "have 기본 엔진",
+        engineSummary: "가지고 있거나 경험하고 있는 상태",
+        coreImage: "내 쪽에 들어온 것을 붙잡아 두는 느낌",
+        frames: [
+          { label: "have + noun", meaning: "가지고 있다", combos: ["have a question", "have a problem", "have an idea"] },
+          { label: "have + time", meaning: "쓸 시간이 있다", combos: ["have time", "have a minute", "have all day"] },
+          { label: "have + meal", meaning: "먹거나 마시다", combos: ["have coffee", "have lunch", "have dinner"] },
+        ],
+        examples: [
+          { en: "I have a question.", ko: "질문이 있어." },
+          { en: "Do you have time?", ko: "시간 있어?" },
+          { en: "We have a problem.", ko: "문제가 있어." },
+          { en: "I have an idea.", ko: "아이디어가 있어." },
+          { en: "Let’s have lunch.", ko: "점심 먹자." },
+        ],
+      },
+      get: {
+        title: "get 기본 엔진",
+        engineSummary: "얻다 · 받다 · 도착하다 · 이해하다 · 상태가 되다",
+        coreImage: "밖의 것을 내 쪽으로 가져오거나 상태를 바꾸는 느낌",
+        frames: [
+          { label: "get + thing", meaning: "얻다 · 받다", combos: ["get a text", "get coffee", "get some rest"] },
+          { label: "get + it", meaning: "이해하다 · 알아듣다", combos: ["get it", "get the point", "get the idea"] },
+          { label: "get + place", meaning: "도착하다", combos: ["get home", "get to school", "get there"] },
+          { label: "get + adjective", meaning: "상태가 되다", combos: ["get ready", "get better", "get tired"] },
+        ],
+        examples: [
+          { en: "I got a text.", ko: "문자 받았어." },
+          { en: "I got the point.", ko: "요점을 이해했어.", note: "이해했다는 뜻으로 자주 써요." },
+          { en: "I got home late.", ko: "나 집에 늦게 도착했어.", note: "home 앞에는 to를 쓰지 않아요." },
+          { en: "I need to get ready.", ko: "나 준비해야 해." },
+          { en: "I’m getting better.", ko: "점점 나아지고 있어.", note: "상태가 바뀌는 흐름이에요." },
+        ],
+      },
+      make: {
+        title: "make 기본 엔진",
+        engineSummary: "없던 것을 만들어 결과를 내기",
+        coreImage: "손으로 새 결과를 빚어내는 느낌",
+        frames: [
+          { label: "make + thing", meaning: "계획 · 결정 · 변화를 만들기", combos: ["make a plan", "make a decision", "make a change"] },
+          { label: "make + sure", meaning: "확실하게 확인하기", combos: ["make sure", "make sure to", "make sure you"] },
+          { label: "make + person state", meaning: "누군가를 어떤 상태로 만들기", combos: ["make me happy", "make him angry", "make it easy"] },
+        ],
+        examples: [
+          { en: "Let’s make a plan.", ko: "계획 세우자." },
+          { en: "I need to make a decision.", ko: "결정해야 해." },
+          { en: "Please make sure the door is closed.", ko: "문이 닫혔는지 확인해 줘." },
+          { en: "You make me happy.", ko: "너랑 있으면 행복해." },
+          { en: "This makes it easy.", ko: "이건 쉽게 해 줘." },
+        ],
+      },
+      take: {
+        title: "take 기본 엔진",
+        engineSummary: "시간을 들이거나 무언가를 가져가기",
+        coreImage: "상황을 내 쪽으로 잠시 끌어오는 느낌",
+        frames: [
+          { label: "take + time", meaning: "시간이 걸리다", combos: ["take time", "take a while", "take patience"] },
+          { label: "take + action", meaning: "행동을 취하다", combos: ["take a break", "take a look", "take care"] },
+          { label: "take + transport", meaning: "교통수단을 타다", combos: ["take the bus", "take a taxi", "take the train"] },
+        ],
+        examples: [
+          { en: "It takes time.", ko: "시간이 걸려." },
+          { en: "Take a break.", ko: "쉬어." },
+          { en: "Take a look.", ko: "한번 봐." },
+          { en: "I took the bus.", ko: "버스를 탔어." },
+          { en: "Take care.", ko: "잘 지내." },
+        ],
+      },
+      give: {
+        title: "give 기본 엔진",
+        engineSummary: "내 쪽에서 상대에게 넘겨주기",
+        coreImage: "손에 든 것을 건네주는 느낌",
+        frames: [
+          { label: "give + thing", meaning: "무언가를 건네주기", combos: ["give me a call", "give me a hand", "give me a minute"] },
+          { label: "give it a try", meaning: "한번 시도해 보기", combos: ["give it a try", "give it a shot", "give it a go"] },
+          { label: "give + chance", meaning: "기회를 주기", combos: ["give her a chance", "give him a chance", "give it a chance"] },
+        ],
+        examples: [
+          { en: "Give me a call.", ko: "전화해 줘." },
+          { en: "Give me a hand.", ko: "좀 도와줘." },
+          { en: "Give it a try.", ko: "한번 해 봐." },
+          { en: "Give her a chance.", ko: "그녀에게 기회를 줘." },
+          { en: "Give me a minute.", ko: "잠깐만 기다려 줘." },
+        ],
+      },
+      go: {
+        title: "go 기본 엔진",
+        engineSummary: "앞으로 움직이거나 일이 진행되기",
+        coreImage: "출발과 진행을 표현하는 느낌",
+        frames: [
+          { label: "go + place", meaning: "어디로 가다", combos: ["go home", "go to school", "go somewhere"] },
+          { label: "go + well", meaning: "잘 진행되다", combos: ["go well", "go smoothly", "go wrong"] },
+          { label: "go + on/ahead", meaning: "계속되거나 먼저 하다", combos: ["go ahead", "go on", "go on with"] },
+        ],
+        examples: [
+          { en: "I’m going home.", ko: "나 집에 가는 중이야." },
+          { en: "How did it go?", ko: "어땠어?", note: "일의 결과를 물을 때 많이 써요." },
+          { en: "Everything went well.", ko: "모든 게 잘됐어." },
+          { en: "Go ahead.", ko: "먼저 해.", note: "먼저 하라고 할 때 자연스러워요." },
+          { en: "What’s going on?", ko: "무슨 일이야?" },
+        ],
+      },
+      come: {
+        title: "come 기본 엔진",
+        engineSummary: "말하는 사람 쪽으로 오거나 일이 생기기",
+        coreImage: "화자의 자리로 다가오는 느낌",
+        frames: [
+          { label: "come + with", meaning: "같이 오다", combos: ["come with me", "come with us", "come along"] },
+          { label: "come + back", meaning: "돌아오다", combos: ["come back soon", "come back later", "come back home"] },
+          { label: "come + up", meaning: "일이 생기다", combos: ["come up", "something comes up", "come up again"] },
+        ],
+        examples: [
+          { en: "Come with me.", ko: "같이 가자." },
+          { en: "Come back soon.", ko: "곧 돌아와." },
+          { en: "Please come in.", ko: "들어와 주세요." },
+          { en: "Something came up.", ko: "일이 좀 생겼어." },
+          { en: "Come here for a second.", ko: "잠깐 여기 와." },
+        ],
+      },
+      put: {
+        title: "put 기본 엔진",
+        engineSummary: "어딘가에 놓아 위치시키기",
+        coreImage: "물건을 제자리에 놓는 느낌",
+        frames: [
+          { label: "put + place", meaning: "어딘가에 놓다", combos: ["put it here", "put it on the table", "put it back"] },
+          { label: "put on / take off", meaning: "입거나 벗거나 켜고 끄기", combos: ["put on a coat", "put on glasses", "take off your shoes"] },
+          { label: "put + together", meaning: "조립하거나 맞추기", combos: ["put it together", "put the pieces together", "put words together"] },
+        ],
+        examples: [
+          { en: "Put it on the table.", ko: "테이블 위에 올려 둬." },
+          { en: "Put it back.", ko: "제자리에 두어라." },
+          { en: "Put on a coat.", ko: "코트 입어." },
+          { en: "Don’t put it off.", ko: "미루지 마." },
+          { en: "Put the pieces together.", ko: "조각을 맞춰 봐." },
+        ],
+      },
+      keep: {
+        title: "keep 기본 엔진",
+        engineSummary: "상태나 행동을 계속 유지하기",
+        coreImage: "멈추지 않고 이어 가는 느낌",
+        frames: [
+          { label: "keep + -ing", meaning: "계속 ~하다", combos: ["keep going", "keep trying", "keep walking"] },
+          { label: "keep + state", meaning: "상태를 유지하다", combos: ["keep quiet", "keep calm", "keep warm"] },
+          { label: "keep + contact", meaning: "연락을 유지하다", combos: ["keep in touch", "keep in mind", "keep posted"] },
+        ],
+        examples: [
+          { en: "Keep going.", ko: "계속 가." },
+          { en: "Keep trying.", ko: "계속 해 봐." },
+          { en: "Keep quiet.", ko: "조용히 해." },
+          { en: "Keep in touch.", ko: "연락하자." },
+          { en: "Keep it simple.", ko: "단순하게 가자." },
+        ],
+      },
+      find: {
+        title: "find 기본 엔진",
+        engineSummary: "찾아서 눈앞에 두거나 알게 되기",
+        coreImage: "숨은 것을 찾아 손에 올려놓는 느낌",
+        frames: [
+          { label: "find + thing", meaning: "무언가를 찾아내다", combos: ["find my keys", "find a seat", "find money"] },
+          { label: "find + way", meaning: "방법을 찾다", combos: ["find a way", "find your way", "find a better way"] },
+          { label: "find out", meaning: "알아내다", combos: ["find out", "find out the truth", "find out later"] },
+        ],
+        examples: [
+          { en: "I found my keys.", ko: "열쇠를 찾았어." },
+          { en: "I found a better way.", ko: "더 나은 방법을 찾았어." },
+          { en: "I found out the truth.", ko: "사실을 알아냈어." },
+          { en: "Find a place to sit.", ko: "앉을 자리를 찾아." },
+          { en: "Find your way back.", ko: "돌아오는 길을 찾아." },
+        ],
+      },
+      feel: {
+        title: "feel 기본 엔진",
+        engineSummary: "몸과 마음의 상태를 느끼기",
+        coreImage: "감각과 기분이 몸에서 바로 올라오는 느낌",
+        frames: [
+          { label: "feel + state", meaning: "몸/기분이 어떻다", combos: ["feel tired", "feel better", "feel sick"] },
+          { label: "feel like + noun/verb", meaning: "~하고 싶다/같다", combos: ["feel like coffee", "feel like going", "feel like a nap"] },
+          { label: "feel free", meaning: "편하게 하다", combos: ["feel free to ask", "feel free to call", "feel free to join"] },
+        ],
+        examples: [
+          { en: "I feel tired.", ko: "피곤해." },
+          { en: "I feel better now.", ko: "이제 좀 나아." },
+          { en: "I feel like coffee.", ko: "커피가 마시고 싶어." },
+          { en: "Feel free to ask.", ko: "편하게 물어봐." },
+          { en: "It feels good.", ko: "기분 좋아." },
+        ],
+      },
+      want: {
+        title: "want 기본 엔진",
+        engineSummary: "마음이 어떤 쪽으로 가기",
+        coreImage: "마음이 끌리는 쪽을 향하는 느낌",
+        frames: [
+          { label: "want + thing", meaning: "무엇을 원하다", combos: ["want a break", "want more time", "want coffee"] },
+          { label: "want to + verb", meaning: "~하고 싶다", combos: ["want to try", "want to know", "want to go"] },
+          { label: "want + result", meaning: "어떤 결과를 원하다", combos: ["want it now", "want it done", "want a change"] },
+        ],
+        examples: [
+          { en: "I want a break.", ko: "쉬고 싶어." },
+          { en: "I want more time.", ko: "시간이 더 필요해." },
+          { en: "I want to try.", ko: "해보고 싶어." },
+          { en: "I want to know.", ko: "알고 싶어." },
+          { en: "I want to go home.", ko: "집에 가고 싶어." },
+        ],
+      },
+      need: {
+        title: "need 기본 엔진",
+        engineSummary: "없으면 곤란해서 필요한 것",
+        coreImage: "빠져 있는 부분을 채우려는 느낌",
+        frames: [
+          { label: "need + thing", meaning: "무엇이 필요하다", combos: ["need help", "need a break", "need more time"] },
+          { label: "need to + verb", meaning: "~해야 한다", combos: ["need to go", "need to leave", "need to study"] },
+          { label: "need + help", meaning: "도움이 필요하다", combos: ["need help", "need someone", "need support"] },
+        ],
+        examples: [
+          { en: "I need help.", ko: "도움이 필요해." },
+          { en: "I need more time.", ko: "시간이 더 필요해." },
+          { en: "I need to go.", ko: "가야 해." },
+          { en: "We need a plan.", ko: "계획이 필요해." },
+          { en: "I need a break.", ko: "쉬어야 해." },
+        ],
+      },
     };
 
     const appState = {
@@ -672,6 +923,7 @@
       questionAnswered: false,
       isApplyingRoute: false,
       currentMap: 'get',
+      currentMapFrameIndexByVerb: {},
       filter: '전체',
       search: '',
       dictionaryData: { verbs: [], nouns: [], patterns: [], expressions: [], verbMaps: [], learningPaths: null, isLoaded: false, error: null, selectedVerbId: null, selectedExpressionId: null, selectedRouteId: null, selectedPatternId: null, selectedSlotValue: null, selectedCombinationId: null, selectedMapSentenceId: null, selectedExplorerView: 'verbs', isMapMeaningOpen: false, isMapPracticeOpen: false, gameExpressions: [], dataSource: 'fallback' },
@@ -1530,6 +1782,44 @@
       return (data.verbMaps || []).find(entry => entry.verbId === selectedVerb.id) || null;
     }
     function renderGenericVerbMap(selectedVerb, data) {
+      const map = mapSets[selectedVerb.word];
+      if (map) {
+        return `
+          <h4>문장 빌드 맵</h4>
+          <p class="verb-guide">${escapeHtml(map.engineSummary)}</p>
+          <p class="small-note">${escapeHtml(selectedVerb.easyKorean)}</p>
+          <div class="map-section">
+            <h5>1. 기본 엔진</h5>
+            <div class="map-detail-card">
+              <p><b>${escapeHtml(map.title)}</b></p>
+              <p>${escapeHtml(map.engineSummary)}</p>
+              ${map.coreImage ? `<p class="small-note" style="margin-top:8px">${escapeHtml(map.coreImage)}</p>` : ''}
+            </div>
+          </div>
+          <div class="map-section">
+            <h5>2. 생각틀</h5>
+            <p class="small-note" style="margin:0 0 10px">자주 쓰는 덩어리 2~3개만 모았습니다.</p>
+            ${map.frames.map(frame => `
+              <div class="map-detail-card">
+                <p><b>${escapeHtml(frame.label)}</b></p>
+                <p>${escapeHtml(frame.meaning)}</p>
+                <div class="map-frame-combos">${(frame.combos || []).map(combo => `<span class="map-chip">${escapeHtml(combo)}</span>`).join('')}</div>
+              </div>
+            `).join('')}
+          </div>
+          <div class="map-section">
+            <h5>3. 다양한 표현</h5>
+            <p class="small-note" style="margin:0 0 10px">실생활에서 자주 쓰는 표현 5개입니다.</p>
+            ${map.examples.map(example => `
+              <div class="map-detail-card map-example-card">
+                <p><b>${escapeHtml(example.en)}</b></p>
+                <p>${escapeHtml(example.ko)}</p>
+                ${example.note ? `<p class="small-note" style="margin-top:8px">${escapeHtml(example.note)}</p>` : ''}
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
       const patterns = (selectedVerb.patternIds || [])
         .map(patternId => data.patterns.find(pattern => pattern.id === patternId))
         .filter(Boolean);
@@ -2891,14 +3181,93 @@
       }
     }
 
+    function renderMapVerbButtons(targetId, attrName) {
+      const target = document.getElementById(targetId);
+      if (!target) return;
+      target.innerHTML = Object.entries(mapSets).map(([key]) => `<button class="filter ${appState.currentMap === key ? 'active' : ''}" ${attrName}="${key}">${escapeHtml(key)}</button>`).join('');
+    }
+    function ensureMapFrameSelection(verbId) {
+      const map = mapSets[verbId];
+      if (!map?.frames?.length) return 0;
+      const current = appState.currentMapFrameIndexByVerb?.[verbId];
+      if (Number.isInteger(current) && current >= 0 && current < map.frames.length) return current;
+      const nextIndex = Math.floor(Math.random() * map.frames.length);
+      appState.currentMapFrameIndexByVerb[verbId] = nextIndex;
+      return nextIndex;
+    }
+    function updateMapConnectionText(verbId) {
+      const target = document.getElementById('connectionText');
+      const map = mapSets[verbId] || mapSets.get;
+      if (!target || !map) return;
+      target.textContent = `기본 엔진 ${verbId} · ${map.engineSummary}`;
+    }
     function renderMap() {
-      document.getElementById('mapFilters').innerHTML = Object.entries(mapSets).map(([key,val]) => `<button class="filter ${appState.currentMap === key ? 'active':''}" data-map="${key}">${key}</button>`).join('');
-      document.querySelectorAll('[data-map]').forEach(b => b.addEventListener('click', () => { appState.currentMap = b.dataset.map; renderMap(); }));
-      const m = mapSets[appState.currentMap];
-      document.getElementById('thinkingMap').innerHTML = `
-        <div class="map-col"><h3>1. 기본 엔진</h3>${m.verbs.map(x => `<div class="node verb">${x}</div>`).join('')}</div>
-        <div class="map-col"><h3>2. 생각틀</h3><p class="small-note" style="margin:0 0 10px">자주 쓰는 덩어리예요.</p>${m.frames.map(x => `<div class="node frame">${x}</div><div class="map-arrow">↓ 자주 붙는 말</div>`).join('')}</div>
-        <div class="map-col"><h3>3. 다양한 표현</h3>${m.examples.map((x,i) => `<div class="node noun">${x}</div>${m.sampleSentences?.[i] ? `<div class="small-note" style="margin:0 0 10px">${m.sampleSentences[i]}</div>`:''}`).join('')}</div>`;
+      renderMapVerbButtons('homeConnectionChips', 'data-map-focus');
+      renderMapVerbButtons('mapFilters', 'data-map');
+      document.getElementById('homeConnectionChips')?.querySelectorAll('[data-map-focus]').forEach(button => {
+        button.addEventListener('click', () => {
+          appState.currentMap = button.dataset.mapFocus;
+          renderMap();
+        });
+      });
+      document.getElementById('mapFilters')?.querySelectorAll('[data-map]').forEach(button => {
+        button.addEventListener('click', () => {
+          appState.currentMap = button.dataset.map;
+          renderMap();
+        });
+      });
+
+      const currentMapId = mapSets[appState.currentMap] ? appState.currentMap : 'get';
+      if (currentMapId !== appState.currentMap) appState.currentMap = currentMapId;
+      const m = mapSets[currentMapId] || mapSets.get;
+      const activeFrameIndex = ensureMapFrameSelection(currentMapId);
+      const activeFrame = m.frames?.[activeFrameIndex] || m.frames?.[0] || null;
+      const thinkingMap = document.getElementById('thinkingMap');
+      if (!thinkingMap || !m) return;
+      thinkingMap.innerHTML = `
+        <div class="map-col">
+          <h3>1. 기본 엔진</h3>
+          <div class="map-detail-card">
+            <p><b>${escapeHtml(m.title)}</b></p>
+            <p>${escapeHtml(m.engineSummary)}</p>
+            ${m.coreImage ? `<p class="small-note" style="margin-top:8px">${escapeHtml(m.coreImage)}</p>` : ''}
+          </div>
+        </div>
+        <div class="map-col">
+          <h3>2. 생각틀</h3>
+          <p class="small-note" style="margin:0 0 10px">자주 쓰는 덩어리 2~3개만 모았습니다. 하나를 누르면 대표 생각틀이 바뀝니다.</p>
+          <div class="map-detail-card">
+            <p><b>대표 생각틀</b></p>
+            <p>${escapeHtml(activeFrame?.label || '생각틀이 없습니다.')}</p>
+            ${activeFrame?.meaning ? `<p class="small-note" style="margin-top:8px">${escapeHtml(activeFrame.meaning)}</p>` : ''}
+            ${activeFrame?.combos?.length ? `<div class="map-frame-combos">${activeFrame.combos.map(combo => `<span class="map-chip">${escapeHtml(combo)}</span>`).join('')}</div>` : ''}
+          </div>
+          ${m.frames.map((frame, index) => `
+            <button class="map-detail-card map-frame-card ${index === activeFrameIndex ? 'active' : ''}" type="button" data-map-frame-index="${index}">
+              <p><b>${escapeHtml(frame.label)}</b></p>
+              <p>${escapeHtml(frame.meaning)}</p>
+              <div class="map-frame-combos">${(frame.combos || []).map(combo => `<span class="map-chip">${escapeHtml(combo)}</span>`).join('')}</div>
+            </button>
+          `).join('')}
+        </div>
+        <div class="map-col">
+          <h3>3. 다양한 표현</h3>
+          <p class="small-note" style="margin:0 0 10px">${escapeHtml(activeFrame ? `${activeFrame.label}을 기준으로 자주 쓰는 표현 5개를 보여줘요.` : '자주 쓰는 표현 5개를 보여줘요.')}</p>
+          ${m.examples.map(example => `
+            <div class="map-detail-card map-example-card">
+              <p><b>${escapeHtml(example.en)}</b></p>
+              <p>${escapeHtml(example.ko)}</p>
+              ${example.note ? `<p class="small-note" style="margin-top:8px">${escapeHtml(example.note)}</p>` : ''}
+            </div>
+          `).join('')}
+        </div>`;
+      updateMapConnectionText(currentMapId);
+      thinkingMap.querySelectorAll('[data-map-frame-index]').forEach(button => {
+        button.addEventListener('click', () => {
+          appState.currentMapFrameIndexByVerb[currentMapId] = Number(button.dataset.mapFrameIndex);
+          renderMap();
+        });
+      });
     }
     function renderReviewList() {
       const target = document.getElementById('reviewList');
@@ -3070,11 +3439,6 @@
     document.getElementById('jumpDictionary').addEventListener('click', () => showScreen('dictionary'));
     document.getElementById('exitLesson').addEventListener('click', () => showScreen('play'));
     document.getElementById('wordSearch').addEventListener('input', e => { appState.search=e.target.value; renderWords(); });
-    document.querySelectorAll('[data-map-focus]').forEach(btn => btn.addEventListener('click', () => {
-      appState.currentMap = btn.dataset.mapFocus; document.querySelectorAll('[data-map-focus]').forEach(x=>x.classList.toggle('active',x===btn));
-      const currentMap = mapSets[appState.currentMap];
-      document.getElementById('connectionText').textContent = `기본 엔진 ${appState.currentMap} · ${currentMap.engineSummary}`;
-    }));
     document.getElementById('toggleSound').addEventListener('click', () => {
       const settings = appState.progress.settings || { soundEnabled: true };
       settings.soundEnabled = !settings.soundEnabled;
