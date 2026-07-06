@@ -57,6 +57,14 @@ def main() -> None:
     )
     if count != 1:
         raise SystemExit("Could not find data-app-version marker in index.html")
+    html, count = re.subn(
+        r"const APP_CACHE_VERSION = '[^']+';",
+        f"const APP_CACHE_VERSION = 'etd-quest-v{new}';",
+        html,
+        count=1,
+    )
+    if count != 1:
+        raise SystemExit("Could not find APP_CACHE_VERSION marker in index.html")
     html_path.write_text(html, encoding="utf-8")
 
     worker_path = ROOT / "service-worker.js"

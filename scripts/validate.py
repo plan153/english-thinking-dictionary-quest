@@ -28,6 +28,8 @@ def main() -> None:
     html = (ROOT / "index.html").read_text(encoding="utf-8")
     if f'data-app-version="{version}">v{version}' not in html:
         fail("index.html app version badge does not match VERSION")
+    if f"const APP_CACHE_VERSION = 'etd-quest-v{version}';" not in html:
+        fail("index.html app cache version does not match VERSION")
 
     worker = (ROOT / "service-worker.js").read_text(encoding="utf-8")
     if f"etd-quest-v{version}" not in worker:
