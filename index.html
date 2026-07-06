@@ -400,8 +400,24 @@
       white-space:nowrap;
       line-height:1.35;
     }
-    .map-example-card { margin-top:10px; cursor:pointer; }
+    .map-example-card {
+      width:100%;
+      display:block;
+      margin-top:10px;
+      color:inherit;
+      font:inherit;
+      cursor:pointer;
+      transition:border-color .16s ease, background .16s ease, box-shadow .16s ease, transform .16s ease;
+    }
     .map-example-card:first-of-type { margin-top: 0; }
+    .map-example-card:hover,
+    .map-example-card:focus-visible,
+    .map-example-card.selected {
+      border-color:var(--accent);
+      background:#eef7f6;
+      box-shadow: inset 0 0 0 1px rgba(40,111,108,.08);
+    }
+    .map-example-card:focus-visible { outline:3px solid rgba(40,111,108,.2); outline-offset:2px; }
     .node { padding:10px 11px; border-radius:12px; background:#fff; border:1px solid var(--line); margin-bottom:8px; font-weight:800; font-size:14px; }
     .node.verb { border-color:#b8dcd9; background:#eff9f8; }
     .node.frame { border-color:#f3d5c9; background:#fff5f0; }
@@ -471,7 +487,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.0.1">v1.0.1</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.0.2">v1.0.2</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -1542,7 +1558,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.0.1';
+    const APP_CACHE_VERSION = 'etd-quest-v1.0.2';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     async function purgeStaleAppCaches() {
@@ -1576,6 +1592,7 @@
       isApplyingRoute: false,
       currentMap: 'get',
       currentMapFrameIndexByVerb: {},
+      currentMapExampleByVerb: {},
       filter: '전체',
       search: '',
       dictionaryData: { verbs: [], nouns: [], patterns: [], expressions: [], verbMaps: [], learningPaths: null, isLoaded: false, error: null, selectedVerbId: null, selectedExpressionId: null, selectedRouteId: null, selectedPatternId: null, selectedSlotValue: null, selectedCombinationId: null, selectedMapSentenceId: null, selectedExplorerView: 'legacy', isMapMeaningOpen: false, isMapPracticeOpen: false, gameExpressions: buildMapGameExpressions(), dataSource: 'fallback' },
@@ -3932,6 +3949,7 @@
       const activeFrameIndex = ensureMapFrameSelection(currentMapId);
       const activeFrame = m.frames?.[activeFrameIndex] || m.frames?.[0] || null;
       const activeFrameExamples = (activeFrame?.examples?.length ? activeFrame.examples : m.examples || []).slice(0, 5);
+      const selectedExample = appState.currentMapExampleByVerb[currentMapId] || '';
       const thinkingMap = document.getElementById('thinkingMap');
       if (!thinkingMap || !m) return;
       thinkingMap.innerHTML = `
@@ -3956,14 +3974,14 @@
         </div>
         <div class="map-col">
           <h3>3. 실생활 표현</h3>
-          <p class="small-note" style="margin:0 0 10px">${escapeHtml(activeFrame ? `${activeFrame.label} 예문 5개를 바로 보여줘요.` : '생각틀을 고르면 예문 5개가 바로 보여줘요.')}</p>
+          <p class="small-note" style="margin:0 0 10px">${escapeHtml(activeFrame ? `${activeFrame.label} 예문 5개를 바로 보여줘요. 표현을 고르면 듣고 따라 말하기로 이어집니다.` : '생각틀을 고르면 예문 5개가 바로 보여줘요.')}</p>
           <p class="small-note" style="margin:0 0 10px"><b>선택됨:</b> ${escapeHtml(activeFrame?.label || '생각틀이 없습니다.')}${activeFrame?.meaning ? ` · ${escapeHtml(activeFrame.meaning)}` : ''}</p>
           ${activeFrameExamples.map(example => `
-            <div class="map-detail-card map-example-card" data-map-example-en="${escapeHtml(example.en)}">
+            <button class="map-detail-card map-example-card ${normalize(selectedExample) === normalize(example.en) ? 'selected' : ''}" type="button" data-map-example-en="${escapeHtml(example.en)}">
               <p><b>${escapeHtml(example.en)}</b></p>
               <p>${escapeHtml(example.ko)}</p>
               ${example.note ? `<p class="small-note" style="margin-top:8px">${escapeHtml(example.note)}</p>` : ''}
-            </div>
+            </button>
           `).join('')}
         </div>`;
       updateMapConnectionText(currentMapId);
@@ -3971,6 +3989,13 @@
         button.addEventListener('click', () => {
           appState.currentMapFrameIndexByVerb[currentMapId] = Number(button.dataset.mapFrameIndex);
           renderMap();
+        });
+      });
+      thinkingMap.querySelectorAll('[data-map-example-en]').forEach(button => {
+        button.addEventListener('click', () => {
+          appState.currentMapExampleByVerb[currentMapId] = button.dataset.mapExampleEn;
+          thinkingMap.querySelectorAll('[data-map-example-en]').forEach(item => item.classList.toggle('selected', item === button));
+          startMapExampleListen(button.dataset.mapExampleEn);
         });
       });
     }
