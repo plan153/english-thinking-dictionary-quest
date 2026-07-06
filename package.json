@@ -1,0 +1,30 @@
+{
+  "name": "english-thinking-dictionary-quest",
+  "version": "1.0.2",
+  "private": true,
+  "description": "핵심 동사와 명사를 조합해 실제 영어 표현을 만드는 **게임형 웹 앱**입니다.",
+  "main": "index.html",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "validate": "python3 scripts/validate.py",
+    "serve": "python3 -m http.server 8766",
+    "test": "npm run validate"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/plan153/english-thinking-dictionary-quest.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "UNLICENSED",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/plan153/english-thinking-dictionary-quest/issues"
+  },
+  "homepage": "https://github.com/plan153/english-thinking-dictionary-quest#readme",
+  "devDependencies": {
+    "playwright": "^1.61.1"
+  }
+}
