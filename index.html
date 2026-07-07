@@ -123,11 +123,21 @@
     .lesson-top { display:flex; gap:10px; justify-content:space-between; align-items:center; margin-bottom: 14px; }
     .back-link { border:0; background: transparent; color:var(--muted); padding: 6px 0; font-weight:800; }
     .lesson-label { color:var(--accent); text-transform:uppercase; letter-spacing:1px; font-weight:900; font-size:11px; }
+    .quest-mission { width:min(620px,100%); align-self:center; display:grid; gap:8px; margin:0 auto 14px; text-align:left; }
+    .quest-mission-top { display:flex; justify-content:space-between; align-items:center; gap:10px; color:var(--muted); font-size:12px; font-weight:900; }
+    .quest-mission-bar { height:8px; border-radius:999px; background:#e8e4dc; overflow:hidden; }
+    .quest-mission-bar span { display:block; height:100%; width:0; border-radius:inherit; background:linear-gradient(90deg,var(--accent),#6aa8a4); }
+    .mission-chips { display:flex; flex-wrap:wrap; gap:7px; }
+    .mission-chip { border:1px solid var(--line); border-radius:999px; background:#fffdfa; color:var(--muted); padding:6px 9px; font-size:12px; font-weight:850; }
+    .mission-chip.active { background:#eaf4f3; color:#245c5a; border-color:rgba(40,111,108,.22); }
     .question-card { padding: clamp(23px,5vw,45px); text-align:center; min-height: 430px; display:flex; flex-direction:column; justify-content:center; }
     .question-card h2 { font-size: clamp(29px,5vw,48px); letter-spacing:-1.8px; line-height:1.1; margin: 9px 0; }
     .question-card .korean { color:var(--muted); font-size: 17px; line-height:1.55; margin: 0 auto 18px; max-width:650px; }
     .sound-btn { width:62px; height:62px; border:0; border-radius:50%; align-self:center; color:#fff; background:var(--accent); font-size:25px; box-shadow:0 8px 18px rgba(40,111,108,.28); }
     .sound-help { font-size:12px; color:var(--muted); margin:8px 0 14px; }
+    .lesson-help { max-width:620px; align-self:center; margin:8px auto 0; color:var(--muted); font-size:12px; text-align:left; }
+    .lesson-help summary { cursor:pointer; font-weight:850; color:var(--accent); }
+    .lesson-help p { margin:7px 0 0; line-height:1.45; }
 
     .answer-input { width:min(620px,100%); align-self:center; border:2px solid var(--line); border-radius:16px; padding: 15px 16px; background:#fff; color:var(--ink); font-size:18px; outline:none; }
     .answer-input:focus { border-color: var(--accent); box-shadow:0 0 0 4px rgba(40,111,108,.12); }
@@ -173,6 +183,7 @@
       font-weight:900;
       letter-spacing:0;
     }
+    .listen-mission-row { display:flex; justify-content:center; flex-wrap:wrap; gap:8px; margin-top:12px; }
 
     .dictionary-toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; }
     .search { flex: 1 1 280px; border:1px solid var(--line); background:#fff; padding:12px 14px; border-radius:13px; outline:none; }
@@ -2177,7 +2188,7 @@
       };
       appState.questContext = questContext;
       startMode(step.mode, step.expressionId, {
-        skipRoute: false,
+        skipRoute: true,
         questContext,
       });
     }
@@ -3201,15 +3212,14 @@
       document.getElementById('lessonProgress').style.width = progress + '%';
       document.getElementById('lessonProgressText').textContent = `${appState.currentIndex + 1} / ${appState.lessonItems.length}`;
 
-      const questStep = appState.questContext?.source === 'dailyQuestV1' && appState.questContext?.expressionId === item.id
-        ? appState.questContext
-        : null;
+      const questStep = appState.questContext?.source === 'dailyQuestV1' ? appState.questContext : null;
       const questStepNumber = questStep ? questStep.stepIndex + 1 : null;
       const stageLabel = questStep ? `${questStepNumber} / 7 · ${questStep.label}`
         : mode === 'listen' ? '듣고 따라 말하기'
         : `${modeTitle(mode)} · ${item.frame} · ${item.level || 1}단계`;
       const baseTop = `<div class="lesson-label">${stageLabel}</div>`;
-      const connectionSummary = `<div class="connection-strip-summary">${getConnectionGraph(item, stageToConnectionKey(questStep?.questStage))}</div>`;
+      const missionSummary = questStep ? renderQuestMissionSummary(questStep, item, mode) : '';
+      const connectionSummary = questStep ? '' : `<div class="connection-strip-summary">${getConnectionGraph(item, stageToConnectionKey(questStep?.questStage))}</div>`;
       let body = '';
       if (mode === 'listen') body = renderListen(item);
       else if (mode === 'koen') body = renderKoEn(item);
@@ -3218,21 +3228,50 @@
       else if (mode === 'build') body = renderBuild(item);
       else if (mode === 'speak') body = renderSpeak(item);
       else body = renderReview(item);
-      card.innerHTML = baseTop + connectionSummary + body;
+      card.innerHTML = baseTop + missionSummary + connectionSummary + body;
       attachQuestionHandlers(item, mode);
     }
 
     function modeTitle(mode) { return (modeCards.find(x => x.id === mode) || {}).title || '퀘스트'; }
+    function renderQuestMissionSummary(questStep, item, mode) {
+      const quest = appState.progress.dailyQuestV1 || {};
+      const steps = quest.stepPlan || [];
+      const completed = Array.isArray(quest.completedStepKeys) ? quest.completedStepKeys.length : 0;
+      const total = Math.max(steps.length || 7, 1);
+      const currentStep = Math.min((questStep.stepIndex || 0) + 1, total);
+      const session = mode === 'listen' ? getListenSession(item.id) : null;
+      const listenDone = session ? Math.min(session.listenCount || 0, 3) : null;
+      const speakDone = session ? Math.min(session.successCount || 0, 3) : null;
+      const percent = Math.round(((completed + (questStep.stepIndex >= completed ? 0 : 1)) / total) * 100);
+      const listenChip = session ? `<span class="mission-chip active">듣기 ${listenDone}/3</span>` : '';
+      const speakChip = session ? `<span class="mission-chip active">말하기 ${speakDone}/3</span>` : '';
+      return `
+        <div class="quest-mission" aria-label="오늘의 퀘스트 진행 상황">
+          <div class="quest-mission-top"><span>오늘의 퀘스트</span><span>${currentStep}/${total}</span></div>
+          <div class="quest-mission-bar"><span style="width:${clampValue(percent, 0, 100)}%"></span></div>
+          <div class="mission-chips">
+            <span class="mission-chip active">${escapeHtml(questStep.label || modeTitle(mode))}</span>
+            ${listenChip}
+            ${speakChip}
+          </div>
+        </div>
+      `;
+    }
     function renderListen(item) {
       const session = getListenSession(item.id);
       return `
         <h2>${item.en}</h2>
         <p class="korean">${item.ko}</p>
-        <button class="sound-btn speak" data-text="${escapeHtml(item.audioText || item.en)}" title="문장 듣기">🔊</button>
-        <p class="sound-help">버튼을 눌러 3번 듣고, 문장 전체를 따라 말해 보세요.</p>
-        <div class="repeat-panel"><strong>🎤 따라 말하기 미션</strong>마이크 버튼을 눌러 문장을 3번 말해 보세요. 인식 결과가 맞거나 거의 맞으면 1번 성공으로 셉니다.</div>
-        <div class="listen-count" id="listenCount">${session.successCount || 0} / 3 완료</div>
-        <div class="question-actions"><button class="btn accent mic-start" type="button">🎤 마이크로 말하기</button><button class="btn soft show-answer">표현 연결 보기</button></div>
+        <button class="sound-btn speak listen-sound" data-text="${escapeHtml(item.audioText || item.en)}" title="문장 듣기">🔊</button>
+        <div class="listen-mission-row">
+          <span class="listen-count" id="listenSoundCount">듣기 ${session.listenCount || 0} / 3</span>
+          <span class="listen-count" id="listenCount">말하기 ${session.successCount || 0} / 3</span>
+        </div>
+        <details class="lesson-help">
+          <summary>미션 안내</summary>
+          <p>3번 듣고, 문장 전체를 3번 말해 보세요. 인식 결과가 맞거나 거의 맞으면 성공으로 셉니다.</p>
+        </details>
+        <div class="question-actions"><button class="btn accent mic-start" type="button">🎤 말하기</button><button class="btn soft show-answer">연관 표현</button></div>
         <div class="hint-box hidden" id="listenResultBox"></div>
         <div class="feedback hidden" id="feedback"></div>`;
     }
@@ -3396,6 +3435,7 @@
         appState.listenSession = {
           itemId,
           successCount: 0,
+          listenCount: 0,
           captureSerial: 0,
           activeCaptureId: null,
         };
@@ -3409,10 +3449,24 @@
 
     function updateListenCountDisplay() {
       const session = appState.listenSession;
-      const box = document.getElementById('listenCount');
-      if (!box) return;
-      const count = session?.successCount || 0;
-      box.textContent = `${count} / 3 완료`;
+      const speakBox = document.getElementById('listenCount');
+      const soundBox = document.getElementById('listenSoundCount');
+      const speakCount = session?.successCount || 0;
+      const listenCount = session?.listenCount || 0;
+      if (speakBox) speakBox.textContent = `말하기 ${speakCount} / 3`;
+      if (soundBox) soundBox.textContent = `듣기 ${listenCount} / 3`;
+      const chips = document.querySelectorAll('.quest-mission .mission-chip');
+      chips.forEach(chip => {
+        const text = chip.textContent.trim();
+        if (text.startsWith('듣기 ')) chip.textContent = `듣기 ${listenCount}/3`;
+        if (text.startsWith('말하기 ')) chip.textContent = `말하기 ${speakCount}/3`;
+      });
+    }
+
+    function recordListenPlayback(itemId) {
+      const session = getListenSession(itemId);
+      session.listenCount = Math.min(3, (session.listenCount || 0) + 1);
+      updateListenCountDisplay();
     }
 
     function renderListenResult(transcript, item, result, options = {}) {
@@ -3593,8 +3647,11 @@
     }
 
     function attachQuestionHandlers(item, mode) {
-      document.querySelectorAll('.speak').forEach(btn => btn.addEventListener('click', () => speak(btn.dataset.text)));
-      document.querySelectorAll('.show-answer').forEach(btn => btn.addEventListener('click', () => showFeedback('good', `<b>${item.en}</b><br><span class="answer-key">${item.ko} · ${item.frame}<br>직역 이미지: ${escapeHtml(item.literalMeaning || item.ko)}</span>`)));
+      document.querySelectorAll('.speak').forEach(btn => btn.addEventListener('click', () => {
+        if (btn.classList.contains('listen-sound')) recordListenPlayback(item.id);
+        speak(btn.dataset.text);
+      }));
+      document.querySelectorAll('.show-answer').forEach(btn => btn.addEventListener('click', () => showFeedback('meaning', `<b>${item.frame}</b><br><span class="answer-key">${item.ko}<br>${escapeHtml(item.literalMeaning || item.ko)}</span>`)));
       document.querySelectorAll('.check-answer').forEach(btn => btn.addEventListener('click', () => checkTextAnswer(item, mode)));
       document.querySelectorAll('.next-hint').forEach(btn => btn.addEventListener('click', () => showNextHint(item)));
       document.querySelectorAll('.build-verb').forEach(btn => btn.addEventListener('click', () => {
