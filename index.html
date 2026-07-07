@@ -1,4 +1,4 @@
-<!doctype html>
+ㅇㄹㄹㄹㄹ<!doctype html>
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
@@ -424,6 +424,71 @@
     .node.noun { border-color:#ead8a1; background:#fffbea; }
     .map-arrow { color:var(--accent-2); font-size:12px; margin: 2px 0 10px 6px; font-weight:900; }
 
+    .growth-network-shell { display:grid; grid-template-columns: minmax(0, 1.35fr) minmax(280px, .75fr); gap:16px; align-items:stretch; margin-top:14px; }
+    .growth-network-map {
+      min-height:420px;
+      position:relative;
+      overflow:hidden;
+      border:1px solid rgba(40,111,108,.16);
+      border-radius:18px;
+      background:
+        linear-gradient(90deg, rgba(40,111,108,.06) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(40,111,108,.045) 1px, transparent 1px),
+        #fbfefe;
+      background-size:42px 42px;
+    }
+    .growth-network-map svg { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+    .growth-edge { stroke:rgba(40,111,108,.24); stroke-linecap:round; transition:stroke .18s ease, stroke-width .18s ease, opacity .18s ease; }
+    .growth-edge.strong { stroke:rgba(40,111,108,.72); }
+    .growth-edge.selected { stroke:var(--accent-2); opacity:1; }
+    .growth-node {
+      position:absolute;
+      display:grid;
+      place-items:center;
+      border:1px solid rgba(40,111,108,.22);
+      border-radius:999px;
+      background:#fff;
+      color:var(--ink);
+      box-shadow:0 10px 22px rgba(33,41,52,.08);
+      transform:translate(-50%, -50%);
+      text-align:center;
+      font-weight:900;
+      letter-spacing:0;
+      line-height:1.08;
+      cursor:pointer;
+      transition:transform .16s ease, border-color .16s ease, background .16s ease, box-shadow .16s ease;
+    }
+    .growth-node:hover,
+    .growth-node:focus-visible,
+    .growth-node.active { transform:translate(-50%, -50%) scale(1.04); border-color:var(--accent); background:#eef7f6; box-shadow:0 14px 26px rgba(33,41,52,.12); outline:none; }
+    .growth-node.verb { background:#eff9f8; }
+    .growth-node.frame { background:#fffaf0; border-color:rgba(215,175,56,.35); }
+    .growth-node .node-main { display:block; font-size:14px; }
+    .growth-node .node-sub { display:block; margin-top:3px; color:var(--muted); font-size:10px; font-weight:800; }
+    .growth-network-side { display:flex; flex-direction:column; gap:12px; }
+    .growth-summary { border:1px solid var(--line); border-radius:16px; background:#fff; padding:14px; }
+    .growth-summary h4 { margin:0 0 6px; font-size:16px; letter-spacing:-.3px; }
+    .growth-meter { height:10px; border-radius:999px; background:#e8e4dc; overflow:hidden; margin-top:9px; }
+    .growth-meter > span { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,var(--accent),#6aa8a4); }
+    .growth-expression-list { display:grid; gap:8px; }
+    .growth-expression {
+      width:100%;
+      border:1px solid rgba(40,111,108,.16);
+      border-radius:13px;
+      background:#fff;
+      padding:11px 12px;
+      text-align:left;
+      color:inherit;
+    }
+    .growth-expression:hover,
+    .growth-expression:focus-visible { border-color:var(--accent); background:#eef7f6; outline:none; }
+    .growth-expression b { display:block; font-size:14px; }
+    .growth-expression span { display:block; margin-top:3px; color:var(--muted); font-size:12px; line-height:1.35; }
+    .growth-legend { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; color:var(--muted); font-size:12px; }
+    .growth-legend span { display:inline-flex; align-items:center; gap:5px; }
+    .growth-legend i { width:18px; height:5px; display:inline-block; border-radius:99px; background:rgba(40,111,108,.24); }
+    .growth-legend i.strong { background:rgba(40,111,108,.72); }
+
     .daily-card { display:flex; gap:16px; align-items:center; }
     .ring { --p: 0; width:100px; aspect-ratio:1; border-radius:50%; display:grid; place-items:center; background:conic-gradient(var(--accent) calc(var(--p) * 1%), #e7e1d6 0); position:relative; flex:none; }
     .ring:after { content:""; width:77px; aspect-ratio:1; border-radius:50%; background:var(--paper); position:absolute; }
@@ -463,6 +528,8 @@
     @media (max-width: 780px) {
       .grid.cols-3, .word-list { grid-template-columns:1fr 1fr; }
       .explorer-grid { grid-template-columns:1fr; }
+      .growth-network-shell { grid-template-columns:1fr; }
+      .growth-network-map { min-height:360px; }
       .topbar { align-items:flex-start; flex-direction:column; }
       .top-stats { justify-content:flex-start; }
       .choices { grid-template-columns:1fr; }
@@ -475,6 +542,7 @@
       .grid.cols-3, .grid.cols-2, .word-list { grid-template-columns:1fr; }
       .hero { border-radius:22px; }
       .question-card { min-height: 460px; }
+      .growth-network-map { min-height:330px; }
       .top-stats { gap:6px; }
       .stat-pill { padding:7px 9px; font-size:12px; }
     }
@@ -487,7 +555,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.0.2">v1.0.2</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.0.3">v1.0.3</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -549,6 +617,12 @@
       </div>
       <div class="grid cols-3" id="gameModes"></div>
       <p class="small-note" style="margin-top:12px">힌트 사다리는 한글 → 영어 조립 안에서, 문장빌드맵은 동사 카드 안에서 이어집니다.</p>
+      <article class="card" style="margin-top:16px">
+        <div class="section-head" style="margin-bottom:0">
+          <div><h2>약한 연결에서 이어서 훈련</h2><p>내 영어 사고망에서 아직 얇은 연결을 먼저 다시 만납니다.</p></div>
+        </div>
+        <div class="growth-expression-list" id="weakTrainingPanel" style="margin-top:12px"></div>
+      </article>
       <article class="card" style="margin-top:16px">
         <h3>왜 여러 채널로 하나요?</h3>
         <p>뜻만 보면 “알 것 같은 단어”가 됩니다. 소리로 듣고, 입으로 말하고, 한국어에서 영어를 만들고, 영어에서 장면을 떠올리면 그 표현이 실제로 꺼내 쓰는 말이 됩니다.</p>
@@ -635,6 +709,20 @@
         <article class="card"><h3>완성한 연결</h3><div style="font-size:34px;font-weight:900;letter-spacing:-1.5px" id="masteredBig">0</div><p>각 표현을 3번 성공하면 “내 말”이 됩니다.</p></article>
       </div>
       <article class="card" style="margin-top:16px">
+        <div class="section-head" style="margin-bottom:0">
+          <div><h2>내 영어 사고망</h2><p>배운 동사와 생각틀이 강해질수록 노드와 연결이 커집니다.</p></div>
+        </div>
+        <div class="growth-legend">
+          <span><i></i>약한 연결</span>
+          <span><i class="strong"></i>강한 연결</span>
+          <span>노드 크기 = 학습 강도</span>
+        </div>
+        <div class="growth-network-shell">
+          <div class="growth-network-map" id="growthNetworkMap" aria-label="내 영어 사고망 네트워크맵"></div>
+          <div class="growth-network-side" id="growthNetworkDetail"></div>
+        </div>
+      </article>
+      <article class="card" style="margin-top:16px">
         <h3>다음 복습 추천</h3>
         <div id="reviewList" style="margin-top:12px"></div>
       </article>
@@ -647,6 +735,7 @@
     <div class="toast" id="toast"></div>
   </main>
 
+<script src="radial-map.js"></script>
   <script>
     const wordBank = [
       { id:'get', type:'핵심 동사', word:'get', korean:'얻다 · 받다 · 도착하다 · 이해하다 · 상태가 되다', example:'I got your message.', exKo:'네 메시지 받았어.', connections:'get a message · get home · get better · get it' },
@@ -1558,7 +1647,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.0.2';
+    const APP_CACHE_VERSION = 'etd-quest-v1.0.3';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     async function purgeStaleAppCaches() {
@@ -1593,6 +1682,8 @@
       currentMap: 'get',
       currentMapFrameIndexByVerb: {},
       currentMapExampleByVerb: {},
+      selectedGrowthVerbId: null,
+      selectedGrowthFrameId: null,
       filter: '전체',
       search: '',
       dictionaryData: { verbs: [], nouns: [], patterns: [], expressions: [], verbMaps: [], learningPaths: null, isLoaded: false, error: null, selectedVerbId: null, selectedExpressionId: null, selectedRouteId: null, selectedPatternId: null, selectedSlotValue: null, selectedCombinationId: null, selectedMapSentenceId: null, selectedExplorerView: 'legacy', isMapMeaningOpen: false, isMapPracticeOpen: false, gameExpressions: buildMapGameExpressions(), dataSource: 'fallback' },
@@ -1895,6 +1986,8 @@
       document.getElementById('streakBig').textContent = `${p.streak || 0}일`;
       document.getElementById('masteredBig').textContent = masteredCount();
       renderReviewList();
+      renderGrowthNetworkMap();
+      renderWeakTrainingPanel();
       updateQuestUI();
     }
 
@@ -2836,6 +2929,215 @@
     function clampPercent(value) { return clampValue(value, 0, 100); }
     function getGameBank() {
       return appState.dictionaryData.gameExpressions.length ? appState.dictionaryData.gameExpressions : phraseBank.map(normalizeFallbackPhrase);
+    }
+    function getExpressionConnectionScore(expressionId) {
+      const history = getHistory(expressionId);
+      const strengths = ['recognition', 'assembly', 'output'].map(key => history.connections?.[key]?.strength || 0);
+      return strengths.reduce((sum, value) => sum + value, 0) / strengths.length;
+    }
+    function getGrowthStatusLabel(score) {
+      if (score >= .86) return '강한 연결';
+      if (score >= .42) return '자라는 중';
+      return '새 연결';
+    }
+    function buildLearningNetwork() {
+      const verbs = new Map();
+      getGameBank().forEach(item => {
+        const verbId = item.coreVerbId || `v_${item.verb || 'unknown'}`;
+        const verbLabel = item.verb || verbWordFromId(verbId);
+        const frameLabel = item.frame || item.patternId || '기본 생각틀';
+        const frameId = `${verbId}::${item.patternId || frameLabel}`;
+        const score = getExpressionConnectionScore(item.id);
+        const history = getHistory(item.id);
+        const successes = appState.progress.successes?.[item.id] || 0;
+        if (!verbs.has(verbId)) {
+          verbs.set(verbId, {
+            id: verbId,
+            label: verbLabel,
+            frames: new Map(),
+            expressions: [],
+            scoreSum: 0,
+            successes: 0,
+            attempts: 0,
+          });
+        }
+        const verb = verbs.get(verbId);
+        verb.expressions.push(item);
+        verb.scoreSum += score;
+        verb.successes += successes;
+        verb.attempts += history.timesSeen || 0;
+        if (!verb.frames.has(frameId)) {
+          verb.frames.set(frameId, {
+            id: frameId,
+            verbId,
+            label: frameLabel,
+            expressions: [],
+            scoreSum: 0,
+            successes: 0,
+            attempts: 0,
+          });
+        }
+        const frame = verb.frames.get(frameId);
+        frame.expressions.push(item);
+        frame.scoreSum += score;
+        frame.successes += successes;
+        frame.attempts += history.timesSeen || 0;
+      });
+
+      const verbNodes = [...verbs.values()].map(verb => {
+        const expressionCount = Math.max(1, verb.expressions.length);
+        const score = verb.scoreSum / expressionCount;
+        return {
+          ...verb,
+          score,
+          size: clampValue(72 + score * 30 + Math.min(verb.successes, 12) * 1.5, 72, 120),
+          frames: [...verb.frames.values()].map(frame => {
+            const frameCount = Math.max(1, frame.expressions.length);
+            const frameScore = frame.scoreSum / frameCount;
+            return {
+              ...frame,
+              score: frameScore,
+              size: clampValue(54 + frameScore * 28 + Math.min(frame.successes, 8), 54, 92),
+            };
+          }).sort((a, b) => {
+            if (b.score !== a.score) return b.score - a.score;
+            if (b.expressions.length !== a.expressions.length) return b.expressions.length - a.expressions.length;
+            return a.label.localeCompare(b.label);
+          }),
+        };
+      }).sort((a, b) => {
+        const aLearned = a.attempts + a.successes;
+        const bLearned = b.attempts + b.successes;
+        if (bLearned !== aLearned) return bLearned - aLearned;
+        if (b.expressions.length !== a.expressions.length) return b.expressions.length - a.expressions.length;
+        return a.label.localeCompare(b.label);
+      });
+
+      const visibleVerbs = verbNodes.slice(0, 7);
+      if (visibleVerbs.length && !visibleVerbs.some(verb => verb.id === appState.selectedGrowthVerbId)) {
+        appState.selectedGrowthVerbId = visibleVerbs[0].id;
+        appState.selectedGrowthFrameId = visibleVerbs[0].frames[0]?.id || null;
+      }
+      const selectedVerb = visibleVerbs.find(verb => verb.id === appState.selectedGrowthVerbId) || visibleVerbs[0] || null;
+      if (selectedVerb && !selectedVerb.frames.some(frame => frame.id === appState.selectedGrowthFrameId)) {
+        appState.selectedGrowthFrameId = selectedVerb.frames[0]?.id || null;
+      }
+      const selectedFrame = selectedVerb?.frames.find(frame => frame.id === appState.selectedGrowthFrameId) || selectedVerb?.frames[0] || null;
+      return { verbs: visibleVerbs, selectedVerb, selectedFrame };
+    }
+    function renderGrowthNode(node, kind, x, y, active, extra = '') {
+      const scorePercent = Math.round((node.score || 0) * 100);
+      return `
+        <button class="growth-node ${kind} ${active ? 'active' : ''}" type="button" ${extra}
+          style="left:${x}%;top:${y}%;width:${node.size}px;height:${node.size}px;"
+          aria-label="${escapeHtml(`${node.label} ${scorePercent}% ${getGrowthStatusLabel(node.score || 0)}`)}">
+          <span><span class="node-main">${escapeHtml(node.label)}</span><span class="node-sub">${scorePercent}% · ${escapeHtml(getGrowthStatusLabel(node.score || 0))}</span></span>
+        </button>
+      `;
+    }
+    function renderGrowthNetworkMap() {
+      const map = document.getElementById('growthNetworkMap');
+      const detail = document.getElementById('growthNetworkDetail');
+      if (!map || !detail) return;
+      const network = buildLearningNetwork();
+      if (!network.verbs.length) {
+        map.innerHTML = '<div class="empty">아직 표시할 표현이 없습니다. 오늘의 퀘스트를 시작하면 사고망이 자라납니다.</div>';
+        detail.innerHTML = '';
+        return;
+      }
+      // === 방사형 레이아웃: 동사 중심 → 생각틀 방사형 배치 ===
+      const cx = 50, cy = 50, frameBaseDist = 28;
+      const frames = (network.selectedVerb?.frames || []).slice(0, 8);
+      const frameCount = frames.length;
+      const selectedVerbPosition = { node: network.selectedVerb, x: cx, y: cy };
+      const framePositions = frames.map((frame, index) => {
+        const angle = (index / frameCount) * Math.PI * 2 - Math.PI / 2;
+        const dist = frameBaseDist + (1 - (frame.score || 0)) * 18;
+        return { node: frame, x: cx + Math.cos(angle) * dist, y: cy + Math.sin(angle) * dist };
+      });
+      const edges = framePositions.map(position => {
+        const width = clampValue(2 + (position.node.score || 0) * 7, 2, 9);
+        const isSelected = position.node.id === network.selectedFrame?.id;
+        return `<line class="growth-edge ${(position.node.score || 0) >= .75 ? 'strong' : ''} ${isSelected ? 'selected' : ''}" x1="${selectedVerbPosition.x}" y1="${selectedVerbPosition.y}" x2="${position.x}" y2="${position.y}" stroke-width="${width}" />`;
+      }).join('');
+      map.innerHTML = `
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${edges}</svg>
+        ${renderGrowthNode(selectedVerbPosition.node, 'verb', selectedVerbPosition.x, selectedVerbPosition.y, true, `data-growth-verb-id="${escapeHtml(selectedVerbPosition.node?.id || '')}"`)}
+        ${framePositions.map(position => renderGrowthNode(position.node, 'frame', position.x, position.y, position.node.id === network.selectedFrame?.id, `data-growth-frame-id="${escapeHtml(position.node.id)}"`)).join('')}
+      `;
+
+      const selectedVerb = network.selectedVerb;
+      const selectedFrame = network.selectedFrame;
+      const expressionCards = (selectedFrame?.expressions || [])
+        .map(item => ({ item, score: getExpressionConnectionScore(item.id), priority: getItemReviewPriority(item) }))
+        .sort((a, b) => {
+          if (a.score !== b.score) return a.score - b.score;
+          if (b.priority !== a.priority) return b.priority - a.priority;
+          return sortItemLabel(a.item).localeCompare(sortItemLabel(b.item));
+        })
+        .slice(0, 5);
+      detail.innerHTML = `
+        <div class="growth-summary">
+          <h4>${escapeHtml(selectedVerb?.label || '동사')} → ${escapeHtml(selectedFrame?.label || '생각틀')}</h4>
+          <p class="small-note">${escapeHtml(selectedFrame ? `${selectedFrame.expressions.length}개 실생활 표현이 이 생각틀에 연결되어 있어요.` : '생각틀을 선택하면 표현이 나타납니다.')}</p>
+          <div class="growth-meter"><span style="width:${Math.round((selectedFrame?.score || 0) * 100)}%"></span></div>
+          <p class="small-note">${escapeHtml(getGrowthStatusLabel(selectedFrame?.score || 0))} · 평균 연결 강도 ${Math.round((selectedFrame?.score || 0) * 100)}%</p>
+        </div>
+        <div class="growth-summary">
+          <h4>추천 훈련</h4>
+          <div class="growth-expression-list">
+            ${expressionCards.length ? expressionCards.map(({ item, score }) => `
+              <button class="growth-expression" type="button" data-growth-expression-id="${escapeHtml(item.id)}">
+                <b>${escapeHtml(item.en || item.english || '')}</b>
+                <span>${escapeHtml(item.ko || item.naturalKorean || '')} · 연결 ${Math.round(score * 100)}%</span>
+              </button>
+            `).join('') : '<p class="small-note">이 생각틀에 표시할 표현이 아직 없습니다.</p>'}
+          </div>
+        </div>
+      `;
+
+      map.querySelectorAll('[data-growth-verb-id]').forEach(button => {
+        button.addEventListener('click', () => {
+          appState.selectedGrowthVerbId = button.dataset.growthVerbId;
+          const nextNetwork = buildLearningNetwork();
+          appState.selectedGrowthFrameId = nextNetwork.selectedVerb?.frames[0]?.id || null;
+          renderGrowthNetworkMap();
+        });
+      });
+      map.querySelectorAll('[data-growth-frame-id]').forEach(button => {
+        button.addEventListener('click', () => {
+          appState.selectedGrowthFrameId = button.dataset.growthFrameId;
+          renderGrowthNetworkMap();
+        });
+      });
+      detail.querySelectorAll('[data-growth-expression-id]').forEach(button => {
+        button.addEventListener('click', () => startMode('listen', button.dataset.growthExpressionId));
+      });
+    }
+    function renderWeakTrainingPanel() {
+      const target = document.getElementById('weakTrainingPanel');
+      if (!target) return;
+      const candidates = getGameBank()
+        .map(item => ({ item, score: getExpressionConnectionScore(item.id), priority: getItemReviewPriority(item) }))
+        .sort((a, b) => {
+          if (a.score !== b.score) return a.score - b.score;
+          if (b.priority !== a.priority) return b.priority - a.priority;
+          return sortItemLabel(a.item).localeCompare(sortItemLabel(b.item));
+        })
+        .slice(0, 3);
+      if (!candidates.length) {
+        target.innerHTML = '<p class="small-note">오늘의 퀘스트를 시작하면 이어서 훈련할 연결이 나타납니다.</p>';
+        return;
+      }
+      target.innerHTML = candidates.map(({ item, score }) => `
+        <button class="growth-expression" type="button" data-weak-training-id="${escapeHtml(item.id)}">
+          <b>${escapeHtml(item.en || item.english || '')}</b>
+          <span>${escapeHtml(item.ko || item.naturalKorean || '')} · ${escapeHtml(item.frame || item.patternId || '생각틀')} · 연결 ${Math.round(score * 100)}%</span>
+        </button>
+      `).join('');
+      target.querySelectorAll('[data-weak-training-id]').forEach(button => {
+        button.addEventListener('click', () => startMode('listen', button.dataset.weakTrainingId));
+      });
     }
     function supportsMode(item, mode) {
       const quizType = modeQuizTypes[mode] || 'koToEn';
@@ -3953,37 +4255,38 @@
       const thinkingMap = document.getElementById('thinkingMap');
       if (!thinkingMap || !m) return;
       thinkingMap.innerHTML = `
-        <div class="map-col">
-          <h3>1. 기본 엔진</h3>
-          <div class="map-detail-card">
-            <p><b>${escapeHtml(m.title)}</b></p>
-            <p>${escapeHtml(m.engineSummary)}</p>
-            ${m.coreImage ? `<p class="small-note" style="margin-top:8px">${escapeHtml(m.coreImage)}</p>` : ''}
-          </div>
-        </div>
-        <div class="map-col">
-          <h3>2. 생각틀</h3>
-          <p class="small-note" style="margin:0 0 10px">생각틀을 누르면 바로 아래 예문이 바뀝니다. 처음에는 랜덤으로 하나가 선택돼 있어요.</p>
-          ${m.frames.map((frame, index) => `
-            <button class="map-detail-card map-frame-card ${index === activeFrameIndex ? 'active' : ''}" type="button" data-map-frame-index="${index}">
-              <p><b>${escapeHtml(frame.label)}</b></p>
-              <p>${escapeHtml(frame.meaning)}</p>
-              <div class="map-frame-combos">${(frame.combos || []).map(combo => `<span class="map-chip">${escapeHtml(combo)}</span>`).join('')}</div>
-            </button>
-          `).join('')}
-        </div>
-        <div class="map-col">
-          <h3>3. 실생활 표현</h3>
-          <p class="small-note" style="margin:0 0 10px">${escapeHtml(activeFrame ? `${activeFrame.label} 예문 5개를 바로 보여줘요. 표현을 고르면 듣고 따라 말하기로 이어집니다.` : '생각틀을 고르면 예문 5개가 바로 보여줘요.')}</p>
-          <p class="small-note" style="margin:0 0 10px"><b>선택됨:</b> ${escapeHtml(activeFrame?.label || '생각틀이 없습니다.')}${activeFrame?.meaning ? ` · ${escapeHtml(activeFrame.meaning)}` : ''}</p>
-          ${activeFrameExamples.map(example => `
-            <button class="map-detail-card map-example-card ${normalize(selectedExample) === normalize(example.en) ? 'selected' : ''}" type="button" data-map-example-en="${escapeHtml(example.en)}">
-              <p><b>${escapeHtml(example.en)}</b></p>
-              <p>${escapeHtml(example.ko)}</p>
-              ${example.note ? `<p class="small-note" style="margin-top:8px">${escapeHtml(example.note)}</p>` : ''}
-            </button>
-          `).join('')}
-        </div>`;
+    <div class="map-col">
+      <h3>1. 기본 엔진</h3>
+      <div class="map-detail-card">
+        <p><b>${escapeHtml(m.title)}</b></p>
+        <p>${escapeHtml(m.engineSummary)}</p>
+        ${m.coreImage ? `<p class="small-note" style="margin-top:8px">${escapeHtml(m.coreImage)}</p>` : ''}
+      </div>
+      <p class="small-note" style="margin:12px 0 8px">기본 엔진이 곧 생각의 출발점입니다.</p>
+    </div>
+    <div class="map-col">
+      <h3>2. 생각틀</h3>
+      <p class="small-note" style="margin:0 0 10px">생각틀을 누르면 바로 아래 예문이 바뀝니다. 처음에는 랜덤으로 하나가 선택돼 있어요.</p>
+      ${m.frames.map((frame, index) => `
+        <button class="map-detail-card map-frame-card ${index === activeFrameIndex ? 'active' : ''}" type="button" data-map-frame-index="${index}">
+          <p><b>${escapeHtml(frame.label)}</b></p>
+          <p>${escapeHtml(frame.meaning)}</p>
+          <div class="map-frame-combos">${(frame.combos || []).map(combo => `<span class="map-chip">${escapeHtml(combo)}</span>`).join('')}</div>
+        </button>
+      `).join('')}
+    </div>
+    <div class="map-col">
+      <h3>3. 실생활 표현</h3>
+      <p class="small-note" style="margin:0 0 10px">실생활에서 자주 쓰는 표현 5개입니다.</p>
+      <p class="small-note" style="margin:0 0 10px"><b>선택됨:</b> ${escapeHtml(activeFrame?.label || '생각틀이 없습니다.')}${activeFrame?.meaning ? ` · ${escapeHtml(activeFrame.meaning)}` : ''}</p>
+      ${activeFrameExamples.map(example => `
+        <button class="map-detail-card map-example-card ${normalize(selectedExample) === normalize(example.en) ? 'selected' : ''}" type="button" data-map-example-en="${escapeHtml(example.en)}">
+          <p><b>${escapeHtml(example.en)}</b></p>
+          <p>${escapeHtml(example.ko)}</p>
+          ${example.note ? `<p class="small-note" style="margin-top:8px">${escapeHtml(example.note)}</p>` : ''}
+        </button>
+      `).join('')}
+    </div>`;
       updateMapConnectionText(currentMapId);
       thinkingMap.querySelectorAll('[data-map-frame-index]').forEach(button => {
         button.addEventListener('click', () => {
@@ -4194,6 +4497,6 @@
     renderModeCards('gameModes', modeCards.length);
     renderWords(); renderMap(); updateDashboard(); loadDictionaryExplorer();
     if (!window.location.hash) updateRouteForScreen('home', true);
-      </script>
+</script>
 </body>
 </html>
