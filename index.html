@@ -138,6 +138,13 @@
     .lesson-help { max-width:620px; align-self:center; margin:8px auto 0; color:var(--muted); font-size:12px; text-align:left; }
     .lesson-help summary { cursor:pointer; font-weight:850; color:var(--accent); }
     .lesson-help p { margin:7px 0 0; line-height:1.45; }
+    .compact-note { max-width:620px; align-self:center; margin:8px auto 0; color:var(--muted); font-size:12px; line-height:1.45; }
+    .related-panel { max-width:620px; align-self:center; margin:12px auto 0; padding:12px; border:1px solid var(--line); border-radius:14px; background:#fbfefe; text-align:left; }
+    .related-panel h4 { margin:0 0 8px; font-size:13px; color:var(--ink); }
+    .related-list { display:grid; gap:8px; }
+    .related-item { display:block; width:100%; border:1px solid var(--line); border-radius:12px; background:#fff; padding:10px 12px; color:var(--ink); text-align:left; }
+    .related-item b { display:block; font-size:14px; }
+    .related-item span { display:block; margin-top:3px; color:var(--muted); font-size:12px; line-height:1.35; }
 
     .answer-input { width:min(620px,100%); align-self:center; border:2px solid var(--line); border-radius:16px; padding: 15px 16px; background:#fff; color:var(--ink); font-size:18px; outline:none; }
     .answer-input:focus { border-color: var(--accent); box-shadow:0 0 0 4px rgba(40,111,108,.12); }
@@ -3219,7 +3226,6 @@
         : `${modeTitle(mode)} · ${item.frame} · ${item.level || 1}단계`;
       const baseTop = `<div class="lesson-label">${stageLabel}</div>`;
       const missionSummary = questStep ? renderQuestMissionSummary(questStep, item, mode) : '';
-      const connectionSummary = questStep ? '' : `<div class="connection-strip-summary">${getConnectionGraph(item, stageToConnectionKey(questStep?.questStage))}</div>`;
       let body = '';
       if (mode === 'listen') body = renderListen(item);
       else if (mode === 'koen') body = renderKoEn(item);
@@ -3228,11 +3234,74 @@
       else if (mode === 'build') body = renderBuild(item);
       else if (mode === 'speak') body = renderSpeak(item);
       else body = renderReview(item);
-      card.innerHTML = baseTop + missionSummary + connectionSummary + body;
+      card.innerHTML = baseTop + missionSummary + body;
       attachQuestionHandlers(item, mode);
     }
 
     function modeTitle(mode) { return (modeCards.find(x => x.id === mode) || {}).title || '퀘스트'; }
+    function getRelatedExpressions(item, limit = 3) {
+      const bank = getGameBank();
+      const relatedIds = new Set((item.relatedExpressionIds || []).filter(Boolean));
+      const candidates = bank.filter(candidate => candidate.id !== item.id && (
+        relatedIds.has(candidate.id)
+        || candidate.coreVerbId === item.coreVerbId
+        || candidate.patternId === item.patternId
+      ));
+      const unique = [];
+      const seen = new Set();
+      for (const candidate of candidates) {
+        if (seen.has(candidate.id)) continue;
+        seen.add(candidate.id);
+        unique.push(candidate);
+        if (unique.length >= limit) break;
+      }
+      return unique;
+    }
+    function renderRelatedExpressionsPanel(item) {
+      const related = getRelatedExpressions(item);
+      const content = related.length
+        ? `<div class="related-list">${related.map(expr => `
+            <button class="related-item" type="button" data-related-expression-id="${escapeHtml(expr.id)}">
+              <b>${escapeHtml(expr.en)}</b>
+              <span>${escapeHtml(expr.ko)} · ${escapeHtml(expr.frame)}</span>
+            </button>
+          `).join('')}</div>`
+        : '<div class="compact-note" style="margin:0">연관 표현이 아직 없어요.</div>';
+      return `
+        <div class="related-panel hidden" id="relatedExpressionBox">
+          <h4>연관 표현</h4>
+          ${content}
+        </div>
+      `;
+    }
+    function toggleRelatedExpressions(item) {
+      const box = document.getElementById('relatedExpressionBox');
+      if (!box) return;
+      const isHidden = box.classList.contains('hidden');
+      box.classList.toggle('hidden');
+      if (!isHidden) return;
+      const related = getRelatedExpressions(item);
+      box.querySelector('.related-list')?.remove();
+      const existingNote = box.querySelector('.compact-note');
+      if (existingNote) existingNote.remove();
+      if (!related.length) {
+        box.insertAdjacentHTML('beforeend', '<div class="compact-note" style="margin:0">연관 표현이 아직 없어요.</div>');
+        return;
+      }
+      box.insertAdjacentHTML('beforeend', `<div class="related-list">${related.map(expr => `
+        <button class="related-item" type="button" data-related-expression-id="${escapeHtml(expr.id)}">
+          <b>${escapeHtml(expr.en)}</b>
+          <span>${escapeHtml(expr.ko)} · ${escapeHtml(expr.frame)}</span>
+        </button>
+      `).join('')}</div>`);
+      box.querySelectorAll('[data-related-expression-id]').forEach(button => {
+        button.addEventListener('click', () => {
+          const relatedItem = getGameBank().find(candidate => candidate.id === button.dataset.relatedExpressionId);
+          if (!relatedItem) return;
+          startMode('listen', relatedItem.id);
+        });
+      });
+    }
     function renderQuestMissionSummary(questStep, item, mode) {
       const quest = appState.progress.dailyQuestV1 || {};
       const steps = quest.stepPlan || [];
@@ -3267,34 +3336,29 @@
           <span class="listen-count" id="listenSoundCount">듣기 ${session.listenCount || 0} / 3</span>
           <span class="listen-count" id="listenCount">말하기 ${session.successCount || 0} / 3</span>
         </div>
-        <details class="lesson-help">
-          <summary>미션 안내</summary>
-          <p>3번 듣고, 문장 전체를 3번 말해 보세요. 인식 결과가 맞거나 거의 맞으면 성공으로 셉니다.</p>
-        </details>
+        <p class="compact-note">3번 듣고, 문장 전체를 3번 말해 보세요.</p>
         <div class="question-actions"><button class="btn accent mic-start" type="button">🎤 말하기</button><button class="btn soft show-answer">연관 표현</button></div>
+        ${renderRelatedExpressionsPanel(item)}
         <div class="hint-box hidden" id="listenResultBox"></div>
         <div class="feedback hidden" id="feedback"></div>`;
     }
     function renderKoEn(item) {
       return `
         <h2>${item.ko}</h2>
-        <p class="korean">말하듯이 영어로 조립해 보세요. 대소문자와 마침표는 크게 신경 쓰지 않아도 됩니다.</p>
-        <div class="question-actions" style="margin-bottom:10px"><button class="btn soft mic-start" type="button">🎤 말하고 확인하기</button></div>
+        <p class="compact-note">영어로 바로 조립해 보세요.</p>
+        <div class="question-actions" style="margin-bottom:10px"><button class="btn soft mic-start" type="button">말하기</button></div>
         <div class="hint-box hidden" id="speechResultBox"></div>
         <input class="answer-input" id="answerInput" placeholder="Type your English sentence" autocomplete="off" />
         ${renderQuizNav('정답 확인')}
-        <div class="question-actions"><button class="btn soft next-hint">힌트 1/3</button></div>
-        <div class="hint-box hidden" id="hintBox"></div><div class="feedback hidden" id="feedback"></div>`;
+        <div class="feedback hidden" id="feedback"></div>`;
     }
     function renderSpeak(item) {
       return `
         <h2>${item.en}</h2>
-        <p class="korean">문장을 마이크로 말해 보세요.</p>
-        <div class="question-actions" style="margin-bottom:10px"><button class="btn accent mic-start" type="button">🎤 말하고 확인하기</button></div>
+        <p class="compact-note">문장을 그대로 말해 보세요.</p>
+        <div class="question-actions" style="margin-bottom:10px"><button class="btn accent mic-start" type="button">말하기</button></div>
         <div class="hint-box hidden" id="speechResultBox"></div>
         <div class="hint-box hidden" id="textPracticeBox">
-          <div class="hint-title">텍스트로 연습하기</div>
-          <p class="small-note" style="margin:0 0 10px">텍스트 연습은 피드백만 제공하고 직접 말하기 완료로 체크하지 않아요.</p>
           <input class="answer-input" id="textPracticeAnswerInput" placeholder="Type your English sentence" autocomplete="off" />
           <div class="question-actions"><button class="btn soft text-practice-check" type="button">연습 답안 확인</button></div>
         </div>
@@ -3316,7 +3380,7 @@
       const choices = buildMeaningChoices(item);
       return `
         <h2>${item.en}</h2>
-        <p class="korean">이 문장의 자연스러운 한국어 뜻을 고르세요.</p>
+        <p class="compact-note">뜻을 고르세요.</p>
         <button class="sound-btn speak" data-text="${escapeHtml(item.audioText || item.en)}" title="문장 듣기">🔊</button>
         <div class="choices" id="choices">${choices.map(c => `<button class="choice" data-value="${escapeHtml(c)}">${c}</button>`).join('')}</div>
         <div class="feedback hidden" id="feedback"></div>`;
@@ -3324,35 +3388,32 @@
     function renderHint(item) {
       return `
         <h2>${item.ko}</h2>
-        <p class="korean">답을 바로 보지 말고, 힌트 한 단계씩만 열어 보세요.</p>
-        <div class="hint-box" id="hintBox"><div class="hint-title">힌트 0 — 아직 안 열었어요</div>막히면 “다음 힌트”를 눌러 보세요.</div>
+        <p class="compact-note">힌트는 필요할 때만 엽니다.</p>
+        <div class="hint-box hidden" id="hintBox"></div>
         <input class="answer-input" id="answerInput" placeholder="Type your English sentence" autocomplete="off" />
         ${renderQuizNav('정답 확인')}
-        <div class="question-actions"><button class="btn soft next-hint">힌트 1/3</button></div>
+        <div class="question-actions"><button class="btn soft next-hint">힌트</button></div>
         <div class="feedback hidden" id="feedback"></div>`;
     }
     function renderBuild(item) {
       const verbs = shuffled(['get','make','take','give','have','keep', item.verb]).slice(0,5);
       return `
         <h2>${item.ko}</h2>
-        <p class="korean">핵심 동사와 표현 덩어리를 보고 빈칸을 떠올린 뒤 문장을 완성하세요.</p>
-        <div class="hint-box" style="background:#eef7f6; border-style:solid; border-color:#b8dcd9"><div class="hint-title" style="color:#286f6c">목표 문장</div><strong>${item.en}</strong>을 스스로 조립해 보세요.</div>
-        <div class="answer-key" style="margin-top:12px">핵심 동사를 고르세요.</div>
-        <p class="small-note" style="margin:6px 0 10px">문장 뼈대를 만드는 동사를 먼저 찾습니다.</p>
+        <p class="compact-note">문장을 조립해 보세요.</p>
         <div class="choices" id="choices">${shuffled([item.verb, ...verbs.filter(v=>v!==item.verb)]).slice(0,4).map(c => `<button class="choice build-verb" data-value="${c}">${c}</button>`).join('')}</div>
         <div class="hint-box hidden" id="buildVerbReason" style="margin-top:10px"></div>
         <input class="answer-input" id="answerInput" placeholder="Type the whole sentence" autocomplete="off" style="margin-top:14px" />
         ${renderQuizNav('문장 완성')}
-        <div class="question-actions"><button class="btn soft next-hint">힌트 1/3</button></div>
+        <div class="question-actions"><button class="btn soft next-hint">힌트</button></div>
         <div class="hint-box hidden" id="hintBox"></div><div class="feedback hidden" id="feedback"></div>`;
     }
     function renderReview(item) {
       return `
         <h2>${item.ko}</h2>
-        <p class="korean">이 표현의 연결 상태를 다시 확인하고, 약한 연결을 더 단단하게 만들어 보세요.</p>
+        <p class="compact-note">약한 연결을 다시 확인해 보세요.</p>
         <input class="answer-input" id="answerInput" placeholder="Type your English sentence" autocomplete="off" />
         ${renderQuizNav('다시 연결하기')}
-        <div class="question-actions"><button class="btn soft next-hint">힌트 1/3</button></div>
+        <div class="question-actions"><button class="btn soft next-hint">힌트</button></div>
         <div class="hint-box hidden" id="hintBox"></div><div class="feedback hidden" id="feedback"></div>`;
     }
     function renderQuizNav(label) {
@@ -3651,7 +3712,7 @@
         if (btn.classList.contains('listen-sound')) recordListenPlayback(item.id);
         speak(btn.dataset.text);
       }));
-      document.querySelectorAll('.show-answer').forEach(btn => btn.addEventListener('click', () => showFeedback('meaning', `<b>${item.frame}</b><br><span class="answer-key">${item.ko}<br>${escapeHtml(item.literalMeaning || item.ko)}</span>`)));
+      document.querySelectorAll('.show-answer').forEach(btn => btn.addEventListener('click', () => toggleRelatedExpressions(item)));
       document.querySelectorAll('.check-answer').forEach(btn => btn.addEventListener('click', () => checkTextAnswer(item, mode)));
       document.querySelectorAll('.next-hint').forEach(btn => btn.addEventListener('click', () => showNextHint(item)));
       document.querySelectorAll('.build-verb').forEach(btn => btn.addEventListener('click', () => {
@@ -3792,9 +3853,7 @@
           markStudy(mode, item.id, 'retry', { signature, hintLevel: appState.hintStep });
         }
       }
-      const afterGraph = renderConnectionStripFromHistory(getHistory(item.id));
-      const connectionNote = practiceOnly ? '텍스트 연습 결과예요. 직접 말하기 완료에는 반영하지 않았어요.' : afterGraph;
-      showAnswerSummary(result.feedbackClass, item, result, rawGuess, connectionNote, { allowAdvance: !practiceOnly });
+      showAnswerSummary(result.feedbackClass, item, result, rawGuess, { allowAdvance: !practiceOnly });
     }
     function chooseAnswer(item, mode, button) {
       if (appState.questionAnswered) { nextQuestion(); return; }
@@ -3842,19 +3901,16 @@
         btn.disabled = appState.hintStep >= totalHints;
       }
     }
-    function showAnswerSummary(type, item, result, rawGuess, connectionNote = '', options = {}) {
+    function showAnswerSummary(type, item, result, rawGuess, options = {}) {
       const canAdvance = options.allowAdvance !== false && (result.status === 'correct' || result.status === 'almost');
       appState.questionAnswered = canAdvance;
       pulseQuestion(type);
-      const totalHints = Math.min(3, item.hint.length || 3);
-      const usedHints = Math.min(appState.hintStep, totalHints);
       const nuance = result.nuance ? `<div class="answer-key">뉘앙스</div><div>${escapeHtml(result.nuance)}</div>` : '';
       const buttonText = canAdvance ? (appState.currentIndex + 1 >= appState.lessonItems.length ? '마무리하기' : '다음 문제') : '같은 문제 다시 풀기';
       showFeedback(type, `
         <div class="answer-summary">
           <b>${escapeHtml(result.title)}</b>
           <div style="margin-top:6px">${escapeHtml(result.message || '')}</div>
-          ${connectionNote ? `<div class="answer-key">이번 문장 연결 상태</div><div>${connectionNote}</div>` : ''}
           <div class="answer-key">내 답</div>
           <div>${escapeHtml(rawGuess)}</div>
           <div class="answer-key">정답 영어 문장</div>
@@ -3862,9 +3918,6 @@
           <div class="answer-key">자연스러운 한국어</div>
           <div>${escapeHtml(item.ko)}</div>
           ${nuance}
-          <div class="answer-key">단어 덩어리</div>
-          <div class="chunk-row">${(item.chunks || []).map(chunk => `<span class="chunk">${escapeHtml(chunk)}</span>`).join('')}</div>
-          <div class="answer-key">사용한 힌트 수: ${usedHints}/${totalHints} · ${escapeHtml(item.frame)} · ${escapeHtml(item.verb)} 엔진</div>
           <div class="question-actions"><button class="btn dark next-after-answer">${buttonText}</button></div>
         </div>
       `);
