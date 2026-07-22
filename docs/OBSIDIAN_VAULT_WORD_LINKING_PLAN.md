@@ -2,8 +2,9 @@
 
 ## 목적
 
-Vault에 이미 있는·새로 추가하는 영어 문서(`Verbs/`, `Nouns/`, `Words/` 등)를 웹앱 표현·패턴과 연결해 영어뇌를 풍부하게 만든다.  
-다만 **연결 ≠ 즉시 출제**다. Active Speaking Set 밖의 단어는 후보·해금 대기만 하고 연습 은행에 넣지 않는다.
+Vault에 이미 있는·새로 추가하는 영어 문서(`Library/Verbs|Nouns|Patterns`, 레거시 루트 `Verbs/`/`Nouns/` 등)를 웹앱 표현·패턴과 연결해 영어뇌를 풍부하게 만든다.  
+다만 **연결 ≠ 즉시 출제**다. Active Speaking Set 밖의 단어는 후보·해금 대기만 하고 연습 은행에 넣지 않는다.  
+폴더 계약 SoT: [`OBSIDIAN_VAULT_EVOLUTION.md`](./OBSIDIAN_VAULT_EVOLUTION.md).
 
 ## 범위
 
@@ -49,14 +50,14 @@ Vault에 이미 있는·새로 추가하는 영어 문서(`Verbs/`, `Nouns/`, `W
 
 ## 구현 순서
 
-1. Vault 노트 frontmatter 스키마 문서화 (`id`, `word`, `type`, `aliases`)
-2. overlay 파서(로컬 REST/브리지 GET)
-3. high/medium 자동 링크 + low 후보 큐
-4. Active set 게이트와 Unlock pack 연동
-5. 그래프에 Vault-only 노드는 다른 스타일로 표시
+1. [x] Vault 노트 frontmatter 스키마 문서화 (`id`, `word`, `type`, `aliases`); 신규는 `Library/` 하위
+2. [x] overlay 파서(로컬 REST/브리지 GET) — `src/domain/vault-overlay.js`
+3. [x] high/medium 자동 링크 + low 후보 큐 — 동사 카드 `Vault 연결` 탭
+4. [x] Active set 게이트와 Unlock pack 연동 — active / unlock-later / candidate / watchlist (출제 불변)
+5. [x] 그래프에 Vault-only 노드는 다른 스타일로 표시 (Phase 5 · `graph-style.js`)
 
 ## 완료 조건
 
-- Vault에 문서가 늘어나도 Starter Active set 출제 범위가 넓어지지 않는다.
-- 사용자가 확정한 연결만 앱 학습 재료 후보가 된다.
-- `data/*.json` 원본이 Vault sync 때문에 손상되지 않는다.
+- [x] Vault에 문서가 늘어나도 Starter Active set 출제 범위가 넓어지지 않는다.
+- [x] 사용자가 확정한 연결만 앱 학습 재료 후보(watchlist)가 된다.
+- [x] `data/*.json` 원본이 Vault sync 때문에 손상되지 않는다.

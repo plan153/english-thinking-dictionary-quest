@@ -19,6 +19,16 @@
         "expressionIds": ["e023", "e032", "e062", "e071", "e072", "e027", "e028", "e034", "e080", "e082"]
       }
     ],
+    "verbUnlockPacks": [
+      {
+        "id": "verb_pack_give",
+        "title": "동사 해금 · give",
+        "verbIds": ["v_give"],
+        "expressionIds": ["e007", "e040", "e042", "e043", "e041"],
+        "requiresMatrixGate": true,
+        "note": "Starter 동사들의 매트릭스 4형태(평서·의문·부정·짧은 답) 통과 후 해금"
+      }
+    ],
     "unlockThreshold": 0.7,
     "masteryThreshold": 3
   },

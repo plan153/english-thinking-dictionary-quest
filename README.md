@@ -10,6 +10,7 @@
 - [통합 개발 계획](docs/DEVELOPMENT_PLAN.md)
 - [Active Speaking Set](docs/ACTIVE_SPEAKING_SET.md)
 - [Obsidian 영어뇌 동기화](docs/OBSIDIAN_ENGLISH_BRAIN_SYNC.md)
+- [Vault 자료 정원(Drafts/Canon) 진화](docs/OBSIDIAN_VAULT_EVOLUTION.md)
 
 ## GitHub 자동 업로드·자동 배포·자동 판올림
 

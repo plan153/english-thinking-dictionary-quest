@@ -201,12 +201,78 @@
       color: var(--muted);
       font-weight: 800;
     }
+    .verb-chip.vault-linked:not(.locked) {
+      box-shadow: inset 0 0 0 2px rgba(40, 111, 108, .35);
+    }
+    .verb-chip.vault-linked:not(.active):not(.locked)::after {
+      content: " Vault";
+      font-size: 10px;
+      color: var(--accent);
+      font-weight: 800;
+    }
+    .verb-chip.vault-only,
+    .map-example-card.vault-only,
+    .map-sentence-card.vault-only,
+    .map-frame-card.vault-only {
+      box-shadow: inset 0 0 0 2px rgba(104, 113, 125, .45);
+      opacity: .72;
+    }
+    .map-chip.vault-linked,
+    .map-example-card.vault-linked,
+    .map-sentence-card.vault-linked,
+    .map-frame-card.vault-linked,
+    .map-detail-card.vault-linked {
+      box-shadow: inset 0 0 0 1px rgba(40, 111, 108, .45);
+    }
+    .map-example-card.locked,
+    .map-sentence-card.locked {
+      opacity: .55;
+      border-style: dashed;
+    }
+    .graph-node-badge {
+      display: inline-block;
+      margin-top: 6px;
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--accent);
+    }
+    .graph-node-badge.vault-only { color: var(--muted); }
+    .lexicon-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 10px 0 4px;
+    }
+    .lexicon-chips span {
+      border: 1px solid var(--line);
+      background: #f3faf9;
+      color: #245c5a;
+      border-radius: 10px;
+      padding: 4px 8px;
+      font-size: 12px;
+      font-weight: 700;
+    }
     .expression-item .lock-mark { display:inline-block; margin-left:6px; font-size:11px; color:var(--muted); font-weight:800; }
     .active-set-card .active-set-stats {
       display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;
     }
     .active-set-card .active-set-stats span {
       background:#eaf4f3; color:#155a57; border-radius:999px; padding:7px 10px; font-size:12px; font-weight:850;
+    }
+    .home-quest-primary { margin-top: 8px; }
+    .home-quest-primary #questArea { margin-top: 14px; }
+    .home-quest-primary #questArea > .card { margin: 0; }
+    .home-secondary { margin-top: 28px; }
+    .home-explore { margin-top: 28px; }
+    .top-stats .stat-pill.aux {
+      opacity: .72;
+      font-weight: 700;
+    }
+    .learner-pill { cursor: pointer; max-width: 160px; overflow: hidden; text-overflow: ellipsis; }
+    .learner-panel { display: grid; gap: 12px; margin-top: 12px; }
+    .learner-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .learner-row select, .learner-row input[type="text"] {
+      border:1px solid var(--line); border-radius:12px; padding:10px 12px; font:inherit; background:#fff; min-width:140px;
     }
     .gap-form {
       margin-top: 12px;
@@ -223,7 +289,7 @@
       color:#8a6610;
       margin: 8px 0 4px;
     }
-    .gap-form textarea, .gap-form input {
+    .gap-form textarea, .gap-form input, .gap-form select {
       width:100%;
       border:1px solid var(--line);
       border-radius:12px;
@@ -559,15 +625,16 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.0.2">v1.0.2</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.0.9">v1.0.9</span></p>
         </div>
       </div>
       <div class="top-controls">
+        <button class="stat-pill learner-pill" id="learnerPill" type="button" aria-label="학습자 공책" title="학습자 공책 바꾸기">👤 <span id="learnerPillName">나</span></button>
         <button class="stat-pill sound-pill" id="toggleSound" type="button" aria-label="소리 켬" title="소리 켬">🔊</button>
         <div class="top-stats">
-          <div class="stat-pill">🔥 <span id="streak">0</span>일</div>
-          <div class="stat-pill">⚡ <span id="xp">0</span> XP</div>
-          <div class="stat-pill">🧠 <span id="mastered">0</span> / <span id="totalWords">0</span></div>
+          <div class="stat-pill" title="내 표현 / 해금된 Active set">🧠 <span id="mastered">0</span> / <span id="totalWords">0</span></div>
+          <div class="stat-pill aux" title="보조 지표">🔥 <span id="streak">0</span>일</div>
+          <div class="stat-pill aux" title="보조 지표">⚡ <span id="xp">0</span> XP</div>
         </div>
       </div>
     </header>
@@ -582,44 +649,52 @@
 
     <section id="home" class="screen active">
       <div class="hero">
-        <div class="eyebrow">Think in building blocks</div>
-        <h2>영어 문장을 외우지 말고,<br>핵심 단어를 조립하세요.</h2>
-        <p>지금은 <b>have · get · want · need · go · come · make · take</b> 만능동사와 핵심 명사만으로 쉬운 구어체를 만듭니다. 듣고, 따라 말하고, 힌트를 보며 조립하세요. 익숙해지면 다음 표현 묶음이 해금됩니다.</p>
+        <div class="eyebrow">English Thinking Dictionary</div>
+        <h2>작은 세트만,<br>입으로 조립하세요.</h2>
+        <p>지금은 만능동사 8개 Active Speaking Set만 연습합니다. 듣고 → 따라 말하고 → 조립하면, 내 표현이 쌓일수록 다음 묶음이 열립니다.</p>
         <div class="hero-actions">
           <button class="btn primary" id="startDaily">오늘의 7분 퀘스트 시작</button>
-          <button class="btn ghost" id="jumpDictionary">동사 카드 보기</button>
         </div>
       </div>
 
-      <div class="grid cols-2">
+      <div class="home-quest-primary">
         <article class="card daily-card">
           <div class="ring" id="dailyRing" style="--p: 0"><strong id="dailyPercent">0%</strong></div>
           <div>
-            <h3>오늘의 최소 루프</h3>
-            <p id="dailyCopy">듣고 따라 말하기 1세트 → 영어 장면 고르기 2회 → 한글→영어 조립 1회 → 묻기·답하기 변형 1회 → 약한 연결 복습 1회</p>
+            <h3>오늘의 7분 루프</h3>
+            <p id="dailyCopy">듣고 따라 말하기 → 장면 고르기 → 한글→영어 조립 → 묻기 맛보기 → 약한 연결 복습</p>
             <div class="mini-progress"><div class="progress-track"><span id="dailyBar" style="width:0%"></span></div><strong id="dailyCount">0 / 7</strong></div>
           </div>
         </article>
+        <div id="questArea" aria-live="polite"></div>
+      </div>
+
+      <div class="home-secondary">
         <article class="card active-set-card">
           <h3>지금 연습 중인 영어뇌</h3>
-          <p id="activeSetCopy">제한된 만능동사·표현만 출제합니다. Vault에 문서가 더 있어도 연습 범위는 여기서만 넓어집니다.</p>
+          <p id="activeSetCopy">제한된 만능동사·표현만 출제합니다. Vault·Library에 자료가 더 있어도 퀴즈 범위는 여기서만 넓어집니다.</p>
           <div class="active-set-stats" id="activeSetStats"></div>
           <div class="mini-progress" style="margin-top:14px"><div class="progress-track"><span id="activeSetBar" style="width:0%"></span></div><strong id="activeSetPercent">0%</strong></div>
-          <p class="small-note" id="activeSetUnlockHint" style="margin-top:10px">내 표현 70%에 도달하면 다음 10개가 해금됩니다.</p>
+          <p class="small-note" id="activeSetUnlockHint" style="margin-top:10px">레벨업: 내 표현 비율이 임계값에 도달하면 Unlock pack이 열립니다.</p>
         </article>
       </div>
-      <article class="card" style="margin-top:16px">
-        <h3>오늘의 연결</h3>
-        <p>하나의 기본 엔진은 “한 단어”가 아니라 여러 표현을 만드는 출발점입니다.</p>
-        <div id="homeConnectionChips" style="margin-top:14px; display:flex; flex-wrap:wrap; gap:8px;"></div>
-        <p class="small-note" id="connectionText" style="margin-top:12px">기본 엔진 get · 얻다 · 받다 · 도착하다 · 이해하다 · 상태가 되다</p>
-      </article>
 
-      <div class="section-head" style="margin-top:28px">
-        <div><h2>오늘 바로 할 게임</h2><p>틀려도 힌트로 길을 찾는 방식입니다.</p></div>
+      <div class="home-explore">
+        <div class="section-head">
+          <div><h2>더 연습하기</h2><p>퀘스트 외에 모드를 고르거나, 동사 엔진 연결을 살펴봅니다.</p></div>
+        </div>
+        <div class="grid cols-3" id="homeModes"></div>
+        <article class="card" style="margin-top:16px">
+          <h3>기본 엔진 연결</h3>
+          <p>한 동사가 여러 표현의 출발점입니다.</p>
+          <div id="homeConnectionChips" style="margin-top:14px; display:flex; flex-wrap:wrap; gap:8px;"></div>
+          <p class="small-note" id="connectionText" style="margin-top:12px">기본 엔진 get · 얻다 · 받다 · 도착하다 · 이해하다 · 상태가 되다</p>
+          <div class="hero-actions" style="margin-top:14px; justify-content:flex-start">
+            <button class="btn ghost" id="jumpDictionary" type="button">동사 카드 보기</button>
+          </div>
+        </article>
+        <p class="small-note" style="margin-top:12px">힌트 사다리는 한글 → 영어 조립 안의 보조 풀이로, 문장빌드맵은 동사 카드 안의 코너로 들어가 있어요.</p>
       </div>
-      <div class="grid cols-3" id="homeModes"></div>
-      <p class="small-note" style="margin-top:12px">힌트 사다리는 한글 → 영어 조립 안의 보조 풀이로, 문장빌드맵은 동사 카드 안의 코너로 들어가 있어요.</p>
     </section>
 
     <section id="play" class="screen">
@@ -658,6 +733,7 @@
           <button class="dictionary-tab active" type="button" data-dictionary-view="verbs">동사 탐험</button>
           <button class="dictionary-tab" type="button" data-dictionary-view="expressions">실생활 표현</button>
           <button class="dictionary-tab" type="button" data-dictionary-view="build">문장빌드맵</button>
+          <button class="dictionary-tab" type="button" data-dictionary-view="vault">Vault 연결</button>
         </div>
         <div id="explorerStatus" class="explorer-status">사전 데이터를 불러오는 중입니다.</div>
         <div id="verbExplorerButtons" class="verb-buttons"></div>
@@ -677,6 +753,7 @@
         </div>
         <div class="explorer-panel expression-detail" id="expressionExplorerDetail" style="margin-top:14px" data-dictionary-view="expressions"></div>
         <div class="explorer-panel verb-map" id="dictionaryMap" style="margin-top:14px" data-dictionary-view="build"></div>
+        <div class="explorer-panel" id="vaultOverlayPanel" style="margin-top:14px" data-dictionary-view="vault" hidden></div>
         <div class="map-focus-actions" id="mapFocusActions">
           <button class="btn soft" type="button" id="showDictionaryLegacy">문장빌드맵 닫고 전체 사전 보기</button>
         </div>
@@ -709,10 +786,26 @@
         <div><h2>내 성장</h2><p>많이 푸는 것보다, 약한 연결을 다시 만나는 것이 중요합니다.</p></div>
       </div>
       <div class="grid cols-3">
-        <article class="card"><h3>총 경험치</h3><div style="font-size:34px;font-weight:900;letter-spacing:-1.5px" id="xpBig">0 XP</div><p>정답, 따라 말하기, 복습으로 얻습니다.</p></article>
-        <article class="card"><h3>연속 학습</h3><div style="font-size:34px;font-weight:900;letter-spacing:-1.5px" id="streakBig">0일</div><p>오늘 한 문제라도 풀면 이어집니다.</p></article>
-        <article class="card"><h3>내 표현</h3><div style="font-size:34px;font-weight:900;letter-spacing:-1.5px" id="masteredBig">0</div><p>Active Speaking Set 안에서 “내 말”이 된 표현입니다.</p></article>
+        <article class="card"><h3>총 경험치</h3><div style="font-size:34px;font-weight:900;letter-spacing:-1.5px" id="xpBig">0 XP</div><p>보조 지표입니다. 정답·따라 말하기·복습으로 쌓입니다.</p></article>
+        <article class="card"><h3>연속 학습</h3><div style="font-size:34px;font-weight:900;letter-spacing:-1.5px" id="streakBig">0일</div><p>보조 지표입니다. 오늘 한 문제라도 풀면 이어집니다.</p></article>
+        <article class="card"><h3>내 표현</h3><div style="font-size:34px;font-weight:900;letter-spacing:-1.5px" id="masteredBig">0</div><p>주신호: 연결도 ●—●—● 또는 충분히 맞혀 Active set 안에서 “내 말”이 된 표현입니다.</p></article>
       </div>
+      <article class="card" id="learnerCard" style="margin-top:16px">
+        <h3>학습자 공책</h3>
+        <p class="small-note">로그인 없이 사람마다 진도와 Obsidian 영어뇌를 나눕니다. 교과서는 같고, 공책만 다릅니다.</p>
+        <div class="learner-panel">
+          <div class="learner-row">
+            <label class="small-note" for="learnerSelect">지금 공책</label>
+            <select id="learnerSelect" aria-label="학습자 선택"></select>
+            <button class="btn soft" id="switchLearnerBtn" type="button">이 공책으로</button>
+          </div>
+          <div class="learner-row">
+            <input id="newLearnerName" type="text" placeholder="새 공책 이름 (예: 민수)" aria-label="새 학습자 이름" />
+            <button class="btn dark" id="addLearnerBtn" type="button">추가</button>
+          </div>
+          <p class="small-note" id="learnerVaultHint">Obsidian 경로: Learners/me/</p>
+        </div>
+      </article>
       <article class="card active-set-card" style="margin-top:16px">
         <h3>Active Speaking Set</h3>
         <p id="progressActiveSetCopy">지금 입으로 훈련하는 제한 범위입니다.</p>
@@ -725,7 +818,7 @@
       </article>
       <article class="card" style="margin-top:16px">
         <h3>간극 기록 · 영어뇌 내보내기</h3>
-        <p class="small-note">틀린 추측과 모델 업데이트를 Obsidian용 Markdown으로 남깁니다. 같은 간극 ID는 같은 경로로만 갱신됩니다.</p>
+        <p class="small-note">틀린 추측과 모델 업데이트를 Obsidian용 Markdown으로 남깁니다. Gap → Library/Drafts 후보로 보내 자료 정원을 키울 수 있습니다.</p>
         <div class="question-actions" style="justify-content:flex-start; margin-top:12px">
           <button class="btn dark" id="exportBrainMarkdown" type="button">영어뇌 Markdown 내보내기</button>
           <button class="btn soft" id="exportBrainJson" type="button">번들 JSON 다운로드</button>
@@ -733,8 +826,62 @@
         <div id="gapNotesList" style="margin-top:14px"></div>
       </article>
       <article class="card" style="margin-top:16px">
+        <h3>파인만 설명 노트</h3>
+        <p class="small-note">제한 어휘로 쓴 설명입니다. 음성 인식 결과가 있으면 함께 저장됩니다. 퀴즈 은행에는 넣지 않습니다.</p>
+        <div id="explanationsList" style="margin-top:14px"></div>
+      </article>
+      <article class="card" style="margin-top:16px" id="obsidianSyncCard">
+        <h3>Obsidian Local REST 동기화</h3>
+        <p class="small-note">Obsidian Local REST API(권장 HTTP <code>127.0.0.1:27123</code>)로 Gaps·Brain State를 upsert하고, Next Practice·Gaps를 가져옵니다. API 키는 이 브라우저에만 저장됩니다.</p>
+        <div class="gap-form" style="margin-top:12px">
+          <label>Adapter
+            <select id="syncAdapter">
+              <option value="download">download (파일 다운로드만)</option>
+              <option value="local-rest">local-rest (Obsidian :27123)</option>
+              <option value="bridge">bridge (로컬 브리지 :8787)</option>
+              <option value="drive-webhook">drive-webhook (Apps Script 백업)</option>
+            </select>
+          </label>
+          <label>Base URL
+            <input id="syncBaseUrl" type="url" placeholder="http://127.0.0.1:27123" />
+          </label>
+          <label>Drive webhook URL (drive-webhook일 때)
+            <input id="syncWebhookUrl" type="url" placeholder="https://script.google.com/macros/s/.../exec" />
+          </label>
+          <label>API Key
+            <input id="syncApiKey" type="password" autocomplete="off" placeholder="Local REST API key" />
+          </label>
+          <label>Path prefix (Vault 안 Project_English 폴더일 때)
+            <input id="syncPathPrefix" type="text" placeholder="비우거나 Project_English" />
+          </label>
+          <label style="display:flex; align-items:center; gap:8px; margin-top:8px;">
+            <input id="syncAutoAfterGap" type="checkbox" />
+            간극 저장 후 자동 동기화 시도 (실패해도 학습은 계속)
+          </label>
+          <div class="question-actions" style="justify-content:flex-start; margin-top:12px; flex-wrap:wrap;">
+            <button class="btn soft" id="saveSyncSettings" type="button">설정 저장</button>
+            <button class="btn soft" id="testSyncConnection" type="button">연결 테스트</button>
+            <button class="btn dark" id="syncToObsidian" type="button">Obsidian에 동기화</button>
+            <button class="btn soft" id="importFromObsidian" type="button">Obsidian에서 가져오기</button>
+            <button class="btn soft" id="flushSyncQueue" type="button">실패 큐 재시도</button>
+          </div>
+          <p class="small-note" id="syncStatusText" style="margin-top:10px">동기화 상태: 아직 없음</p>
+        </div>
+      </article>
+      <article class="card" style="margin-top:16px">
+        <h3>Library 자료 후보 (Drafts)</h3>
+        <p class="small-note">Vault 정원에서 자라는 표현 후보입니다. 승격(Canon) 전에는 퀴즈에 넣지 않습니다. 한글·동사·패턴이 있어야 승격할 수 있습니다.</p>
+        <div id="expressionDraftsList" style="margin-top:14px"></div>
+        <div id="canonIntakePanel" style="margin-top:14px"></div>
+      </article>
+      <article class="card" style="margin-top:16px">
+        <h3>동사 매트릭스 4형태 게이트</h3>
+        <p class="small-note">Starter 동사의 평서·의문·부정·짧은 답을 모두 통과하면 다음 동사(예: give)가 해금됩니다. 표현 Unlock pack과는 별 게이트입니다.</p>
+        <div id="verbGatePanel" style="margin-top:12px"></div>
+      </article>
+      <article class="card" style="margin-top:16px">
         <button class="btn warn" id="resetProgress">학습 기록 초기화</button>
-        <p class="small-note">이 기기 브라우저에만 저장된 XP, 정답 기록, 연속 학습일, 간극 기록을 지웁니다.</p>
+        <p class="small-note">이 기기 브라우저에만 저장된 XP, 정답 기록, 연속 학습일, 간극·Draft 기록을 지웁니다.</p>
       </article>
     </section>
 
@@ -742,6 +889,15 @@
   </main>
 
   <script src="./src/domain/markdown-projection.js"></script>
+  <script src="./src/domain/obsidian-sync.js"></script>
+  <script src="./src/domain/canon-intake.js"></script>
+  <script src="./src/domain/verb-matrix-gate.js"></script>
+  <script src="./src/domain/vault-overlay.js"></script>
+  <script src="./src/domain/feynman-challenge.js"></script>
+  <script src="./src/domain/graph-style.js"></script>
+  <script src="./src/domain/progress-store.js"></script>
+  <script src="./src/domain/active-speaking-set.js"></script>
+  <script src="./src/domain/english-brain-export.js"></script>
   <script>
     const wordBank = [
       { id:'get', type:'핵심 동사', word:'get', korean:'얻다 · 받다 · 도착하다 · 이해하다 · 상태가 되다', example:'I got your message.', exKo:'네 메시지 받았어.', connections:'get a message · get home · get better · get it' },
@@ -807,6 +963,7 @@
 
     const modeCards = [
       { id:'listen', icon:'🔊', title:'듣고 따라 말하기', desc:'문장을 듣고 바로 따라 말하며 리듬과 덩어리를 익혀요.', cta:'소리로 시작' },
+      { id:'explain', icon:'🧠', title:'파인만 설명 챌린지', desc:'Active Speaking Set 단어만으로 표현 뜻을 영어로 설명해 봐요.', cta:'제한 어휘로 설명' },
       { id:'matrix', icon:'🔄', title:'묻기 · 답하기 변형', desc:'같은 표현을 평서·의문·부정·짧은 답·시제로 바꿔 입으로 연습해요.', cta:'변형 연습' },
       { id:'koen', icon:'🧩', title:'한글 → 영어 조립', desc:'한국어 뜻을 보고 핵심 동사와 표현 덩어리를 빠르게 골라요. 힌트는 안쪽에서 좁혀요.', cta:'영어 만들기' },
       { id:'enko', icon:'🎯', title:'영어 → 장면 고르기', desc:'영어를 번역하지 말고, 가장 가까운 상황과 뜻을 골라요.', cta:'뜻 연결하기' },
@@ -1654,8 +1811,38 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.0.2';
+    const APP_CACHE_VERSION = 'etd-quest-v1.0.9';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
+
+    const ProgressStoreApi = window.ProgressStore;
+    if (!ProgressStoreApi) console.warn('ProgressStore module missing');
+    const LEGACY_PROGRESS_KEY = ProgressStoreApi?.LEGACY_PROGRESS_KEY || 'etdQuestProgress';
+    const LEARNER_PROFILES_KEY = ProgressStoreApi?.LEARNER_PROFILES_KEY || 'etdLearnerProfiles';
+    const DEFAULT_LEARNER_ID = ProgressStoreApi?.DEFAULT_LEARNER_ID || 'me';
+    const DEFAULT_LEARNER_NAME = ProgressStoreApi?.DEFAULT_LEARNER_NAME || '나';
+    const localStore = typeof localStorage !== 'undefined' ? localStorage : null;
+
+    function defaultLearnerStore() { return ProgressStoreApi.defaultLearnerStore(); }
+    function readLearnerStoreRaw() { return ProgressStoreApi.readLearnerStoreRaw(localStore); }
+    function writeLearnerStore(store) { ProgressStoreApi.writeLearnerStore(store, localStore); }
+    function migrateLegacyProgressIfNeeded(learnerId = DEFAULT_LEARNER_ID) {
+      ProgressStoreApi.migrateLegacyProgressIfNeeded(learnerId, localStore);
+    }
+    function ensureLearnerProfiles() { return ProgressStoreApi.ensureLearnerProfiles(localStore); }
+    function getLearnerStore() { return ensureLearnerProfiles(); }
+    function getActiveLearnerId() { return getLearnerStore().activeLearnerId || DEFAULT_LEARNER_ID; }
+    function getActiveLearner() {
+      const store = getLearnerStore();
+      return store.learners.find(item => item.id === store.activeLearnerId) || store.learners[0];
+    }
+    function getProgressStorageKey(learnerId = getActiveLearnerId()) {
+      return ProgressStoreApi.getProgressStorageKey(learnerId);
+    }
+    function progressNamePrefixFor(learnerId = getActiveLearnerId()) {
+      return ProgressStoreApi.progressNamePrefixFor(learnerId);
+    }
+    function hashString(text) { return ProgressStoreApi.hashString(text); }
+    function makeLearnerId(name, existingIds = []) { return ProgressStoreApi.makeLearnerId(name, existingIds); }
 
     async function purgeStaleAppCaches() {
       if (location.protocol === 'file:') return;
@@ -1702,158 +1889,39 @@
       listenSession: null,
     };
 
-    function defaultHistoryEntry() {
-      return {
-        lastAttemptedAt: null,
-        lastCorrectAt: null,
-        lastMeaningHitAt: null,
-        timesSeen: 0,
-        timesCorrect: 0,
-        reviewPriority: 0,
-        lastHintLevel: 0,
-        connections: {
-          recognition: { strength: 0, updatedAt: null },
-          assembly: { strength: 0, updatedAt: null },
-          output: { strength: 0, updatedAt: null },
-        },
-      };
-    }
-    function defaultDailyQuestV1() {
-      return {
-        version: 2,
-        date: null,
-        stepPlan: [],
-        currentIndex: 0,
-        completedStepKeys: [],
-        startedAt: null,
-        finishedAt: null,
-        isCompleted: false,
-      };
-    }
-    function defaultProgress() {
-      return {
-        xp: 0,
-        streak: 0,
-        lastStudyDate: null,
-        successes: {},
-        attempts: {},
-        skipped: {},
-        recentExpressionIds: [],
-        daily: { date: null, done: [] },
-        dailyQuestV1: defaultDailyQuestV1(),
-        settings: { soundEnabled: true, seenConnectionGuide: false },
-        historyByExpressionId: {},
-        curriculum: { unlockedPackCount: 0, lastUnlockAt: null },
-        gapNotes: [],
-      };
-    }
-    function normalizeGapNote(entry) {
-      const api = window.EnglishBrainMarkdown;
-      const base = entry && typeof entry === 'object' ? entry : {};
-      const createdAt = base.createdAt || new Date().toISOString();
-      const id = base.id || (api ? api.makeGapId({
-        expressionId: base.expressionId,
-        guess: base.guess,
-        mode: base.mode,
-        createdAt,
-      }) : `gap_${base.expressionId || 'unknown'}`);
-      return {
-        id,
-        expressionId: base.expressionId || '',
-        english: base.english || '',
-        naturalKorean: base.naturalKorean || '',
-        mode: base.mode || '',
-        guess: base.guess || '',
-        actual: base.actual || base.english || '',
-        missedClue: base.missedClue || '',
-        modelUpdate: base.modelUpdate || '',
-        verbWord: base.verbWord || '',
-        verbId: base.verbId || '',
-        createdAt,
-        updatedAt: base.updatedAt || createdAt,
-        status: base.status || 'open',
-      };
-    }
-    function normalizeHistoryEntry(entry) {
-      const normalized = { ...defaultHistoryEntry(), ...entry };
-      normalized.lastHintLevel = entry.lastHintLevel || 0;
-      normalized.connections = {
-        ...defaultHistoryEntry().connections,
-        ...(entry.connections || {}),
-      };
-      Object.entries(normalized.connections).forEach(([key, value]) => {
-        normalized.connections[key] = {
-          ...defaultHistoryEntry().connections[key],
-          ...(value || {}),
-        };
+    function defaultHistoryEntry() { return ProgressStoreApi.defaultHistoryEntry(); }
+    function defaultDailyQuestV1() { return ProgressStoreApi.defaultDailyQuestV1(); }
+    function defaultVaultOverlay() { return ProgressStoreApi.defaultVaultOverlay(); }
+    function defaultProgress() { return ProgressStoreApi.defaultProgress(); }
+    function normalizeGapNote(entry) { return ProgressStoreApi.normalizeGapNote(entry, window.EnglishBrainMarkdown); }
+    function normalizeHistoryEntry(entry) { return ProgressStoreApi.normalizeHistoryEntry(entry); }
+    function normalizeExpressionDraft(entry) { return ProgressStoreApi.normalizeExpressionDraft(entry, window.EnglishBrainMarkdown); }
+    function normalizeExplanationNote(entry) {
+      return ProgressStoreApi.normalizeExplanationNote(entry, {
+        feynman: window.FeynmanChallenge,
+        markdown: window.EnglishBrainMarkdown,
       });
-      normalized.reviewPriority = typeof entry.reviewPriority === 'number' ? entry.reviewPriority : normalized.reviewPriority;
-      return normalized;
     }
-    const progressStorageKey = 'etdQuestProgress';
-    const progressNamePrefix = 'ETD_PROGRESS:';
-    function readProgressPayload() {
-      try {
-        if (typeof localStorage !== 'undefined') {
-          const raw = localStorage.getItem(progressStorageKey);
-          if (raw) return JSON.parse(raw);
-        }
-      } catch {}
-      try {
-        if (typeof window !== 'undefined' && typeof window.name === 'string' && window.name.startsWith(progressNamePrefix)) {
-          return JSON.parse(window.name.slice(progressNamePrefix.length));
-        }
-      } catch {}
-      return null;
+    function normalizeVaultOverlay(raw) { return ProgressStoreApi.normalizeVaultOverlay(raw); }
+    function normalizeVaultLink(entry) { return ProgressStoreApi.normalizeVaultLink(entry); }
+    function readProgressPayload(learnerId = getActiveLearnerId()) {
+      return ProgressStoreApi.readProgressPayload(learnerId, localStore, typeof window !== 'undefined' ? window : null);
     }
-    function writeProgressPayload(progress) {
-      const payload = JSON.stringify(progress);
-      let saved = false;
-      try {
-        if (typeof localStorage !== 'undefined') {
-          localStorage.setItem(progressStorageKey, payload);
-          saved = true;
-        }
-      } catch {}
-      if (!saved && typeof window !== 'undefined') {
-        try {
-          window.name = `${progressNamePrefix}${payload}`;
-          saved = true;
-        } catch {}
-      }
-      if (!saved) {
-        window.__etdQuestProgressFallback = payload;
-      }
+    function writeProgressPayload(progress, learnerId = getActiveLearnerId()) {
+      return ProgressStoreApi.writeProgressPayload(progress, learnerId, localStore, typeof window !== 'undefined' ? window : null);
     }
-    function clearProgressPayload() {
-      try {
-        if (typeof localStorage !== 'undefined') localStorage.removeItem(progressStorageKey);
-      } catch {}
-      try {
-        if (typeof window !== 'undefined' && typeof window.name === 'string' && window.name.startsWith(progressNamePrefix)) {
-          window.name = '';
-        }
-      } catch {}
-      if (typeof window !== 'undefined') {
-        window.__etdQuestProgressFallback = '';
-      }
+    function clearProgressPayload(learnerId = getActiveLearnerId()) {
+      ProgressStoreApi.clearProgressPayload(learnerId, localStore, typeof window !== 'undefined' ? window : null);
     }
-    function loadProgress() {
-      try {
-        const saved = readProgressPayload() || {};
-        return {
-          ...defaultProgress(),
-          ...saved,
-          recentExpressionIds: saved.recentExpressionIds || [],
-          dailyQuestV1: { ...defaultDailyQuestV1(), ...(saved.dailyQuestV1 || {}) },
-          settings: { ...defaultProgress().settings, ...(saved.settings || {}) },
-          historyByExpressionId: Object.fromEntries(Object.entries(saved.historyByExpressionId || {}).map(([id, history]) => [id, normalizeHistoryEntry(history)])),
-          curriculum: { ...defaultProgress().curriculum, ...(saved.curriculum || {}) },
-          gapNotes: Array.isArray(saved.gapNotes) ? saved.gapNotes.map(normalizeGapNote) : [],
-        };
-      }
-      catch { return defaultProgress(); }
+    function loadProgress(learnerId = getActiveLearnerId()) {
+      return ProgressStoreApi.loadProgress(learnerId, {
+        storage: localStore,
+        windowRef: typeof window !== 'undefined' ? window : null,
+        markdownApi: window.EnglishBrainMarkdown,
+        feynmanApi: window.FeynmanChallenge,
+      });
     }
+
     function saveProgress() { writeProgressPayload(appState.progress); updateDashboard(); }
     function todayKey() { return new Date().toISOString().slice(0,10); }
     function seoulTodayKey() {
@@ -1894,6 +1962,14 @@
           history.lastCorrectAt = now;
           history.lastHintLevel = hintLevel;
           updateHistoryConnections(itemId, connectionType, strength);
+          if (mode === 'matrix' && window.VerbMatrixGate && (details.coreVerbId || details.formId)) {
+            const recorded = window.VerbMatrixGate.recordMatrixFormSuccess(
+              p.curriculum || {},
+              details.coreVerbId,
+              details.formId
+            );
+            p.curriculum = recorded.curriculum;
+          }
         }
         appState.sessionStudyRecords[itemId] = { lastRecordedSignature: signature };
         handleQuestStageCompletion(mode, itemId, resultType, details);
@@ -2037,6 +2113,8 @@
       document.getElementById('masteredBig').textContent = snapshot.mineCount;
       renderReviewList();
       renderGapNotesList();
+      renderExplanationsList();
+      renderExpressionDraftsList();
       updateQuestUI();
     }
 
@@ -2123,7 +2201,7 @@
         questArea.innerHTML = `
           <div class="card">
             <h3>오늘의 퀘스트 · ${completed}/${total} 완료</h3>
-            <p>오늘은 <b>듣고 따라 말하기 1세트 → 영어 장면 고르기 2회 → 한글→영어 조립 2회 → 약한 연결 복습 1회</b> 순서로 자동 진행됩니다.</p>
+            <p>듣고 따라 말하기 → 장면 고르기 → 조립 → 묻기 맛보기 → 약한 연결 복습, 7단계로 이어집니다.</p>
             <ul style="margin:10px 0; padding-left:20px; line-height:1.7;">${stepSummary}</ul>
             <button class="btn dark" id="startQuestBtn">퀘스트 시작하기</button>
           </div>
@@ -2360,7 +2438,7 @@
         }
 
     function shuffled(arr) { return [...arr].sort(() => Math.random() - .5); }
-    const modeQuizTypes = { listen: 'listening', koen: 'koToEn', enko: 'enToKo', hint: 'hint', build: 'blank', speak: 'speaking', review: 'koToEn', matrix: 'matrix' };
+    const modeQuizTypes = { listen: 'listening', koen: 'koToEn', enko: 'enToKo', hint: 'hint', build: 'blank', speak: 'speaking', review: 'koToEn', matrix: 'matrix', explain: 'koToEn' };
     function progressItemId(itemOrId) {
       if (itemOrId && typeof itemOrId === 'object') return itemOrId.progressId || itemOrId.baseExpressionId || itemOrId.id;
       return itemOrId;
@@ -2453,38 +2531,12 @@
     function allStrongHistory(history) {
       return ['recognition', 'assembly', 'output'].every(key => (history.connections?.[key]?.strength || 0) === 1);
     }
-    const DEFAULT_ACTIVE_SPEAKING_SET = {
-      id: 'ass_starter_v0',
-      title: 'Active Speaking Set Starter',
-      verbIds: ['v_have', 'v_get', 'v_want', 'v_need', 'v_go', 'v_come', 'v_make', 'v_take'],
-      expressionIds: [
-        'e001', 'e003', 'e068', 'e002', 'e044', 'e009', 'e005', 'e006',
-        'e018', 'e026', 'e069', 'e015', 'e047', 'e048', 'e035', 'e038',
-        'e021', 'e030', 'e083', 'e074', 'e045', 'e061', 'e020', 'e039',
-        'e022', 'e004', 'e014', 'e090', 'e046', 'e033', 'e036', 'e024',
-        'e019', 'e070', 'e075', 'e079', 'e031', 'e037', 'e025', 'e029'
-      ],
-      unlockPacks: [
-        { id: 'pack_1', title: 'Unlock pack 1', expressionIds: ['e023', 'e032', 'e062', 'e071', 'e072', 'e027', 'e028', 'e034', 'e080', 'e082'] }
-      ],
-      unlockThreshold: 0.7,
-      masteryThreshold: 3,
-    };
+    const ActiveSpeakingSetApi = window.ActiveSpeakingSet;
+    const DEFAULT_ACTIVE_SPEAKING_SET = ActiveSpeakingSetApi?.DEFAULT_ACTIVE_SPEAKING_SET || {};
     function normalizeAssConfig(raw) {
-      const base = raw && typeof raw === 'object' ? raw : {};
-      return {
-        ...DEFAULT_ACTIVE_SPEAKING_SET,
-        ...base,
-        verbIds: Array.isArray(base.verbIds) && base.verbIds.length ? base.verbIds.slice() : DEFAULT_ACTIVE_SPEAKING_SET.verbIds.slice(),
-        expressionIds: Array.isArray(base.expressionIds) && base.expressionIds.length ? base.expressionIds.slice() : DEFAULT_ACTIVE_SPEAKING_SET.expressionIds.slice(),
-        unlockPacks: Array.isArray(base.unlockPacks) ? base.unlockPacks.map((pack, index) => ({
-          id: pack?.id || `pack_${index + 1}`,
-          title: pack?.title || `Unlock pack ${index + 1}`,
-          expressionIds: Array.isArray(pack?.expressionIds) ? pack.expressionIds.slice() : [],
-        })) : DEFAULT_ACTIVE_SPEAKING_SET.unlockPacks.map(pack => ({ ...pack, expressionIds: pack.expressionIds.slice() })),
-        unlockThreshold: Number.isFinite(base.unlockThreshold) ? base.unlockThreshold : DEFAULT_ACTIVE_SPEAKING_SET.unlockThreshold,
-        masteryThreshold: Number.isFinite(base.masteryThreshold) ? base.masteryThreshold : DEFAULT_ACTIVE_SPEAKING_SET.masteryThreshold,
-      };
+      return ActiveSpeakingSetApi
+        ? ActiveSpeakingSetApi.normalizeAssConfig(raw)
+        : (raw && typeof raw === 'object' ? raw : DEFAULT_ACTIVE_SPEAKING_SET);
     }
     function getActiveSpeakingSetConfig() {
       return normalizeAssConfig(appState.dictionaryData.learningPaths?.activeSpeakingSet);
@@ -2494,24 +2546,28 @@
     }
     function isMineExpression(expressionId) {
       if (!expressionId) return false;
+      // Prefer connection strength (Chapter 1); fall back to success count.
+      if (allStrongHistory(getHistory(expressionId))) return true;
       const successes = appState.progress.successes?.[expressionId] || 0;
-      if (successes >= getMasteryThreshold()) return true;
-      return allStrongHistory(getHistory(expressionId));
+      return successes >= getMasteryThreshold();
     }
     function getUnlockedPackCount() {
-      const maxPacks = getActiveSpeakingSetConfig().unlockPacks.length;
-      const stored = Number(appState.progress.curriculum?.unlockedPackCount || 0);
-      return clampValue(Number.isFinite(stored) ? stored : 0, 0, maxPacks);
+      return ActiveSpeakingSetApi
+        ? ActiveSpeakingSetApi.getUnlockedPackCount(appState.progress.curriculum, getActiveSpeakingSetConfig())
+        : 0;
     }
-    function getUnlockedExpressionIds(packCount = getUnlockedPackCount()) {
-      const config = getActiveSpeakingSetConfig();
-      const ids = config.expressionIds.slice();
-      config.unlockPacks.slice(0, packCount).forEach(pack => {
-        (pack.expressionIds || []).forEach(id => {
-          if (!ids.includes(id)) ids.push(id);
-        });
-      });
-      return ids;
+    function getUnlockedExpressionIds(packCount = getUnlockedPackCount(), options = {}) {
+      return ActiveSpeakingSetApi
+        ? ActiveSpeakingSetApi.listUnlockedExpressionIds(
+          getActiveSpeakingSetConfig(),
+          appState.progress.curriculum,
+          {
+            packCount,
+            includeVerbPacks: options.includeVerbPacks,
+            verbGate: window.VerbMatrixGate,
+          }
+        )
+        : [];
     }
     function getActiveSetMineRatio(expressionIds = getUnlockedExpressionIds()) {
       if (!expressionIds.length) return 0;
@@ -2520,11 +2576,23 @@
     }
     function syncCurriculumUnlock(options = {}) {
       const config = getActiveSpeakingSetConfig();
-      if (!appState.progress.curriculum) appState.progress.curriculum = { unlockedPackCount: 0, lastUnlockAt: null };
+      const gate = window.VerbMatrixGate;
+      if (!appState.progress.curriculum) {
+        appState.progress.curriculum = {
+          unlockedPackCount: 0,
+          unlockedVerbPackCount: 0,
+          lastUnlockAt: null,
+          lastVerbUnlockAt: null,
+          matrixFormSuccess: {},
+        };
+      }
+      if (gate) {
+        appState.progress.curriculum = gate.ensureMatrixFormSuccess(appState.progress.curriculum);
+      }
       let unlocked = getUnlockedPackCount();
       let changed = false;
       while (unlocked < config.unlockPacks.length) {
-        const ids = getUnlockedExpressionIds(unlocked);
+        const ids = getUnlockedExpressionIds(unlocked, { includeVerbPacks: false });
         if (getActiveSetMineRatio(ids) < config.unlockThreshold) break;
         unlocked += 1;
         changed = true;
@@ -2532,10 +2600,24 @@
         if (options.announce) {
           const pack = config.unlockPacks[unlocked - 1];
           const count = pack?.expressionIds?.length || 0;
-          toast(`새 표현 ${count}개가 해금됐어요. Active Speaking Set이 조금 넓어졌습니다.`);
+          toast(`레벨업: 새 표현 ${count}개가 해금됐어요. Active Speaking Set이 조금 넓어졌습니다.`);
         }
       }
       appState.progress.curriculum.unlockedPackCount = unlocked;
+      if (gate) {
+        const matrices = getQaMatrices();
+        const verbSync = gate.syncVerbUnlock(appState.progress.curriculum, config, matrices, { collectAnnounce: true });
+        appState.progress.curriculum = verbSync.curriculum;
+        if (verbSync.changed) {
+          changed = true;
+          if (options.announce) {
+            verbSync.announce.forEach(item => {
+              const verbs = (item.verbIds || []).map(id => verbWordFromId(id) || id).join(', ');
+              toast(`동사 해금: ${verbs || item.packId} · 표현 ${item.expressionCount}개 (매트릭스 4형태 통과)`);
+            });
+          }
+        }
+      }
       return changed;
     }
     function isExpressionUnlocked(expressionId) {
@@ -2543,20 +2625,32 @@
       return getUnlockedExpressionIds().includes(expressionId);
     }
     function isVerbInActiveSet(verbId) {
-      return getActiveSpeakingSetConfig().verbIds.includes(verbId);
+      const gate = window.VerbMatrixGate;
+      const config = getActiveSpeakingSetConfig();
+      if (!gate) return config.verbIds.includes(verbId);
+      return gate.getUnlockedVerbIds(config, appState.progress.curriculum || {}).includes(verbId);
     }
     function getActiveSetSnapshot() {
       syncCurriculumUnlock({ announce: false });
       const config = getActiveSpeakingSetConfig();
+      const gate = window.VerbMatrixGate;
       const unlockedIds = getUnlockedExpressionIds();
       const bankIds = new Set(getGameBank().map(item => item.id));
       const presentIds = unlockedIds.filter(id => bankIds.has(id));
       const mineCount = presentIds.filter(isMineExpression).length;
       const ratio = presentIds.length ? mineCount / presentIds.length : 0;
       const nextPack = config.unlockPacks[getUnlockedPackCount()] || null;
+      const unlockedVerbIds = gate
+        ? gate.getUnlockedVerbIds(config, appState.progress.curriculum || {})
+        : config.verbIds.slice();
+      const verbGate = gate
+        ? gate.getVerbGateSnapshot(appState.progress.curriculum || {}, config.verbIds || [], getQaMatrices())
+        : null;
+      const nextVerbPack = (config.verbUnlockPacks || [])[Number(appState.progress.curriculum?.unlockedVerbPackCount || 0)] || null;
       return {
         title: config.title,
-        verbCount: config.verbIds.length,
+        verbCount: unlockedVerbIds.length,
+        starterVerbCount: config.verbIds.length,
         unlockedCount: presentIds.length || unlockedIds.length,
         mineCount,
         ratio,
@@ -2565,7 +2659,11 @@
         nextPackCount: nextPack?.expressionIds?.length || 0,
         unlockedPackCount: getUnlockedPackCount(),
         totalPacks: config.unlockPacks.length,
-        verbIds: config.verbIds,
+        unlockedVerbPackCount: Number(appState.progress.curriculum?.unlockedVerbPackCount || 0),
+        totalVerbPacks: (config.verbUnlockPacks || []).length,
+        nextVerbPackTitle: nextVerbPack?.title || '',
+        verbGate,
+        verbIds: unlockedVerbIds,
       };
     }
     function renderActiveSetSummary() {
@@ -2574,10 +2672,13 @@
         <span>동사 ${snapshot.verbCount}개</span>
         <span>해금 ${snapshot.unlockedCount}개</span>
         <span>내 표현 ${snapshot.mineCount}개</span>
+        ${snapshot.verbGate ? `<span>4형태 ${snapshot.verbGate.passedCount}/${snapshot.verbGate.requiredCount}</span>` : ''}
       `;
       const unlockHint = snapshot.nextPackCount
-        ? `내 표현 ${snapshot.unlockThresholdPercent}%에 도달하면 다음 ${snapshot.nextPackCount}개가 해금됩니다.`
-        : 'Starter와 Unlock pack을 모두 열었습니다. 다음 확장은 이후 단계에서 이어집니다.';
+        ? `레벨업: 내 표현 ${snapshot.unlockThresholdPercent}%면 다음 Unlock pack ${snapshot.nextPackCount}개가 열립니다. (연결도 ●—●—● 또는 충분히 맞히면 “내 표현”)`
+        : (snapshot.nextVerbPackTitle
+          ? `표현 팩 완료. 다음 동사 게이트: ${snapshot.nextVerbPackTitle} (Starter 동사 매트릭스 4형태 통과 필요 · ${snapshot.verbGate ? `${snapshot.verbGate.passedCount}/${snapshot.verbGate.requiredCount}` : ''})`
+          : 'Starter·Unlock pack·동사 해금을 모두 열었거나 대기 중입니다. Canon JSON은 리뷰 후 편입하세요.');
       const homeStats = document.getElementById('activeSetStats');
       const homeBar = document.getElementById('activeSetBar');
       const homePercent = document.getElementById('activeSetPercent');
@@ -2587,7 +2688,7 @@
       if (homeBar) homeBar.style.width = `${snapshot.percent}%`;
       if (homePercent) homePercent.textContent = `${snapshot.percent}%`;
       if (homeHint) homeHint.textContent = unlockHint;
-      if (homeCopy) homeCopy.textContent = `${snapshot.title} · 지금 입으로 훈련하는 범위만 퀴즈에 나옵니다.`;
+      if (homeCopy) homeCopy.textContent = `${snapshot.title} · 지금 입으로 훈련하는 범위만 퀴즈에 나옵니다. Library Canon은 자동으로 들어오지 않습니다.`;
       const progressStats = document.getElementById('progressActiveSetStats');
       const progressBar = document.getElementById('progressActiveSetBar');
       const progressPercent = document.getElementById('progressActiveSetPercent');
@@ -2595,7 +2696,9 @@
       if (progressStats) progressStats.innerHTML = statsMarkup;
       if (progressBar) progressBar.style.width = `${snapshot.percent}%`;
       if (progressPercent) progressPercent.textContent = `${snapshot.percent}%`;
-      if (progressCopy) progressCopy.textContent = `해금 팩 ${snapshot.unlockedPackCount}/${snapshot.totalPacks} · ${unlockHint}`;
+      if (progressCopy) progressCopy.textContent = `해금 팩 ${snapshot.unlockedPackCount}/${snapshot.totalPacks} · 동사 팩 ${snapshot.unlockedVerbPackCount}/${snapshot.totalVerbPacks} · ${unlockHint}`;
+      renderVerbGatePanel(snapshot);
+      renderCanonIntakePanel();
       return snapshot;
     }
     function getOpenGapNotes() {
@@ -2630,7 +2733,152 @@
       }
       saveProgress();
     }
+    function isExpressionInActiveSet(expressionId) {
+      if (!expressionId) return false;
+      const config = getActiveSpeakingSetConfig();
+      if ((config.expressionIds || []).includes(expressionId)) return true;
+      if ((config.unlockPacks || []).some(pack => (pack.expressionIds || []).includes(expressionId))) return true;
+      return (config.verbUnlockPacks || []).some(pack => (pack.expressionIds || []).includes(expressionId));
+    }
+    function upsertExpressionDraft(partial) {
+      const note = normalizeExpressionDraft({
+        ...partial,
+        updatedAt: new Date().toISOString(),
+      });
+      if (!Array.isArray(appState.progress.expressionDrafts)) appState.progress.expressionDrafts = [];
+      const index = appState.progress.expressionDrafts.findIndex(item => item.id === note.id);
+      if (index >= 0) appState.progress.expressionDrafts[index] = { ...appState.progress.expressionDrafts[index], ...note };
+      else appState.progress.expressionDrafts.unshift(note);
+      saveProgress();
+      return note;
+    }
+    function createDraftFromGap(gapId) {
+      const gap = (appState.progress.gapNotes || []).find(item => item.id === gapId);
+      if (!gap) {
+        toast('간극 기록을 찾지 못했어요.');
+        return null;
+      }
+      const existing = (appState.progress.expressionDrafts || []).find(item => item.sourceGapId === gap.id && (item.status || 'draft') !== 'archived');
+      if (existing) {
+        toast('이미 이 간극으로 만든 Draft가 있어요.');
+        return existing;
+      }
+      const bankItem = getGameBank().find(item => item.id === gap.expressionId);
+      const patternGuess = gap.modelUpdate || bankItem?.frame || '';
+      const draft = upsertExpressionDraft({
+        english: gap.actual || gap.english || bankItem?.en || '',
+        naturalKorean: gap.naturalKorean || bankItem?.ko || '',
+        literalMeaning: bankItem?.literalMeaning || '',
+        coreVerb: gap.verbWord || bankItem?.verb || '',
+        verbWord: gap.verbWord || bankItem?.verb || '',
+        verbId: gap.verbId || bankItem?.coreVerbId || '',
+        pattern: patternGuess,
+        expressionId: gap.expressionId || '',
+        assEligible: isExpressionInActiveSet(gap.expressionId),
+        source: 'gap',
+        sourceGapId: gap.id,
+        modelUpdate: gap.modelUpdate || '',
+        status: 'draft',
+        createdAt: new Date().toISOString(),
+      });
+      toast(draft.promoteReady ? 'Draft를 만들었어요. 승격 체크리스트를 통과했어요.' : 'Draft를 만들었어요. 패턴/한글을 보완하면 승격할 수 있어요.');
+      renderExpressionDraftsList();
+      return draft;
+    }
+    function promoteExpressionDraft(draftId) {
+      const draft = (appState.progress.expressionDrafts || []).find(item => item.id === draftId);
+      if (!draft) return;
+      const api = window.EnglishBrainMarkdown;
+      const evaluation = api?.evaluatePromoteChecklist?.(draft) || { ready: false };
+      if (!evaluation.ready) {
+        toast('아직 승격 조건이 부족해요. 영어·한글·동사·패턴이 필요합니다.');
+        return;
+      }
+      draft.status = 'approved';
+      draft.promoteReady = true;
+      draft.updatedAt = new Date().toISOString();
+      saveProgress();
+      toast('Canon으로 승격했어요. “JSON 후보 받기”로 리뷰용 번들을 받을 수 있어요. 퀴즈 은행에는 자동으로 안 들어갑니다.');
+      renderExpressionDraftsList();
+    }
+    function archiveExpressionDraft(draftId) {
+      const draft = (appState.progress.expressionDrafts || []).find(item => item.id === draftId);
+      if (!draft) return;
+      draft.status = 'archived';
+      draft.updatedAt = new Date().toISOString();
+      saveProgress();
+      renderExpressionDraftsList();
+    }
+
+    function renderLearnerUI() {
+      const learner = getActiveLearner();
+      const store = getLearnerStore();
+      const pillName = document.getElementById('learnerPillName');
+      const select = document.getElementById('learnerSelect');
+      const hint = document.getElementById('learnerVaultHint');
+      if (pillName) pillName.textContent = learner?.name || DEFAULT_LEARNER_NAME;
+      if (select) {
+        select.innerHTML = store.learners.map(item => (
+          `<option value="${escapeHtml(item.id)}"${item.id === store.activeLearnerId ? ' selected' : ''}>${escapeHtml(item.name)}</option>`
+        )).join('');
+      }
+      if (hint) {
+        const root = window.EnglishBrainMarkdown?.learnerVaultRoot?.(learner?.id) || `Learners/${learner?.id || DEFAULT_LEARNER_ID}`;
+        hint.textContent = `Obsidian 경로: ${root}/Learning|Gaps · 공유 Library/`;
+      }
+    }
+    function switchActiveLearner(learnerId, options = {}) {
+      const store = getLearnerStore();
+      if (!store.learners.some(item => item.id === learnerId)) {
+        toast('공책을 찾지 못했어요.');
+        return;
+      }
+      if (learnerId === store.activeLearnerId && !options.force) {
+        renderLearnerUI();
+        return;
+      }
+      writeProgressPayload(appState.progress, store.activeLearnerId);
+      store.activeLearnerId = learnerId;
+      writeLearnerStore(store);
+      appState.progress = loadProgress(learnerId);
+      updateDashboard();
+      renderLearnerUI();
+      updateSoundToggle();
+      renderWords();
+      renderMap();
+      toast(`공책을 바꿨어요: ${getActiveLearner()?.name || learnerId}`);
+    }
+    function addLearnerProfile(name) {
+      const trimmed = String(name || '').trim();
+      if (!trimmed) {
+        toast('이름을 입력해 주세요.');
+        return null;
+      }
+      const store = getLearnerStore();
+      if (store.learners.some(item => item.name === trimmed)) {
+        toast('같은 이름 공책이 이미 있어요.');
+        return null;
+      }
+      const id = makeLearnerId(trimmed, store.learners.map(item => item.id));
+      store.learners.push({ id, name: trimmed, createdAt: new Date().toISOString() });
+      writeLearnerStore(store);
+      writeProgressPayload(defaultProgress(), id);
+      return id;
+    }
+
     function buildNextPracticeQueue() {
+      const imported = appState.progress.importedNextPractice;
+      if (imported?.source === 'vault' && Array.isArray(imported.queue) && imported.queue.length) {
+        const unlocked = new Set(getUnlockedExpressionIds());
+        const vaultQueue = imported.queue
+          .filter(item => item?.expressionId && unlocked.has(item.expressionId))
+          .map(item => ({
+            expressionId: item.expressionId,
+            mode: item.mode || 'review',
+            reason: item.reason || 'vault-next-practice',
+          }));
+        if (vaultQueue.length) return vaultQueue.slice(0, 8);
+      }
       const openGaps = getOpenGapNotes();
       const gapQueue = openGaps.slice(0, 5).map(gap => ({
         expressionId: gap.expressionId,
@@ -2687,13 +2935,28 @@
         activeExpressionCount: snapshot.unlockedCount,
         openGapCount: openGaps.length,
       };
+      const learner = getActiveLearner();
       const files = api.buildExportFiles({
         brainState,
         nextPractice,
         progress,
         gaps: appState.progress.gapNotes || [],
+        drafts: (appState.progress.expressionDrafts || []).filter(item => (item.status || 'draft') !== 'archived'),
+        explanations: appState.progress.explanations || [],
+        learnerId: getActiveLearnerId(),
+        learnerName: learner?.name || DEFAULT_LEARNER_NAME,
       });
-      return { files, brainState, nextPractice, progress, gapNotes: appState.progress.gapNotes || [] };
+      return {
+        files,
+        learnerId: getActiveLearnerId(),
+        learnerName: learner?.name || DEFAULT_LEARNER_NAME,
+        brainState,
+        nextPractice,
+        progress,
+        gapNotes: appState.progress.gapNotes || [],
+        expressionDrafts: appState.progress.expressionDrafts || [],
+        explanations: appState.progress.explanations || [],
+      };
     }
     function downloadTextFile(filename, content, mime = 'text/markdown;charset=utf-8') {
       const blob = new Blob([content], { type: mime });
@@ -2707,7 +2970,9 @@
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
     function filenameFromVaultPath(path) {
-      return String(path || 'note.md').replace(/\//g, '__');
+      return window.EnglishBrainExport
+        ? window.EnglishBrainExport.filenameFromVaultPath(path)
+        : String(path || 'note.md').replace(/\//g, '__');
     }
     async function exportEnglishBrainMarkdown() {
       try {
@@ -2717,7 +2982,7 @@
           downloadTextFile(filenameFromVaultPath(path), markdown);
           await new Promise(resolve => setTimeout(resolve, 120));
         }
-        toast(`Obsidian용 Markdown ${entries.length}개를 내려받았어요. vaultPath frontmatter를 보고 폴더에 넣어 주세요.`);
+        toast(`Obsidian용 Markdown ${entries.length}개를 내려받았어요. Learners/<id>/Learning|Gaps + Library/ 경로를 확인하세요.`);
       } catch (error) {
         toast('Markdown 내보내기에 실패했어요.');
         console.error(error);
@@ -2726,17 +2991,24 @@
     function exportEnglishBrainJson() {
       try {
         const payload = buildBrainExportPayload();
-        downloadTextFile(
-          `english-brain-export-${new Date().toISOString().slice(0, 10)}.json`,
-          JSON.stringify({
+        const bundle = window.EnglishBrainExport
+          ? window.EnglishBrainExport.buildBundleJson(payload)
+          : {
             version: 1,
             exportedAt: new Date().toISOString(),
+            learnerId: payload.learnerId,
+            learnerName: payload.learnerName,
             files: payload.files,
             gapNotes: payload.gapNotes,
+            expressionDrafts: payload.expressionDrafts,
+            explanations: payload.explanations,
             brainState: payload.brainState,
             nextPractice: payload.nextPractice,
             progress: payload.progress,
-          }, null, 2),
+          };
+        downloadTextFile(
+          `english-brain-export-${new Date().toISOString().slice(0, 10)}.json`,
+          JSON.stringify(bundle, null, 2),
           'application/json;charset=utf-8'
         );
         toast('영어뇌 번들 JSON을 내려받았어요.');
@@ -2744,6 +3016,202 @@
         toast('JSON 내보내기에 실패했어요.');
         console.error(error);
       }
+    }
+    function getSyncApi() {
+      const api = window.EnglishBrainSync;
+      if (!api) throw new Error('obsidian sync module missing');
+      return api;
+    }
+    function readSyncSettingsFromForm() {
+      return {
+        adapter: document.getElementById('syncAdapter')?.value || 'download',
+        baseUrl: document.getElementById('syncBaseUrl')?.value || 'http://127.0.0.1:27123',
+        webhookUrl: document.getElementById('syncWebhookUrl')?.value || '',
+        apiKey: document.getElementById('syncApiKey')?.value || '',
+        pathPrefix: document.getElementById('syncPathPrefix')?.value || '',
+        autoSyncAfterGap: Boolean(document.getElementById('syncAutoAfterGap')?.checked),
+      };
+    }
+    function renderSyncSettingsForm() {
+      const api = window.EnglishBrainSync;
+      if (!api) return;
+      const settings = api.loadSettings();
+      const adapter = document.getElementById('syncAdapter');
+      const baseUrl = document.getElementById('syncBaseUrl');
+      const webhookUrl = document.getElementById('syncWebhookUrl');
+      const apiKey = document.getElementById('syncApiKey');
+      const pathPrefix = document.getElementById('syncPathPrefix');
+      const auto = document.getElementById('syncAutoAfterGap');
+      if (adapter) adapter.value = settings.adapter;
+      if (baseUrl) baseUrl.value = settings.baseUrl;
+      if (webhookUrl) webhookUrl.value = settings.webhookUrl || '';
+      if (apiKey) apiKey.value = settings.apiKey;
+      if (pathPrefix) pathPrefix.value = settings.pathPrefix;
+      if (auto) auto.checked = settings.autoSyncAfterGap;
+      updateSyncStatusText(settings);
+    }
+    function updateSyncStatusText(settings) {
+      const el = document.getElementById('syncStatusText');
+      if (!el) return;
+      const api = window.EnglishBrainSync;
+      const queueLen = api ? api.loadQueue().length : 0;
+      const parts = [
+        `adapter=${settings?.adapter || 'download'}`,
+        settings?.lastSyncAt ? `마지막 sync ${settings.lastSyncAt.slice(0, 19)}` : '아직 sync 없음',
+        settings?.lastImportAt ? `마지막 import ${settings.lastImportAt.slice(0, 19)}` : null,
+        queueLen ? `실패 큐 ${queueLen}건` : '실패 큐 비움',
+        settings?.lastSyncError ? `오류: ${settings.lastSyncError}` : null,
+      ].filter(Boolean);
+      el.textContent = parts.join(' · ');
+    }
+    function saveSyncSettingsFromForm() {
+      const api = getSyncApi();
+      const prev = api.loadSettings();
+      const next = api.saveSettings({
+        ...prev,
+        ...readSyncSettingsFromForm(),
+      });
+      updateSyncStatusText(next);
+      toast('Obsidian 동기화 설정을 저장했어요. (이 브라우저에만 보관)');
+      return next;
+    }
+    function requireLocalRestClient() {
+      const api = getSyncApi();
+      const settings = api.saveSettings({ ...api.loadSettings(), ...readSyncSettingsFromForm() });
+      if (!['local-rest', 'bridge', 'drive-webhook'].includes(settings.adapter)) {
+        throw new Error('Adapter를 local-rest / bridge / drive-webhook로 바꾼 뒤 다시 시도하세요.');
+      }
+      if (settings.adapter === 'drive-webhook') {
+        if (!settings.webhookUrl && !settings.baseUrl) throw new Error('Drive webhook URL을 입력하세요.');
+      } else if (!settings.apiKey) {
+        throw new Error('API Key를 입력하세요.');
+      }
+      const client = api.createSyncClient
+        ? api.createSyncClient(settings)
+        : api.createLocalRestClient(settings);
+      return { api, settings, client };
+    }
+    async function testObsidianConnection() {
+      try {
+        const { api, settings, client } = requireLocalRestClient();
+        const result = await client.ping();
+        const next = api.saveSettings({
+          ...settings,
+          lastSyncError: null,
+        });
+        updateSyncStatusText(next);
+        const label = settings.adapter === 'drive-webhook' ? 'Drive webhook' : (settings.adapter === 'bridge' ? 'Bridge' : 'Local REST');
+        toast(result?.authenticated === false
+          ? '연결은 됐지만 인증이 실패했어요. API Key를 확인하세요.'
+          : `${label} 연결 OK`);
+      } catch (error) {
+        toast(`연결 실패: ${error.message || error}`);
+        console.error(error);
+      }
+    }
+    async function syncEnglishBrainToObsidian(options = {}) {
+      const quiet = options.quiet === true;
+      try {
+        const { api, settings, client } = requireLocalRestClient();
+        const payload = buildBrainExportPayload();
+        let results;
+        if (settings.adapter === 'drive-webhook' && client.postBackup) {
+          const body = window.EnglishBrainExport
+            ? window.EnglishBrainExport.buildDriveWebhookPayload(payload, { pathPrefix: settings.pathPrefix })
+            : { files: payload.files, learnerId: payload.learnerId, learnerName: payload.learnerName };
+          await client.postBackup(body);
+          results = { ok: Object.keys(payload.files), failed: [] };
+        } else {
+          results = await api.upsertFiles(client, payload.files, { enqueueOnFail: true });
+        }
+        const next = api.saveSettings({
+          ...settings,
+          lastSyncAt: new Date().toISOString(),
+          lastSyncError: results.failed.length
+            ? `${results.failed.length}개 실패 (큐에 보관)`
+            : null,
+        });
+        updateSyncStatusText(next);
+        if (!quiet) {
+          const dest = settings.adapter === 'drive-webhook' ? 'Drive webhook' : 'Obsidian';
+          toast(results.failed.length
+            ? `${dest} sync: ${results.ok.length} 성공, ${results.failed.length} 실패(큐 보관)`
+            : `${dest}에 ${results.ok.length}개 노트를 동기화했어요.`);
+        }
+        return results;
+      } catch (error) {
+        try {
+          const api = getSyncApi();
+          const settings = api.saveSettings({
+            ...api.loadSettings(),
+            lastSyncError: String(error.message || error).slice(0, 160),
+          });
+          updateSyncStatusText(settings);
+        } catch (_) {}
+        if (!quiet) toast(`동기화 실패: ${error.message || error}`);
+        console.error(error);
+        return null;
+      }
+    }
+    async function importEnglishBrainFromObsidian() {
+      try {
+        const { api, settings, client } = requireLocalRestClient();
+        if (settings.adapter === 'drive-webhook') {
+          throw new Error('drive-webhook는 백업 전용이라 가져오기를 지원하지 않습니다. local-rest 또는 bridge를 쓰세요.');
+        }
+        const personalRoot = window.EnglishBrainMarkdown?.learnerVaultRoot?.(getActiveLearnerId()) || `Learners/${getActiveLearnerId()}`;
+        const imported = await api.importGapsAndNextPractice(client, {
+          personalRoot,
+          localGaps: appState.progress.gapNotes || [],
+          appQueue: buildNextPracticeQueue(),
+        });
+        appState.progress.gapNotes = (imported.mergedGaps || []).map(normalizeGapNote);
+        appState.progress.importedNextPractice = {
+          ...imported.nextPractice,
+          importedAt: new Date().toISOString(),
+        };
+        saveProgress();
+        const next = api.saveSettings({
+          ...settings,
+          lastImportAt: new Date().toISOString(),
+          lastSyncError: null,
+        });
+        updateSyncStatusText(next);
+        renderGapNotesList();
+        renderReviewList();
+        toast(`가져오기 완료 · Gaps ${imported.vaultGaps.length} · Next Practice ${imported.nextPractice.queue.length} (Vault 우선)`);
+      } catch (error) {
+        toast(`가져오기 실패: ${error.message || error}`);
+        console.error(error);
+      }
+    }
+    async function flushObsidianSyncQueue() {
+      try {
+        const { api, settings, client } = requireLocalRestClient();
+        const result = await api.flushQueue(client);
+        const next = api.saveSettings({
+          ...settings,
+          lastSyncAt: new Date().toISOString(),
+          lastSyncError: result.remaining ? `실패 큐 ${result.remaining}건 남음` : null,
+        });
+        updateSyncStatusText(next);
+        toast(result.remaining
+          ? `재시도 ${result.flushed.length} · 남은 큐 ${result.remaining}`
+          : `실패 큐 ${result.flushed.length}건을 비웠어요.`);
+      } catch (error) {
+        toast(`큐 재시도 실패: ${error.message || error}`);
+        console.error(error);
+      }
+    }
+    function maybeAutoSyncAfterGap() {
+      const api = window.EnglishBrainSync;
+      if (!api) return;
+      const settings = api.loadSettings();
+      if (!settings.autoSyncAfterGap) return;
+      if (!['local-rest', 'bridge', 'drive-webhook'].includes(settings.adapter)) return;
+      if (settings.adapter !== 'drive-webhook' && !settings.apiKey) return;
+      if (settings.adapter === 'drive-webhook' && !(settings.webhookUrl || settings.baseUrl)) return;
+      syncEnglishBrainToObsidian({ quiet: true });
     }
     function renderGapNotesList() {
       const target = document.getElementById('gapNotesList');
@@ -2760,10 +3228,11 @@
           <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
             <div>
               <b>${escapeHtml(note.english || note.expressionId)}</b>
-              <div class="small-note" style="margin-top:4px">${escapeHtml(note.status || 'open')} · ${escapeHtml(note.mode || '')} · ${escapeHtml(note.id)}</div>
+              <div class="small-note" style="margin-top:4px">${escapeHtml(note.status || 'open')}${note.missingInVault ? ' · Vault에 없음' : ''} · ${escapeHtml(note.mode || '')} · ${escapeHtml(note.id)}</div>
             </div>
-            <div class="question-actions" style="margin:0">
+            <div class="question-actions" style="margin:0;flex-wrap:wrap">
               ${note.status === 'open' ? `<button class="btn soft archive-gap" type="button" data-gap-id="${escapeHtml(note.id)}">보관</button>` : ''}
+              <button class="btn soft draft-from-gap" type="button" data-gap-id="${escapeHtml(note.id)}">Draft로</button>
               <button class="btn soft practice-gap" type="button" data-expression-id="${escapeHtml(note.expressionId)}">다시 연결</button>
             </div>
           </div>
@@ -2776,11 +3245,426 @@
         toast('간극 기록을 보관했어요.');
         renderGapNotesList();
       }));
+      target.querySelectorAll('.draft-from-gap').forEach(button => button.addEventListener('click', () => {
+        createDraftFromGap(button.dataset.gapId);
+      }));
       target.querySelectorAll('.practice-gap').forEach(button => button.addEventListener('click', () => {
         const expressionId = button.dataset.expressionId;
         if (!expressionId) return;
         startMode('review', expressionId);
       }));
+    }
+    function renderExplanationsList() {
+      const target = document.getElementById('explanationsList');
+      if (!target) return;
+      const notes = [...(appState.progress.explanations || [])]
+        .sort((a, b) => String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')))
+        .slice(0, 10);
+      if (!notes.length) {
+        target.innerHTML = '<p class="small-note">아직 설명 노트가 없습니다. 게임 모드에서 “파인만 설명 챌린지”를 해보세요.</p>';
+        return;
+      }
+      target.innerHTML = notes.map(note => `
+        <div class="gap-note-item">
+          <b>${escapeHtml(note.english || note.expressionId)}</b>
+          <div class="small-note" style="margin-top:4px">${escapeHtml(note.status)} · 허용 ${Math.round((note.allowedRatio || 0) * 100)}%${note.speechTranscript ? ' · 음성' : ''} · ${escapeHtml(note.id)}</div>
+          <div class="small-note" style="margin-top:8px">${escapeHtml(note.explanation || '')}</div>
+          ${note.speechTranscript ? `<div class="small-note">음성: ${escapeHtml(note.speechTranscript)}</div>` : ''}
+          <div class="question-actions" style="margin-top:8px; justify-content:flex-start">
+            <button class="btn soft explain-again" type="button" data-expression-id="${escapeHtml(note.expressionId)}">다시 설명</button>
+          </div>
+        </div>
+      `).join('');
+      target.querySelectorAll('.explain-again').forEach(button => {
+        button.addEventListener('click', () => {
+          if (!button.dataset.expressionId) return;
+          startMode('explain', button.dataset.expressionId);
+        });
+      });
+    }
+    function renderExpressionDraftsList() {
+      const target = document.getElementById('expressionDraftsList');
+      if (!target) return;
+      const drafts = [...(appState.progress.expressionDrafts || [])]
+        .filter(item => (item.status || 'draft') !== 'archived')
+        .sort((a, b) => String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')))
+        .slice(0, 12);
+      if (!drafts.length) {
+        target.innerHTML = '<p class="small-note">아직 Draft가 없습니다. 간극에서 “Draft로”를 누르면 Library 후보가 생깁니다.</p>';
+        return;
+      }
+      target.innerHTML = drafts.map(draft => {
+        const ready = draft.promoteReady || window.EnglishBrainMarkdown?.evaluatePromoteChecklist?.(draft)?.ready;
+        const path = draft.status === 'approved' ? `Library/Canon/${draft.id}.md` : `Library/Drafts/${draft.id}.md`;
+        return `
+        <div class="gap-note-item" data-draft-id="${escapeHtml(draft.id)}">
+          <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
+            <div>
+              <b>${escapeHtml(draft.english || draft.id)}</b>
+              <div class="small-note" style="margin-top:4px">${escapeHtml(draft.status)} · ${ready ? '승격 가능' : '보완 필요'} · ${escapeHtml(path)}</div>
+              <div class="small-note">KO: ${escapeHtml(draft.naturalKorean || '(없음)')} · 동사: ${escapeHtml(draft.coreVerb || '(없음)')} · 패턴: ${escapeHtml(draft.pattern || '(없음)')}</div>
+            </div>
+            <div class="question-actions" style="margin:0;flex-wrap:wrap">
+              ${draft.status !== 'approved' ? `<button class="btn dark promote-draft" type="button" data-draft-id="${escapeHtml(draft.id)}">승격</button>` : `
+                <button class="btn soft canon-json-one" type="button" data-draft-id="${escapeHtml(draft.id)}">JSON 후보</button>
+                <button class="btn soft canon-queue-one" type="button" data-draft-id="${escapeHtml(draft.id)}">Unlock 대기열</button>`}
+              <button class="btn soft archive-draft" type="button" data-draft-id="${escapeHtml(draft.id)}">보관</button>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+      target.querySelectorAll('.promote-draft').forEach(button => button.addEventListener('click', () => {
+        promoteExpressionDraft(button.dataset.draftId);
+      }));
+      target.querySelectorAll('.canon-json-one').forEach(button => button.addEventListener('click', () => {
+        downloadCanonIntakeBundle({ draftIds: [button.dataset.draftId] });
+      }));
+      target.querySelectorAll('.canon-queue-one').forEach(button => button.addEventListener('click', () => {
+        queueCanonDraftForUnlock(button.dataset.draftId);
+      }));
+      target.querySelectorAll('.archive-draft').forEach(button => button.addEventListener('click', () => {
+        archiveExpressionDraft(button.dataset.draftId);
+        toast('Draft를 보관했어요.');
+      }));
+    }
+    function getApprovedCanonDrafts(draftIds = null) {
+      const all = (appState.progress.expressionDrafts || []).filter(item => (item.status || 'draft') === 'approved');
+      if (!draftIds || !draftIds.length) return all;
+      const wanted = new Set(draftIds);
+      return all.filter(item => wanted.has(item.id));
+    }
+    function buildCanonIntakeFromDrafts(drafts) {
+      const api = window.CanonIntake;
+      if (!api) throw new Error('canon intake module missing');
+      const existingIds = (appState.dictionaryData.expressions || []).map(item => item.id);
+      (appState.progress.canonUnlockQueue || []).forEach(item => {
+        if (item.expressionId && !existingIds.includes(item.expressionId)) existingIds.push(item.expressionId);
+      });
+      return api.buildCanonIntakeBundle({
+        drafts,
+        existingExpressionIds: existingIds,
+        verbs: appState.dictionaryData.verbs || [],
+      });
+    }
+    function downloadCanonIntakeBundle(options = {}) {
+      try {
+        const drafts = getApprovedCanonDrafts(options.draftIds || null);
+        if (!drafts.length) {
+          toast('승격된 Canon Draft가 없어요.');
+          return;
+        }
+        const bundle = buildCanonIntakeFromDrafts(drafts);
+        downloadTextFile(
+          `canon-intake-${new Date().toISOString().slice(0, 10)}.json`,
+          JSON.stringify(bundle, null, 2),
+          'application/json;charset=utf-8'
+        );
+        toast(`Canon 편입 후보 ${bundle.expressionsToAdd.length}개를 내려받았어요. expressions.json에는 직접 넣지 마세요 — 리뷰 후 병합하세요.`);
+      } catch (error) {
+        toast(`Canon 번들 실패: ${error.message || error}`);
+        console.error(error);
+      }
+    }
+    function queueCanonDraftForUnlock(draftId) {
+      const api = window.CanonIntake;
+      if (!api) {
+        toast('canon intake module missing');
+        return;
+      }
+      const drafts = getApprovedCanonDrafts(draftId ? [draftId] : null);
+      if (!drafts.length) {
+        toast('승격된 Canon Draft가 없어요.');
+        return;
+      }
+      const bundle = buildCanonIntakeFromDrafts(drafts);
+      if (!Array.isArray(appState.progress.canonUnlockQueue)) appState.progress.canonUnlockQueue = [];
+      let added = 0;
+      bundle.candidates.forEach(candidate => {
+        const exists = appState.progress.canonUnlockQueue.some(item => item.draftId === candidate._intake?.sourceDraftId || item.expressionId === candidate.id);
+        if (exists) return;
+        appState.progress.canonUnlockQueue.unshift(api.queueItemFromCandidate(candidate));
+        added += 1;
+      });
+      saveProgress();
+      renderCanonIntakePanel();
+      toast(added
+        ? `Unlock 대기열에 ${added}개 넣었어요. 퀴즈에는 아직 안 나옵니다.`
+        : '이미 대기열에 있는 후보예요.');
+    }
+    function renderCanonIntakePanel() {
+      const target = document.getElementById('canonIntakePanel');
+      if (!target) return;
+      const approved = getApprovedCanonDrafts();
+      const queue = appState.progress.canonUnlockQueue || [];
+      target.innerHTML = `
+        <div class="question-actions" style="justify-content:flex-start; flex-wrap:wrap; gap:8px;">
+          <button class="btn soft" id="downloadAllCanonIntake" type="button">Canon → JSON 후보 번들</button>
+          <button class="btn soft" id="queueAllCanonIntake" type="button">승인 Canon 전부 대기열</button>
+        </div>
+        <p class="small-note" style="margin-top:10px">승인 Canon ${approved.length}개 · Unlock 대기열 ${queue.length}개 (자동 출제 없음)</p>
+        ${queue.length ? `<ul class="small-note" style="margin:8px 0 0; padding-left:18px;">${queue.slice(0, 6).map(item => `<li>${escapeHtml(item.expressionId)} · ${escapeHtml(item.english || '')}</li>`).join('')}</ul>` : ''}
+      `;
+      document.getElementById('downloadAllCanonIntake')?.addEventListener('click', () => downloadCanonIntakeBundle());
+      document.getElementById('queueAllCanonIntake')?.addEventListener('click', () => queueCanonDraftForUnlock(null));
+    }
+    function renderVerbGatePanel(snapshot = null) {
+      const target = document.getElementById('verbGatePanel');
+      if (!target) return;
+      const snap = snapshot || getActiveSetSnapshot();
+      const gate = snap.verbGate;
+      if (!gate) {
+        target.innerHTML = '<p class="small-note">매트릭스 게이트 모듈을 불러오지 못했어요.</p>';
+        return;
+      }
+      const next = snap.nextVerbPackTitle
+        ? `다음: ${escapeHtml(snap.nextVerbPackTitle)}`
+        : (snap.totalVerbPacks <= snap.unlockedVerbPackCount ? '동사 해금 팩을 모두 열었거나 없어요.' : '다음 동사 팩 대기');
+      target.innerHTML = `
+        <p class="small-note">${next} · 통과 ${gate.passedCount}/${gate.requiredCount}</p>
+        <div class="active-set-stats" style="margin-top:10px">
+          ${gate.rows.map(row => {
+            const word = verbWordFromId(row.verbId) || row.verbId;
+            return `<span title="${escapeHtml(JSON.stringify(row.forms))}">${escapeHtml(word)} ${row.passed ? '✓' : `${row.passedCount}/4`}</span>`;
+          }).join('')}
+        </div>
+      `;
+    }
+    function ensureVaultOverlayState() {
+      if (!appState.progress.vaultOverlay || typeof appState.progress.vaultOverlay !== 'object') {
+        appState.progress.vaultOverlay = defaultVaultOverlay();
+      }
+      const vo = appState.progress.vaultOverlay;
+      if (!Array.isArray(vo.links)) vo.links = [];
+      if (!Array.isArray(vo.matches)) vo.matches = [];
+      return vo;
+    }
+    function vaultMatchId(match) {
+      const note = match?.note || {};
+      return `${note.path || ''}::${match?.entityType || ''}::${match?.entityId || note.word || ''}`;
+    }
+    function obsidianOpenHref(path) {
+      return `obsidian://open?path=${encodeURIComponent(String(path || ''))}`;
+    }
+    function getVaultOverlayApi() {
+      const api = window.VaultOverlay;
+      if (!api) throw new Error('vault overlay module missing');
+      return api;
+    }
+    function getConfirmedVaultLinks(entityType, entityId) {
+      const api = window.VaultOverlay;
+      const links = ensureVaultOverlayState().links || [];
+      if (!api) return links.filter(link => link.entityType === entityType && link.entityId === entityId && link.status !== 'dismissed');
+      return api.linksForEntity(links, entityType, entityId);
+    }
+    function renderVaultLinksMarkup(entityType, entityId) {
+      const links = getConfirmedVaultLinks(entityType, entityId);
+      if (!links.length) return '';
+      return `
+        <div class="vault-links" style="margin-top:12px">
+          <p class="small-note" style="margin:0 0 6px"><b>Vault 연결</b> (읽기 전용 · 퀴즈 범위 불변)</p>
+          ${links.map(link => `
+            <div class="small-note" style="margin-top:4px">
+              <a href="${escapeHtml(obsidianOpenHref(link.notePath))}">${escapeHtml(link.noteWord || link.notePath)}</a>
+              · ${escapeHtml(link.status)} · ${escapeHtml(link.confidence)}
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+    function refreshVaultMatchGates() {
+      const api = window.VaultOverlay;
+      const vo = ensureVaultOverlayState();
+      if (!api || !vo.matches.length) return;
+      const options = {
+        unlockedVerbIds: window.VerbMatrixGate
+          ? window.VerbMatrixGate.getUnlockedVerbIds(getActiveSpeakingSetConfig(), appState.progress.curriculum || {})
+          : [],
+        unlockedExpressionIds: getUnlockedExpressionIds(),
+      };
+      vo.matches = vo.matches.map(match => ({
+        ...match,
+        gate: api.classifyGate(match, options),
+      }));
+    }
+    async function fetchVaultOverlayFromRest() {
+      try {
+        const overlay = getVaultOverlayApi();
+        const { client } = requireLocalRestClient();
+        toast('Vault 노트를 읽는 중…');
+        const { notes, errors } = await overlay.fetchVaultOverlayNotes(client);
+        const catalog = {
+          verbs: appState.dictionaryData.verbs || [],
+          nouns: appState.dictionaryData.nouns || [],
+          patterns: appState.dictionaryData.patterns || [],
+          expressions: appState.dictionaryData.expressions || [],
+        };
+        const gate = window.VerbMatrixGate;
+        const options = {
+          unlockedVerbIds: gate
+            ? gate.getUnlockedVerbIds(getActiveSpeakingSetConfig(), appState.progress.curriculum || {})
+            : [],
+          unlockedExpressionIds: getUnlockedExpressionIds(),
+        };
+        const index = overlay.buildOverlayIndex(notes, catalog, options);
+        const vo = ensureVaultOverlayState();
+        vo.matches = index.matches.map(match => ({
+          note: {
+            path: match.note.path,
+            word: match.note.word,
+            type: match.note.type,
+            id: match.note.id,
+            aliases: match.note.aliases || [],
+          },
+          entityType: match.entityType,
+          entityId: match.entityId,
+          entityLabel: match.entityLabel,
+          confidence: match.confidence,
+          reason: match.reason,
+          relatedExpressionIds: match.relatedExpressionIds || [],
+          gate: match.gate,
+        }));
+        vo.lastFetchedAt = index.updatedAt;
+        vo.lastError = errors.length ? `${errors.length}개 경로 읽기 실패` : null;
+        saveProgress();
+        renderDictionaryExplorer();
+        toast(`Vault overlay ${notes.length}노트 · active ${index.byGate.active.length} · later ${index.byGate.unlockLater.length} · 후보 ${index.byGate.candidate.length}`);
+      } catch (error) {
+        const vo = ensureVaultOverlayState();
+        vo.lastError = String(error.message || error);
+        saveProgress();
+        renderDictionaryExplorer();
+        toast(vo.lastError);
+        console.error(error);
+      }
+    }
+    function acceptVaultMatch(matchId, forceWatchlist = false) {
+      const vo = ensureVaultOverlayState();
+      const match = (vo.matches || []).find(item => vaultMatchId(item) === matchId);
+      if (!match) {
+        toast('후보를 찾지 못했어요. Vault를 다시 읽어 주세요.');
+        return;
+      }
+      const status = forceWatchlist || match.gate !== 'active' ? 'watchlist' : 'confirmed';
+      const link = {
+        id: matchId,
+        notePath: match.note?.path || '',
+        noteWord: match.note?.word || '',
+        entityType: match.entityType || '',
+        entityId: match.entityId || '',
+        entityLabel: match.entityLabel || match.note?.word || '',
+        confidence: match.confidence || 'low',
+        gate: match.gate || 'background',
+        status,
+        updatedAt: new Date().toISOString(),
+      };
+      const index = vo.links.findIndex(item => item.id === matchId || item.notePath === link.notePath);
+      if (index >= 0) vo.links[index] = link;
+      else vo.links.unshift(link);
+      saveProgress();
+      renderDictionaryExplorer();
+      toast(status === 'watchlist'
+        ? '나중에 해금 후보(watchlist)에 넣었어요. 퀴즈에는 안 나옵니다.'
+        : 'Vault 연결을 확정했어요. 퀴즈 범위는 그대로입니다.');
+    }
+    function dismissVaultMatch(matchId) {
+      const vo = ensureVaultOverlayState();
+      const match = (vo.matches || []).find(item => vaultMatchId(item) === matchId);
+      const link = {
+        id: matchId,
+        notePath: match?.note?.path || matchId.split('::')[0],
+        noteWord: match?.note?.word || '',
+        entityType: match?.entityType || '',
+        entityId: match?.entityId || '',
+        entityLabel: match?.entityLabel || '',
+        confidence: match?.confidence || 'low',
+        gate: match?.gate || 'background',
+        status: 'dismissed',
+        updatedAt: new Date().toISOString(),
+      };
+      const index = vo.links.findIndex(item => item.id === matchId || item.notePath === link.notePath);
+      if (index >= 0) vo.links[index] = { ...vo.links[index], ...link };
+      else vo.links.unshift(link);
+      saveProgress();
+      renderDictionaryExplorer();
+      toast('연결 제안을 숨겼어요.');
+    }
+    function renderVaultOverlayPanel() {
+      const target = document.getElementById('vaultOverlayPanel');
+      if (!target) return;
+      refreshVaultMatchGates();
+      const vo = ensureVaultOverlayState();
+      const dismissed = new Set((vo.links || []).filter(link => link.status === 'dismissed').map(link => link.notePath));
+      const confirmedByPath = new Map((vo.links || []).filter(link => link.status !== 'dismissed').map(link => [link.notePath, link]));
+      const pending = (vo.matches || []).filter(match => match.note?.path && !dismissed.has(match.note.path));
+      const groups = {
+        active: pending.filter(item => item.gate === 'active'),
+        unlockLater: pending.filter(item => item.gate === 'unlock-later'),
+        candidate: pending.filter(item => item.gate === 'candidate'),
+        background: pending.filter(item => item.gate === 'background'),
+      };
+      const watchlist = (vo.links || []).filter(link => link.status === 'watchlist');
+      const confirmed = (vo.links || []).filter(link => link.status === 'confirmed');
+      const gateLabel = {
+        active: 'Active set',
+        'unlock-later': '나중에 해금',
+        candidate: '후보(미확정)',
+        background: '배경',
+      };
+      function renderMatchRow(match) {
+        const id = vaultMatchId(match);
+        const saved = confirmedByPath.get(match.note.path);
+        const savedBadge = saved ? ` · 저장됨(${saved.status})` : '';
+        return `
+          <div class="gap-note-item" style="margin-top:8px">
+            <div><b>${escapeHtml(match.note.word || match.note.path)}</b> → ${escapeHtml(match.entityLabel || '(미매칭)')}</div>
+            <div class="small-note">${escapeHtml(match.note.path)} · ${escapeHtml(match.confidence)} · ${escapeHtml(gateLabel[match.gate] || match.gate)}${escapeHtml(savedBadge)}</div>
+            <div class="question-actions" style="justify-content:flex-start; flex-wrap:wrap; gap:8px; margin-top:8px">
+              <a class="btn soft" href="${escapeHtml(obsidianOpenHref(match.note.path))}">Obsidian</a>
+              <button class="btn dark" type="button" data-vault-accept="${escapeHtml(id)}">${match.gate === 'active' ? '연결 확정' : 'watchlist에 넣기'}</button>
+              ${match.gate === 'active' ? `<button class="btn soft" type="button" data-vault-watch="${escapeHtml(id)}">watchlist만</button>` : ''}
+              <button class="btn ghost" type="button" data-vault-dismiss="${escapeHtml(id)}">숨기기</button>
+            </div>
+          </div>
+        `;
+      }
+      target.innerHTML = `
+        <h3>Vault 단어 연결</h3>
+        <p class="small-note">Library/Verbs·Nouns·Patterns(및 legacy 루트)를 읽기 전용으로 가져옵니다. 수락해도 퀴즈 은행은 늘어나지 않습니다.</p>
+        <div class="question-actions" style="justify-content:flex-start; flex-wrap:wrap; gap:8px; margin-top:10px">
+          <button class="btn dark" type="button" id="fetchVaultOverlayBtn">Local REST로 Vault 읽기</button>
+        </div>
+        <p class="small-note" style="margin-top:10px">
+          ${vo.lastFetchedAt ? `마지막 읽기 ${escapeHtml(vo.lastFetchedAt.slice(0, 19))}` : '아직 Vault를 읽지 않았어요.'}
+          ${vo.lastError ? ` · 오류: ${escapeHtml(vo.lastError)}` : ''}
+          · 확정 ${confirmed.length} · watchlist ${watchlist.length}
+        </p>
+        <div style="margin-top:14px">
+          <h4>Active set에 있는 연결</h4>
+          ${groups.active.length ? groups.active.slice(0, 20).map(renderMatchRow).join('') : '<p class="small-note">없음</p>'}
+        </div>
+        <div style="margin-top:14px">
+          <h4>나중에 해금 후보</h4>
+          ${groups.unlockLater.length ? groups.unlockLater.slice(0, 20).map(renderMatchRow).join('') : '<p class="small-note">없음</p>'}
+        </div>
+        <div style="margin-top:14px">
+          <h4>낮은 확신 후보</h4>
+          ${groups.candidate.length ? groups.candidate.slice(0, 20).map(renderMatchRow).join('') : '<p class="small-note">없음</p>'}
+        </div>
+        <div style="margin-top:14px">
+          <h4>내 watchlist</h4>
+          ${watchlist.length ? `<ul class="small-note" style="padding-left:18px">${watchlist.slice(0, 12).map(link => `<li>${escapeHtml(link.noteWord || link.notePath)} → ${escapeHtml(link.entityLabel)} (${escapeHtml(link.entityType)})</li>`).join('')}</ul>` : '<p class="small-note">비어 있어요.</p>'}
+        </div>
+      `;
+      document.getElementById('fetchVaultOverlayBtn')?.addEventListener('click', () => fetchVaultOverlayFromRest());
+      target.querySelectorAll('[data-vault-accept]').forEach(button => {
+        button.addEventListener('click', () => acceptVaultMatch(button.dataset.vaultAccept, false));
+      });
+      target.querySelectorAll('[data-vault-watch]').forEach(button => {
+        button.addEventListener('click', () => acceptVaultMatch(button.dataset.vaultWatch, true));
+      });
+      target.querySelectorAll('[data-vault-dismiss]').forEach(button => {
+        button.addEventListener('click', () => dismissVaultMatch(button.dataset.vaultDismiss));
+      });
     }
     function updateHistoryConnections(itemId, connectionType, strength) {
       const history = getHistory(itemId);
@@ -2913,6 +3797,7 @@
         verbs: '동사 탐험',
         expressions: '실생활 표현',
         build: '문장빌드맵',
+        vault: 'Vault 연결',
       }[selectedView] || '동사 카드';
       const segments = [`<span class="location-label">현재 위치</span><strong>${escapeHtml(viewLabel)}</strong>`];
       if (selectedView === 'legacy') {
@@ -2930,6 +3815,8 @@
         if (selectedRoute) segments.push(`선택 경로: <strong>${escapeHtml(selectedRoute.label)}</strong>`);
         if (selectedPattern) segments.push(`패턴: <strong>${escapeHtml(selectedPattern.label)}</strong>`);
         segments.push(`아래에서 route와 패턴을 고르면 카드가 열려요.`);
+      } else if (selectedView === 'vault') {
+        segments.push(`Vault 노트를 카탈로그 ID와 연결합니다. 출제 범위는 Active Speaking Set만 씁니다.`);
       }
       if (selectedView === 'verbs' && !selectedExpression) {
         segments.push(`패턴을 누르면 실생활 표현으로 이동해요.`);
@@ -3135,9 +4022,20 @@
       const isPracticeOpen = isSelected && data.isMapPracticeOpen;
       const chunks = (expression.chunks || []).map(chunk => `<span class="chunk">${escapeHtml(chunk)}</span>`).join('');
       const hints = (expression.hints || []).slice(0, 3).map(hint => `<li>${escapeHtml(hint)}</li>`).join('');
+      const unlocked = isExpressionUnlocked(expression.id);
+      const vaultLinked = getConfirmedVaultLinks('expression', expression.id).length > 0
+        || getConfirmedVaultLinks('verb', expression.coreVerbId).length > 0;
+      const styleApi = window.GraphStyle;
+      const kind = styleApi
+        ? styleApi.classifyGraphNode({ unlocked, vaultLinked })
+        : (unlocked ? (vaultLinked ? 'vault-linked' : 'active') : (vaultLinked ? 'vault-only' : 'locked'));
+      const badge = (kind === 'vault-linked' || kind === 'vault-only')
+        ? `<span class="graph-node-badge ${kind === 'vault-only' ? 'vault-only' : ''}">${kind === 'vault-only' ? 'Vault only' : 'Vault'}</span>`
+        : '';
       return `
-        <div class="map-sentence-card" data-map-sentence-card-id="${expression.id}">
+        <div class="map-sentence-card ${kind === 'vault-linked' ? 'vault-linked' : ''} ${kind === 'vault-only' ? 'vault-only locked' : ''} ${!unlocked && kind !== 'vault-only' ? 'locked' : ''}" data-map-sentence-card-id="${expression.id}" title="${escapeHtml(styleApi?.graphNodeTitle(kind) || '')}">
           <p class="map-sentence-line">${escapeHtml(expression.english)}</p>
+          ${badge}
           <p class="map-summary-note">이 문장을 더 내 것으로 만들어 볼까요?</p>
           <div class="map-action-row">
             <button class="map-action-btn ${isMeaningOpen ? 'active' : ''}" data-map-meaning-toggle-id="${expression.id}">뜻·덩어리 보기</button>
@@ -3162,7 +4060,7 @@
               <div class="connection-strip-summary">${getConnectionGraph(expression)}</div>
               <ol class="hint-list">${hints}</ol>
               <div class="map-action-row">
-                <button class="map-action-btn active" data-map-quiz-id="${expression.id}">이 문장 듣고 따라하기</button>
+                <button class="map-action-btn active" data-map-quiz-id="${expression.id}" ${unlocked ? '' : 'disabled'}>이 문장 듣고 따라하기</button>
                 <button class="map-action-btn" data-map-practice-close="true">닫기</button>
               </div>
             </div>
@@ -3325,6 +4223,7 @@
       return appState.dictionaryData.gameExpressions.length ? appState.dictionaryData.gameExpressions : phraseBank.map(normalizeFallbackPhrase);
     }
     function getUnlockedBank() {
+      // Vault overlay / watchlist never expand this bank — ASS unlock packs only.
       const bank = getGameBank();
       const unlockedIds = new Set(getUnlockedExpressionIds());
       const filtered = bank.filter(item => unlockedIds.has(item.id));
@@ -3422,7 +4321,7 @@
       return [...coreItems, ...tenseItems].slice(0, 6);
     }
     function supportsMode(item, mode) {
-      if (mode === 'matrix') return true;
+      if (mode === 'matrix' || mode === 'explain') return true;
       const quizType = modeQuizTypes[mode] || 'koToEn';
       return (item.quizTypes || []).includes(quizType);
     }
@@ -3518,12 +4417,14 @@
       const questStepNumber = questStep ? questStep.stepIndex + 1 : null;
       const stageLabel = questStep ? `${questStepNumber} / 7 · ${questStep.label}`
         : mode === 'listen' ? '듣고 따라 말하기'
+        : mode === 'explain' ? '파인만 설명 챌린지'
         : mode === 'matrix' ? `묻기·답하기 · ${item.formLabel || item.frame}`
         : `${modeTitle(mode)} · ${item.frame} · ${item.level || 1}단계`;
       const baseTop = `<div class="lesson-label">${stageLabel}</div>`;
       const connectionSummary = `<div class="connection-strip-summary">${getConnectionGraph({ id: item.progressId || item.baseExpressionId || item.id, ...item }, stageToConnectionKey(questStep?.questStage))}</div>`;
       let body = '';
       if (mode === 'listen') body = renderListen(item);
+      else if (mode === 'explain') body = renderExplain(item);
       else if (mode === 'matrix') body = renderMatrix(item);
       else if (mode === 'koen') body = renderKoEn(item);
       else if (mode === 'enko') body = renderEnKo(item);
@@ -3536,6 +4437,109 @@
     }
 
     function modeTitle(mode) { return (modeCards.find(x => x.id === mode) || {}).title || '퀘스트'; }
+    function getFeynmanLexicon() {
+      const api = window.FeynmanChallenge;
+      if (!api) return new Set();
+      return api.buildAllowedLexicon({
+        verbs: appState.dictionaryData.verbs || [],
+        nouns: appState.dictionaryData.nouns || [],
+        expressions: appState.dictionaryData.expressions || [],
+        unlockedExpressionIds: getUnlockedExpressionIds(),
+      });
+    }
+    function renderExplain(item) {
+      const api = window.FeynmanChallenge;
+      const lexicon = getFeynmanLexicon();
+      const preview = api ? api.lexiconPreview(lexicon, 28) : [];
+      return `
+        <h2>${escapeHtml(item.en)}</h2>
+        <p class="korean">${escapeHtml(item.ko)}</p>
+        <p class="sound-help">이 표현을 <b>Active Speaking Set 단어만</b>으로 영어로 설명해 보세요. 말로 설명한 뒤 인식 결과를 고칠 수도 있어요.</p>
+        <div class="lexicon-chips">${preview.map(word => `<span>${escapeHtml(word)}</span>`).join('')}</div>
+        <p class="small-note">허용 단어 ${lexicon.size}개 · 접속·대명사 등 기능어는 기본 포함</p>
+        <div class="question-actions" style="margin:10px 0; justify-content:flex-start">
+          <button class="btn soft mic-start" type="button">🎤 말로 설명하기</button>
+        </div>
+        <div class="hint-box hidden" id="speechResultBox"></div>
+        <textarea class="answer-input" id="answerInput" rows="4" placeholder="Example: It means I have time for you." style="width:100%; min-height:96px; resize:vertical; margin-top:10px"></textarea>
+        ${renderQuizNav('설명 확인')}
+        <div class="feedback hidden" id="feedback"></div>`;
+    }
+    function saveExplanationNote(item, text, evaluation, options = {}) {
+      if (!Array.isArray(appState.progress.explanations)) appState.progress.explanations = [];
+      const api = window.FeynmanChallenge;
+      const createdAt = new Date().toISOString();
+      const speechTranscript = options.speechTranscript || appState.lastExplainSpeech || '';
+      const note = normalizeExplanationNote({
+        id: api?.makeExplanationId
+          ? api.makeExplanationId({ expressionId: item.id, createdAt, text })
+          : undefined,
+        expressionId: item.id,
+        english: item.en || item.english || '',
+        naturalKorean: item.ko || item.naturalKorean || '',
+        explanation: text,
+        speechTranscript,
+        verbWord: item.verb || verbWordFromId(item.coreVerbId) || '',
+        verbId: item.coreVerbId || '',
+        status: evaluation.status,
+        allowedRatio: evaluation.allowedRatio,
+        blockedWords: evaluation.blocked || [],
+        createdAt,
+        updatedAt: createdAt,
+      });
+      appState.progress.explanations.unshift(note);
+      appState.progress.explanations = appState.progress.explanations.slice(0, 40);
+      appState.lastExplainSpeech = '';
+      saveProgress();
+      return note;
+    }
+    function checkExplainAnswer(item, mode, options = {}) {
+      if (appState.questionAnswered) { nextQuestion(); return; }
+      const api = window.FeynmanChallenge;
+      if (!api) {
+        toast('파인만 챌린지 모듈을 불러오지 못했어요.');
+        return;
+      }
+      const inputId = options.inputId || 'answerInput';
+      const input = document.getElementById(inputId);
+      const rawGuess = input?.value || '';
+      if (!api.tokenize(rawGuess).length) {
+        toast('먼저 영어로 설명을 쓰거나 말해 보세요.');
+        return;
+      }
+      const evaluation = api.evaluateExplanation(rawGuess, getFeynmanLexicon());
+      const speechTranscript = options.speechTranscript
+        || (options.fromSpeech ? rawGuess : '')
+        || appState.lastExplainSpeech
+        || '';
+      const note = saveExplanationNote(item, rawGuess, evaluation, { speechTranscript });
+      const signature = `explain:${api.normalizeToken(rawGuess).slice(0, 80)}`;
+      if (evaluation.passed || evaluation.softPass) {
+        markStudy(mode, progressItemId(item), evaluation.passed ? 'correct' : 'almost', {
+          signature,
+          hintLevel: 0,
+          baseExpressionId: item.baseExpressionId,
+          progressId: item.progressId,
+        });
+      } else {
+        markStudy(mode, progressItemId(item), 'retry', {
+          signature,
+          hintLevel: 0,
+          baseExpressionId: item.baseExpressionId,
+          progressId: item.progressId,
+        });
+      }
+      const blocked = evaluation.blocked.length
+        ? `막힌 단어: ${evaluation.blocked.join(', ')}`
+        : '막힌 단어 없음';
+      const speechNote = speechTranscript ? ' · 음성 인식 포함' : '';
+      const result = evaluation.passed
+        ? { status: 'correct', feedbackClass: 'good', title: '제한 어휘로 설명했어요!', message: `허용 ${Math.round(evaluation.allowedRatio * 100)}% · ${blocked}`, countsAsSuccess: true }
+        : evaluation.softPass
+          ? { status: 'almost', feedbackClass: 'almost', title: '거의 통과예요.', message: `허용 ${Math.round(evaluation.allowedRatio * 100)}% · ${blocked}`, countsAsSuccess: true }
+          : { status: 'retry', feedbackClass: 'bad', title: 'Active set 밖으로 새었어요.', message: `${blocked}. 위 칩에 있는 단어만 다시 써 보세요.`, countsAsSuccess: false };
+      showAnswerSummary(result.feedbackClass, item, result, rawGuess, `설명 노트 ${note.id} 저장${speechNote} · 퀴즈 은행은 그대로`, { allowAdvance: evaluation.passed || evaluation.softPass });
+    }
     function renderListen(item) {
       const session = getListenSession(item.id);
       return `
@@ -3801,14 +4805,25 @@
         input.focus();
         input.select();
       });
-      box.querySelector('.mic-confirm')?.addEventListener('click', () => checkTextAnswer(item, mode, { fromSpeech: true, inputId: 'speechAnswerInput' }));
+      box.querySelector('.mic-confirm')?.addEventListener('click', () => checkTextAnswer(item, mode, {
+        fromSpeech: true,
+        inputId: 'speechAnswerInput',
+        speechTranscript: transcript,
+      }));
       const speechInput = document.getElementById('speechAnswerInput');
       if (speechInput) {
         speechInput.addEventListener('keydown', e => {
           if (e.key !== 'Enter') return;
           e.preventDefault();
-          checkTextAnswer(item, mode, { fromSpeech: true, inputId: 'speechAnswerInput' });
+          checkTextAnswer(item, mode, { fromSpeech: true, inputId: 'speechAnswerInput', speechTranscript: transcript });
         });
+        if (mode === 'explain') {
+          const answerInput = document.getElementById('answerInput');
+          speechInput.addEventListener('input', () => {
+            if (answerInput) answerInput.value = speechInput.value;
+            appState.lastExplainSpeech = speechInput.value;
+          });
+        }
       }
     }
 
@@ -3892,6 +4907,13 @@
           } else {
             renderListenResult(transcript, item, result, { boxId });
           }
+          return;
+        }
+        if (mode === 'explain') {
+          appState.lastExplainSpeech = transcript;
+          const answerInput = document.getElementById('answerInput');
+          if (answerInput) answerInput.value = transcript;
+          renderSpeechResult(transcript, item, mode);
           return;
         }
         renderSpeechResult(transcript, item, mode);
@@ -4045,6 +5067,10 @@
       return { status: 'retry', feedbackClass: 'bad', title: '다시 연결이 필요해요.', message: item.mistakeExplanation || '오늘 목표 표현과는 아직 조금 달라요. 정답을 보고 한 번 더 입으로 붙여 볼게요.', countsAsSuccess: false };
     }
     function checkTextAnswer(item, mode, options = {}) {
+      if (mode === 'explain') {
+        checkExplainAnswer(item, mode, options);
+        return;
+      }
       if (appState.questionAnswered) { nextQuestion(); return; }
       const inputId = options.inputId || (options.fromSpeech ? 'speechAnswerInput' : 'answerInput');
       const input = document.getElementById(inputId);
@@ -4218,8 +5244,9 @@
           createdAt: new Date().toISOString(),
         });
         mount.innerHTML = `<p class="small-note">저장됨 · ${escapeHtml(note.id)} · Obsidian 경로 Gaps/${escapeHtml(note.id)}.md</p>`;
-        toast('간극 기록을 저장했어요. 내 성장에서 Markdown으로 내보낼 수 있어요.');
+        toast('간극 기록을 저장했어요. Local REST가 켜져 있으면 백그라운드 동기화를 시도합니다.');
         renderGapNotesList();
+        maybeAutoSyncAfterGap();
       });
     }
     function pulseQuestion(type) {
@@ -4373,6 +5400,7 @@
       const expressionList = document.getElementById('expressionExplorerList');
       const detail = document.getElementById('expressionExplorerDetail');
       const dictionaryMap = document.getElementById('dictionaryMap');
+      const vaultOverlayPanel = document.getElementById('vaultOverlayPanel');
       if (!status || !verbButtons || !verbPanel || !patternList || !expressionList || !detail || !dictionaryMap || !dictionarySubnav) return;
 
       if (data.error) {
@@ -4400,7 +5428,7 @@
       const expressions = data.expressions.filter(e => e.coreVerbId === selectedVerb.id);
       const buildConfig = getVerbMapConfig(selectedVerb, data);
       const route = parseHashRoute();
-      const forcedView = route.screen === 'dictionary' && route.view && ['legacy', 'verbs', 'expressions', 'build'].includes(route.view) ? route.view : null;
+      const forcedView = route.screen === 'dictionary' && route.view && ['legacy', 'verbs', 'expressions', 'build', 'vault'].includes(route.view) ? route.view : null;
       let selectedExpression = data.selectedExpressionId ? expressions.find(e => e.id === data.selectedExpressionId) : null;
       let selectedRoute = buildConfig?.routes?.find(route => route.routeId === data.selectedRouteId) || null;
       let selectedPattern = null;
@@ -4462,10 +5490,11 @@
         return;
       }
       const buildViewActive = selectedView === 'build';
+      const vaultViewActive = selectedView === 'vault';
       const selectedLocationMarkup = renderDictionaryLocation(selectedView, selectedVerb, selectedPattern, selectedExpression, selectedRoute, data);
       if (dictionaryExplorer) {
         dictionaryExplorer.classList.toggle('map-focused', buildViewActive);
-        dictionaryExplorer.classList.toggle('has-selected-expression', Boolean(selectedView !== 'build' && !legacyViewActive && selectedExpression));
+        dictionaryExplorer.classList.toggle('has-selected-expression', Boolean(selectedView !== 'build' && !legacyViewActive && !vaultViewActive && selectedExpression));
         dictionaryExplorer.classList.toggle('legacy-focused', legacyViewActive);
         dictionaryExplorer.hidden = legacyViewActive;
       }
@@ -4496,7 +5525,9 @@
 
       status.className = 'explorer-status';
       const snapshot = getActiveSetSnapshot();
-      status.textContent = `Active Speaking Set ${snapshot.unlockedCount}개 연습 중 · 전체 ${data.verbs.length}동사 / ${data.expressions.length}표현 (해금되지 않은 항목은 잠김)`;
+      status.textContent = vaultViewActive
+        ? 'Vault overlay는 읽기 전용입니다. 연결을 확정해도 Active Speaking Set 퀴즈 범위는 늘어나지 않습니다.'
+        : `Active Speaking Set ${snapshot.unlockedCount}개 연습 중 · 전체 ${data.verbs.length}동사 / ${data.expressions.length}표현 (해금되지 않은 항목은 잠김)`;
       const sortedVerbs = [...data.verbs].sort((a, b) => {
         const aActive = isVerbInActiveSet(a.id) ? 0 : 1;
         const bActive = isVerbInActiveSet(b.id) ? 0 : 1;
@@ -4504,8 +5535,16 @@
         return String(a.word).localeCompare(String(b.word));
       });
       verbButtons.innerHTML = sortedVerbs.map(verb => {
-        const locked = !isVerbInActiveSet(verb.id);
-        return `<button class="verb-chip ${verb.id === selectedVerb.id ? 'active' : ''} ${locked ? 'locked' : ''}" data-verb-id="${verb.id}" title="${locked ? 'Active Speaking Set 밖 · 탐색만 가능' : '연습 가능'}">${verb.word}</button>`;
+        const unlocked = isVerbInActiveSet(verb.id);
+        const vaultLinked = getConfirmedVaultLinks('verb', verb.id).length > 0;
+        const kind = window.GraphStyle
+          ? window.GraphStyle.classifyGraphNode({ unlocked, vaultLinked })
+          : (unlocked ? (vaultLinked ? 'vault-linked' : 'active') : (vaultLinked ? 'vault-only' : 'locked'));
+        const lockedClass = kind === 'locked' || kind === 'vault-only' ? 'locked' : '';
+        const vaultClass = kind === 'vault-linked' || kind === 'vault-only' ? (kind === 'vault-only' ? 'vault-linked vault-only' : 'vault-linked') : '';
+        const title = window.GraphStyle?.graphNodeTitle(kind)
+          || (unlocked ? (vaultLinked ? 'Vault 연결됨' : '연습 가능') : 'Active Speaking Set 밖 · 탐색만 가능');
+        return `<button class="verb-chip ${verb.id === selectedVerb.id ? 'active' : ''} ${lockedClass} ${vaultClass}" data-verb-id="${verb.id}" title="${escapeHtml(title)}">${verb.word}</button>`;
       }).join('');
           verbButtons.querySelectorAll('[data-verb-id]').forEach(button => button.addEventListener('click', () => {
             appState.dictionaryData.selectedVerbId = button.dataset.verbId;
@@ -4515,9 +5554,9 @@
             updateRouteForScreen('dictionary');
           }));
 
-      if (explorerGrid) explorerGrid.hidden = selectedView === 'build' || legacyViewActive;
-      verbPanel.hidden = selectedView === 'build' || legacyViewActive;
-      if (verbButtons) verbButtons.hidden = legacyViewActive;
+      if (explorerGrid) explorerGrid.hidden = selectedView === 'build' || legacyViewActive || vaultViewActive;
+      verbPanel.hidden = selectedView === 'build' || legacyViewActive || vaultViewActive;
+      if (verbButtons) verbButtons.hidden = legacyViewActive || vaultViewActive;
       if (status) status.hidden = legacyViewActive;
       patternList.hidden = selectedView !== 'verbs';
       const expressionPanel = document.getElementById('expressionExplorerPanel');
@@ -4525,6 +5564,15 @@
       expressionList.hidden = selectedView !== 'expressions' || legacyViewActive;
       detail.hidden = selectedView !== 'expressions' || legacyViewActive;
       dictionaryMap.hidden = selectedView !== 'build' || legacyViewActive;
+      if (vaultOverlayPanel) {
+        vaultOverlayPanel.hidden = !vaultViewActive || legacyViewActive;
+        if (vaultViewActive) renderVaultOverlayPanel();
+        else vaultOverlayPanel.innerHTML = '';
+      }
+
+      if (vaultViewActive) {
+        return;
+      }
 
       verbPanel.innerHTML = `
         <h4>선택한 핵심 동사</h4>
@@ -4533,6 +5581,7 @@
         <p class="explorer-guide">이 동사의 패턴만 먼저 봅니다.</p>
         <p class="small-note">대표 상황: ${selectedVerb.representativeSituations.map(escapeHtml).join(' · ')}</p>
         <p class="small-note">연결 동사: ${selectedVerb.connectedVerbIds.map(id => data.verbs.find(v => v.id === id)?.word || id).map(escapeHtml).join(' · ')}</p>
+        ${renderVaultLinksMarkup('verb', selectedVerb.id)}
       `;
       patternList.innerHTML = patterns.length ? patterns.map(pattern => `
         <button class="pattern-item" data-pattern-id="${pattern.id}">
@@ -4592,6 +5641,9 @@
           <p class="explorer-guide">${unlocked ? '덩어리를 보고 바로 퀴즈로 넘어가세요.' : '이 표현은 아직 잠겨 있어요. Active Speaking Set을 익히면 해금됩니다.'}</p>
           <p class="small-note">표현 틀: ${escapeHtml(pattern?.label || selectedExpression.patternId)} · 핵심 명사: ${nouns.map(escapeHtml).join(' · ') || '없음'}</p>
           <ol class="hint-list">${selectedExpression.hints.map(hint => `<li>${escapeHtml(hint)}</li>`).join('')}</ol>
+          ${renderVaultLinksMarkup('expression', selectedExpression.id)}
+          ${renderVaultLinksMarkup('verb', selectedExpression.coreVerbId)}
+          ${(selectedExpression.nounIds || []).map(nounId => renderVaultLinksMarkup('noun', nounId)).join('')}
           <div class="question-actions" style="justify-content:flex-start">
             <button class="btn dark quiz-expression" data-expression-id="${selectedExpression.id}" ${unlocked ? '' : 'disabled'}>${unlocked ? '듣고 따라하기' : '잠긴 표현'}</button>
           </div>
@@ -4673,20 +5725,32 @@
       const selectedExample = appState.currentMapExampleByVerb[currentMapId] || '';
       const thinkingMap = document.getElementById('thinkingMap');
       if (!thinkingMap || !m) return;
+      const mapVerb = (appState.dictionaryData.verbs || []).find(verb => verb.word === currentMapId);
+      const mapVerbId = mapVerb?.id || '';
+      const mapVerbUnlocked = mapVerbId ? isVerbInActiveSet(mapVerbId) : true;
+      const mapVerbVault = mapVerbId ? getConfirmedVaultLinks('verb', mapVerbId).length > 0 : false;
+      const engineKind = window.GraphStyle
+        ? window.GraphStyle.classifyGraphNode({ unlocked: mapVerbUnlocked, vaultLinked: mapVerbVault })
+        : 'active';
+      const engineClass = [
+        engineKind === 'vault-linked' || engineKind === 'vault-only' ? 'vault-linked' : '',
+        engineKind === 'vault-only' ? 'vault-only' : '',
+      ].filter(Boolean).join(' ');
       thinkingMap.innerHTML = `
         <div class="map-col">
           <h3>1. 기본 엔진</h3>
-          <div class="map-detail-card">
+          <div class="map-detail-card ${engineClass}" title="${escapeHtml(window.GraphStyle?.graphNodeTitle(engineKind) || '')}">
             <p><b>${escapeHtml(m.title)}</b></p>
             <p>${escapeHtml(m.engineSummary)}</p>
             ${m.coreImage ? `<p class="small-note" style="margin-top:8px">${escapeHtml(m.coreImage)}</p>` : ''}
+            ${mapVerbVault ? `<span class="graph-node-badge ${engineKind === 'vault-only' ? 'vault-only' : ''}">${engineKind === 'vault-only' ? 'Vault only' : 'Vault'}</span>` : ''}
           </div>
         </div>
         <div class="map-col">
           <h3>2. 생각틀</h3>
           <p class="small-note" style="margin:0 0 10px">생각틀을 누르면 바로 아래 예문이 바뀝니다. 처음에는 랜덤으로 하나가 선택돼 있어요.</p>
           ${m.frames.map((frame, index) => `
-            <button class="map-detail-card map-frame-card ${index === activeFrameIndex ? 'active' : ''}" type="button" data-map-frame-index="${index}">
+            <button class="map-detail-card map-frame-card ${index === activeFrameIndex ? 'active' : ''} ${engineClass}" type="button" data-map-frame-index="${index}">
               <p><b>${escapeHtml(frame.label)}</b></p>
               <p>${escapeHtml(frame.meaning)}</p>
               <div class="map-frame-combos">${(frame.combos || []).map(combo => `<span class="map-chip">${escapeHtml(combo)}</span>`).join('')}</div>
@@ -4697,13 +5761,34 @@
           <h3>3. 실생활 표현</h3>
           <p class="small-note" style="margin:0 0 10px">${escapeHtml(activeFrame ? `${activeFrame.label} 예문 5개를 바로 보여줘요. 표현을 고르면 듣고 따라 말하기로 이어집니다.` : '생각틀을 고르면 예문 5개가 바로 보여줘요.')}</p>
           <p class="small-note" style="margin:0 0 10px"><b>선택됨:</b> ${escapeHtml(activeFrame?.label || '생각틀이 없습니다.')}${activeFrame?.meaning ? ` · ${escapeHtml(activeFrame.meaning)}` : ''}</p>
-          ${activeFrameExamples.map(example => `
-            <button class="map-detail-card map-example-card ${normalize(selectedExample) === normalize(example.en) ? 'selected' : ''}" type="button" data-map-example-en="${escapeHtml(example.en)}">
+          ${activeFrameExamples.map(example => {
+            const matched = (appState.dictionaryData.expressions || []).find(item => normalize(item.english || item.en || '') === normalize(example.en));
+            const unlocked = matched ? isExpressionUnlocked(matched.id) : mapVerbUnlocked;
+            const vaultLinked = matched
+              ? (getConfirmedVaultLinks('expression', matched.id).length > 0 || getConfirmedVaultLinks('verb', matched.coreVerbId).length > 0)
+              : mapVerbVault;
+            const kind = window.GraphStyle
+              ? window.GraphStyle.classifyGraphNode({ unlocked, vaultLinked })
+              : 'active';
+            const classes = [
+              'map-detail-card',
+              'map-example-card',
+              normalize(selectedExample) === normalize(example.en) ? 'selected' : '',
+              kind === 'vault-linked' ? 'vault-linked' : '',
+              kind === 'vault-only' ? 'vault-only locked' : '',
+              !unlocked && kind !== 'vault-only' ? 'locked' : '',
+            ].filter(Boolean).join(' ');
+            const badge = (kind === 'vault-linked' || kind === 'vault-only')
+              ? `<span class="graph-node-badge ${kind === 'vault-only' ? 'vault-only' : ''}">${kind === 'vault-only' ? 'Vault only' : 'Vault'}</span>`
+              : '';
+            return `
+            <button class="${classes}" type="button" data-map-example-en="${escapeHtml(example.en)}" title="${escapeHtml(window.GraphStyle?.graphNodeTitle(kind) || '')}">
               <p><b>${escapeHtml(example.en)}</b></p>
               <p>${escapeHtml(example.ko)}</p>
+              ${badge}
               ${example.note ? `<p class="small-note" style="margin-top:8px">${escapeHtml(example.note)}</p>` : ''}
-            </button>
-          `).join('')}
+            </button>`;
+          }).join('')}
         </div>`;
       updateMapConnectionText(currentMapId);
       thinkingMap.querySelectorAll('[data-map-frame-index]').forEach(button => {
@@ -4901,8 +5986,33 @@
       toast(settings.soundEnabled ? '소리를 켰어요.' : '소리를 껐어요.');
     });
     document.getElementById('resetProgress').addEventListener('click', () => { clearProgressPayload(); appState.progress=defaultProgress(); updateDashboard(); updateSoundToggle(); toast('학습 기록을 초기화했어요.'); });
+    document.getElementById('learnerPill')?.addEventListener('click', () => {
+      showScreen('progress');
+      document.getElementById('learnerCard')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    document.getElementById('switchLearnerBtn')?.addEventListener('click', () => {
+      const id = document.getElementById('learnerSelect')?.value;
+      if (id) switchActiveLearner(id);
+    });
+    document.getElementById('addLearnerBtn')?.addEventListener('click', () => {
+      const input = document.getElementById('newLearnerName');
+      const id = addLearnerProfile(input?.value || '');
+      if (id) {
+        if (input) input.value = '';
+        switchActiveLearner(id, { force: true });
+      }
+    });
+    document.getElementById('newLearnerName')?.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') document.getElementById('addLearnerBtn')?.click();
+    });
     document.getElementById('exportBrainMarkdown')?.addEventListener('click', () => exportEnglishBrainMarkdown());
     document.getElementById('exportBrainJson')?.addEventListener('click', () => exportEnglishBrainJson());
+    document.getElementById('saveSyncSettings')?.addEventListener('click', () => saveSyncSettingsFromForm());
+    document.getElementById('testSyncConnection')?.addEventListener('click', () => testObsidianConnection());
+    document.getElementById('syncToObsidian')?.addEventListener('click', () => syncEnglishBrainToObsidian());
+    document.getElementById('importFromObsidian')?.addEventListener('click', () => importEnglishBrainFromObsidian());
+    document.getElementById('flushSyncQueue')?.addEventListener('click', () => flushObsidianSyncQueue());
+    renderSyncSettingsForm();
     (async () => {
       await purgeStaleAppCaches();
       if ('serviceWorker' in navigator && location.protocol !== 'file:') {
