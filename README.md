@@ -2,7 +2,14 @@
 
 핵심 동사와 명사를 조합해 실제 영어 표현을 만드는 **게임형 웹 앱**입니다.
 
+초기 목표는 3~4세 수준의 쉬운 구어체부터, **만능동사 + 핵심명사 코로케이션** 안에서 묻기·답하기·시제 뉘앙스를 자유롭게 쓰는 것입니다. Vault에 영어 문서가 더 있어도 연습 범위는 Active Speaking Set으로 제한하고, 숙달 후에만 점차 넓힙니다.
+
+웹앱에서 배우고 틀린 기록은 Obsidian(`Project_English`)에 영어뇌 상태로 남기고, 그 상태를 다시 읽어 약한 부분과 다음 연습 순서를 정하는 **양방향 루프**로 확장하는 것이 최종 목표입니다.
+
 - [서비스 기획 및 마케팅 문서](docs/PRODUCT_STORY_AND_MARKETING.md)
+- [통합 개발 계획](docs/DEVELOPMENT_PLAN.md)
+- [Active Speaking Set](docs/ACTIVE_SPEAKING_SET.md)
+- [Obsidian 영어뇌 동기화](docs/OBSIDIAN_ENGLISH_BRAIN_SYNC.md)
 
 ## GitHub 자동 업로드·자동 배포·자동 판올림
 
@@ -114,6 +121,59 @@ python3 -m http.server 8080
 - 한 표현을 듣기, 말하기, 한영, 영한 등 다른 채널로 반복해 실제로 꺼내 쓰게 합니다.
 - 정답 횟수 3회 이상이면 “내 표현”으로 표시됩니다.
 - 학습 기록은 브라우저 `localStorage`에 저장됩니다.
+- 어휘를 먼저 늘리지 않습니다. Active Speaking Set을 숙달한 뒤 Unlock pack으로만 확장합니다.
+
+### 현재 데이터 규모 (저장소 기준)
+
+| 항목 | 규모 |
+| --- | --- |
+| 핵심 동사 | 15 |
+| 핵심 명사 | 약 66 |
+| 표현 틀 | 46 |
+| 표현 카드 | 약 90 |
+| 학습 경로 | Core 15 Starter |
+
+출제 게이트(Active set 40~50)와 묻기/답하기·시제 매트릭스는 [개발 계획](docs/DEVELOPMENT_PLAN.md) Phase 0·2로 구현 예정입니다.
+
+## 파인만식 영어뇌 · Obsidian 연동
+
+최종 루프는 다음과 같습니다.
+
+1. 웹앱에서 배우고 틀리고 익힌다.
+2. 간극·진행·Active set 상태가 Obsidian Vault에 Markdown으로 남는다.
+3. Vault에서 연결·메모를 정리한다.
+4. 앱이 Brain State / Next Practice / Gaps를 읽어 약한 부분을 다시 훈련한다.
+
+### 구현 상태
+
+| 기능 | 상태 |
+| --- | --- |
+| 퀴즈·연결도·localStorage 진행 기록 | 동작 |
+| Active Speaking Set 출제 제한·해금 | 계획 |
+| 묻기/답하기·시제 변형 매트릭스 | 계획 |
+| Gap Note → Obsidian Markdown 동기화 | 계획 |
+| Vault → 앱 Brain State / Gaps 가져오기 | 계획 |
+| Local REST API / 로컬 브리지 | 계획 (본선) |
+| Google Drive 웹훅 · Obsidian Git | 백업/호환 경로 |
+
+동기화 계약과 Vault 폴더 구조는 [`docs/OBSIDIAN_ENGLISH_BRAIN_SYNC.md`](docs/OBSIDIAN_ENGLISH_BRAIN_SYNC.md), 단계별 순서는 [`docs/DEVELOPMENT_PLAN.md`](docs/DEVELOPMENT_PLAN.md)를 참고하세요.
+
+### 목표 Vault 구조
+
+```text
+English Brain Index.md
+Learning/Brain State.md
+Learning/Next Practice.md
+Learning/Progress.md
+Learning/Today Review.md
+Patterns/<문형>.md
+Verbs/<동사>.md
+Nouns/<명사>.md
+Prepositions/<전치사>.md
+Gaps/<간극 ID>.md
+```
+
+권장 외부 도구: Obsidian Local REST API(+ MCP)를 앱↔Vault 본선으로 쓰고, Obsidian CLI skills는 노트 정리용, Obsidian Git/GHVault는 Vault 백업용으로 분리합니다.
 
 ## 콘텐츠 구조
 

@@ -1,7 +1,11 @@
 # HANDOFF — English Thinking Dictionary Quest
 
 ## 프로젝트 목표
-핵심 동사 30~50개, 핵심 명사 300~400개, 표현 틀을 연결하여 듣기·말하기·한영·영한·힌트 퀴즈로 익히는 게임형 영어 학습 웹앱.
+제한된 만능동사·핵심명사 코로케이션으로 3~4세급 구어체부터 듣기·말하기·한영·영한·힌트 퀴즈를 익히고, 학습 기록을 Obsidian Vault에 영어뇌 상태로 남겨 다시 웹앱 연습 순서에 반영하는 게임형 영어 학습 웹앱.
+
+양보다 숙달이 먼저다. Vault나 JSON에 정보가 더 있어도 출제는 Active Speaking Set만 사용하고, 숙달 후 Unlock pack으로만 확장한다.
+
+상세 계획: `docs/DEVELOPMENT_PLAN.md`, `docs/ACTIVE_SPEAKING_SET.md`, `docs/OBSIDIAN_ENGLISH_BRAIN_SYNC.md`.
 
 ## 현재 상태
 - 정적 웹앱 MVP (`index.html`)가 준비되어 있음.
@@ -12,6 +16,7 @@
 - 게임 모드가 `data/expressions.json` 기반 표현 카드로 출제되도록 전환되어 있음.
 - 기존 내장 `phraseBank`는 데이터 파일 로드 실패 시에만 쓰는 fallback 역할로 남아 있음.
 - 서비스 기획 및 마케팅 문서 `docs/PRODUCT_STORY_AND_MARKETING.md`가 추가되어 있음.
+- Active Speaking Set 게이트, Q&A/시제 매트릭스, Obsidian Brain State 동기화 코드는 아직 없음(문서 Phase 0~3).
 
 ## 서비스 기획 및 마케팅 요약
 - 이 서비스는 영어를 더 많이 외우게 하는 앱이 아니라, 이미 알고 있는 기본 단어를 실제 말로 연결하게 돕는 게임형 영어 사고 훈련 앱으로 정의됨.
@@ -64,14 +69,15 @@
 - 사전 탐험 상세에서 `이 표현으로 퀴즈 풀기`와 관련 표현 이동 구조 추가
 
 ## 다음 작업 우선순위
-1. 새 표현 카드 기반 퀴즈 결과를 모드별로 더 세분화해 저장한다.
-2. 핵심 동사 30~50개와 핵심 명사 300~400개로 확장한다.
-3. 데이터 로드 실패/fallback 상태를 화면 상단에 더 명확하게 표시한다.
-4. 음성 인식 기반 따라 말하기의 실제 판정 방식을 설계한다.
-5. 모바일 UI와 접근성을 점검한다.
+1. Active Speaking Set Starter(동사 8·표현 40~50)를 데이터/코드 게이트로 고정한다. (`docs/ACTIVE_SPEAKING_SET.md`)
+2. 묻기/답하기·부정·짧은 답·간단 시제 매트릭스 모드/콘텐츠를 Active set 안에서 추가한다.
+3. `gapNotes`와 Obsidian `Learning/Brain State.md` / `Next Practice.md` projection 최소 루프를 구현한다.
+4. Local REST API(또는 로컬 브리지)로 Vault upsert/import를 붙인다. Drive/Git은 백업만.
+5. 그 다음에만 Unlock pack으로 동사·명사·표현을 소량 확장한다. 한꺼번에 30~50 동사/300~400 명사로 열지 않는다.
 
 ## 남은 결정 사항
 - 표현 카드 ID를 사람이 읽기 쉬운 slug로 바꿀지, 현재처럼 안정적인 번호형 ID를 유지할지 결정 필요.
 - `quizTypes`별 난이도와 출제 순서를 별도 파일로 분리할지 결정 필요.
 - 오프라인 PWA에서 `data/*.json`을 서비스워커 캐시에 포함할지 결정 필요.
 - `literalMeaning`을 학습자 화면에 항상 보여줄지, 힌트 단계에서만 보여줄지 결정 필요.
+- Unlock pack 임계값(초기 제안: Active set 내 내 표현 70%)을 실사용 후 조정할지 결정 필요.
