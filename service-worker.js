@@ -3,12 +3,14 @@ const ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
+  './src/domain/markdown-projection.js',
   './data/verbs.json',
   './data/nouns.json',
   './data/patterns.json',
   './data/expressions.json',
   './data/verb-maps.json',
   './data/learning-paths.json',
+  './data/qa-matrices.json',
 ];
 
 function sameOriginGet(request) {

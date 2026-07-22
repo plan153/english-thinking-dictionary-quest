@@ -20,9 +20,9 @@ Drive·Git 백업은 이 루프의 본선이 아니다.
 | 기능 | 상태 |
 | --- | --- |
 | localStorage 학습 기록 | 동작 |
-| Gap Note / Markdown projection | 계획 (이 저장소 미구현) |
+| Gap Note / Markdown projection | 동작 (로컬 저장 + Markdown/JSON 다운로드) |
 | Local REST API / 로컬 브리지 upsert | 계획 |
-| Vault → 앱 Brain State / Gaps import | 계획 |
+| Vault → 앱 Brain State / Gaps import | 계획 (다운로드 계약만 확정) |
 | Google Apps Script Drive 웹훅 | 선택적 백업 경로(계획) |
 | Obsidian Git / GHVault | 사용자 Vault 백업용 외부 도구 |
 

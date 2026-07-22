@@ -208,6 +208,36 @@
     .active-set-card .active-set-stats span {
       background:#eaf4f3; color:#155a57; border-radius:999px; padding:7px 10px; font-size:12px; font-weight:850;
     }
+    .gap-form {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 14px;
+      background: #fffdf6;
+      border: 1px dashed #d8b34c;
+      text-align: left;
+    }
+    .gap-form label {
+      display:block;
+      font-size:12px;
+      font-weight:850;
+      color:#8a6610;
+      margin: 8px 0 4px;
+    }
+    .gap-form textarea, .gap-form input {
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:10px 12px;
+      font: inherit;
+      background:#fff;
+    }
+    .gap-note-item {
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px 14px;
+      margin-bottom:10px;
+      background:#fff;
+    }
     .matrix-form-badge {
       display:inline-flex;
       align-items:center;
@@ -694,14 +724,24 @@
         <div id="reviewList" style="margin-top:12px"></div>
       </article>
       <article class="card" style="margin-top:16px">
+        <h3>간극 기록 · 영어뇌 내보내기</h3>
+        <p class="small-note">틀린 추측과 모델 업데이트를 Obsidian용 Markdown으로 남깁니다. 같은 간극 ID는 같은 경로로만 갱신됩니다.</p>
+        <div class="question-actions" style="justify-content:flex-start; margin-top:12px">
+          <button class="btn dark" id="exportBrainMarkdown" type="button">영어뇌 Markdown 내보내기</button>
+          <button class="btn soft" id="exportBrainJson" type="button">번들 JSON 다운로드</button>
+        </div>
+        <div id="gapNotesList" style="margin-top:14px"></div>
+      </article>
+      <article class="card" style="margin-top:16px">
         <button class="btn warn" id="resetProgress">학습 기록 초기화</button>
-        <p class="small-note">이 기기 브라우저에만 저장된 XP, 정답 기록, 연속 학습일을 지웁니다.</p>
+        <p class="small-note">이 기기 브라우저에만 저장된 XP, 정답 기록, 연속 학습일, 간극 기록을 지웁니다.</p>
       </article>
     </section>
 
     <div class="toast" id="toast"></div>
   </main>
 
+  <script src="./src/domain/markdown-projection.js"></script>
   <script>
     const wordBank = [
       { id:'get', type:'핵심 동사', word:'get', korean:'얻다 · 받다 · 도착하다 · 이해하다 · 상태가 되다', example:'I got your message.', exKo:'네 메시지 받았어.', connections:'get a message · get home · get better · get it' },
@@ -1704,6 +1744,34 @@
         settings: { soundEnabled: true, seenConnectionGuide: false },
         historyByExpressionId: {},
         curriculum: { unlockedPackCount: 0, lastUnlockAt: null },
+        gapNotes: [],
+      };
+    }
+    function normalizeGapNote(entry) {
+      const api = window.EnglishBrainMarkdown;
+      const base = entry && typeof entry === 'object' ? entry : {};
+      const createdAt = base.createdAt || new Date().toISOString();
+      const id = base.id || (api ? api.makeGapId({
+        expressionId: base.expressionId,
+        guess: base.guess,
+        mode: base.mode,
+        createdAt,
+      }) : `gap_${base.expressionId || 'unknown'}`);
+      return {
+        id,
+        expressionId: base.expressionId || '',
+        english: base.english || '',
+        naturalKorean: base.naturalKorean || '',
+        mode: base.mode || '',
+        guess: base.guess || '',
+        actual: base.actual || base.english || '',
+        missedClue: base.missedClue || '',
+        modelUpdate: base.modelUpdate || '',
+        verbWord: base.verbWord || '',
+        verbId: base.verbId || '',
+        createdAt,
+        updatedAt: base.updatedAt || createdAt,
+        status: base.status || 'open',
       };
     }
     function normalizeHistoryEntry(entry) {
@@ -1781,6 +1849,7 @@
           settings: { ...defaultProgress().settings, ...(saved.settings || {}) },
           historyByExpressionId: Object.fromEntries(Object.entries(saved.historyByExpressionId || {}).map(([id, history]) => [id, normalizeHistoryEntry(history)])),
           curriculum: { ...defaultProgress().curriculum, ...(saved.curriculum || {}) },
+          gapNotes: Array.isArray(saved.gapNotes) ? saved.gapNotes.map(normalizeGapNote) : [],
         };
       }
       catch { return defaultProgress(); }
@@ -1967,6 +2036,7 @@
       document.getElementById('streakBig').textContent = `${p.streak || 0}일`;
       document.getElementById('masteredBig').textContent = snapshot.mineCount;
       renderReviewList();
+      renderGapNotesList();
       updateQuestUI();
     }
 
@@ -2361,6 +2431,8 @@
       if (history.lastCorrectAt && history.lastHintLevel === 0) score -= 1;
       const allStrong = ['recognition', 'assembly', 'output'].every(key => (history.connections?.[key]?.strength || 0) === 1);
       if (allStrong) score -= 2;
+      const openGaps = (appState.progress.gapNotes || []).filter(gap => gap.expressionId === itemId && (gap.status || 'open') === 'open');
+      if (openGaps.length) score += 2;
       return clampValue(Math.round(score), 0, 10);
     }
     function formatConnectionLabel(history) {
@@ -2525,6 +2597,190 @@
       if (progressPercent) progressPercent.textContent = `${snapshot.percent}%`;
       if (progressCopy) progressCopy.textContent = `해금 팩 ${snapshot.unlockedPackCount}/${snapshot.totalPacks} · ${unlockHint}`;
       return snapshot;
+    }
+    function getOpenGapNotes() {
+      return (appState.progress.gapNotes || []).filter(gap => (gap.status || 'open') === 'open');
+    }
+    function upsertGapNote(partial) {
+      const note = normalizeGapNote({
+        ...partial,
+        updatedAt: new Date().toISOString(),
+      });
+      if (!Array.isArray(appState.progress.gapNotes)) appState.progress.gapNotes = [];
+      const index = appState.progress.gapNotes.findIndex(item => item.id === note.id);
+      if (index >= 0) appState.progress.gapNotes[index] = { ...appState.progress.gapNotes[index], ...note };
+      else appState.progress.gapNotes.unshift(note);
+      if (note.expressionId) {
+        const history = appState.progress.historyByExpressionId[note.expressionId] || defaultHistoryEntry();
+        history.reviewPriority = computeReviewPriority(note.expressionId);
+        appState.progress.historyByExpressionId[note.expressionId] = history;
+      }
+      saveProgress();
+      return note;
+    }
+    function archiveGapNote(gapId) {
+      const note = (appState.progress.gapNotes || []).find(item => item.id === gapId);
+      if (!note) return;
+      note.status = 'archived';
+      note.updatedAt = new Date().toISOString();
+      if (note.expressionId) {
+        const history = appState.progress.historyByExpressionId[note.expressionId] || defaultHistoryEntry();
+        history.reviewPriority = computeReviewPriority(note.expressionId);
+        appState.progress.historyByExpressionId[note.expressionId] = history;
+      }
+      saveProgress();
+    }
+    function buildNextPracticeQueue() {
+      const openGaps = getOpenGapNotes();
+      const gapQueue = openGaps.slice(0, 5).map(gap => ({
+        expressionId: gap.expressionId,
+        mode: gap.mode === 'matrix' ? 'matrix' : 'review',
+        reason: 'open-gap',
+      }));
+      const review = [...getUnlockedBank()]
+        .map(item => ({ expressionId: item.id, mode: 'review', reason: 'weak-link', priority: getItemReviewPriority(item) }))
+        .filter(entry => entry.priority > 0)
+        .sort((a, b) => b.priority - a.priority)
+        .slice(0, 5)
+        .map(({ expressionId, mode, reason }) => ({ expressionId, mode, reason }));
+      const seen = new Set();
+      return [...gapQueue, ...review].filter(item => {
+        if (!item.expressionId || seen.has(item.expressionId)) return false;
+        seen.add(item.expressionId);
+        return true;
+      }).slice(0, 8);
+    }
+    function buildBrainExportPayload() {
+      const api = window.EnglishBrainMarkdown;
+      if (!api) throw new Error('markdown projection module missing');
+      const snapshot = getActiveSetSnapshot();
+      const openGaps = getOpenGapNotes();
+      const unlockedIds = getUnlockedExpressionIds();
+      const nounIds = [...new Set(
+        getUnlockedBank().flatMap(item => item.nounIds || [])
+      )].slice(0, 40);
+      const weakSlots = [...getUnlockedBank()]
+        .map(item => ({ expressionId: item.id, priority: getItemReviewPriority(item) }))
+        .filter(entry => entry.priority > 0)
+        .sort((a, b) => b.priority - a.priority)
+        .slice(0, 8)
+        .map(entry => ({ expressionId: entry.expressionId, reason: entry.priority >= 5 ? 'output-low' : 'weak-link' }));
+      const updatedAt = new Date().toISOString();
+      const brainState = {
+        updatedAt,
+        activeVerbIds: snapshot.verbIds || getActiveSpeakingSetConfig().verbIds,
+        activeVerbWords: (snapshot.verbIds || []).map(id => verbWordFromId(id)),
+        activeNounIds: nounIds,
+        activeExpressionCount: snapshot.unlockedCount,
+        masteredExpressionCount: snapshot.mineCount,
+        weakSlots,
+        openGapIds: openGaps.map(gap => gap.id),
+        unlockReady: snapshot.percent >= (snapshot.unlockThresholdPercent || 70) && snapshot.nextPackCount > 0,
+      };
+      const nextPractice = { updatedAt, queue: buildNextPracticeQueue() };
+      const progress = {
+        updatedAt,
+        xp: appState.progress.xp || 0,
+        streak: appState.progress.streak || 0,
+        unlockedPackCount: snapshot.unlockedPackCount,
+        mineCount: snapshot.mineCount,
+        activeExpressionCount: snapshot.unlockedCount,
+        openGapCount: openGaps.length,
+      };
+      const files = api.buildExportFiles({
+        brainState,
+        nextPractice,
+        progress,
+        gaps: appState.progress.gapNotes || [],
+      });
+      return { files, brainState, nextPractice, progress, gapNotes: appState.progress.gapNotes || [] };
+    }
+    function downloadTextFile(filename, content, mime = 'text/markdown;charset=utf-8') {
+      const blob = new Blob([content], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = filename;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+    function filenameFromVaultPath(path) {
+      return String(path || 'note.md').replace(/\//g, '__');
+    }
+    async function exportEnglishBrainMarkdown() {
+      try {
+        const payload = buildBrainExportPayload();
+        const entries = Object.entries(payload.files);
+        for (const [path, markdown] of entries) {
+          downloadTextFile(filenameFromVaultPath(path), markdown);
+          await new Promise(resolve => setTimeout(resolve, 120));
+        }
+        toast(`Obsidian용 Markdown ${entries.length}개를 내려받았어요. vaultPath frontmatter를 보고 폴더에 넣어 주세요.`);
+      } catch (error) {
+        toast('Markdown 내보내기에 실패했어요.');
+        console.error(error);
+      }
+    }
+    function exportEnglishBrainJson() {
+      try {
+        const payload = buildBrainExportPayload();
+        downloadTextFile(
+          `english-brain-export-${new Date().toISOString().slice(0, 10)}.json`,
+          JSON.stringify({
+            version: 1,
+            exportedAt: new Date().toISOString(),
+            files: payload.files,
+            gapNotes: payload.gapNotes,
+            brainState: payload.brainState,
+            nextPractice: payload.nextPractice,
+            progress: payload.progress,
+          }, null, 2),
+          'application/json;charset=utf-8'
+        );
+        toast('영어뇌 번들 JSON을 내려받았어요.');
+      } catch (error) {
+        toast('JSON 내보내기에 실패했어요.');
+        console.error(error);
+      }
+    }
+    function renderGapNotesList() {
+      const target = document.getElementById('gapNotesList');
+      if (!target) return;
+      const notes = [...(appState.progress.gapNotes || [])]
+        .sort((a, b) => String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')))
+        .slice(0, 12);
+      if (!notes.length) {
+        target.innerHTML = '<p class="small-note">아직 간극 기록이 없습니다. 틀린 뒤 “간극 기록 만들기”로 남겨 보세요.</p>';
+        return;
+      }
+      target.innerHTML = notes.map(note => `
+        <div class="gap-note-item" data-gap-id="${escapeHtml(note.id)}">
+          <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
+            <div>
+              <b>${escapeHtml(note.english || note.expressionId)}</b>
+              <div class="small-note" style="margin-top:4px">${escapeHtml(note.status || 'open')} · ${escapeHtml(note.mode || '')} · ${escapeHtml(note.id)}</div>
+            </div>
+            <div class="question-actions" style="margin:0">
+              ${note.status === 'open' ? `<button class="btn soft archive-gap" type="button" data-gap-id="${escapeHtml(note.id)}">보관</button>` : ''}
+              <button class="btn soft practice-gap" type="button" data-expression-id="${escapeHtml(note.expressionId)}">다시 연결</button>
+            </div>
+          </div>
+          <div class="small-note" style="margin-top:8px">추측: ${escapeHtml(note.guess || '(없음)')}</div>
+          <div class="small-note">업데이트: ${escapeHtml(note.modelUpdate || '(아직 없음)')}</div>
+        </div>
+      `).join('');
+      target.querySelectorAll('.archive-gap').forEach(button => button.addEventListener('click', () => {
+        archiveGapNote(button.dataset.gapId);
+        toast('간극 기록을 보관했어요.');
+        renderGapNotesList();
+      }));
+      target.querySelectorAll('.practice-gap').forEach(button => button.addEventListener('click', () => {
+        const expressionId = button.dataset.expressionId;
+        if (!expressionId) return;
+        startMode('review', expressionId);
+      }));
     }
     function updateHistoryConnections(itemId, connectionType, strength) {
       const history = getHistory(itemId);
@@ -3836,10 +4092,13 @@
         markStudy(mode, progressItemId(item), 'retry', { signature: `choice-${item.id}-${button.dataset.value}`, baseExpressionId: item.baseExpressionId, matrixId: item.matrixId, progressId: item.progressId });
         button.style.borderColor = 'var(--bad)';
         if (isQuestMeaningStage) {
-          showFeedback('bad', '다시 생각해 보세요.');
+          showFeedback('bad', `다시 생각해 보세요.<div class="question-actions" style="margin-top:10px"><button class="btn soft open-gap-form" type="button">🧠 간극 기록 만들기</button></div><div id="gapFormMount"></div>`);
         } else {
-          showFeedback('bad', `이 문장은 <b>${item.ko}</b>라는 뜻이에요. 소리도 다시 들어 보세요.`);
+          showFeedback('bad', `이 문장은 <b>${item.ko}</b>라는 뜻이에요. 소리도 다시 들어 보세요.<div class="question-actions" style="margin-top:10px"><button class="btn soft open-gap-form" type="button">🧠 간극 기록 만들기</button></div><div id="gapFormMount"></div>`);
         }
+        document.querySelectorAll('.open-gap-form').forEach(btn => btn.addEventListener('click', () => {
+          openGapNoteForm(item, button.dataset.value || '', mode);
+        }));
       }
     }
     function showNextHint(item) {
@@ -3867,6 +4126,10 @@
       const usedHints = Math.min(appState.hintStep, totalHints);
       const nuance = result.nuance ? `<div class="answer-key">뉘앙스</div><div>${escapeHtml(result.nuance)}</div>` : '';
       const buttonText = canAdvance ? (appState.currentIndex + 1 >= appState.lessonItems.length ? '마무리하기' : '다음 문제') : '같은 문제 다시 풀기';
+      const suggestGap = result.status === 'retry' || result.status === 'almost' || result.status === 'meaning' || type === 'bad' || type === 'almost';
+      const gapActions = suggestGap
+        ? `<div class="question-actions" style="margin-top:10px"><button class="btn soft open-gap-form" type="button">🧠 간극 기록 만들기</button></div><div id="gapFormMount"></div>`
+        : `<div class="question-actions" style="margin-top:10px"><button class="btn soft open-gap-form" type="button">🧠 메모/간극 남기기</button></div><div id="gapFormMount"></div>`;
       showFeedback(type, `
         <div class="answer-summary">
           <b>${escapeHtml(result.title)}</b>
@@ -3882,10 +4145,14 @@
           <div class="answer-key">단어 덩어리</div>
           <div class="chunk-row">${(item.chunks || []).map(chunk => `<span class="chunk">${escapeHtml(chunk)}</span>`).join('')}</div>
           <div class="answer-key">사용한 힌트 수: ${usedHints}/${totalHints} · ${escapeHtml(item.frame)} · ${escapeHtml(item.verb)} 엔진</div>
+          ${gapActions}
           <div class="question-actions"><button class="btn dark next-after-answer">${buttonText}</button></div>
         </div>
       `);
       document.querySelectorAll('.check-answer').forEach(btn => { btn.textContent = buttonText; });
+      document.querySelectorAll('.open-gap-form').forEach(button => button.addEventListener('click', () => {
+        openGapNoteForm(item, rawGuess, appState.selectedMode);
+      }));
       if (appState.questContext && canAdvance) {
         window.clearTimeout(appState.questAutoAdvanceTimer);
         appState.questAutoAdvanceTimer = window.setTimeout(() => {
@@ -3909,6 +4176,51 @@
           });
         }
       }
+    }
+    function openGapNoteForm(item, rawGuess, mode) {
+      const mount = document.getElementById('gapFormMount');
+      if (!mount) return;
+      const expressionId = progressItemId(item);
+      mount.innerHTML = `
+        <div class="gap-form">
+          <div class="hint-title">간극 기록</div>
+          <label for="gapGuess">내 추측</label>
+          <input id="gapGuess" value="${escapeHtml(rawGuess || '')}" />
+          <label for="gapActual">실제 의미 / 정답</label>
+          <input id="gapActual" value="${escapeHtml(item.en || '')}" />
+          <label for="gapMissed">놓친 단서</label>
+          <textarea id="gapMissed" rows="2" placeholder="예: some이 빠짐, 의문문 do you 구조"></textarea>
+          <label for="gapModel">모델 업데이트</label>
+          <textarea id="gapModel" rows="2" placeholder="예: need + some time 으로 생각하기"></textarea>
+          <div class="question-actions" style="justify-content:flex-start;margin-top:10px">
+            <button class="btn dark save-gap-note" type="button">간극 저장</button>
+            <button class="btn soft cancel-gap-note" type="button">닫기</button>
+          </div>
+        </div>
+      `;
+      mount.querySelector('.cancel-gap-note')?.addEventListener('click', () => { mount.innerHTML = ''; });
+      mount.querySelector('.save-gap-note')?.addEventListener('click', () => {
+        const guess = document.getElementById('gapGuess')?.value || '';
+        const actual = document.getElementById('gapActual')?.value || item.en || '';
+        const missedClue = document.getElementById('gapMissed')?.value || '';
+        const modelUpdate = document.getElementById('gapModel')?.value || '';
+        const note = upsertGapNote({
+          expressionId,
+          english: item.en,
+          naturalKorean: item.ko,
+          mode: mode || appState.selectedMode || '',
+          guess,
+          actual,
+          missedClue,
+          modelUpdate,
+          verbWord: item.verb || verbWordFromId(item.coreVerbId),
+          verbId: item.coreVerbId || '',
+          createdAt: new Date().toISOString(),
+        });
+        mount.innerHTML = `<p class="small-note">저장됨 · ${escapeHtml(note.id)} · Obsidian 경로 Gaps/${escapeHtml(note.id)}.md</p>`;
+        toast('간극 기록을 저장했어요. 내 성장에서 Markdown으로 내보낼 수 있어요.');
+        renderGapNotesList();
+      });
     }
     function pulseQuestion(type) {
       const card = document.getElementById('questionCard');
@@ -4589,6 +4901,8 @@
       toast(settings.soundEnabled ? '소리를 켰어요.' : '소리를 껐어요.');
     });
     document.getElementById('resetProgress').addEventListener('click', () => { clearProgressPayload(); appState.progress=defaultProgress(); updateDashboard(); updateSoundToggle(); toast('학습 기록을 초기화했어요.'); });
+    document.getElementById('exportBrainMarkdown')?.addEventListener('click', () => exportEnglishBrainMarkdown());
+    document.getElementById('exportBrainJson')?.addEventListener('click', () => exportEnglishBrainJson());
     (async () => {
       await purgeStaleAppCaches();
       if ('serviceWorker' in navigator && location.protocol !== 'file:') {

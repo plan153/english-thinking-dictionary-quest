@@ -35,11 +35,12 @@
 6. Active Speaking Set Starter(동사 8·표현 40)가 `learning-paths.json`에 고정되어 있고, `getUnlockedBank()`가 퀴즈·데일리 퀘스트·복습·의미 선택지를 제한한다.
 7. 내 표현 비율 70%에 도달하면 Unlock pack 1(표현 10개)이 해금된다. 홈/성장에 Active set 요약이 표시된다.
 8. 묻기·답하기·시제 매트릭스 모드(`matrix`)가 Active set 표현군 12개에 대해 평서/의문/부정/짧은 답/과거/가까운 미래를 연습한다. 오늘의 퀘스트 6번째 스텝에도 들어간다.
+9. `gapNotes` 로컬 저장, 퀴즈 결과의 간극 기록 UI, Obsidian Markdown projection(`src/domain/markdown-projection.js`)과 내보내기가 동작한다. 열린 간극은 복습 우선순위에 +2 반영된다.
 
 ### 아직 없거나 불완전한 것
 
 1. 파인만식 제한 어휘 설명 챌린지와 explanation → Obsidian 기록은 아직이다.
-2. `gapNotes`, Obsidian Markdown projection, 로컬 브리지, Vault import/export 코드가 이 저장소에는 없다.
+2. Local REST API / 로컬 브리지로 Vault에 자동 upsert하는 기능은 아직이다. 현재는 다운로드 adapter만 있다.
 3. Obsidian에서 수동 수정한 내용의 완전 자동 역동기화가 없다.
 4. Conflict policy는 아래에서 확정했지만, 구현·테스트는 아직이다.
 5. Vault 단어/표현 overlay와 앱·Obsidian 그래프 통합은 계획 단계다.
@@ -68,11 +69,12 @@
 
 ### Phase 1 — 학습 이벤트를 Obsidian 노트로 남기는 최소 루프
 
-- `gapNotes` 스키마와 마이그레이션을 확정한다.
-- 문제 풀이 직후 “간극 기록 만들기” UI를 표준화한다.
-- 간극 노트를 복습 후보 가중치에 반영한다.
-- Markdown frontmatter와 `Learning/Brain State.md`, `Learning/Next Practice.md`, `Learning/Progress.md`를 안정적으로 생성한다.
-- 같은 ID는 같은 Markdown 경로로만 갱신한다.
+- [x] `gapNotes` 스키마와 마이그레이션을 확정한다.
+- [x] 문제 풀이 직후 “간극 기록 만들기” UI를 표준화한다.
+- [x] 간극 노트를 복습 후보 가중치에 반영한다.
+- [x] Markdown frontmatter와 `Learning/Brain State.md`, `Learning/Next Practice.md`, `Learning/Progress.md`를 안정적으로 생성한다.
+- [x] 같은 ID는 같은 Markdown 경로로만 갱신한다.
+- [ ] Local REST API / 브리지로 자동 upsert (Phase 3)
 - 상세 계약은 [`OBSIDIAN_ENGLISH_BRAIN_SYNC.md`](./OBSIDIAN_ENGLISH_BRAIN_SYNC.md)를 따른다.
 
 ### Phase 2 — 파인만 출력 · 묻기/답하기 · 시제 변형
@@ -127,5 +129,5 @@
 
 - 사용자 목표는 “3~4세급 쉬운 말로 시작해, 제한된 만능동사·핵심명사로 실제 말이 되게 만들고, 그 기록이 Obsidian 영어뇌에 남아 다시 앱 학습 재료가 되는 구조”다.
 - 당장 필요한 것은 콘텐츠 양 확장보다 Active set 경계와 학습 이벤트 → Vault → Next Practice 루프다.
-- 다음 구현 우선순위: `Phase 1 gapNotes/Brain State` → `Phase 3 local-rest sync` → `Phase 4 overlay` → 파인만 설명 챌린지.
-- Phase 0 Active Speaking Set 게이트와 Phase 2 매트릭스 모드는 구현됨.
+- 다음 구현 우선순위: `Phase 3 local-rest sync` → `Phase 4 overlay` → 파인만 설명 챌린지.
+- Phase 0 Active Speaking Set, Phase 2 매트릭스, Phase 1 gapNotes/Markdown export는 구현됨.
