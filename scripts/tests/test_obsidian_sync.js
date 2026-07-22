@@ -89,6 +89,66 @@ const appOnly = sync.mergeGapNotes(
 );
 assert.strictEqual(appOnly[0].missingInVault, true);
 
+// Conflict by updatedAt: newer local narrative wins
+const timeLocalWins = sync.mergeGapNotes(
+  [{
+    id: 'gap_time',
+    expressionId: 'e001',
+    status: 'open',
+    missedClue: 'local-new',
+    modelUpdate: 'from-local',
+    updatedAt: '2026-07-22T05:00:00Z',
+    source: 'webapp',
+  }],
+  [{
+    id: 'gap_time',
+    expressionId: 'e001',
+    status: 'open',
+    missedClue: 'vault-old',
+    modelUpdate: 'from-vault',
+    updatedAt: '2026-07-22T01:00:00Z',
+  }]
+);
+assert.strictEqual(timeLocalWins[0].missedClue, 'local-new');
+assert.strictEqual(timeLocalWins[0].modelUpdate, 'from-local');
+assert.strictEqual(timeLocalWins[0].conflictResolvedBy, 'local-newer');
+
+const timeVaultWins = sync.mergeGapNotes(
+  [{
+    id: 'gap_time2',
+    expressionId: 'e001',
+    missedClue: 'local-old',
+    updatedAt: '2026-07-22T01:00:00Z',
+    source: 'webapp',
+  }],
+  [{
+    id: 'gap_time2',
+    expressionId: 'e001',
+    missedClue: 'vault-new',
+    updatedAt: '2026-07-22T06:00:00Z',
+  }]
+);
+assert.strictEqual(timeVaultWins[0].missedClue, 'vault-new');
+assert.strictEqual(timeVaultWins[0].conflictResolvedBy, 'vault-newer');
+
+const tie = sync.pickNarrativeSide(
+  { updatedAt: '2026-07-22T02:00:00Z' },
+  { updatedAt: '2026-07-22T02:00:00Z' }
+);
+assert.strictEqual(tie.reason, 'vault-tie');
+
+const bridgeSettings = sync.normalizeSettings({ adapter: 'bridge', apiKey: 'bridge-key' });
+assert.strictEqual(bridgeSettings.adapter, 'bridge');
+assert.strictEqual(bridgeSettings.baseUrl, 'http://127.0.0.1:8787');
+const bridgeClient = sync.createSyncClient(bridgeSettings, async () => ({
+  ok: true,
+  status: 200,
+  headers: { get: () => 'application/json' },
+  json: async () => ({ status: 'OK', authenticated: true }),
+  text: async () => '',
+}));
+assert.strictEqual(bridgeClient.kind, 'bridge');
+
 const mergedNext = sync.mergeNextPractice(
   [{ expressionId: 'e001', mode: 'review', reason: 'app' }],
   next

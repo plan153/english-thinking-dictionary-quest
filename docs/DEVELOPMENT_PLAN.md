@@ -46,14 +46,16 @@
 13. **Canon 편입 도구**: 승인 Draft → JSON 후보 번들 / Unlock 대기열(자동 출제 없음).
 14. **동사 매트릭스 4형태 게이트**: Starter 동사 4형태 통과 시 `verb_pack_give` 해금.
 15. **Phase 4 Vault overlay**: `vault-overlay.js` + 동사 카드 `Vault 연결` 탭. Local REST로 Library/legacy 노트 매칭 → 확정/watchlist/숨기기. 퀴즈 은행 불변.
+16. **파인만 설명 챌린지**: 모드 `explain` — Active set 제한 어휘로 설명, `explanations` + `Learning/Explanations/*.md`.
+17. **Conflict 시각 병합 + Bridge adapter**: Gap 본문은 `updatedAt` 비교(동률·없음은 Vault 우선). `bridge`(:8787)는 Local REST와 동일 `/vault` 계약.
 
 ### 아직 없거나 불완전한 것
 
-1. 파인만식 제한 어휘 설명 챌린지와 explanation → Obsidian 기록은 아직이다.
-2. Local REST는 upsert/import/실패 큐가 동작한다. conflict의 필드·시각 단위 자동 테스트와 Bridge adapter는 아직이다.
+1. 파인만 녹음/음성 인식 결과를 설명 노트에 붙이는 것은 아직이다(텍스트 챌린지는 동작).
+2. Local REST·Bridge upsert/import/실패 큐가 동작한다. Drive webhook은 이후.
 3. Obsidian에서 수동 수정한 Brain State 전체의 완전 자동 역동기화는 Gaps + Next Practice 중심이다.
-4. Conflict policy는 아래에서 확정했고 Gaps/Next Practice 병합은 구현됐다. 추가 필드 테스트는 보강 예정.
-5. Vault overlay 그래프 스타일(앱 그래프에서 Vault-only 노드 구분)은 Phase 5.
+4. Conflict policy는 시각·필드 단위 테스트로 고정. 추가 필드 테스트는 보강 가능.
+5. Vault overlay 그래프: 동사 칩 Vault 표시는 있음. 앱 그래프 전체 Vault-only 노드 스타일은 계속 Phase 5.
 6. 동사 매트릭스 4형태 게이트로 `verbUnlockPacks`(예: give) 해금이 동작한다. 표현 Unlock pack과 별개.
 7. Canon → JSON 후보 번들/Unlock 대기열은 동작한다. `data/expressions.json` 자동 병합은 하지 않는다(리뷰 후 수동).
 8. 로컬 학습자 프로필: `etdQuestProgress:<learnerId>` + Vault `Learners/<id>/Learning|Gaps`. Library는 공유.
@@ -109,7 +111,7 @@
 - [x] 학습자 프로필 머지 시 export 루트를 `Learners/<id>/Learning|Gaps`로 이전.
 - [x] Canon → Unlock 후보/JSON 편입 도구(수동 리뷰 후, 자동 출제 없음).
 - [x] 동사 매트릭스 4형태 통과 시 새 동사 해금 (`verb_pack_give`).
-- [ ] conflict 시각·필드 단위 테스트 보강 · Bridge adapter.
+- [x] conflict 시각·필드 단위 테스트 보강 · Bridge adapter.
 - [ ] `index.html`에서 progress/ASS/export 모듈 분리(동작 동일 유지).
 
 ## 다음 단계 (기능 Phase)
@@ -133,19 +135,19 @@
 
 ### Phase 2 — 파인만 출력 · 묻기/답하기 · 시제 변형
 
-- [ ] 제한 어휘 설명 챌린지를 만든다.
+- [x] 제한 어휘 설명 챌린지를 만든다. (`explain` 모드 · `src/domain/feynman-challenge.js`)
 - [x] 문장 구조 치환 매트릭스로 평서/의문/부정과 간단한 시제 뉘앙스를 반복한다. (`data/qa-matrices.json`, mode `matrix`)
 - [ ] 녹음/음성 인식 결과를 설명 노트에 추가한다.
-- [ ] 설명 결과를 `explanation` 필드와 Markdown 본문에 기록한다.
+- [x] 설명 결과를 `explanations` 필드와 Markdown(`Learning/Explanations/`)에 기록한다.
 - [x] 동일 표현군 안에서만 변형시켜 Active set 밖으로 새지 않게 한다.
 
 ### Phase 3 — Obsidian 우선 동기화
 
-- [x] `SyncAdapter`로 `download`, `local-rest` 분리 (`src/domain/obsidian-sync.js`). `bridge` / `drive-webhook`은 이후.
+- [x] `SyncAdapter`로 `download`, `local-rest`, `bridge` 분리 (`src/domain/obsidian-sync.js`). `drive-webhook`은 이후.
 - [x] Obsidian Local REST API로 Vault upsert/read (Gaps, Learning/*, Library Drafts·Canon·Index).
 - [x] 실패 큐와 재시도. 동기화 실패가 학습을 막지 않음.
 - [x] import: Gaps + Next Practice (Vault 본문/큐 우선).
-- [ ] Bridge adapter, conflict 시각·필드 단위 테스트 보강.
+- [x] Bridge adapter(`:8787`, 동일 `/vault` 계약) · Gap conflict `updatedAt` 병합 테스트.
 - 파일 경로: 개인 `Learners/<id>/Learning|Gaps` (+ optional Vault `pathPrefix`), 공유 `Library/...`.
 - Google Drive 웹훅과 Obsidian Git/GHVault는 Vault 백업·기기 동기용으로만 유지한다.
 - AI 에이전트 보조는 Local REST API의 MCP, 또는 Obsidian CLI skills로 Vault 정리만 담당한다.
@@ -160,8 +162,10 @@
 ### Phase 5 — 그래프와 연습 화면 통합
 
 - 앱 그래프는 핵심 동사/명사 허브 + Active set 표현 중심이다.
+- [x] Vault 연결 동사 칩에 `vault-linked` 스타일 표시 (탐색용 구분).
 - 노드 클릭 시 생각틀과 묻기/답하기/듣기 연습으로 바로 넘어간다.
 - Obsidian 그래프는 문서 탐색용, 앱 그래프는 훈련용으로 역할을 분리한다.
+- [ ] 문장빌드맵/생각 맵 전체에서 Vault-only 노드 스타일 확장.
 
 ## 설계 원칙
 
@@ -185,6 +189,6 @@
 ## 이 문서를 이어받는 LLM에게 남기는 작업 메모
 
 - 사용자 목표는 “3~4세급 쉬운 말로 시작해, 제한된 만능동사·핵심명사로 실제 말이 되게 만들고, 그 기록이 Obsidian 영어뇌에 남아 다시 앱 학습 재료가 되는 구조”다.
-- Cleanup 이후 다음: 파인만 챌린지 · conflict 테스트 보강 · Phase 5 그래프 스타일.
-- Phase 0–4 + Library + Learners(`Learners/<id>/…`) 경로 구현됨.
+- Cleanup 이후 다음: 파인만 음성 기록 · Drive webhook · Phase 5 맵 Vault-only 노드 · PR C0 머지.
+- Phase 0–4 + Feynman(텍스트) + Bridge/conflict + Library + Learners 경로 구현됨.
 - 열린 PR이 있으면 C0 머지 순서를 지키고, progress 키·Vault 경로·내 표현 정의가 한 버전으로 남는지 확인한다.

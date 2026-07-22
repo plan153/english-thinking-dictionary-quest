@@ -1,4 +1,4 @@
-const CACHE = 'etd-quest-v1.0.6';
+const CACHE = 'etd-quest-v1.0.7';
 const ASSETS = [
   './',
   './index.html',
@@ -8,6 +8,7 @@ const ASSETS = [
   './src/domain/canon-intake.js',
   './src/domain/verb-matrix-gate.js',
   './src/domain/vault-overlay.js',
+  './src/domain/feynman-challenge.js',
   './data/verbs.json',
   './data/nouns.json',
   './data/patterns.json',

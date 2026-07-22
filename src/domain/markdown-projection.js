@@ -103,6 +103,58 @@ learnerName: ${escapeYaml(options.learnerName || options.learnerId)}
     return `\n${queue.map(item => `  - { expressionId: ${escapeYaml(item.expressionId)}, mode: ${escapeYaml(item.mode || 'review')}, reason: ${escapeYaml(item.reason || '')} }`).join('\n')}`;
   }
 
+  function makeExplanationId({ expressionId, createdAt, text }) {
+    const date = createdAt ? new Date(createdAt) : new Date();
+    const stamp = Number.isNaN(date.getTime()) ? ymd() : ymd(date);
+    const digest = shortHash(`${expressionId || ''}|${normalizeGuess(text).slice(0, 80)}`);
+    return `exp_${expressionId || 'x'}_${stamp}_${digest}`;
+  }
+
+  function explanationVaultPath(explanationId, learnerId) {
+    return withLearnerPath(`Learning/Explanations/${explanationId}.md`, learnerId);
+  }
+
+  function projectExplanation(note, options = {}) {
+    const id = note.id || makeExplanationId(note);
+    const path = explanationVaultPath(id, options.learnerId);
+    const blocked = Array.isArray(note.blockedWords) ? note.blockedWords : [];
+    const body = [
+      '## 설명 (영어)',
+      note.explanation || '(없음)',
+      '',
+      '## 대상 표현',
+      note.english || note.expressionId || '',
+      note.naturalKorean ? `- 한국어: ${note.naturalKorean}` : '',
+      '',
+      '## 제한 어휘 결과',
+      `- 상태: ${note.status || 'draft'}`,
+      `- 허용 비율: ${Math.round((Number(note.allowedRatio) || 0) * 100)}%`,
+      `- 막힌 단어: ${blocked.length ? blocked.join(', ') : '(없음)'}`,
+      '',
+      '## 연결',
+      note.expressionId ? `- 표현 ID: \`${note.expressionId}\`` : '',
+      note.verbWord ? `- 동사: [[Verbs/${note.verbWord}]]` : '',
+    ].filter(Boolean).join('\n');
+
+    const markdown = `---
+type: explanation
+id: ${escapeYaml(id)}
+vaultPath: ${escapeYaml(path)}
+${learnerFrontmatter(options)}expressionId: ${escapeYaml(note.expressionId || '')}
+createdAt: ${escapeYaml(note.createdAt || new Date().toISOString())}
+updatedAt: ${escapeYaml(note.updatedAt || note.createdAt || new Date().toISOString())}
+status: ${escapeYaml(note.status || 'draft')}
+allowedRatio: ${Number(note.allowedRatio) || 0}
+source: webapp
+---
+
+# Explanation · ${note.english || note.expressionId || id}
+
+${body}
+`;
+    return { path, markdown, id };
+  }
+
   function projectGapNote(gap, options = {}) {
     const id = gap.id || makeGapId(gap);
     const path = gapVaultPath(id, options.learnerId);
@@ -387,10 +439,11 @@ ${approved.length ? approved.map(d => `- [[Library/Canon/${d.id}]] · ${d.englis
     return { path, markdown };
   }
 
-  function buildExportFiles({ brainState, nextPractice, progress, gaps, drafts, learnerId, learnerName }) {
+  function buildExportFiles({ brainState, nextPractice, progress, gaps, drafts, explanations, learnerId, learnerName }) {
     const options = { learnerId, learnerName };
     const files = {};
     const draftList = Array.isArray(drafts) ? drafts : [];
+    const explanationList = Array.isArray(explanations) ? explanations : [];
     const index = projectIndex({
       updatedAt: brainState?.updatedAt,
       openGapIds: (gaps || []).filter(gap => (gap.status || 'open') === 'open').map(gap => gap.id),
@@ -403,6 +456,7 @@ ${approved.length ? approved.map(d => `- [[Library/Canon/${d.id}]] · ${d.englis
       projectLibraryIndex({ updatedAt: brainState?.updatedAt, drafts: draftList }),
       ...(gaps || []).map(gap => projectGapNote(gap, options)),
       ...draftList.map(draft => projectExpressionDraft({ ...draft, learnerId })),
+      ...explanationList.map(note => projectExplanation(note, options)),
     ];
     projected.forEach(file => {
       files[file.path] = file.markdown;
@@ -413,14 +467,17 @@ ${approved.length ? approved.map(d => `- [[Library/Canon/${d.id}]] · ${d.englis
   return {
     makeGapId,
     makeDraftId,
+    makeExplanationId,
     learnerVaultRoot,
     withLearnerPath,
     gapVaultPath,
+    explanationVaultPath,
     gapWikiLink,
     learningWikiLink,
     draftVaultPath,
     evaluatePromoteChecklist,
     projectGapNote,
+    projectExplanation,
     projectExpressionDraft,
     projectLibraryIndex,
     projectBrainState,

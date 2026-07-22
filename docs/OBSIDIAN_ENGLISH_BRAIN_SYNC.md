@@ -110,7 +110,7 @@ status: open   # open | reviewed | archived
 | --- | --- | --- |
 | `download` | 앱 → 파일 | Markdown ZIP/개별 다운로드(항상 가능한 최소 경로) |
 | `local-rest` | 양방향 | [Obsidian Local REST API](https://github.com/coddingtonbear/obsidian-local-rest-api)로 upsert/read |
-| `bridge` | 양방향 | Obsidian이 꺼져 있거나 REST 대신 쓸 로컬 브리지 |
+| `bridge` | 양방향 | Obsidian이 꺼져 있거나 REST 대신 쓸 로컬 브리지 (`:8787`, Local REST와 동일 `/vault` 계약) |
 | `drive-webhook` | 앱 → Drive | 백업/다른 기기 호환 |
 
 권장 본선: **Local REST API**. 플러그인이 MCP 엔드포인트도 제공하므로 Cursor 등 에이전트가 Vault를 정리할 때 재사용할 수 있다.
@@ -160,4 +160,4 @@ status: open   # open | reviewed | archived
 3. local-rest adapter로 Gaps / Brain State upsert — 완료
 4. import: Gaps + Next Practice — 완료
 5. 실패 큐 / 자동 동기화 토글 — 완료
-6. (다음) conflict 시각·필드 단위 테스트 보강, Learners/<id> 경로, Bridge adapter
+6. (다음) Drive webhook, 파인만 음성 첨부. Bridge·conflict 시각 병합·Learners 경로는 구현됨.

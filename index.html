@@ -201,6 +201,33 @@
       color: var(--muted);
       font-weight: 800;
     }
+    .verb-chip.vault-linked:not(.locked) {
+      box-shadow: inset 0 0 0 2px rgba(40, 111, 108, .35);
+    }
+    .verb-chip.vault-linked:not(.active):not(.locked)::after {
+      content: " Vault";
+      font-size: 10px;
+      color: var(--accent);
+      font-weight: 800;
+    }
+    .map-chip.vault-linked {
+      box-shadow: inset 0 0 0 1px rgba(40, 111, 108, .45);
+    }
+    .lexicon-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 10px 0 4px;
+    }
+    .lexicon-chips span {
+      border: 1px solid var(--line);
+      background: #f3faf9;
+      color: #245c5a;
+      border-radius: 10px;
+      padding: 4px 8px;
+      font-size: 12px;
+      font-weight: 700;
+    }
     .expression-item .lock-mark { display:inline-block; margin-left:6px; font-size:11px; color:var(--muted); font-weight:800; }
     .active-set-card .active-set-stats {
       display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;
@@ -574,7 +601,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.0.6">v1.0.6</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.0.7">v1.0.7</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -781,7 +808,8 @@
           <label>Adapter
             <select id="syncAdapter">
               <option value="download">download (파일 다운로드만)</option>
-              <option value="local-rest">local-rest</option>
+              <option value="local-rest">local-rest (Obsidian :27123)</option>
+              <option value="bridge">bridge (로컬 브리지 :8787)</option>
             </select>
           </label>
           <label>Base URL
@@ -832,6 +860,7 @@
   <script src="./src/domain/canon-intake.js"></script>
   <script src="./src/domain/verb-matrix-gate.js"></script>
   <script src="./src/domain/vault-overlay.js"></script>
+  <script src="./src/domain/feynman-challenge.js"></script>
   <script>
     const wordBank = [
       { id:'get', type:'핵심 동사', word:'get', korean:'얻다 · 받다 · 도착하다 · 이해하다 · 상태가 되다', example:'I got your message.', exKo:'네 메시지 받았어.', connections:'get a message · get home · get better · get it' },
@@ -897,6 +926,7 @@
 
     const modeCards = [
       { id:'listen', icon:'🔊', title:'듣고 따라 말하기', desc:'문장을 듣고 바로 따라 말하며 리듬과 덩어리를 익혀요.', cta:'소리로 시작' },
+      { id:'explain', icon:'🧠', title:'파인만 설명 챌린지', desc:'Active Speaking Set 단어만으로 표현 뜻을 영어로 설명해 봐요.', cta:'제한 어휘로 설명' },
       { id:'matrix', icon:'🔄', title:'묻기 · 답하기 변형', desc:'같은 표현을 평서·의문·부정·짧은 답·시제로 바꿔 입으로 연습해요.', cta:'변형 연습' },
       { id:'koen', icon:'🧩', title:'한글 → 영어 조립', desc:'한국어 뜻을 보고 핵심 동사와 표현 덩어리를 빠르게 골라요. 힌트는 안쪽에서 좁혀요.', cta:'영어 만들기' },
       { id:'enko', icon:'🎯', title:'영어 → 장면 고르기', desc:'영어를 번역하지 말고, 가장 가까운 상황과 뜻을 골라요.', cta:'뜻 연결하기' },
@@ -1744,7 +1774,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.0.6';
+    const APP_CACHE_VERSION = 'etd-quest-v1.0.7';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const LEGACY_PROGRESS_KEY = 'etdQuestProgress';
@@ -1939,6 +1969,7 @@
         canonUnlockQueue: [],
         importedNextPractice: null,
         vaultOverlay: defaultVaultOverlay(),
+        explanations: [],
       };
     }
     function defaultVaultOverlay() {
@@ -2071,9 +2102,33 @@
             ? saved.importedNextPractice
             : null,
           vaultOverlay: normalizeVaultOverlay(saved.vaultOverlay),
+          explanations: Array.isArray(saved.explanations) ? saved.explanations.map(normalizeExplanationNote).filter(Boolean) : [],
         };
       }
       catch { return defaultProgress(); }
+    }
+    function normalizeExplanationNote(entry) {
+      if (!entry || typeof entry !== 'object') return null;
+      const createdAt = entry.createdAt || new Date().toISOString();
+      const api = window.FeynmanChallenge || window.EnglishBrainMarkdown;
+      const id = entry.id || (api?.makeExplanationId
+        ? api.makeExplanationId({ expressionId: entry.expressionId, createdAt, text: entry.explanation || entry.text })
+        : `exp_${entry.expressionId || 'x'}`);
+      return {
+        id,
+        expressionId: entry.expressionId || '',
+        english: entry.english || '',
+        naturalKorean: entry.naturalKorean || '',
+        explanation: entry.explanation || entry.text || '',
+        verbWord: entry.verbWord || '',
+        verbId: entry.verbId || '',
+        status: entry.status || 'draft',
+        allowedRatio: Number(entry.allowedRatio) || 0,
+        blockedWords: Array.isArray(entry.blockedWords) ? entry.blockedWords : [],
+        createdAt,
+        updatedAt: entry.updatedAt || createdAt,
+        source: entry.source || 'webapp',
+      };
     }
     function normalizeVaultOverlay(raw) {
       const base = raw && typeof raw === 'object' ? raw : {};
@@ -2653,7 +2708,7 @@
         }
 
     function shuffled(arr) { return [...arr].sort(() => Math.random() - .5); }
-    const modeQuizTypes = { listen: 'listening', koen: 'koToEn', enko: 'enToKo', hint: 'hint', build: 'blank', speak: 'speaking', review: 'koToEn', matrix: 'matrix' };
+    const modeQuizTypes = { listen: 'listening', koen: 'koToEn', enko: 'enToKo', hint: 'hint', build: 'blank', speak: 'speaking', review: 'koToEn', matrix: 'matrix', explain: 'koToEn' };
     function progressItemId(itemOrId) {
       if (itemOrId && typeof itemOrId === 'object') return itemOrId.progressId || itemOrId.baseExpressionId || itemOrId.id;
       return itemOrId;
@@ -3199,6 +3254,7 @@
         progress,
         gaps: appState.progress.gapNotes || [],
         drafts: (appState.progress.expressionDrafts || []).filter(item => (item.status || 'draft') !== 'archived'),
+        explanations: appState.progress.explanations || [],
         learnerId: getActiveLearnerId(),
         learnerName: learner?.name || DEFAULT_LEARNER_NAME,
       });
@@ -3211,6 +3267,7 @@
         progress,
         gapNotes: appState.progress.gapNotes || [],
         expressionDrafts: appState.progress.expressionDrafts || [],
+        explanations: appState.progress.explanations || [],
       };
     }
     function downloadTextFile(filename, content, mime = 'text/markdown;charset=utf-8') {
@@ -3254,6 +3311,7 @@
             files: payload.files,
             gapNotes: payload.gapNotes,
             expressionDrafts: payload.expressionDrafts,
+            explanations: payload.explanations,
             brainState: payload.brainState,
             nextPractice: payload.nextPractice,
             progress: payload.progress,
@@ -3324,11 +3382,14 @@
     function requireLocalRestClient() {
       const api = getSyncApi();
       const settings = api.saveSettings({ ...api.loadSettings(), ...readSyncSettingsFromForm() });
-      if (settings.adapter !== 'local-rest') {
-        throw new Error('Adapter를 local-rest로 바꾼 뒤 다시 시도하세요.');
+      if (settings.adapter !== 'local-rest' && settings.adapter !== 'bridge') {
+        throw new Error('Adapter를 local-rest 또는 bridge로 바꾼 뒤 다시 시도하세요.');
       }
       if (!settings.apiKey) throw new Error('API Key를 입력하세요.');
-      return { api, settings, client: api.createLocalRestClient(settings) };
+      const client = api.createSyncClient
+        ? api.createSyncClient(settings)
+        : api.createLocalRestClient(settings);
+      return { api, settings, client };
     }
     async function testObsidianConnection() {
       try {
@@ -3432,7 +3493,7 @@
       const api = window.EnglishBrainSync;
       if (!api) return;
       const settings = api.loadSettings();
-      if (settings.adapter !== 'local-rest' || !settings.autoSyncAfterGap || !settings.apiKey) return;
+      if ((settings.adapter !== 'local-rest' && settings.adapter !== 'bridge') || !settings.autoSyncAfterGap || !settings.apiKey) return;
       syncEnglishBrainToObsidian({ quiet: true });
     }
     function renderGapNotesList() {
@@ -4504,7 +4565,7 @@
       return [...coreItems, ...tenseItems].slice(0, 6);
     }
     function supportsMode(item, mode) {
-      if (mode === 'matrix') return true;
+      if (mode === 'matrix' || mode === 'explain') return true;
       const quizType = modeQuizTypes[mode] || 'koToEn';
       return (item.quizTypes || []).includes(quizType);
     }
@@ -4600,12 +4661,14 @@
       const questStepNumber = questStep ? questStep.stepIndex + 1 : null;
       const stageLabel = questStep ? `${questStepNumber} / 7 · ${questStep.label}`
         : mode === 'listen' ? '듣고 따라 말하기'
+        : mode === 'explain' ? '파인만 설명 챌린지'
         : mode === 'matrix' ? `묻기·답하기 · ${item.formLabel || item.frame}`
         : `${modeTitle(mode)} · ${item.frame} · ${item.level || 1}단계`;
       const baseTop = `<div class="lesson-label">${stageLabel}</div>`;
       const connectionSummary = `<div class="connection-strip-summary">${getConnectionGraph({ id: item.progressId || item.baseExpressionId || item.id, ...item }, stageToConnectionKey(questStep?.questStage))}</div>`;
       let body = '';
       if (mode === 'listen') body = renderListen(item);
+      else if (mode === 'explain') body = renderExplain(item);
       else if (mode === 'matrix') body = renderMatrix(item);
       else if (mode === 'koen') body = renderKoEn(item);
       else if (mode === 'enko') body = renderEnKo(item);
@@ -4618,6 +4681,96 @@
     }
 
     function modeTitle(mode) { return (modeCards.find(x => x.id === mode) || {}).title || '퀘스트'; }
+    function getFeynmanLexicon() {
+      const api = window.FeynmanChallenge;
+      if (!api) return new Set();
+      return api.buildAllowedLexicon({
+        verbs: appState.dictionaryData.verbs || [],
+        nouns: appState.dictionaryData.nouns || [],
+        expressions: appState.dictionaryData.expressions || [],
+        unlockedExpressionIds: getUnlockedExpressionIds(),
+      });
+    }
+    function renderExplain(item) {
+      const api = window.FeynmanChallenge;
+      const lexicon = getFeynmanLexicon();
+      const preview = api ? api.lexiconPreview(lexicon, 28) : [];
+      return `
+        <h2>${escapeHtml(item.en)}</h2>
+        <p class="korean">${escapeHtml(item.ko)}</p>
+        <p class="sound-help">이 표현을 <b>Active Speaking Set 단어만</b>으로 영어로 설명해 보세요. 막힌 단어가 있으면 다시 씁니다.</p>
+        <div class="lexicon-chips">${preview.map(word => `<span>${escapeHtml(word)}</span>`).join('')}</div>
+        <p class="small-note">허용 단어 ${lexicon.size}개 · 접속·대명사 등 기능어는 기본 포함</p>
+        <textarea class="answer-input" id="answerInput" rows="4" placeholder="Example: It means I have time for you." style="width:100%; min-height:96px; resize:vertical; margin-top:10px"></textarea>
+        ${renderQuizNav('설명 확인')}
+        <div class="feedback hidden" id="feedback"></div>`;
+    }
+    function saveExplanationNote(item, text, evaluation) {
+      if (!Array.isArray(appState.progress.explanations)) appState.progress.explanations = [];
+      const api = window.FeynmanChallenge;
+      const createdAt = new Date().toISOString();
+      const note = normalizeExplanationNote({
+        id: api?.makeExplanationId
+          ? api.makeExplanationId({ expressionId: item.id, createdAt, text })
+          : undefined,
+        expressionId: item.id,
+        english: item.en || item.english || '',
+        naturalKorean: item.ko || item.naturalKorean || '',
+        explanation: text,
+        verbWord: item.verb || verbWordFromId(item.coreVerbId) || '',
+        verbId: item.coreVerbId || '',
+        status: evaluation.status,
+        allowedRatio: evaluation.allowedRatio,
+        blockedWords: evaluation.blocked || [],
+        createdAt,
+        updatedAt: createdAt,
+      });
+      appState.progress.explanations.unshift(note);
+      appState.progress.explanations = appState.progress.explanations.slice(0, 40);
+      saveProgress();
+      return note;
+    }
+    function checkExplainAnswer(item, mode, options = {}) {
+      if (appState.questionAnswered) { nextQuestion(); return; }
+      const api = window.FeynmanChallenge;
+      if (!api) {
+        toast('파인만 챌린지 모듈을 불러오지 못했어요.');
+        return;
+      }
+      const input = document.getElementById(options.inputId || 'answerInput');
+      const rawGuess = input?.value || '';
+      if (!api.tokenize(rawGuess).length) {
+        toast('먼저 영어로 설명을 써 보세요.');
+        return;
+      }
+      const evaluation = api.evaluateExplanation(rawGuess, getFeynmanLexicon());
+      const note = saveExplanationNote(item, rawGuess, evaluation);
+      const signature = `explain:${api.normalizeToken(rawGuess).slice(0, 80)}`;
+      if (evaluation.passed || evaluation.softPass) {
+        markStudy(mode, progressItemId(item), evaluation.passed ? 'correct' : 'almost', {
+          signature,
+          hintLevel: 0,
+          baseExpressionId: item.baseExpressionId,
+          progressId: item.progressId,
+        });
+      } else {
+        markStudy(mode, progressItemId(item), 'retry', {
+          signature,
+          hintLevel: 0,
+          baseExpressionId: item.baseExpressionId,
+          progressId: item.progressId,
+        });
+      }
+      const blocked = evaluation.blocked.length
+        ? `막힌 단어: ${evaluation.blocked.join(', ')}`
+        : '막힌 단어 없음';
+      const result = evaluation.passed
+        ? { status: 'correct', feedbackClass: 'good', title: '제한 어휘로 설명했어요!', message: `허용 ${Math.round(evaluation.allowedRatio * 100)}% · ${blocked}`, countsAsSuccess: true }
+        : evaluation.softPass
+          ? { status: 'almost', feedbackClass: 'almost', title: '거의 통과예요.', message: `허용 ${Math.round(evaluation.allowedRatio * 100)}% · ${blocked}`, countsAsSuccess: true }
+          : { status: 'retry', feedbackClass: 'bad', title: 'Active set 밖으로 새었어요.', message: `${blocked}. 위 칩에 있는 단어만 다시 써 보세요.`, countsAsSuccess: false };
+      showAnswerSummary(result.feedbackClass, item, result, rawGuess, `설명 노트 ${note.id} 저장 · 퀴즈 은행은 그대로`, { allowAdvance: evaluation.passed || evaluation.softPass });
+    }
     function renderListen(item) {
       const session = getListenSession(item.id);
       return `
@@ -5127,6 +5280,10 @@
       return { status: 'retry', feedbackClass: 'bad', title: '다시 연결이 필요해요.', message: item.mistakeExplanation || '오늘 목표 표현과는 아직 조금 달라요. 정답을 보고 한 번 더 입으로 붙여 볼게요.', countsAsSuccess: false };
     }
     function checkTextAnswer(item, mode, options = {}) {
+      if (mode === 'explain') {
+        checkExplainAnswer(item, mode, options);
+        return;
+      }
       if (appState.questionAnswered) { nextQuestion(); return; }
       const inputId = options.inputId || (options.fromSpeech ? 'speechAnswerInput' : 'answerInput');
       const input = document.getElementById(inputId);
@@ -5592,7 +5749,8 @@
       });
       verbButtons.innerHTML = sortedVerbs.map(verb => {
         const locked = !isVerbInActiveSet(verb.id);
-        return `<button class="verb-chip ${verb.id === selectedVerb.id ? 'active' : ''} ${locked ? 'locked' : ''}" data-verb-id="${verb.id}" title="${locked ? 'Active Speaking Set 밖 · 탐색만 가능' : '연습 가능'}">${verb.word}</button>`;
+        const vaultLinked = getConfirmedVaultLinks('verb', verb.id).length > 0;
+        return `<button class="verb-chip ${verb.id === selectedVerb.id ? 'active' : ''} ${locked ? 'locked' : ''} ${vaultLinked ? 'vault-linked' : ''}" data-verb-id="${verb.id}" title="${locked ? 'Active Speaking Set 밖 · 탐색만 가능' : (vaultLinked ? 'Vault 연결됨' : '연습 가능')}">${verb.word}</button>`;
       }).join('');
           verbButtons.querySelectorAll('[data-verb-id]').forEach(button => button.addEventListener('click', () => {
             appState.dictionaryData.selectedVerbId = button.dataset.verbId;

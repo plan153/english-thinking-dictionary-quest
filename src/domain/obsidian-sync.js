@@ -17,7 +17,7 @@
 
   function defaultSettings() {
     return {
-      adapter: 'download', // download | local-rest
+      adapter: 'download', // download | local-rest | bridge
       baseUrl: 'http://127.0.0.1:27123',
       apiKey: '',
       pathPrefix: '', // e.g. Project_English when vault root is parent
@@ -31,12 +31,16 @@
   function normalizeSettings(raw) {
     const base = defaultSettings();
     const src = raw && typeof raw === 'object' ? raw : {};
-    const adapter = src.adapter === 'local-rest' ? 'local-rest' : 'download';
+    const adapter = ['local-rest', 'bridge'].includes(src.adapter) ? src.adapter : 'download';
+    let baseUrl = String(src.baseUrl || base.baseUrl).replace(/\/$/, '');
+    if (adapter === 'bridge' && !src.baseUrl) {
+      baseUrl = 'http://127.0.0.1:8787';
+    }
     return {
       ...base,
       ...src,
       adapter,
-      baseUrl: String(src.baseUrl || base.baseUrl).replace(/\/$/, ''),
+      baseUrl,
       apiKey: String(src.apiKey || ''),
       pathPrefix: String(src.pathPrefix || '').replace(/^\/+|\/+$/g, ''),
       autoSyncAfterGap: Boolean(src.autoSyncAfterGap),
@@ -137,6 +141,7 @@
 
     return {
       settings: cfg,
+      kind: 'local-rest',
       async ping() {
         const url = `${cfg.baseUrl}/`;
         const response = await fetchFn(url, {
@@ -181,6 +186,28 @@
         return Array.isArray(data.files) ? data.files : [];
       },
     };
+  }
+
+  function createBridgeClient(settings, fetchImpl) {
+    // Thin local bridge: same /vault path contract as Local REST, default :8787.
+    const cfg = normalizeSettings({
+      ...(settings || {}),
+      adapter: 'bridge',
+      baseUrl: (settings && settings.baseUrl) || 'http://127.0.0.1:8787',
+    });
+    const client = createLocalRestClient(cfg, fetchImpl);
+    return {
+      ...client,
+      kind: 'bridge',
+      settings: cfg,
+    };
+  }
+
+  function createSyncClient(settings, fetchImpl) {
+    const cfg = normalizeSettings(settings);
+    if (cfg.adapter === 'bridge') return createBridgeClient(cfg, fetchImpl);
+    if (cfg.adapter === 'local-rest') return createLocalRestClient(cfg, fetchImpl);
+    throw new Error(`Adapter "${cfg.adapter}" has no live sync client (use download export instead).`);
   }
 
   function parseFrontmatter(markdown) {
@@ -277,6 +304,20 @@
     return { updatedAt, queue };
   }
 
+  function parseTimestamp(value) {
+    const ms = Date.parse(String(value || ''));
+    return Number.isFinite(ms) ? ms : 0;
+  }
+
+  function pickNarrativeSide(localGap, vaultGap) {
+    const localT = parseTimestamp(localGap?.updatedAt);
+    const vaultT = parseTimestamp(vaultGap?.updatedAt);
+    if (vaultT > localT) return { side: 'vault', reason: 'vault-newer' };
+    if (localT > vaultT) return { side: 'local', reason: 'local-newer' };
+    // Equal or both missing: Vault priority for narrative fields (policy).
+    return { side: 'vault', reason: 'vault-tie' };
+  }
+
   function mergeGapNotes(localGaps, vaultGaps) {
     const local = Array.isArray(localGaps) ? localGaps.slice() : [];
     const byId = new Map(local.map(gap => [gap.id, { ...gap }]));
@@ -287,21 +328,25 @@
       vaultIds.add(vaultGap.id);
       const existing = byId.get(vaultGap.id);
       if (!existing) {
-        byId.set(vaultGap.id, { ...vaultGap, source: 'vault' });
+        byId.set(vaultGap.id, { ...vaultGap, source: vaultGap.source || 'vault', missingInVault: false });
         return;
       }
-      // Vault priority for narrative fields; keep local ids/expression links.
+      const pick = pickNarrativeSide(existing, vaultGap);
+      const narrative = pick.side === 'vault' ? vaultGap : existing;
+      const fallback = pick.side === 'vault' ? existing : vaultGap;
       byId.set(vaultGap.id, {
         ...existing,
-        missedClue: vaultGap.missedClue || existing.missedClue || '',
-        modelUpdate: vaultGap.modelUpdate || existing.modelUpdate || '',
-        guess: vaultGap.guess || existing.guess || '',
-        actual: vaultGap.actual || existing.actual || '',
-        naturalKorean: vaultGap.naturalKorean || existing.naturalKorean || '',
-        status: vaultGap.status || existing.status || 'open',
-        updatedAt: vaultGap.updatedAt || existing.updatedAt,
+        missedClue: narrative.missedClue || fallback.missedClue || '',
+        modelUpdate: narrative.modelUpdate || fallback.modelUpdate || '',
+        guess: narrative.guess || fallback.guess || '',
+        actual: narrative.actual || fallback.actual || '',
+        naturalKorean: narrative.naturalKorean || fallback.naturalKorean || '',
+        english: narrative.english || fallback.english || existing.english || '',
+        status: narrative.status || fallback.status || existing.status || 'open',
+        updatedAt: narrative.updatedAt || fallback.updatedAt || existing.updatedAt,
         missingInVault: false,
         source: existing.source || 'webapp',
+        conflictResolvedBy: pick.reason,
       });
     });
 
@@ -421,9 +466,13 @@
     withPrefix,
     encodeVaultPath,
     createLocalRestClient,
+    createBridgeClient,
+    createSyncClient,
     parseFrontmatter,
     parseGapNoteMarkdown,
     parseNextPracticeMarkdown,
+    parseTimestamp,
+    pickNarrativeSide,
     mergeGapNotes,
     mergeNextPractice,
     upsertFiles,

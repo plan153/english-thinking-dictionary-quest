@@ -153,4 +153,31 @@ assert.ok(withLibrary['Library/Index.md']);
 assert.ok(withLibrary['Library/Canon/draft_test_2.md']);
 assert.ok(withLibrary['English Brain Index.md'].includes('Library/Index'));
 
+const explanationNote = {
+  id: 'exp_e002_20260722_abc',
+  expressionId: 'e002',
+  english: 'I need some time.',
+  naturalKorean: '시간이 좀 필요해요.',
+  explanation: 'I need time.',
+  status: 'passed',
+  allowedRatio: 1,
+  blockedWords: [],
+  verbWord: 'need',
+  createdAt: '2026-07-22T00:00:00Z',
+};
+const explanation = api.projectExplanation(explanationNote);
+assert.strictEqual(explanation.path, 'Learning/Explanations/exp_e002_20260722_abc.md');
+assert.ok(explanation.markdown.includes('type: explanation'));
+
+const withExplain = api.buildExportFiles({
+  brainState: { updatedAt: '2026-07-22T00:00:00Z', activeExpressionCount: 1, masteredExpressionCount: 0, openGapIds: [] },
+  nextPractice: { updatedAt: '2026-07-22T00:00:00Z', queue: [] },
+  progress: { updatedAt: '2026-07-22T00:00:00Z', xp: 0, streak: 0, mineCount: 0, activeExpressionCount: 1, openGapCount: 0 },
+  gaps: [],
+  explanations: [explanationNote],
+  learnerId: 'me',
+  learnerName: '나',
+});
+assert.ok(withExplain['Learners/me/Learning/Explanations/exp_e002_20260722_abc.md']);
+
 console.log('✅ markdown-projection tests passed');
