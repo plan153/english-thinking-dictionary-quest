@@ -21,28 +21,32 @@ Drive·Git 백업은 이 루프의 본선이 아니다.
 | --- | --- |
 | localStorage 학습 기록 | 동작 |
 | Gap Note / Markdown projection | 동작 (로컬 저장 + Markdown/JSON 다운로드) |
-| Local REST API / 로컬 브리지 upsert | 계획 |
-| Vault → 앱 Brain State / Gaps import | 계획 (다운로드 계약만 확정) |
+| Local REST API upsert (Gaps / Brain State / Progress / Library) | 동작 (설정·실패 큐 포함) |
+| Vault → 앱 Gaps + Next Practice import | 동작 (Vault 본문/큐 우선 병합) |
 | Google Apps Script Drive 웹훅 | 선택적 백업 경로(계획) |
 | Obsidian Git / GHVault | 사용자 Vault 백업용 외부 도구 |
 
 ## Vault 폴더 계약
 
+**폴더 SoT:** [`OBSIDIAN_VAULT_EVOLUTION.md`](./OBSIDIAN_VAULT_EVOLUTION.md). 이 절은 동기화 경로만 요약한다.
+
 ```text
 Project_English/
-  English Brain Index.md
-  Learning/
-    Brain State.md
-    Next Practice.md
-    Progress.md
-    Today Review.md
-  Patterns/<문형>.md
-  Verbs/<동사>.md
-  Nouns/<명사>.md
-  Prepositions/<전치사>.md
-  Gaps/<간극 ID>.md
-  Reviews/                 # 선택
+  Learners/<learnerId>/          # 목표: 개인 영어뇌 (프로필 PR 이후)
+    English Brain Index.md
+    Learning/                    # Brain State, Next Practice, Progress…
+    Gaps/<간극 ID>.md
+  Library/                       # 공유 자료 정원
+    Index.md
+    Verbs/ Nouns/ Patterns/ Scenes/
+    Drafts/ Canon/
+  Reviews/                       # 선택
 ```
+
+**과도기(현재 export):** 프로필 분리 전까지 개인 루프는 루트 `Learning/` · `Gaps/`에 쓴다. Library는 `Library/Drafts|Canon|Index`.  
+레거시 루트 `Verbs/`·`Nouns/`·`Patterns/`가 있으면 overlay 시 `Library/`와 동일 ID로 병합하고, 신규 노트는 Library에만 만든다.
+
+약점 흐름: **간극 → Library/Drafts → (승격) Canon → (리뷰 후) Unlock/JSON**. Next Practice는 연습 순서 큐다.
 
 ### `Learning/Brain State.md` (최소 frontmatter)
 
@@ -131,9 +135,11 @@ status: open   # open | reviewed | archived
 ## 웹앱 UI 계약 (구현 시)
 
 - `간극 기록 만들기` → local gapNotes 저장 → 설정 시 자동 sync 시도
-- `Obsidian에 동기화` → Brain State / Progress / Gaps / 필요 시 Verbs·Nouns upsert
-- `Obsidian에서 가져오기` → Gaps + Brain State + Next Practice 병합
+- `Obsidian에 동기화` → Brain State / Progress / Gaps / Library Drafts·Canon upsert (`src/domain/obsidian-sync.js`)
+- `Obsidian에서 가져오기` → Gaps + Next Practice 병합 (본문·큐는 Vault 우선, progress 숫자는 앱 유지)
 - `Markdown 내보내기` → adapter 없이도 동작하는 fallback
+- 설정: Base URL(기본 `http://127.0.0.1:27123`), API Key, path prefix, 자동 sync 토글 — **localStorage만**, 소스 커밋 금지
+- CORS: Local REST 플러그인에서 앱 origin 허용. 브라우저 self-signed HTTPS(27124)보다 HTTP insecure(27123) 권장.
 
 ## 보안
 
@@ -141,10 +147,17 @@ status: open   # open | reviewed | archived
 - GitHub Pages에 배포되는 정적 파일에 비밀값을 커밋하지 않는다.
 - REST는 localhost에서만 쓰고, 원격 공개 엔드포인트로 열지 않는다.
 
+## 관련 문서
+
+- 폴더·진화: [`OBSIDIAN_VAULT_EVOLUTION.md`](./OBSIDIAN_VAULT_EVOLUTION.md)
+- overlay: [`OBSIDIAN_VAULT_WORD_LINKING_PLAN.md`](./OBSIDIAN_VAULT_WORD_LINKING_PLAN.md)
+- 정리 백로그: [`DEVELOPMENT_PLAN.md`](./DEVELOPMENT_PLAN.md) Cleanup C0–C4
+
 ## 다음 구현 순서
 
-1. gapNotes 스키마 + Markdown projection (순수 함수, 테스트 가능)
-2. download adapter
-3. local-rest adapter로 Gaps / Brain State upsert
-4. import: Gaps + Next Practice
-5. 실패 큐 / 자동 동기화 토글
+1. gapNotes 스키마 + Markdown projection (순수 함수, 테스트 가능) — 완료
+2. download adapter — 완료
+3. local-rest adapter로 Gaps / Brain State upsert — 완료
+4. import: Gaps + Next Practice — 완료
+5. 실패 큐 / 자동 동기화 토글 — 완료
+6. (다음) conflict 시각·필드 단위 테스트 보강, Learners/<id> 경로, Bridge adapter

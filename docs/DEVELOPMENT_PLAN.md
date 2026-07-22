@@ -5,14 +5,16 @@
 관련 문서:
 
 - [`ACTIVE_SPEAKING_SET.md`](./ACTIVE_SPEAKING_SET.md) — 3~4세급 Active Speaking Set(ASS)과 해금 규칙
-- [`OBSIDIAN_ENGLISH_BRAIN_SYNC.md`](./OBSIDIAN_ENGLISH_BRAIN_SYNC.md) — Obsidian 영어뇌 양방향 동기화
+- [`OBSIDIAN_ENGLISH_BRAIN_SYNC.md`](./OBSIDIAN_ENGLISH_BRAIN_SYNC.md) — Obsidian 영어뇌 양방향 동기화(규칙·adapter)
+- [`OBSIDIAN_VAULT_EVOLUTION.md`](./OBSIDIAN_VAULT_EVOLUTION.md) — Vault 폴더 계약 SoT (Library 정원 + Learners)
 - [`OBSIDIAN_VAULT_WORD_LINKING_PLAN.md`](./OBSIDIAN_VAULT_WORD_LINKING_PLAN.md) — Vault 단어 overlay와 연결 정책
 - [`DATA_MODEL.md`](./DATA_MODEL.md) — 표현·진행 데이터 모델
 - [`CHAPTER_1_SPEC.md`](./CHAPTER_1_SPEC.md) — 연결도·복습 규칙
+- [`PRODUCT_STORY_AND_MARKETING.md`](./PRODUCT_STORY_AND_MARKETING.md) — 비전·마케팅(개발 Phase 번호와 별개)
 
 ## 목표
 
-웹앱에서 배우고·틀리고·익힌 기록을 Obsidian Vault(`Project_English`)에 남겨 **제2의 영어뇌 상태**를 만들고, 그 상태를 다시 읽어 약한 부분을 강화하고 익힐 순서를 정한다. 이 루프는 양방향이다 한다.
+웹앱에서 배우고·틀리고·익힌 기록을 Obsidian Vault(`Project_English`)에 남겨 **제2의 영어뇌 상태**를 만들고, 그 상태를 다시 읽어 약한 부분을 강화하고 익힐 순서를 정한다. 이 루프는 양방향이어야 한다.
 
 초기 우선순위는 “많이 외우기”가 아니라 **제한된 만능동사·핵심명사 코로케이션 안에서 묻기/답하기와 시제 뉘앙스를 자유자재로 쓰기**다. 실력 수준은 3~4세 구어체(또는 그 이하)부터 시작한다. Vault에 문서가 더 많아도 연습 출제는 Active Speaking Set만 사용한다.
 
@@ -23,6 +25,8 @@
 3. 웹앱 학습 결과가 Obsidian에 문서화되고, Vault의 Brain State가 다시 앱의 연습 재료·순서가 된다.
 4. Vault의 풍부한 배경 지식은 읽기 전용 overlay로만 쓰고, Google Drive/Git은 백업·호환 경로로만 둔다.
 
+**비전 규모 vs 지금 연습 은행:** 마케팅 문서의 동사 30–50 · 명사 300–400은 장기 비전이다. 지금 입 훈련 범위는 ASS Starter(동사 8 · 표현 ~40) + Unlock pack만이다. UI/카피에서 둘을 섞지 않는다.
+
 ## 현재 구현 상태 (이 저장소 기준)
 
 ### 이미 동작하는 것
@@ -30,21 +34,25 @@
 1. 핵심 동사 15개, 핵심 명사 약 66개, 표현 틀 46개, 표현 카드 약 90개로 게임 모드가 동작한다.
 2. 듣기 / 따라 말하기 / 한글→영어 / 영어→뜻 / 약한 연결 복습과 오늘의 7분 퀘스트가 있다.
 3. `historyByExpressionId`로 뜻·문장·말하기 연결 강도와 `reviewPriority`를 저장한다.
-4. 학습 기록은 브라우저 `localStorage`에 저장된다.
+4. 학습 기록은 브라우저 `localStorage`에 저장된다. (`progressStorageKey`는 `appState` 생성 **이전**에 선언해야 한다.)
 5. 콘텐츠 원본은 `data/*.json`이며 `python3 scripts/validate.py`로 검증한다.
 6. Active Speaking Set Starter(동사 8·표현 40)가 `learning-paths.json`에 고정되어 있고, `getUnlockedBank()`가 퀴즈·데일리 퀘스트·복습·의미 선택지를 제한한다.
-7. 내 표현 비율 70%에 도달하면 Unlock pack 1(표현 10개)이 해금된다. 홈/성장에 Active set 요약이 표시된다.
-8. 묻기·답하기·시제 매트릭스 모드(`matrix`)가 Active set 표현군 12개에 대해 평서/의문/부정/짧은 답/과거/가까운 미래를 연습한다. 오늘의 퀘스트 6번째 스텝에도 들어간다.
+7. **내 표현** = 연결도 3축 강함 **또는** 성공 ≥ masteryThreshold. 비율 70%면 Unlock pack(표현 10개)이 해금된다. 홈/성장에 Active set 요약이 표시된다.
+8. 묻기·답하기·시제 매트릭스 모드(`matrix`)가 Active set 표현군 12개에 대해 평서/의문/부정/짧은 답/과거/가까운 미래를 연습한다. 오늘의 퀘스트 6번째 스텝은 **의문 형태 맛보기**다.
 9. `gapNotes` 로컬 저장, 퀴즈 결과의 간극 기록 UI, Obsidian Markdown projection(`src/domain/markdown-projection.js`)과 내보내기가 동작한다. 열린 간극은 복습 우선순위에 +2 반영된다.
+10. Vault **Library 정원**: Gap → `expressionDrafts` → `Library/Drafts` export, 체크리스트 승격 시 `Library/Canon`. Canon이 곧장 퀴즈 은행에 들어가지는 않는다.
+11. **Phase 3 Local REST**: `src/domain/obsidian-sync.js`로 upsert(Gaps/Brain State/Progress/Library)·import(Gaps+Next Practice)·실패 큐·설정 UI. download adapter는 fallback으로 유지.
 
 ### 아직 없거나 불완전한 것
 
 1. 파인만식 제한 어휘 설명 챌린지와 explanation → Obsidian 기록은 아직이다.
-2. Local REST API / 로컬 브리지로 Vault에 자동 upsert하는 기능은 아직이다. 현재는 다운로드 adapter만 있다.
-3. Obsidian에서 수동 수정한 내용의 완전 자동 역동기화가 없다.
-4. Conflict policy는 아래에서 확정했지만, 구현·테스트는 아직이다.
+2. Local REST는 upsert/import/실패 큐가 동작한다. conflict의 필드·시각 단위 자동 테스트와 Bridge adapter는 아직이다.
+3. Obsidian에서 수동 수정한 Brain State 전체의 완전 자동 역동기화는 Gaps + Next Practice 중심이다.
+4. Conflict policy는 아래에서 확정했고 Gaps/Next Practice 병합은 구현됐다. 추가 필드 테스트는 보강 예정.
 5. Vault 단어/표현 overlay와 앱·Obsidian 그래프 통합은 계획 단계다.
-6. 동사 단위 매트릭스 4형태 통과 조건으로 새 동사 해금하는 규칙은 아직 표현 팩 해금만 구현했다.
+6. 동사 단위 매트릭스 4형태 통과 조건으로 새 동사 해금하는 규칙은 아직 표현 팩 해금만 구현했다. (당분간 레벨업 스토리는 **팩 해금만**.)
+7. Canon → `data/expressions.json` 자동 편입은 아직이다(리뷰 후 수동/도구).
+8. 로컬 학습자 프로필(`Learners/<id>/`) 경로 분리는 별도 PR. export/sync는 당분간 루트 `Learning/` · `Gaps/` + `Library/` (+ optional pathPrefix).
 
 ## 확정된 충돌·원본 정책
 
@@ -58,7 +66,49 @@
 
 삭제 정책: 앱에서 Gap을 보관(archive)하면 Vault 노트는 삭제하지 않고 `status: archived` frontmatter만 갱신한다. Vault에서 수동 삭제한 Gap은 앱으로 재생성하지 않고 `missingInVault` 플래그만 남긴다.
 
-## 다음 단계
+## 정리·단순화 백로그 (Cleanup)
+
+감사에서 나온 중복·과복잡을 단계적으로 줄인다. **유지할 것:** `getUnlockedBank()` 게이트, 퀴즈 문장 SoT=`expressions.json`, Draft≠자동 출제, Canon≠자동 JSON, 연결 3축 + gap→review+2.
+
+### Cleanup C0 — PR·SoT 정렬 (프로세스)
+
+권장 머지 순서: progress TDZ/E2E(#8) → learner profiles(#9) → level/spiral 계획(#10) → Library garden(#11) → 본 Cleanup.
+
+- [ ] 열린 기능 PR을 위 순서로 `main`에 합친 뒤, 이 문서의 “이미 동작”을 `main` 기준으로 다시 맞춘다.
+- [x] 개발 Phase 번호(0–5)와 마케팅 Phase(1–7)를 분리한다. 마케팅은 비전 로드맵만.
+- [x] Vault 폴더 계약 SoT를 [`OBSIDIAN_VAULT_EVOLUTION.md`](./OBSIDIAN_VAULT_EVOLUTION.md)로 고정하고 SYNC/WORD_LINKING은 이를 참조한다.
+- [x] `docs/development-plan-and-changelog.docx|html`는 파생 아카이브로 두고, 편집 SoT는 이 Markdown만 쓴다.
+
+### Cleanup C1 — 문서 정리
+
+- [x] ASS “현재 저장소와의 간격” 구식 표를 구현 상태에 맞게 고친다.
+- [x] SYNC Phase 3 경로 목록을 Library/Learners 계약과 맞춘다.
+- [x] 읽기 순서에 EVOLUTION을 넣고, 약점 큐를 “간극 → Draft → Next Practice” 한 줄로 적는다.
+- [x] Unlock pack vs Library Canon 역할을 문서/카피에서 섞지 않는다.
+
+### Cleanup C2 — 앱 단순화 (홈·퀘스트·진행)
+
+- [x] `progressStorageKey`를 `appState` 생성 전에 선언해 새로고침 시 진행도 유실을 막는다.
+- [x] 홈에 `#questArea`를 연결해 데일리 퀘스트 시작/이어하기 UI가 실제로 보이게 한다.
+- [x] 홈 첫 구간: 히어로(한 줄 목표) + 오늘의 퀘스트만. Active set·연결·모드 그리드는 아래 구간.
+- [x] 데일리 카피를 실제 7스텝(듣기→말하기→장면×2→조립→매트릭스 맛보기→복습)과 맞춘다.
+- [x] 해금 카피: “레벨업 = 팩 해금(내 표현 %)”만. 동사 4형태·레벨테스트는 이후 게이트로만 문서화.
+
+### Cleanup C3 — 내 표현·숙달 신호 통일
+
+- [x] `isMineExpression`: 연결도 3축 강함 **우선**, 없으면 성공 횟수 ≥ threshold (둘 다 인정).
+- [x] 헤더/성장의 주신호는 내 표현 수·해금 범위. XP/streak는 보조 유지.
+- [ ] (이후) 성공 카운트를 화면에서 더 줄이고 연결도 스트립만 강조 — Chapter 1과 추가 정렬.
+
+### Cleanup C4 — 이후 구현 게이트 (아직 코드 안 함)
+
+- [ ] 학습자 프로필 머지 시 export 루트를 `Learners/<id>/Learning|Gaps`로 이전.
+- [ ] Canon → Unlock 후보/JSON 편입 도구(수동 리뷰 후).
+- [ ] 동사 매트릭스 4형태 통과 시 새 동사 해금.
+- [ ] Phase 3 conflict 테스트 보강 + Bridge · Learners 경로 · Canon→JSON · 동사 4형태 해금.
+- [ ] `index.html`에서 progress/ASS/export 모듈 분리(동작 동일 유지).
+
+## 다음 단계 (기능 Phase)
 
 ### Phase 0 — Active Speaking Set 고정
 
@@ -74,7 +124,7 @@
 - [x] 간극 노트를 복습 후보 가중치에 반영한다.
 - [x] Markdown frontmatter와 `Learning/Brain State.md`, `Learning/Next Practice.md`, `Learning/Progress.md`를 안정적으로 생성한다.
 - [x] 같은 ID는 같은 Markdown 경로로만 갱신한다.
-- [ ] Local REST API / 브리지로 자동 upsert (Phase 3)
+- [x] Local REST API / 브리지로 자동 upsert (Phase 3) — `local-rest` adapter + 실패 큐. bridge는 이후.
 - 상세 계약은 [`OBSIDIAN_ENGLISH_BRAIN_SYNC.md`](./OBSIDIAN_ENGLISH_BRAIN_SYNC.md)를 따른다.
 
 ### Phase 2 — 파인만 출력 · 묻기/답하기 · 시제 변형
@@ -87,16 +137,18 @@
 
 ### Phase 3 — Obsidian 우선 동기화
 
-- `SyncAdapter`로 `download`, `local-rest`, `bridge`, `drive-webhook`을 분리한다.
-- 1순위 구현은 Obsidian Local REST API(또는 동등 로컬 브리지)로 Vault upsert/read다.
-- 파일 경로: `Gaps/`, `Learning/`, `Patterns/`, `Verbs/`, `Nouns/`, `Prepositions/`, `Reviews/`.
-- 실패 큐와 재시도 상태를 추가한다. 동기화 실패가 학습을 막지 않는다.
+- [x] `SyncAdapter`로 `download`, `local-rest` 분리 (`src/domain/obsidian-sync.js`). `bridge` / `drive-webhook`은 이후.
+- [x] Obsidian Local REST API로 Vault upsert/read (Gaps, Learning/*, Library Drafts·Canon·Index).
+- [x] 실패 큐와 재시도. 동기화 실패가 학습을 막지 않음.
+- [x] import: Gaps + Next Practice (Vault 본문/큐 우선).
+- [ ] Bridge adapter, conflict 시각·필드 단위 테스트 보강.
+- 파일 경로(목표): 개인 `Learners/<id>/Learning|Gaps` (과도기: 루트 `Learning/`·`Gaps/` + optional `pathPrefix`), 공유 `Library/...`.
 - Google Drive 웹훅과 Obsidian Git/GHVault는 Vault 백업·기기 동기용으로만 유지한다.
 - AI 에이전트 보조는 Local REST API의 MCP, 또는 Obsidian CLI skills로 Vault 정리만 담당한다.
 
 ### Phase 4 — Vault overlay와 Active set 연결
 
-- Vault의 `Verbs/`, `Nouns/`, `Prepositions/`, `Words/`를 읽기 전용 overlay로 가져온다.
+- Vault의 `Library/Verbs|Nouns|Patterns` (및 legacy 루트 노트)를 읽기 전용 overlay로 가져온다.
 - 자동 연결은 후보만 보여 주고 사용자가 확정한다.
 - overlay 단어가 Active set 밖이면 연습 출제에 넣지 않고 “나중에 해금” 후보로만 표시한다.
 - 상세는 [`OBSIDIAN_VAULT_WORD_LINKING_PLAN.md`](./OBSIDIAN_VAULT_WORD_LINKING_PLAN.md).
@@ -115,19 +167,20 @@
 - 동일한 Gap Note ID는 항상 같은 Markdown 경로를 사용한다.
 - 동기화 실패가 학습 진행을 막지 않도록 로컬 저장을 먼저 성공시킨다.
 - 어휘를 먼저 늘리지 않는다. Active set 숙달 후에만 해금한다.
+- 약점 흐름은 **간극(Gap) → Library Draft → (승격) Canon → (리뷰 후) Unlock/JSON** 이다. Next Practice는 그 큐의 연습 순서다.
 - 모든 스키마 변경은 이 문서와 관련 설계 문서에 기록한다.
 
 ## 다른 LLM을 위한 확인 순서
 
-1. 이 문서 → `ACTIVE_SPEAKING_SET.md` → `OBSIDIAN_ENGLISH_BRAIN_SYNC.md` → `OBSIDIAN_VAULT_WORD_LINKING_PLAN.md` 순으로 읽는다.
+1. 이 문서(Cleanup + Phase) → `ACTIVE_SPEAKING_SET.md` → `OBSIDIAN_VAULT_EVOLUTION.md`(폴더 SoT) → `OBSIDIAN_ENGLISH_BRAIN_SYNC.md`(동기화 규칙) → `OBSIDIAN_VAULT_WORD_LINKING_PLAN.md`.
 2. `DATA_MODEL.md`와 `CHAPTER_1_SPEC.md`에서 진행·복습 규칙을 확인한다.
-3. `index.html`의 `defaultProgress`, `markStudy`, daily quest 루프를 확인한다.
+3. `index.html`의 `defaultProgress`, `markStudy`, daily quest 루프, `isMineExpression`, `getUnlockedBank`를 확인한다.
 4. Obsidian 관련 코드가 추가되면 `obsidian-sync.js`, Markdown projection, 브리지/REST adapter 스키마를 유지한다.
 5. 변경 후 `python3 scripts/validate.py`와 브라우저 smoke를 실행한다.
 
 ## 이 문서를 이어받는 LLM에게 남기는 작업 메모
 
 - 사용자 목표는 “3~4세급 쉬운 말로 시작해, 제한된 만능동사·핵심명사로 실제 말이 되게 만들고, 그 기록이 Obsidian 영어뇌에 남아 다시 앱 학습 재료가 되는 구조”다.
-- 당장 필요한 것은 콘텐츠 양 확장보다 Active set 경계와 학습 이벤트 → Vault → Next Practice 루프다.
-- 다음 구현 우선순위: `Phase 3 local-rest sync` → `Phase 4 overlay` → 파인만 설명 챌린지.
-- Phase 0 Active Speaking Set, Phase 2 매트릭스, Phase 1 gapNotes/Markdown export는 구현됨.
+- Cleanup C0–C3 이후 기능: Local REST 본선은 들어감. 다음은 Learners 경로 · Canon→JSON · Phase 4 overlay · 파인만 챌린지.
+- Phase 0 ASS, Phase 1 gapNotes/export, Phase 2 매트릭스, Phase 3 local-rest upsert/import/실패 큐, Library Drafts/Canon export는 구현됨.
+- 열린 PR이 있으면 C0 머지 순서를 지키고, progress 키·Vault 경로·내 표현 정의가 한 버전으로 남는지 확인한다.
