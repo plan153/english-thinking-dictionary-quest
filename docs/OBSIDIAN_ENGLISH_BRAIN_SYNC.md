@@ -41,9 +41,15 @@ Project_English/
   Nouns/<명사>.md
   Prepositions/<전치사>.md
   Gaps/<간극 ID>.md
+  Library/                 # 진화하는 학습 자료 정원
+    Index.md
+    Drafts/<draft id>.md   # 미확정 후보
+    Canon/<draft id>.md    # 승격 완료 (퀴즈 편입 전 리뷰)
+    Scenes/
   Reviews/                 # 선택
 ```
 
+정원(Library)과 개인 학습 루프(Learning/Gaps) 역할 분리는 [`OBSIDIAN_VAULT_EVOLUTION.md`](./OBSIDIAN_VAULT_EVOLUTION.md).
 ### `Learning/Brain State.md` (최소 frontmatter)
 
 ```yaml

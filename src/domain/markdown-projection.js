@@ -214,12 +214,142 @@ source: webapp
 - [[Learning/Next Practice]]
 - [[Learning/Progress]]
 - Gaps: ${(state.openGapIds || []).map(id => `[[Gaps/${id}]]`).join(', ') || '(없음)'}
+- 자료 정원: [[Library/Index]]
 `;
     return { path, markdown };
   }
 
-  function buildExportFiles({ brainState, nextPractice, progress, gaps }) {
+  function makeDraftId({ expressionId, english, source, createdAt }) {
+    const date = createdAt ? new Date(createdAt) : new Date();
+    const stamp = Number.isNaN(date.getTime()) ? ymd() : ymd(date);
+    const digest = shortHash(`${expressionId || ''}|${english || ''}|${source || 'manual'}`);
+    return `draft_${expressionId || 'new'}_${stamp}_${digest}`;
+  }
+
+  function evaluatePromoteChecklist(draft = {}) {
+    const hasEnglish = Boolean(String(draft.english || '').trim());
+    const hasKorean = Boolean(String(draft.naturalKorean || '').trim());
+    const hasVerb = Boolean(String(draft.coreVerb || draft.verbWord || '').trim());
+    const hasPattern = Boolean(String(draft.pattern || '').trim());
+    const literalOk = Object.prototype.hasOwnProperty.call(draft, 'literalMeaning');
+    const checks = {
+      hasEnglish,
+      hasKorean,
+      hasVerb,
+      hasPattern,
+      literalNoted: literalOk,
+    };
+    const ready = hasEnglish && hasKorean && hasVerb && hasPattern;
+    return { checks, ready, promoteReady: ready };
+  }
+
+  function draftVaultPath(draft) {
+    const id = draft.id || makeDraftId(draft);
+    const status = draft.status || 'draft';
+    if (status === 'approved') return `Library/Canon/${id}.md`;
+    return `Library/Drafts/${id}.md`;
+  }
+
+  function projectExpressionDraft(draft) {
+    const normalized = { ...draft };
+    const id = normalized.id || makeDraftId(normalized);
+    normalized.id = id;
+    const evaluation = evaluatePromoteChecklist(normalized);
+    const status = normalized.status || 'draft';
+    const path = draftVaultPath({ ...normalized, status });
+    const verb = normalized.coreVerb || normalized.verbWord || '';
+    const checklistLines = [
+      `- [${evaluation.checks.hasEnglish ? 'x' : ' '}] english`,
+      `- [${evaluation.checks.hasKorean ? 'x' : ' '}] naturalKorean (한글 연계)`,
+      `- [${evaluation.checks.hasVerb ? 'x' : ' '}] coreVerb`,
+      `- [${evaluation.checks.hasPattern ? 'x' : ' '}] pattern / 코로케이션`,
+      `- [${evaluation.checks.literalNoted ? 'x' : ' '}] literalMeaning 필드 존재(의도적 비움 가능)`,
+    ].join('\n');
+    const markdown = `---
+type: expression-draft
+id: ${escapeYaml(id)}
+vaultPath: ${escapeYaml(path)}
+status: ${escapeYaml(status)}
+english: ${escapeYaml(normalized.english || '')}
+naturalKorean: ${escapeYaml(normalized.naturalKorean || '')}
+literalMeaning: ${escapeYaml(normalized.literalMeaning || '')}
+coreVerb: ${escapeYaml(verb)}
+pattern: ${escapeYaml(normalized.pattern || '')}
+expressionId: ${escapeYaml(normalized.expressionId || '')}
+assEligible: ${normalized.assEligible === false ? 'false' : 'true'}
+source: ${escapeYaml(normalized.source || 'manual')}
+sourceGapId: ${escapeYaml(normalized.sourceGapId || '')}
+promoteReady: ${evaluation.ready ? 'true' : 'false'}
+createdAt: ${escapeYaml(normalized.createdAt || new Date().toISOString())}
+updatedAt: ${escapeYaml(normalized.updatedAt || normalized.createdAt || new Date().toISOString())}
+sourceApp: webapp
+---
+
+# ${status === 'approved' ? 'Canon' : 'Draft'} · ${normalized.english || id}
+
+> Vault 정원에서 자라는 표현 후보입니다. **approved 되기 전에는 앱 퀴즈에 넣지 마세요.**
+
+## 영어 / 한국어
+- EN: ${normalized.english || '(없음)'}
+- KO: ${normalized.naturalKorean || '(없음)'}
+- 직역/이미지: ${normalized.literalMeaning || '(비움)'}
+
+## 생각 틀
+- 동사: ${verb ? `[[Verbs/${verb}]]` : '(없음)'}
+- 패턴: ${normalized.pattern || '(없음)'}
+- 기존 표현 ID: ${normalized.expressionId ? `\`${normalized.expressionId}\`` : '(신규 후보)'}
+
+## 승격 체크리스트
+${checklistLines}
+
+승격 준비: **${evaluation.ready ? 'YES — Canon으로 옮겨도 됨' : 'NO — 필드 보완 필요'}**
+
+## 출처
+- source: ${normalized.source || 'manual'}
+- gap: ${normalized.sourceGapId ? `[[Gaps/${normalized.sourceGapId}]]` : '(없음)'}
+- 모델 업데이트: ${normalized.modelUpdate || '(없음)'}
+`;
+    return { path, markdown, id, promoteReady: evaluation.ready, evaluation };
+  }
+
+  function projectLibraryIndex(state = {}) {
+    const path = 'Library/Index.md';
+    const drafts = state.drafts || [];
+    const approved = drafts.filter(d => (d.status || 'draft') === 'approved');
+    const openDrafts = drafts.filter(d => (d.status || 'draft') === 'draft');
+    const markdown = `---
+type: library-index
+vaultPath: ${escapeYaml(path)}
+updatedAt: ${escapeYaml(state.updatedAt || new Date().toISOString())}
+draftCount: ${openDrafts.length}
+canonCount: ${approved.length}
+source: webapp
+---
+
+# Library · 학습 자료 정원
+
+Vault에서 자료가 자라고, 웹앱은 **승격(Canon)된 것만** 연습합니다.
+
+## 폴더
+- \`Drafts/\` — 진화 중 후보
+- \`Canon/\` — 승격 완료 (앱 JSON 반영 후보)
+- \`Verbs/\` \`Nouns/\` \`Patterns/\` \`Scenes/\` — 배경 지식
+
+## 지금 Drafts
+${openDrafts.length ? openDrafts.map(d => `- [[Library/Drafts/${d.id}]] · ${d.english || d.id}`).join('\n') : '- (비어 있음)'}
+
+## Canon
+${approved.length ? approved.map(d => `- [[Library/Canon/${d.id}]] · ${d.english || d.id}`).join('\n') : '- (비어 있음)'}
+
+## 루프
+수집(Gap/장면) → Draft → 체크리스트 → Canon → (리뷰 후) Active Set / Unlock 후보
+`;
+    return { path, markdown };
+  }
+
+  function buildExportFiles({ brainState, nextPractice, progress, gaps, drafts }) {
     const files = {};
+    const draftList = Array.isArray(drafts) ? drafts : [];
     const index = projectIndex({
       updatedAt: brainState?.updatedAt,
       openGapIds: (gaps || []).filter(gap => (gap.status || 'open') === 'open').map(gap => gap.id),
@@ -229,7 +359,9 @@ source: webapp
       projectBrainState(brainState || {}),
       projectNextPractice(nextPractice || {}),
       projectProgress(progress || {}),
+      projectLibraryIndex({ updatedAt: brainState?.updatedAt, drafts: draftList }),
       ...(gaps || []).map(projectGapNote),
+      ...draftList.map(projectExpressionDraft),
     ];
     projected.forEach(file => {
       files[file.path] = file.markdown;
@@ -239,8 +371,13 @@ source: webapp
 
   return {
     makeGapId,
+    makeDraftId,
     gapVaultPath,
+    draftVaultPath,
+    evaluatePromoteChecklist,
     projectGapNote,
+    projectExpressionDraft,
+    projectLibraryIndex,
     projectBrainState,
     projectNextPractice,
     projectProgress,

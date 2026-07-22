@@ -6,6 +6,7 @@
 
 - [`ACTIVE_SPEAKING_SET.md`](./ACTIVE_SPEAKING_SET.md) — 3~4세급 Active Speaking Set(ASS)과 해금 규칙
 - [`OBSIDIAN_ENGLISH_BRAIN_SYNC.md`](./OBSIDIAN_ENGLISH_BRAIN_SYNC.md) — Obsidian 영어뇌 양방향 동기화
+- [`OBSIDIAN_VAULT_EVOLUTION.md`](./OBSIDIAN_VAULT_EVOLUTION.md) — Library 정원(Drafts/Canon) 진화 모델
 - [`OBSIDIAN_VAULT_WORD_LINKING_PLAN.md`](./OBSIDIAN_VAULT_WORD_LINKING_PLAN.md) — Vault 단어 overlay와 연결 정책
 - [`DATA_MODEL.md`](./DATA_MODEL.md) — 표현·진행 데이터 모델
 - [`CHAPTER_1_SPEC.md`](./CHAPTER_1_SPEC.md) — 연결도·복습 규칙
@@ -36,6 +37,7 @@
 7. 내 표현 비율 70%에 도달하면 Unlock pack 1(표현 10개)이 해금된다. 홈/성장에 Active set 요약이 표시된다.
 8. 묻기·답하기·시제 매트릭스 모드(`matrix`)가 Active set 표현군 12개에 대해 평서/의문/부정/짧은 답/과거/가까운 미래를 연습한다. 오늘의 퀘스트 6번째 스텝에도 들어간다.
 9. `gapNotes` 로컬 저장, 퀴즈 결과의 간극 기록 UI, Obsidian Markdown projection(`src/domain/markdown-projection.js`)과 내보내기가 동작한다. 열린 간극은 복습 우선순위에 +2 반영된다.
+10. Vault **Library 정원**: Gap → `expressionDrafts` → `Library/Drafts` export, 체크리스트 승격 시 `Library/Canon`. Canon이 곧장 퀴즈 은행에 들어가지는 않는다.
 
 ### 아직 없거나 불완전한 것
 
@@ -45,6 +47,7 @@
 4. Conflict policy는 아래에서 확정했지만, 구현·테스트는 아직이다.
 5. Vault 단어/표현 overlay와 앱·Obsidian 그래프 통합은 계획 단계다.
 6. 동사 단위 매트릭스 4형태 통과 조건으로 새 동사 해금하는 규칙은 아직 표현 팩 해금만 구현했다.
+7. Canon → `data/expressions.json` 자동 편입은 아직이다(리뷰 후 수동/도구).
 
 ## 확정된 충돌·원본 정책
 

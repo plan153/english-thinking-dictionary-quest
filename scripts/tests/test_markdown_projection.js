@@ -73,4 +73,59 @@ assert.ok(files['Learning/Next Practice.md']);
 assert.ok(files['Learning/Progress.md']);
 assert.ok(files['English Brain Index.md']);
 assert.ok(files[`Gaps/${id}.md`]);
+
+const draftEval = api.evaluatePromoteChecklist({
+  english: 'I need some time.',
+  naturalKorean: '시간이 좀 필요해요.',
+  coreVerb: 'need',
+  pattern: 'need + noun',
+  literalMeaning: '',
+});
+assert.strictEqual(draftEval.ready, true);
+
+const weakDraft = api.projectExpressionDraft({
+  id: 'draft_test_1',
+  english: 'I need some time.',
+  naturalKorean: '',
+  coreVerb: 'need',
+  pattern: '',
+  status: 'draft',
+  source: 'gap',
+  sourceGapId: id,
+});
+assert.strictEqual(weakDraft.path, 'Library/Drafts/draft_test_1.md');
+assert.strictEqual(weakDraft.promoteReady, false);
+
+const readyDraft = api.projectExpressionDraft({
+  id: 'draft_test_2',
+  english: 'I need some time.',
+  naturalKorean: '시간이 좀 필요해요.',
+  coreVerb: 'need',
+  pattern: 'need + noun',
+  literalMeaning: '',
+  status: 'approved',
+  source: 'gap',
+});
+assert.strictEqual(readyDraft.path, 'Library/Canon/draft_test_2.md');
+assert.strictEqual(readyDraft.promoteReady, true);
+assert.ok(readyDraft.markdown.includes('promoteReady: true'));
+
+const withLibrary = api.buildExportFiles({
+  brainState: { updatedAt: '2026-07-22T00:00:00Z', activeExpressionCount: 40, masteredExpressionCount: 1, openGapIds: [] },
+  nextPractice: { updatedAt: '2026-07-22T00:00:00Z', queue: [] },
+  progress: { updatedAt: '2026-07-22T00:00:00Z', xp: 0, streak: 0, mineCount: 1, activeExpressionCount: 40, openGapCount: 0 },
+  gaps: [],
+  drafts: [{
+    id: 'draft_test_2',
+    english: 'I need some time.',
+    naturalKorean: '시간이 좀 필요해요.',
+    coreVerb: 'need',
+    pattern: 'need + noun',
+    status: 'approved',
+  }],
+});
+assert.ok(withLibrary['Library/Index.md']);
+assert.ok(withLibrary['Library/Canon/draft_test_2.md']);
+assert.ok(withLibrary['English Brain Index.md'].includes('Library/Index'));
+
 console.log('✅ markdown-projection tests passed');

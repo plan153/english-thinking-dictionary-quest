@@ -725,7 +725,7 @@
       </article>
       <article class="card" style="margin-top:16px">
         <h3>간극 기록 · 영어뇌 내보내기</h3>
-        <p class="small-note">틀린 추측과 모델 업데이트를 Obsidian용 Markdown으로 남깁니다. 같은 간극 ID는 같은 경로로만 갱신됩니다.</p>
+        <p class="small-note">틀린 추측과 모델 업데이트를 Obsidian용 Markdown으로 남깁니다. Gap → Library/Drafts 후보로 보내 자료 정원을 키울 수 있습니다.</p>
         <div class="question-actions" style="justify-content:flex-start; margin-top:12px">
           <button class="btn dark" id="exportBrainMarkdown" type="button">영어뇌 Markdown 내보내기</button>
           <button class="btn soft" id="exportBrainJson" type="button">번들 JSON 다운로드</button>
@@ -733,8 +733,13 @@
         <div id="gapNotesList" style="margin-top:14px"></div>
       </article>
       <article class="card" style="margin-top:16px">
+        <h3>Library 자료 후보 (Drafts)</h3>
+        <p class="small-note">Vault 정원에서 자라는 표현 후보입니다. 승격(Canon) 전에는 퀴즈에 넣지 않습니다. 한글·동사·패턴이 있어야 승격할 수 있습니다.</p>
+        <div id="expressionDraftsList" style="margin-top:14px"></div>
+      </article>
+      <article class="card" style="margin-top:16px">
         <button class="btn warn" id="resetProgress">학습 기록 초기화</button>
-        <p class="small-note">이 기기 브라우저에만 저장된 XP, 정답 기록, 연속 학습일, 간극 기록을 지웁니다.</p>
+        <p class="small-note">이 기기 브라우저에만 저장된 XP, 정답 기록, 연속 학습일, 간극·Draft 기록을 지웁니다.</p>
       </article>
     </section>
 
@@ -1745,6 +1750,7 @@
         historyByExpressionId: {},
         curriculum: { unlockedPackCount: 0, lastUnlockAt: null },
         gapNotes: [],
+        expressionDrafts: [],
       };
     }
     function normalizeGapNote(entry) {
@@ -1850,9 +1856,44 @@
           historyByExpressionId: Object.fromEntries(Object.entries(saved.historyByExpressionId || {}).map(([id, history]) => [id, normalizeHistoryEntry(history)])),
           curriculum: { ...defaultProgress().curriculum, ...(saved.curriculum || {}) },
           gapNotes: Array.isArray(saved.gapNotes) ? saved.gapNotes.map(normalizeGapNote) : [],
+          expressionDrafts: Array.isArray(saved.expressionDrafts) ? saved.expressionDrafts.map(normalizeExpressionDraft) : [],
         };
       }
       catch { return defaultProgress(); }
+    }
+    function normalizeExpressionDraft(entry) {
+      const api = window.EnglishBrainMarkdown;
+      const base = entry && typeof entry === 'object' ? entry : {};
+      const createdAt = base.createdAt || new Date().toISOString();
+      const id = base.id || (api ? api.makeDraftId({
+        expressionId: base.expressionId,
+        english: base.english,
+        source: base.source,
+        createdAt,
+      }) : `draft_${base.expressionId || 'new'}`);
+      const draft = {
+        id,
+        status: base.status === 'approved' || base.status === 'archived' ? base.status : 'draft',
+        english: base.english || '',
+        naturalKorean: base.naturalKorean || '',
+        literalMeaning: base.literalMeaning || '',
+        coreVerb: base.coreVerb || base.verbWord || '',
+        verbWord: base.verbWord || base.coreVerb || '',
+        verbId: base.verbId || '',
+        pattern: base.pattern || '',
+        expressionId: base.expressionId || '',
+        assEligible: base.assEligible !== false,
+        source: base.source || 'manual',
+        sourceGapId: base.sourceGapId || '',
+        modelUpdate: base.modelUpdate || '',
+        createdAt,
+        updatedAt: base.updatedAt || createdAt,
+      };
+      if (api?.evaluatePromoteChecklist) {
+        const evaluation = api.evaluatePromoteChecklist(draft);
+        draft.promoteReady = evaluation.ready;
+      }
+      return draft;
     }
     function saveProgress() { writeProgressPayload(appState.progress); updateDashboard(); }
     function todayKey() { return new Date().toISOString().slice(0,10); }
@@ -2037,6 +2078,7 @@
       document.getElementById('masteredBig').textContent = snapshot.mineCount;
       renderReviewList();
       renderGapNotesList();
+      renderExpressionDraftsList();
       updateQuestUI();
     }
 
@@ -2630,6 +2672,81 @@
       }
       saveProgress();
     }
+    function isExpressionInActiveSet(expressionId) {
+      if (!expressionId) return false;
+      const config = getActiveSpeakingSetConfig();
+      if ((config.expressionIds || []).includes(expressionId)) return true;
+      return (config.unlockPacks || []).some(pack => (pack.expressionIds || []).includes(expressionId));
+    }
+    function upsertExpressionDraft(partial) {
+      const note = normalizeExpressionDraft({
+        ...partial,
+        updatedAt: new Date().toISOString(),
+      });
+      if (!Array.isArray(appState.progress.expressionDrafts)) appState.progress.expressionDrafts = [];
+      const index = appState.progress.expressionDrafts.findIndex(item => item.id === note.id);
+      if (index >= 0) appState.progress.expressionDrafts[index] = { ...appState.progress.expressionDrafts[index], ...note };
+      else appState.progress.expressionDrafts.unshift(note);
+      saveProgress();
+      return note;
+    }
+    function createDraftFromGap(gapId) {
+      const gap = (appState.progress.gapNotes || []).find(item => item.id === gapId);
+      if (!gap) {
+        toast('간극 기록을 찾지 못했어요.');
+        return null;
+      }
+      const existing = (appState.progress.expressionDrafts || []).find(item => item.sourceGapId === gap.id && (item.status || 'draft') !== 'archived');
+      if (existing) {
+        toast('이미 이 간극으로 만든 Draft가 있어요.');
+        return existing;
+      }
+      const bankItem = getGameBank().find(item => item.id === gap.expressionId);
+      const patternGuess = gap.modelUpdate || bankItem?.frame || '';
+      const draft = upsertExpressionDraft({
+        english: gap.actual || gap.english || bankItem?.en || '',
+        naturalKorean: gap.naturalKorean || bankItem?.ko || '',
+        literalMeaning: bankItem?.literalMeaning || '',
+        coreVerb: gap.verbWord || bankItem?.verb || '',
+        verbWord: gap.verbWord || bankItem?.verb || '',
+        verbId: gap.verbId || bankItem?.coreVerbId || '',
+        pattern: patternGuess,
+        expressionId: gap.expressionId || '',
+        assEligible: isExpressionInActiveSet(gap.expressionId),
+        source: 'gap',
+        sourceGapId: gap.id,
+        modelUpdate: gap.modelUpdate || '',
+        status: 'draft',
+        createdAt: new Date().toISOString(),
+      });
+      toast(draft.promoteReady ? 'Draft를 만들었어요. 승격 체크리스트를 통과했어요.' : 'Draft를 만들었어요. 패턴/한글을 보완하면 승격할 수 있어요.');
+      renderExpressionDraftsList();
+      return draft;
+    }
+    function promoteExpressionDraft(draftId) {
+      const draft = (appState.progress.expressionDrafts || []).find(item => item.id === draftId);
+      if (!draft) return;
+      const api = window.EnglishBrainMarkdown;
+      const evaluation = api?.evaluatePromoteChecklist?.(draft) || { ready: false };
+      if (!evaluation.ready) {
+        toast('아직 승격 조건이 부족해요. 영어·한글·동사·패턴이 필요합니다.');
+        return;
+      }
+      draft.status = 'approved';
+      draft.promoteReady = true;
+      draft.updatedAt = new Date().toISOString();
+      saveProgress();
+      toast('Canon으로 승격했어요. 내보내기 시 Library/Canon/ 경로로 저장됩니다. JSON 편입은 리뷰 후 진행하세요.');
+      renderExpressionDraftsList();
+    }
+    function archiveExpressionDraft(draftId) {
+      const draft = (appState.progress.expressionDrafts || []).find(item => item.id === draftId);
+      if (!draft) return;
+      draft.status = 'archived';
+      draft.updatedAt = new Date().toISOString();
+      saveProgress();
+      renderExpressionDraftsList();
+    }
     function buildNextPracticeQueue() {
       const openGaps = getOpenGapNotes();
       const gapQueue = openGaps.slice(0, 5).map(gap => ({
@@ -2692,8 +2809,16 @@
         nextPractice,
         progress,
         gaps: appState.progress.gapNotes || [],
+        drafts: (appState.progress.expressionDrafts || []).filter(item => (item.status || 'draft') !== 'archived'),
       });
-      return { files, brainState, nextPractice, progress, gapNotes: appState.progress.gapNotes || [] };
+      return {
+        files,
+        brainState,
+        nextPractice,
+        progress,
+        gapNotes: appState.progress.gapNotes || [],
+        expressionDrafts: appState.progress.expressionDrafts || [],
+      };
     }
     function downloadTextFile(filename, content, mime = 'text/markdown;charset=utf-8') {
       const blob = new Blob([content], { type: mime });
@@ -2717,7 +2842,7 @@
           downloadTextFile(filenameFromVaultPath(path), markdown);
           await new Promise(resolve => setTimeout(resolve, 120));
         }
-        toast(`Obsidian용 Markdown ${entries.length}개를 내려받았어요. vaultPath frontmatter를 보고 폴더에 넣어 주세요.`);
+        toast(`Obsidian용 Markdown ${entries.length}개를 내려받았어요. Learning/Gaps + Library/Drafts|Canon 경로를 확인하세요.`);
       } catch (error) {
         toast('Markdown 내보내기에 실패했어요.');
         console.error(error);
@@ -2733,6 +2858,7 @@
             exportedAt: new Date().toISOString(),
             files: payload.files,
             gapNotes: payload.gapNotes,
+            expressionDrafts: payload.expressionDrafts,
             brainState: payload.brainState,
             nextPractice: payload.nextPractice,
             progress: payload.progress,
@@ -2762,8 +2888,9 @@
               <b>${escapeHtml(note.english || note.expressionId)}</b>
               <div class="small-note" style="margin-top:4px">${escapeHtml(note.status || 'open')} · ${escapeHtml(note.mode || '')} · ${escapeHtml(note.id)}</div>
             </div>
-            <div class="question-actions" style="margin:0">
+            <div class="question-actions" style="margin:0;flex-wrap:wrap">
               ${note.status === 'open' ? `<button class="btn soft archive-gap" type="button" data-gap-id="${escapeHtml(note.id)}">보관</button>` : ''}
+              <button class="btn soft draft-from-gap" type="button" data-gap-id="${escapeHtml(note.id)}">Draft로</button>
               <button class="btn soft practice-gap" type="button" data-expression-id="${escapeHtml(note.expressionId)}">다시 연결</button>
             </div>
           </div>
@@ -2776,10 +2903,50 @@
         toast('간극 기록을 보관했어요.');
         renderGapNotesList();
       }));
+      target.querySelectorAll('.draft-from-gap').forEach(button => button.addEventListener('click', () => {
+        createDraftFromGap(button.dataset.gapId);
+      }));
       target.querySelectorAll('.practice-gap').forEach(button => button.addEventListener('click', () => {
         const expressionId = button.dataset.expressionId;
         if (!expressionId) return;
         startMode('review', expressionId);
+      }));
+    }
+    function renderExpressionDraftsList() {
+      const target = document.getElementById('expressionDraftsList');
+      if (!target) return;
+      const drafts = [...(appState.progress.expressionDrafts || [])]
+        .filter(item => (item.status || 'draft') !== 'archived')
+        .sort((a, b) => String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')))
+        .slice(0, 12);
+      if (!drafts.length) {
+        target.innerHTML = '<p class="small-note">아직 Draft가 없습니다. 간극에서 “Draft로”를 누르면 Library 후보가 생깁니다.</p>';
+        return;
+      }
+      target.innerHTML = drafts.map(draft => {
+        const ready = draft.promoteReady || window.EnglishBrainMarkdown?.evaluatePromoteChecklist?.(draft)?.ready;
+        const path = draft.status === 'approved' ? `Library/Canon/${draft.id}.md` : `Library/Drafts/${draft.id}.md`;
+        return `
+        <div class="gap-note-item" data-draft-id="${escapeHtml(draft.id)}">
+          <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
+            <div>
+              <b>${escapeHtml(draft.english || draft.id)}</b>
+              <div class="small-note" style="margin-top:4px">${escapeHtml(draft.status)} · ${ready ? '승격 가능' : '보완 필요'} · ${escapeHtml(path)}</div>
+              <div class="small-note">KO: ${escapeHtml(draft.naturalKorean || '(없음)')} · 동사: ${escapeHtml(draft.coreVerb || '(없음)')} · 패턴: ${escapeHtml(draft.pattern || '(없음)')}</div>
+            </div>
+            <div class="question-actions" style="margin:0;flex-wrap:wrap">
+              ${draft.status !== 'approved' ? `<button class="btn dark promote-draft" type="button" data-draft-id="${escapeHtml(draft.id)}">승격</button>` : ''}
+              <button class="btn soft archive-draft" type="button" data-draft-id="${escapeHtml(draft.id)}">보관</button>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+      target.querySelectorAll('.promote-draft').forEach(button => button.addEventListener('click', () => {
+        promoteExpressionDraft(button.dataset.draftId);
+      }));
+      target.querySelectorAll('.archive-draft').forEach(button => button.addEventListener('click', () => {
+        archiveExpressionDraft(button.dataset.draftId);
+        toast('Draft를 보관했어요.');
       }));
     }
     function updateHistoryConnections(itemId, connectionType, strength) {
