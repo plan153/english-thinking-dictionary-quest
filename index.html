@@ -1656,6 +1656,9 @@
 
     const APP_CACHE_VERSION = 'etd-quest-v1.0.2';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
+    // Must be declared before appState init — loadProgress() reads these during construction.
+    const progressStorageKey = 'etdQuestProgress';
+    const progressNamePrefix = 'ETD_PROGRESS:';
 
     async function purgeStaleAppCaches() {
       if (location.protocol === 'file:') return;
@@ -1790,8 +1793,6 @@
       normalized.reviewPriority = typeof entry.reviewPriority === 'number' ? entry.reviewPriority : normalized.reviewPriority;
       return normalized;
     }
-    const progressStorageKey = 'etdQuestProgress';
-    const progressNamePrefix = 'ETD_PROGRESS:';
     function readProgressPayload() {
       try {
         if (typeof localStorage !== 'undefined') {
@@ -4317,8 +4318,8 @@
           qaMatrices,
           learningPaths,
           gameExpressions: dedupeGameExpressions([
-            ...mapGameExpressions,
             ...expressions.map(expression => normalizeExpression(expression, { verbs, patterns })),
+            ...mapGameExpressions,
           ]),
           isLoaded: true,
           error: null,
@@ -4337,7 +4338,9 @@
           isMapMeaningOpen: false,
           isMapPracticeOpen: false,
         };
-        syncCurriculumUnlock({ announce: false });
+        if (syncCurriculumUnlock({ announce: false })) {
+          writeProgressPayload(appState.progress);
+        }
         updateDashboard();
         updateQuestUI();
       } catch (error) {
