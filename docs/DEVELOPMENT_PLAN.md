@@ -43,6 +43,9 @@
 10. Vault **Library 정원**: Gap → `expressionDrafts` → `Library/Drafts` export, 체크리스트 승격 시 `Library/Canon`. Canon이 곧장 퀴즈 은행에 들어가지는 않는다.
 11. **Phase 3 Local REST**: `src/domain/obsidian-sync.js`로 upsert·import·실패 큐·설정 UI.
 12. **Learners 경로**: 로그인 없이 공책 전환, export/sync 개인 루트 `Learners/<id>/…`, Library 공유 유지.
+13. **Canon 편입 도구**: 승인 Draft → JSON 후보 번들 / Unlock 대기열(자동 출제 없음).
+14. **동사 매트릭스 4형태 게이트**: Starter 동사 4형태 통과 시 `verb_pack_give` 해금.
+15. **Phase 4 Vault overlay**: `vault-overlay.js` + 동사 카드 `Vault 연결` 탭. Local REST로 Library/legacy 노트 매칭 → 확정/watchlist/숨기기. 퀴즈 은행 불변.
 
 ### 아직 없거나 불완전한 것
 
@@ -50,7 +53,7 @@
 2. Local REST는 upsert/import/실패 큐가 동작한다. conflict의 필드·시각 단위 자동 테스트와 Bridge adapter는 아직이다.
 3. Obsidian에서 수동 수정한 Brain State 전체의 완전 자동 역동기화는 Gaps + Next Practice 중심이다.
 4. Conflict policy는 아래에서 확정했고 Gaps/Next Practice 병합은 구현됐다. 추가 필드 테스트는 보강 예정.
-5. Vault 단어/표현 overlay와 앱·Obsidian 그래프 통합은 계획 단계다.
+5. Vault overlay 그래프 스타일(앱 그래프에서 Vault-only 노드 구분)은 Phase 5.
 6. 동사 매트릭스 4형태 게이트로 `verbUnlockPacks`(예: give) 해금이 동작한다. 표현 Unlock pack과 별개.
 7. Canon → JSON 후보 번들/Unlock 대기열은 동작한다. `data/expressions.json` 자동 병합은 하지 않는다(리뷰 후 수동).
 8. 로컬 학습자 프로필: `etdQuestProgress:<learnerId>` + Vault `Learners/<id>/Learning|Gaps`. Library는 공유.
@@ -149,9 +152,9 @@
 
 ### Phase 4 — Vault overlay와 Active set 연결
 
-- Vault의 `Library/Verbs|Nouns|Patterns` (및 legacy 루트 노트)를 읽기 전용 overlay로 가져온다.
-- 자동 연결은 후보만 보여 주고 사용자가 확정한다.
-- overlay 단어가 Active set 밖이면 연습 출제에 넣지 않고 “나중에 해금” 후보로만 표시한다.
+- [x] Vault의 `Library/Verbs|Nouns|Patterns` (및 legacy 루트 노트)를 읽기 전용 overlay로 가져온다. (`src/domain/vault-overlay.js`)
+- [x] 자동 연결은 후보만 보여 주고 사용자가 확정한다. (동사 카드 `Vault 연결` 탭 · confirmed / watchlist / dismissed)
+- [x] overlay 단어가 Active set 밖이면 연습 출제에 넣지 않고 “나중에 해금” 후보로만 표시한다.
 - 상세는 [`OBSIDIAN_VAULT_WORD_LINKING_PLAN.md`](./OBSIDIAN_VAULT_WORD_LINKING_PLAN.md).
 
 ### Phase 5 — 그래프와 연습 화면 통합
@@ -182,6 +185,6 @@
 ## 이 문서를 이어받는 LLM에게 남기는 작업 메모
 
 - 사용자 목표는 “3~4세급 쉬운 말로 시작해, 제한된 만능동사·핵심명사로 실제 말이 되게 만들고, 그 기록이 Obsidian 영어뇌에 남아 다시 앱 학습 재료가 되는 구조”다.
-- Cleanup 이후 다음: Phase 4 overlay · 파인만 챌린지 · conflict 테스트 보강.
-- Phase 0–3 + Library + Learners(`Learners/<id>/…`) 경로 구현됨.
+- Cleanup 이후 다음: 파인만 챌린지 · conflict 테스트 보강 · Phase 5 그래프 스타일.
+- Phase 0–4 + Library + Learners(`Learners/<id>/…`) 경로 구현됨.
 - 열린 PR이 있으면 C0 머지 순서를 지키고, progress 키·Vault 경로·내 표현 정의가 한 버전으로 남는지 확인한다.

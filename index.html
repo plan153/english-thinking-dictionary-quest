@@ -574,7 +574,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.0.5">v1.0.5</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.0.6">v1.0.6</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -682,6 +682,7 @@
           <button class="dictionary-tab active" type="button" data-dictionary-view="verbs">동사 탐험</button>
           <button class="dictionary-tab" type="button" data-dictionary-view="expressions">실생활 표현</button>
           <button class="dictionary-tab" type="button" data-dictionary-view="build">문장빌드맵</button>
+          <button class="dictionary-tab" type="button" data-dictionary-view="vault">Vault 연결</button>
         </div>
         <div id="explorerStatus" class="explorer-status">사전 데이터를 불러오는 중입니다.</div>
         <div id="verbExplorerButtons" class="verb-buttons"></div>
@@ -701,6 +702,7 @@
         </div>
         <div class="explorer-panel expression-detail" id="expressionExplorerDetail" style="margin-top:14px" data-dictionary-view="expressions"></div>
         <div class="explorer-panel verb-map" id="dictionaryMap" style="margin-top:14px" data-dictionary-view="build"></div>
+        <div class="explorer-panel" id="vaultOverlayPanel" style="margin-top:14px" data-dictionary-view="vault" hidden></div>
         <div class="map-focus-actions" id="mapFocusActions">
           <button class="btn soft" type="button" id="showDictionaryLegacy">문장빌드맵 닫고 전체 사전 보기</button>
         </div>
@@ -829,6 +831,7 @@
   <script src="./src/domain/obsidian-sync.js"></script>
   <script src="./src/domain/canon-intake.js"></script>
   <script src="./src/domain/verb-matrix-gate.js"></script>
+  <script src="./src/domain/vault-overlay.js"></script>
   <script>
     const wordBank = [
       { id:'get', type:'핵심 동사', word:'get', korean:'얻다 · 받다 · 도착하다 · 이해하다 · 상태가 되다', example:'I got your message.', exKo:'네 메시지 받았어.', connections:'get a message · get home · get better · get it' },
@@ -1741,7 +1744,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.0.5';
+    const APP_CACHE_VERSION = 'etd-quest-v1.0.6';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const LEGACY_PROGRESS_KEY = 'etdQuestProgress';
@@ -1935,6 +1938,15 @@
         expressionDrafts: [],
         canonUnlockQueue: [],
         importedNextPractice: null,
+        vaultOverlay: defaultVaultOverlay(),
+      };
+    }
+    function defaultVaultOverlay() {
+      return {
+        links: [],
+        matches: [],
+        lastFetchedAt: null,
+        lastError: null,
       };
     }
     function normalizeGapNote(entry) {
@@ -2058,9 +2070,39 @@
           importedNextPractice: saved.importedNextPractice && typeof saved.importedNextPractice === 'object'
             ? saved.importedNextPractice
             : null,
+          vaultOverlay: normalizeVaultOverlay(saved.vaultOverlay),
         };
       }
       catch { return defaultProgress(); }
+    }
+    function normalizeVaultOverlay(raw) {
+      const base = raw && typeof raw === 'object' ? raw : {};
+      return {
+        ...defaultVaultOverlay(),
+        links: Array.isArray(base.links) ? base.links.map(normalizeVaultLink).filter(Boolean) : [],
+        matches: Array.isArray(base.matches) ? base.matches : [],
+        lastFetchedAt: base.lastFetchedAt || null,
+        lastError: base.lastError || null,
+      };
+    }
+    function normalizeVaultLink(entry) {
+      if (!entry || typeof entry !== 'object') return null;
+      const notePath = entry.notePath || entry.path || '';
+      const entityType = entry.entityType || '';
+      const entityId = entry.entityId || '';
+      if (!notePath) return null;
+      return {
+        id: entry.id || `${notePath}::${entityType}::${entityId || entry.noteWord || ''}`,
+        notePath,
+        noteWord: entry.noteWord || '',
+        entityType,
+        entityId,
+        entityLabel: entry.entityLabel || entry.noteWord || notePath,
+        confidence: entry.confidence || 'low',
+        gate: entry.gate || 'background',
+        status: entry.status === 'watchlist' || entry.status === 'dismissed' ? entry.status : 'confirmed',
+        updatedAt: entry.updatedAt || new Date().toISOString(),
+      };
     }
     function normalizeExpressionDraft(entry) {
       const api = window.EnglishBrainMarkdown;
@@ -3581,6 +3623,243 @@
         </div>
       `;
     }
+    function ensureVaultOverlayState() {
+      if (!appState.progress.vaultOverlay || typeof appState.progress.vaultOverlay !== 'object') {
+        appState.progress.vaultOverlay = defaultVaultOverlay();
+      }
+      const vo = appState.progress.vaultOverlay;
+      if (!Array.isArray(vo.links)) vo.links = [];
+      if (!Array.isArray(vo.matches)) vo.matches = [];
+      return vo;
+    }
+    function vaultMatchId(match) {
+      const note = match?.note || {};
+      return `${note.path || ''}::${match?.entityType || ''}::${match?.entityId || note.word || ''}`;
+    }
+    function obsidianOpenHref(path) {
+      return `obsidian://open?path=${encodeURIComponent(String(path || ''))}`;
+    }
+    function getVaultOverlayApi() {
+      const api = window.VaultOverlay;
+      if (!api) throw new Error('vault overlay module missing');
+      return api;
+    }
+    function getConfirmedVaultLinks(entityType, entityId) {
+      const api = window.VaultOverlay;
+      const links = ensureVaultOverlayState().links || [];
+      if (!api) return links.filter(link => link.entityType === entityType && link.entityId === entityId && link.status !== 'dismissed');
+      return api.linksForEntity(links, entityType, entityId);
+    }
+    function renderVaultLinksMarkup(entityType, entityId) {
+      const links = getConfirmedVaultLinks(entityType, entityId);
+      if (!links.length) return '';
+      return `
+        <div class="vault-links" style="margin-top:12px">
+          <p class="small-note" style="margin:0 0 6px"><b>Vault 연결</b> (읽기 전용 · 퀴즈 범위 불변)</p>
+          ${links.map(link => `
+            <div class="small-note" style="margin-top:4px">
+              <a href="${escapeHtml(obsidianOpenHref(link.notePath))}">${escapeHtml(link.noteWord || link.notePath)}</a>
+              · ${escapeHtml(link.status)} · ${escapeHtml(link.confidence)}
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+    function refreshVaultMatchGates() {
+      const api = window.VaultOverlay;
+      const vo = ensureVaultOverlayState();
+      if (!api || !vo.matches.length) return;
+      const options = {
+        unlockedVerbIds: window.VerbMatrixGate
+          ? window.VerbMatrixGate.getUnlockedVerbIds(getActiveSpeakingSetConfig(), appState.progress.curriculum || {})
+          : [],
+        unlockedExpressionIds: getUnlockedExpressionIds(),
+      };
+      vo.matches = vo.matches.map(match => ({
+        ...match,
+        gate: api.classifyGate(match, options),
+      }));
+    }
+    async function fetchVaultOverlayFromRest() {
+      try {
+        const overlay = getVaultOverlayApi();
+        const { client } = requireLocalRestClient();
+        toast('Vault 노트를 읽는 중…');
+        const { notes, errors } = await overlay.fetchVaultOverlayNotes(client);
+        const catalog = {
+          verbs: appState.dictionaryData.verbs || [],
+          nouns: appState.dictionaryData.nouns || [],
+          patterns: appState.dictionaryData.patterns || [],
+          expressions: appState.dictionaryData.expressions || [],
+        };
+        const gate = window.VerbMatrixGate;
+        const options = {
+          unlockedVerbIds: gate
+            ? gate.getUnlockedVerbIds(getActiveSpeakingSetConfig(), appState.progress.curriculum || {})
+            : [],
+          unlockedExpressionIds: getUnlockedExpressionIds(),
+        };
+        const index = overlay.buildOverlayIndex(notes, catalog, options);
+        const vo = ensureVaultOverlayState();
+        vo.matches = index.matches.map(match => ({
+          note: {
+            path: match.note.path,
+            word: match.note.word,
+            type: match.note.type,
+            id: match.note.id,
+            aliases: match.note.aliases || [],
+          },
+          entityType: match.entityType,
+          entityId: match.entityId,
+          entityLabel: match.entityLabel,
+          confidence: match.confidence,
+          reason: match.reason,
+          relatedExpressionIds: match.relatedExpressionIds || [],
+          gate: match.gate,
+        }));
+        vo.lastFetchedAt = index.updatedAt;
+        vo.lastError = errors.length ? `${errors.length}개 경로 읽기 실패` : null;
+        saveProgress();
+        renderDictionaryExplorer();
+        toast(`Vault overlay ${notes.length}노트 · active ${index.byGate.active.length} · later ${index.byGate.unlockLater.length} · 후보 ${index.byGate.candidate.length}`);
+      } catch (error) {
+        const vo = ensureVaultOverlayState();
+        vo.lastError = String(error.message || error);
+        saveProgress();
+        renderDictionaryExplorer();
+        toast(vo.lastError);
+        console.error(error);
+      }
+    }
+    function acceptVaultMatch(matchId, forceWatchlist = false) {
+      const vo = ensureVaultOverlayState();
+      const match = (vo.matches || []).find(item => vaultMatchId(item) === matchId);
+      if (!match) {
+        toast('후보를 찾지 못했어요. Vault를 다시 읽어 주세요.');
+        return;
+      }
+      const status = forceWatchlist || match.gate !== 'active' ? 'watchlist' : 'confirmed';
+      const link = {
+        id: matchId,
+        notePath: match.note?.path || '',
+        noteWord: match.note?.word || '',
+        entityType: match.entityType || '',
+        entityId: match.entityId || '',
+        entityLabel: match.entityLabel || match.note?.word || '',
+        confidence: match.confidence || 'low',
+        gate: match.gate || 'background',
+        status,
+        updatedAt: new Date().toISOString(),
+      };
+      const index = vo.links.findIndex(item => item.id === matchId || item.notePath === link.notePath);
+      if (index >= 0) vo.links[index] = link;
+      else vo.links.unshift(link);
+      saveProgress();
+      renderDictionaryExplorer();
+      toast(status === 'watchlist'
+        ? '나중에 해금 후보(watchlist)에 넣었어요. 퀴즈에는 안 나옵니다.'
+        : 'Vault 연결을 확정했어요. 퀴즈 범위는 그대로입니다.');
+    }
+    function dismissVaultMatch(matchId) {
+      const vo = ensureVaultOverlayState();
+      const match = (vo.matches || []).find(item => vaultMatchId(item) === matchId);
+      const link = {
+        id: matchId,
+        notePath: match?.note?.path || matchId.split('::')[0],
+        noteWord: match?.note?.word || '',
+        entityType: match?.entityType || '',
+        entityId: match?.entityId || '',
+        entityLabel: match?.entityLabel || '',
+        confidence: match?.confidence || 'low',
+        gate: match?.gate || 'background',
+        status: 'dismissed',
+        updatedAt: new Date().toISOString(),
+      };
+      const index = vo.links.findIndex(item => item.id === matchId || item.notePath === link.notePath);
+      if (index >= 0) vo.links[index] = { ...vo.links[index], ...link };
+      else vo.links.unshift(link);
+      saveProgress();
+      renderDictionaryExplorer();
+      toast('연결 제안을 숨겼어요.');
+    }
+    function renderVaultOverlayPanel() {
+      const target = document.getElementById('vaultOverlayPanel');
+      if (!target) return;
+      refreshVaultMatchGates();
+      const vo = ensureVaultOverlayState();
+      const dismissed = new Set((vo.links || []).filter(link => link.status === 'dismissed').map(link => link.notePath));
+      const confirmedByPath = new Map((vo.links || []).filter(link => link.status !== 'dismissed').map(link => [link.notePath, link]));
+      const pending = (vo.matches || []).filter(match => match.note?.path && !dismissed.has(match.note.path));
+      const groups = {
+        active: pending.filter(item => item.gate === 'active'),
+        unlockLater: pending.filter(item => item.gate === 'unlock-later'),
+        candidate: pending.filter(item => item.gate === 'candidate'),
+        background: pending.filter(item => item.gate === 'background'),
+      };
+      const watchlist = (vo.links || []).filter(link => link.status === 'watchlist');
+      const confirmed = (vo.links || []).filter(link => link.status === 'confirmed');
+      const gateLabel = {
+        active: 'Active set',
+        'unlock-later': '나중에 해금',
+        candidate: '후보(미확정)',
+        background: '배경',
+      };
+      function renderMatchRow(match) {
+        const id = vaultMatchId(match);
+        const saved = confirmedByPath.get(match.note.path);
+        const savedBadge = saved ? ` · 저장됨(${saved.status})` : '';
+        return `
+          <div class="gap-note-item" style="margin-top:8px">
+            <div><b>${escapeHtml(match.note.word || match.note.path)}</b> → ${escapeHtml(match.entityLabel || '(미매칭)')}</div>
+            <div class="small-note">${escapeHtml(match.note.path)} · ${escapeHtml(match.confidence)} · ${escapeHtml(gateLabel[match.gate] || match.gate)}${escapeHtml(savedBadge)}</div>
+            <div class="question-actions" style="justify-content:flex-start; flex-wrap:wrap; gap:8px; margin-top:8px">
+              <a class="btn soft" href="${escapeHtml(obsidianOpenHref(match.note.path))}">Obsidian</a>
+              <button class="btn dark" type="button" data-vault-accept="${escapeHtml(id)}">${match.gate === 'active' ? '연결 확정' : 'watchlist에 넣기'}</button>
+              ${match.gate === 'active' ? `<button class="btn soft" type="button" data-vault-watch="${escapeHtml(id)}">watchlist만</button>` : ''}
+              <button class="btn ghost" type="button" data-vault-dismiss="${escapeHtml(id)}">숨기기</button>
+            </div>
+          </div>
+        `;
+      }
+      target.innerHTML = `
+        <h3>Vault 단어 연결</h3>
+        <p class="small-note">Library/Verbs·Nouns·Patterns(및 legacy 루트)를 읽기 전용으로 가져옵니다. 수락해도 퀴즈 은행은 늘어나지 않습니다.</p>
+        <div class="question-actions" style="justify-content:flex-start; flex-wrap:wrap; gap:8px; margin-top:10px">
+          <button class="btn dark" type="button" id="fetchVaultOverlayBtn">Local REST로 Vault 읽기</button>
+        </div>
+        <p class="small-note" style="margin-top:10px">
+          ${vo.lastFetchedAt ? `마지막 읽기 ${escapeHtml(vo.lastFetchedAt.slice(0, 19))}` : '아직 Vault를 읽지 않았어요.'}
+          ${vo.lastError ? ` · 오류: ${escapeHtml(vo.lastError)}` : ''}
+          · 확정 ${confirmed.length} · watchlist ${watchlist.length}
+        </p>
+        <div style="margin-top:14px">
+          <h4>Active set에 있는 연결</h4>
+          ${groups.active.length ? groups.active.slice(0, 20).map(renderMatchRow).join('') : '<p class="small-note">없음</p>'}
+        </div>
+        <div style="margin-top:14px">
+          <h4>나중에 해금 후보</h4>
+          ${groups.unlockLater.length ? groups.unlockLater.slice(0, 20).map(renderMatchRow).join('') : '<p class="small-note">없음</p>'}
+        </div>
+        <div style="margin-top:14px">
+          <h4>낮은 확신 후보</h4>
+          ${groups.candidate.length ? groups.candidate.slice(0, 20).map(renderMatchRow).join('') : '<p class="small-note">없음</p>'}
+        </div>
+        <div style="margin-top:14px">
+          <h4>내 watchlist</h4>
+          ${watchlist.length ? `<ul class="small-note" style="padding-left:18px">${watchlist.slice(0, 12).map(link => `<li>${escapeHtml(link.noteWord || link.notePath)} → ${escapeHtml(link.entityLabel)} (${escapeHtml(link.entityType)})</li>`).join('')}</ul>` : '<p class="small-note">비어 있어요.</p>'}
+        </div>
+      `;
+      document.getElementById('fetchVaultOverlayBtn')?.addEventListener('click', () => fetchVaultOverlayFromRest());
+      target.querySelectorAll('[data-vault-accept]').forEach(button => {
+        button.addEventListener('click', () => acceptVaultMatch(button.dataset.vaultAccept, false));
+      });
+      target.querySelectorAll('[data-vault-watch]').forEach(button => {
+        button.addEventListener('click', () => acceptVaultMatch(button.dataset.vaultWatch, true));
+      });
+      target.querySelectorAll('[data-vault-dismiss]').forEach(button => {
+        button.addEventListener('click', () => dismissVaultMatch(button.dataset.vaultDismiss));
+      });
+    }
     function updateHistoryConnections(itemId, connectionType, strength) {
       const history = getHistory(itemId);
       const current = history.connections?.[connectionType] || { strength: 0, updatedAt: null };
@@ -3712,6 +3991,7 @@
         verbs: '동사 탐험',
         expressions: '실생활 표현',
         build: '문장빌드맵',
+        vault: 'Vault 연결',
       }[selectedView] || '동사 카드';
       const segments = [`<span class="location-label">현재 위치</span><strong>${escapeHtml(viewLabel)}</strong>`];
       if (selectedView === 'legacy') {
@@ -3729,6 +4009,8 @@
         if (selectedRoute) segments.push(`선택 경로: <strong>${escapeHtml(selectedRoute.label)}</strong>`);
         if (selectedPattern) segments.push(`패턴: <strong>${escapeHtml(selectedPattern.label)}</strong>`);
         segments.push(`아래에서 route와 패턴을 고르면 카드가 열려요.`);
+      } else if (selectedView === 'vault') {
+        segments.push(`Vault 노트를 카탈로그 ID와 연결합니다. 출제 범위는 Active Speaking Set만 씁니다.`);
       }
       if (selectedView === 'verbs' && !selectedExpression) {
         segments.push(`패턴을 누르면 실생활 표현으로 이동해요.`);
@@ -4124,6 +4406,7 @@
       return appState.dictionaryData.gameExpressions.length ? appState.dictionaryData.gameExpressions : phraseBank.map(normalizeFallbackPhrase);
     }
     function getUnlockedBank() {
+      // Vault overlay / watchlist never expand this bank — ASS unlock packs only.
       const bank = getGameBank();
       const unlockedIds = new Set(getUnlockedExpressionIds());
       const filtered = bank.filter(item => unlockedIds.has(item.id));
@@ -5173,6 +5456,7 @@
       const expressionList = document.getElementById('expressionExplorerList');
       const detail = document.getElementById('expressionExplorerDetail');
       const dictionaryMap = document.getElementById('dictionaryMap');
+      const vaultOverlayPanel = document.getElementById('vaultOverlayPanel');
       if (!status || !verbButtons || !verbPanel || !patternList || !expressionList || !detail || !dictionaryMap || !dictionarySubnav) return;
 
       if (data.error) {
@@ -5200,7 +5484,7 @@
       const expressions = data.expressions.filter(e => e.coreVerbId === selectedVerb.id);
       const buildConfig = getVerbMapConfig(selectedVerb, data);
       const route = parseHashRoute();
-      const forcedView = route.screen === 'dictionary' && route.view && ['legacy', 'verbs', 'expressions', 'build'].includes(route.view) ? route.view : null;
+      const forcedView = route.screen === 'dictionary' && route.view && ['legacy', 'verbs', 'expressions', 'build', 'vault'].includes(route.view) ? route.view : null;
       let selectedExpression = data.selectedExpressionId ? expressions.find(e => e.id === data.selectedExpressionId) : null;
       let selectedRoute = buildConfig?.routes?.find(route => route.routeId === data.selectedRouteId) || null;
       let selectedPattern = null;
@@ -5262,10 +5546,11 @@
         return;
       }
       const buildViewActive = selectedView === 'build';
+      const vaultViewActive = selectedView === 'vault';
       const selectedLocationMarkup = renderDictionaryLocation(selectedView, selectedVerb, selectedPattern, selectedExpression, selectedRoute, data);
       if (dictionaryExplorer) {
         dictionaryExplorer.classList.toggle('map-focused', buildViewActive);
-        dictionaryExplorer.classList.toggle('has-selected-expression', Boolean(selectedView !== 'build' && !legacyViewActive && selectedExpression));
+        dictionaryExplorer.classList.toggle('has-selected-expression', Boolean(selectedView !== 'build' && !legacyViewActive && !vaultViewActive && selectedExpression));
         dictionaryExplorer.classList.toggle('legacy-focused', legacyViewActive);
         dictionaryExplorer.hidden = legacyViewActive;
       }
@@ -5296,7 +5581,9 @@
 
       status.className = 'explorer-status';
       const snapshot = getActiveSetSnapshot();
-      status.textContent = `Active Speaking Set ${snapshot.unlockedCount}개 연습 중 · 전체 ${data.verbs.length}동사 / ${data.expressions.length}표현 (해금되지 않은 항목은 잠김)`;
+      status.textContent = vaultViewActive
+        ? 'Vault overlay는 읽기 전용입니다. 연결을 확정해도 Active Speaking Set 퀴즈 범위는 늘어나지 않습니다.'
+        : `Active Speaking Set ${snapshot.unlockedCount}개 연습 중 · 전체 ${data.verbs.length}동사 / ${data.expressions.length}표현 (해금되지 않은 항목은 잠김)`;
       const sortedVerbs = [...data.verbs].sort((a, b) => {
         const aActive = isVerbInActiveSet(a.id) ? 0 : 1;
         const bActive = isVerbInActiveSet(b.id) ? 0 : 1;
@@ -5315,9 +5602,9 @@
             updateRouteForScreen('dictionary');
           }));
 
-      if (explorerGrid) explorerGrid.hidden = selectedView === 'build' || legacyViewActive;
-      verbPanel.hidden = selectedView === 'build' || legacyViewActive;
-      if (verbButtons) verbButtons.hidden = legacyViewActive;
+      if (explorerGrid) explorerGrid.hidden = selectedView === 'build' || legacyViewActive || vaultViewActive;
+      verbPanel.hidden = selectedView === 'build' || legacyViewActive || vaultViewActive;
+      if (verbButtons) verbButtons.hidden = legacyViewActive || vaultViewActive;
       if (status) status.hidden = legacyViewActive;
       patternList.hidden = selectedView !== 'verbs';
       const expressionPanel = document.getElementById('expressionExplorerPanel');
@@ -5325,6 +5612,15 @@
       expressionList.hidden = selectedView !== 'expressions' || legacyViewActive;
       detail.hidden = selectedView !== 'expressions' || legacyViewActive;
       dictionaryMap.hidden = selectedView !== 'build' || legacyViewActive;
+      if (vaultOverlayPanel) {
+        vaultOverlayPanel.hidden = !vaultViewActive || legacyViewActive;
+        if (vaultViewActive) renderVaultOverlayPanel();
+        else vaultOverlayPanel.innerHTML = '';
+      }
+
+      if (vaultViewActive) {
+        return;
+      }
 
       verbPanel.innerHTML = `
         <h4>선택한 핵심 동사</h4>
@@ -5333,6 +5629,7 @@
         <p class="explorer-guide">이 동사의 패턴만 먼저 봅니다.</p>
         <p class="small-note">대표 상황: ${selectedVerb.representativeSituations.map(escapeHtml).join(' · ')}</p>
         <p class="small-note">연결 동사: ${selectedVerb.connectedVerbIds.map(id => data.verbs.find(v => v.id === id)?.word || id).map(escapeHtml).join(' · ')}</p>
+        ${renderVaultLinksMarkup('verb', selectedVerb.id)}
       `;
       patternList.innerHTML = patterns.length ? patterns.map(pattern => `
         <button class="pattern-item" data-pattern-id="${pattern.id}">
@@ -5392,6 +5689,9 @@
           <p class="explorer-guide">${unlocked ? '덩어리를 보고 바로 퀴즈로 넘어가세요.' : '이 표현은 아직 잠겨 있어요. Active Speaking Set을 익히면 해금됩니다.'}</p>
           <p class="small-note">표현 틀: ${escapeHtml(pattern?.label || selectedExpression.patternId)} · 핵심 명사: ${nouns.map(escapeHtml).join(' · ') || '없음'}</p>
           <ol class="hint-list">${selectedExpression.hints.map(hint => `<li>${escapeHtml(hint)}</li>`).join('')}</ol>
+          ${renderVaultLinksMarkup('expression', selectedExpression.id)}
+          ${renderVaultLinksMarkup('verb', selectedExpression.coreVerbId)}
+          ${(selectedExpression.nounIds || []).map(nounId => renderVaultLinksMarkup('noun', nounId)).join('')}
           <div class="question-actions" style="justify-content:flex-start">
             <button class="btn dark quiz-expression" data-expression-id="${selectedExpression.id}" ${unlocked ? '' : 'disabled'}>${unlocked ? '듣고 따라하기' : '잠긴 표현'}</button>
           </div>

@@ -1,9 +1,13 @@
-const CACHE = 'etd-quest-v1.0.5';
+const CACHE = 'etd-quest-v1.0.6';
 const ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
   './src/domain/markdown-projection.js',
+  './src/domain/obsidian-sync.js',
+  './src/domain/canon-intake.js',
+  './src/domain/verb-matrix-gate.js',
+  './src/domain/vault-overlay.js',
   './data/verbs.json',
   './data/nouns.json',
   './data/patterns.json',

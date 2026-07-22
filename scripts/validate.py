@@ -35,7 +35,7 @@ def main() -> None:
     if f"etd-quest-v{version}" not in worker:
         fail("service-worker cache version does not match VERSION")
 
-    for required in ["index.html", "manifest.webmanifest", "service-worker.js", "README.md", "src/domain/markdown-projection.js", "src/domain/obsidian-sync.js", "src/domain/canon-intake.js", "src/domain/verb-matrix-gate.js"]:
+    for required in ["index.html", "manifest.webmanifest", "service-worker.js", "README.md", "src/domain/markdown-projection.js", "src/domain/obsidian-sync.js", "src/domain/canon-intake.js", "src/domain/verb-matrix-gate.js", "src/domain/vault-overlay.js"]:
         if not (ROOT / required).exists():
             fail(f"Required file is missing: {required}")
 
@@ -64,6 +64,13 @@ def main() -> None:
         for expression_id in pack.get("expressionIds") or []:
             if expression_id not in expression_ids:
                 fail(f"activeSpeakingSet unlock pack references unknown expressionId: {expression_id}")
+    for pack in active_set.get("verbUnlockPacks") or []:
+        for verb_id in pack.get("verbIds") or []:
+            if verb_id not in verb_ids:
+                fail(f"activeSpeakingSet verbUnlockPack references unknown verbId: {verb_id}")
+        for expression_id in pack.get("expressionIds") or []:
+            if expression_id not in expression_ids:
+                fail(f"activeSpeakingSet verbUnlockPack references unknown expressionId: {expression_id}")
 
     qa_matrices_path = ROOT / "data" / "qa-matrices.json"
     if not qa_matrices_path.exists():
