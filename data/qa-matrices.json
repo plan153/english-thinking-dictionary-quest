@@ -1,0 +1,197 @@
+{
+  "version": 1,
+  "matrices": [
+    {
+      "id": "m_have_question",
+      "baseExpressionId": "e001",
+      "coreVerbId": "v_have",
+      "label": "have + a question",
+      "thinkingFrame": "질문이 있는지 말하기·묻기",
+      "forms": [
+        { "id": "statement", "label": "평서", "en": "I have a question.", "ko": "질문이 있어요.", "cue": "평서문으로 말해 보세요", "acceptedAnswers": ["I've a question."] },
+        { "id": "question", "label": "의문", "en": "Do you have a question?", "ko": "질문 있어요?", "cue": "의문문으로 바꿔 보세요", "baseFormId": "statement" },
+        { "id": "negative", "label": "부정", "en": "I don't have a question.", "ko": "질문이 없어요.", "cue": "부정문으로 바꿔 보세요", "baseFormId": "statement", "acceptedAnswers": ["I do not have a question."] },
+        { "id": "shortYes", "label": "짧은 답", "en": "Yes, I do.", "ko": "네, 있어요.", "cue": "짧게 긍정으로 답해 보세요", "baseFormId": "question" },
+        { "id": "shortNo", "label": "짧은 답", "en": "No, I don't.", "ko": "아니요, 없어요.", "cue": "짧게 부정으로 답해 보세요", "baseFormId": "question", "acceptedAnswers": ["No, I do not."] },
+        { "id": "past", "label": "과거", "en": "I had a question.", "ko": "질문이 있었어요.", "cue": "과거로 바꿔 보세요", "baseFormId": "statement", "level": 2 },
+        { "id": "future", "label": "가까운 미래", "en": "I'm going to have a question.", "ko": "질문이 생길 거예요.", "cue": "가까운 미래로 바꿔 보세요", "baseFormId": "statement", "level": 2, "acceptedAnswers": ["I am going to have a question."] }
+      ]
+    },
+    {
+      "id": "m_have_time",
+      "baseExpressionId": "e022",
+      "coreVerbId": "v_have",
+      "label": "have + time",
+      "thinkingFrame": "시간이 있는지 묻기·답하기",
+      "forms": [
+        { "id": "statement", "label": "평서", "en": "I have time.", "ko": "시간이 있어요.", "cue": "평서문으로 말해 보세요" },
+        { "id": "question", "label": "의문", "en": "Do you have time?", "ko": "시간 있어요?", "cue": "의문문으로 바꿔 보세요", "baseFormId": "statement" },
+        { "id": "negative", "label": "부정", "en": "I don't have time.", "ko": "시간이 없어요.", "cue": "부정문으로 바꿔 보세요", "baseFormId": "statement", "acceptedAnswers": ["I do not have time."] },
+        { "id": "shortYes", "label": "짧은 답", "en": "Yes, I do.", "ko": "네, 있어요.", "cue": "짧게 긍정으로 답해 보세요", "baseFormId": "question" },
+        { "id": "shortNo", "label": "짧은 답", "en": "No, I don't.", "ko": "아니요, 없어요.", "cue": "짧게 부정으로 답해 보세요", "baseFormId": "question", "acceptedAnswers": ["No, I do not."] },
+        { "id": "past", "label": "과거", "en": "I had time.", "ko": "시간이 있었어요.", "cue": "과거로 바꿔 보세요", "baseFormId": "statement", "level": 2 },
+        { "id": "future", "label": "가까운 미래", "en": "I'm going to have time.", "ko": "시간이 날 거예요.", "cue": "가까운 미래로 바꿔 보세요", "baseFormId": "statement", "level": 2, "acceptedAnswers": ["I am going to have time."] }
+      ]
+    },
+    {
+      "id": "m_get_it",
+      "baseExpressionId": "e003",
+      "coreVerbId": "v_get",
+      "label": "get + it",
+      "thinkingFrame": "이해했는지 말하기·묻기",
+      "forms": [
+        { "id": "statement", "label": "평서", "en": "I get it.", "ko": "알겠어요. / 이해했어요.", "cue": "평서문으로 말해 보세요" },
+        { "id": "question", "label": "의문", "en": "Do you get it?", "ko": "이해돼요?", "cue": "의문문으로 바꿔 보세요", "baseFormId": "statement" },
+        { "id": "negative", "label": "부정", "en": "I don't get it.", "ko": "이해가 안 돼요.", "cue": "부정문으로 바꿔 보세요", "baseFormId": "statement", "acceptedAnswers": ["I do not get it."] },
+        { "id": "shortYes", "label": "짧은 답", "en": "Yes, I do.", "ko": "네, 이해해요.", "cue": "짧게 긍정으로 답해 보세요", "baseFormId": "question" },
+        { "id": "shortNo", "label": "짧은 답", "en": "No, I don't.", "ko": "아니요, 모르겠어요.", "cue": "짧게 부정으로 답해 보세요", "baseFormId": "question", "acceptedAnswers": ["No, I do not."] },
+        { "id": "past", "label": "과거", "en": "I got it.", "ko": "이해했어요.", "cue": "과거로 바꿔 보세요", "baseFormId": "statement", "level": 2 },
+        { "id": "future", "label": "가까운 미래", "en": "I'm going to get it.", "ko": "곧 이해할 거예요.", "cue": "가까운 미래로 바꿔 보세요", "baseFormId": "statement", "level": 2, "acceptedAnswers": ["I am going to get it."] }
+      ]
+    },
+    {
+      "id": "m_need_help",
+      "baseExpressionId": "e075",
+      "coreVerbId": "v_need",
+      "label": "need + help",
+      "thinkingFrame": "도움이 필요한지 말하기·묻기",
+      "forms": [
+        { "id": "statement", "label": "평서", "en": "I need help.", "ko": "도움이 필요해요.", "cue": "평서문으로 말해 보세요" },
+        { "id": "question", "label": "의문", "en": "Do you need help?", "ko": "도움이 필요해요?", "cue": "의문문으로 바꿔 보세요", "baseFormId": "statement" },
+        { "id": "negative", "label": "부정", "en": "I don't need help.", "ko": "도움은 괜찮아요.", "cue": "부정문으로 바꿔 보세요", "baseFormId": "statement", "acceptedAnswers": ["I do not need help."] },
+        { "id": "shortYes", "label": "짧은 답", "en": "Yes, I do.", "ko": "네, 필요해요.", "cue": "짧게 긍정으로 답해 보세요", "baseFormId": "question" },
+        { "id": "shortNo", "label": "짧은 답", "en": "No, I don't.", "ko": "아니요, 괜찮아요.", "cue": "짧게 부정으로 답해 보세요", "baseFormId": "question", "acceptedAnswers": ["No, I do not."] },
+        { "id": "past", "label": "과거", "en": "I needed help.", "ko": "도움이 필요했어요.", "cue": "과거로 바꿔 보세요", "baseFormId": "statement", "level": 2 },
+        { "id": "future", "label": "가까운 미래", "en": "I'm going to need help.", "ko": "도움이 필요할 거예요.", "cue": "가까운 미래로 바꿔 보세요", "baseFormId": "statement", "level": 2, "acceptedAnswers": ["I am going to need help."] }
+      ]
+    },
+    {
+      "id": "m_need_time",
+      "baseExpressionId": "e002",
+      "coreVerbId": "v_need",
+      "label": "need + some time",
+      "thinkingFrame": "시간이 필요하다고 말하기·묻기",
+      "forms": [
+        { "id": "statement", "label": "평서", "en": "I need some time.", "ko": "시간이 좀 필요해요.", "cue": "평서문으로 말해 보세요" },
+        { "id": "question", "label": "의문", "en": "Do you need some time?", "ko": "시간 좀 필요해요?", "cue": "의문문으로 바꿔 보세요", "baseFormId": "statement" },
+        { "id": "negative", "label": "부정", "en": "I don't need much time.", "ko": "시간이 많이 필요하지는 않아요.", "cue": "부정문으로 바꿔 보세요", "baseFormId": "statement", "acceptedAnswers": ["I do not need much time.", "I don't need some time.", "I do not need some time."] },
+        { "id": "shortYes", "label": "짧은 답", "en": "Yes, I do.", "ko": "네, 필요해요.", "cue": "짧게 긍정으로 답해 보세요", "baseFormId": "question" },
+        { "id": "shortNo", "label": "짧은 답", "en": "No, I don't.", "ko": "아니요, 괜찮아요.", "cue": "짧게 부정으로 답해 보세요", "baseFormId": "question", "acceptedAnswers": ["No, I do not."] },
+        { "id": "past", "label": "과거", "en": "I needed some time.", "ko": "시간이 좀 필요했어요.", "cue": "과거로 바꿔 보세요", "baseFormId": "statement", "level": 2 },
+        { "id": "future", "label": "가까운 미래", "en": "I'm going to need some time.", "ko": "시간이 좀 필요할 거예요.", "cue": "가까운 미래로 바꿔 보세요", "baseFormId": "statement", "level": 2, "acceptedAnswers": ["I am going to need some time."] }
+      ]
+    },
+    {
+      "id": "m_want_to_know",
+      "baseExpressionId": "e068",
+      "coreVerbId": "v_want",
+      "label": "want to + know",
+      "thinkingFrame": "알고 싶다고 말하기·묻기",
+      "forms": [
+        { "id": "statement", "label": "평서", "en": "I want to know.", "ko": "알고 싶어요.", "cue": "평서문으로 말해 보세요" },
+        { "id": "question", "label": "의문", "en": "Do you want to know?", "ko": "알고 싶어요?", "cue": "의문문으로 바꿔 보세요", "baseFormId": "statement" },
+        { "id": "negative", "label": "부정", "en": "I don't want to know.", "ko": "알고 싶지 않아요.", "cue": "부정문으로 바꿔 보세요", "baseFormId": "statement", "acceptedAnswers": ["I do not want to know."] },
+        { "id": "shortYes", "label": "짧은 답", "en": "Yes, I do.", "ko": "네, 알고 싶어요.", "cue": "짧게 긍정으로 답해 보세요", "baseFormId": "question" },
+        { "id": "shortNo", "label": "짧은 답", "en": "No, I don't.", "ko": "아니요, 괜찮아요.", "cue": "짧게 부정으로 답해 보세요", "baseFormId": "question", "acceptedAnswers": ["No, I do not."] },
+        { "id": "past", "label": "과거", "en": "I wanted to know.", "ko": "알고 싶었어요.", "cue": "과거로 바꿔 보세요", "baseFormId": "statement", "level": 2 },
+        { "id": "future", "label": "가까운 미래", "en": "I'm going to want to know.", "ko": "알고 싶어질 거예요.", "cue": "가까운 미래로 바꿔 보세요", "baseFormId": "statement", "level": 2, "acceptedAnswers": ["I am going to want to know."] }
+      ]
+    },
+    {
+      "id": "m_want_to_go_home",
+      "baseExpressionId": "e069",
+      "coreVerbId": "v_want",
+      "label": "want to + go home",
+      "thinkingFrame": "집에 가고 싶다고 말하기·묻기",
+      "forms": [
+        { "id": "statement", "label": "평서", "en": "I want to go home.", "ko": "집에 가고 싶어요.", "cue": "평서문으로 말해 보세요" },
+        { "id": "question", "label": "의문", "en": "Do you want to go home?", "ko": "집에 가고 싶어요?", "cue": "의문문으로 바꿔 보세요", "baseFormId": "statement" },
+        { "id": "negative", "label": "부정", "en": "I don't want to go home.", "ko": "집에 가고 싶지 않아요.", "cue": "부정문으로 바꿔 보세요", "baseFormId": "statement", "acceptedAnswers": ["I do not want to go home."] },
+        { "id": "shortYes", "label": "짧은 답", "en": "Yes, I do.", "ko": "네, 가고 싶어요.", "cue": "짧게 긍정으로 답해 보세요", "baseFormId": "question" },
+        { "id": "shortNo", "label": "짧은 답", "en": "No, I don't.", "ko": "아니요, 괜찮아요.", "cue": "짧게 부정으로 답해 보세요", "baseFormId": "question", "acceptedAnswers": ["No, I do not."] },
+        { "id": "past", "label": "과거", "en": "I wanted to go home.", "ko": "집에 가고 싶었어요.", "cue": "과거로 바꿔 보세요", "baseFormId": "statement", "level": 2 },
+        { "id": "future", "label": "가까운 미래", "en": "I'm going to want to go home.", "ko": "집에 가고 싶어질 거예요.", "cue": "가까운 미래로 바꿔 보세요", "baseFormId": "statement", "level": 2, "acceptedAnswers": ["I am going to want to go home."] }
+      ]
+    },
+    {
+      "id": "m_make_a_plan",
+      "baseExpressionId": "e020",
+      "coreVerbId": "v_make",
+      "label": "make + a plan",
+      "thinkingFrame": "계획을 만든다고 말하기·묻기",
+      "forms": [
+        { "id": "statement", "label": "평서", "en": "I make a plan.", "ko": "계획을 세워요.", "cue": "평서문으로 말해 보세요", "acceptedAnswers": ["I make plans."] },
+        { "id": "question", "label": "의문", "en": "Do you make a plan?", "ko": "계획을 세우나요?", "cue": "의문문으로 바꿔 보세요", "baseFormId": "statement", "acceptedAnswers": ["Do you make plans?"] },
+        { "id": "negative", "label": "부정", "en": "I don't make a plan.", "ko": "계획은 안 세워요.", "cue": "부정문으로 바꿔 보세요", "baseFormId": "statement", "acceptedAnswers": ["I do not make a plan.", "I don't make plans."] },
+        { "id": "shortYes", "label": "짧은 답", "en": "Yes, I do.", "ko": "네, 세워요.", "cue": "짧게 긍정으로 답해 보세요", "baseFormId": "question" },
+        { "id": "shortNo", "label": "짧은 답", "en": "No, I don't.", "ko": "아니요, 안 세워요.", "cue": "짧게 부정으로 답해 보세요", "baseFormId": "question", "acceptedAnswers": ["No, I do not."] },
+        { "id": "past", "label": "과거", "en": "I made a plan.", "ko": "계획을 세웠어요.", "cue": "과거로 바꿔 보세요", "baseFormId": "statement", "level": 2 },
+        { "id": "future", "label": "가까운 미래", "en": "I'm going to make a plan.", "ko": "계획을 세울 거예요.", "cue": "가까운 미래로 바꿔 보세요", "baseFormId": "statement", "level": 2, "acceptedAnswers": ["I am going to make a plan."] }
+      ]
+    },
+    {
+      "id": "m_take_time",
+      "baseExpressionId": "e036",
+      "coreVerbId": "v_take",
+      "label": "take + time",
+      "thinkingFrame": "시간이 걸린다고 말하기·묻기",
+      "forms": [
+        { "id": "statement", "label": "평서", "en": "It takes time.", "ko": "시간이 걸려요.", "cue": "평서문으로 말해 보세요" },
+        { "id": "question", "label": "의문", "en": "Does it take time?", "ko": "시간 걸려요?", "cue": "의문문으로 바꿔 보세요", "baseFormId": "statement" },
+        { "id": "negative", "label": "부정", "en": "It doesn't take much time.", "ko": "시간이 많이 걸리지는 않아요.", "cue": "부정문으로 바꿔 보세요", "baseFormId": "statement", "acceptedAnswers": ["It does not take much time.", "It doesn't take time.", "It does not take time."] },
+        { "id": "shortYes", "label": "짧은 답", "en": "Yes, it does.", "ko": "네, 걸려요.", "cue": "짧게 긍정으로 답해 보세요", "baseFormId": "question" },
+        { "id": "shortNo", "label": "짧은 답", "en": "No, it doesn't.", "ko": "아니요, 안 걸려요.", "cue": "짧게 부정으로 답해 보세요", "baseFormId": "question", "acceptedAnswers": ["No, it does not."] },
+        { "id": "past", "label": "과거", "en": "It took time.", "ko": "시간이 걸렸어요.", "cue": "과거로 바꿔 보세요", "baseFormId": "statement", "level": 2 },
+        { "id": "future", "label": "가까운 미래", "en": "It's going to take time.", "ko": "시간이 걸릴 거예요.", "cue": "가까운 미래로 바꿔 보세요", "baseFormId": "statement", "level": 2, "acceptedAnswers": ["It is going to take time."] }
+      ]
+    },
+    {
+      "id": "m_go_home",
+      "baseExpressionId": "e044",
+      "coreVerbId": "v_go",
+      "label": "go + home",
+      "thinkingFrame": "집에 간다고 말하기·묻기",
+      "forms": [
+        { "id": "statement", "label": "평서", "en": "I go home.", "ko": "집에 가요.", "cue": "평서문으로 말해 보세요", "acceptedAnswers": ["I'm going home.", "I am going home."] },
+        { "id": "question", "label": "의문", "en": "Do you go home?", "ko": "집에 가요?", "cue": "의문문으로 바꿔 보세요", "baseFormId": "statement", "acceptedAnswers": ["Are you going home?"] },
+        { "id": "negative", "label": "부정", "en": "I don't go home.", "ko": "집에 안 가요.", "cue": "부정문으로 바꿔 보세요", "baseFormId": "statement", "acceptedAnswers": ["I do not go home.", "I'm not going home.", "I am not going home."] },
+        { "id": "shortYes", "label": "짧은 답", "en": "Yes, I do.", "ko": "네, 가요.", "cue": "짧게 긍정으로 답해 보세요", "baseFormId": "question", "acceptedAnswers": ["Yes, I am."] },
+        { "id": "shortNo", "label": "짧은 답", "en": "No, I don't.", "ko": "아니요, 안 가요.", "cue": "짧게 부정으로 답해 보세요", "baseFormId": "question", "acceptedAnswers": ["No, I do not.", "No, I'm not.", "No, I am not."] },
+        { "id": "past", "label": "과거", "en": "I went home.", "ko": "집에 갔어요.", "cue": "과거로 바꿔 보세요", "baseFormId": "statement", "level": 2 },
+        { "id": "future", "label": "가까운 미래", "en": "I'm going to go home.", "ko": "집에 갈 거예요.", "cue": "가까운 미래로 바꿔 보세요", "baseFormId": "statement", "level": 2, "acceptedAnswers": ["I am going to go home."] }
+      ]
+    },
+    {
+      "id": "m_come_with_me",
+      "baseExpressionId": "e009",
+      "coreVerbId": "v_come",
+      "label": "come + with me",
+      "thinkingFrame": "같이 오라고 말하기·묻기",
+      "forms": [
+        { "id": "statement", "label": "평서", "en": "You come with me.", "ko": "나랑 같이 와요.", "cue": "평서문으로 말해 보세요", "acceptedAnswers": ["Come with me."] },
+        { "id": "question", "label": "의문", "en": "Do you come with me?", "ko": "나랑 같이 올래요?", "cue": "의문문으로 바꿔 보세요", "baseFormId": "statement", "acceptedAnswers": ["Will you come with me?", "Can you come with me?"] },
+        { "id": "negative", "label": "부정", "en": "I don't come with you.", "ko": "같이 안 가요.", "cue": "부정문으로 바꿔 보세요", "baseFormId": "statement", "acceptedAnswers": ["I do not come with you.", "I won't come with you.", "I will not come with you."] },
+        { "id": "shortYes", "label": "짧은 답", "en": "Yes, I do.", "ko": "네, 갈게요.", "cue": "짧게 긍정으로 답해 보세요", "baseFormId": "question", "acceptedAnswers": ["Yes, I will.", "Yes, I can."] },
+        { "id": "shortNo", "label": "짧은 답", "en": "No, I don't.", "ko": "아니요, 안 갈게요.", "cue": "짧게 부정으로 답해 보세요", "baseFormId": "question", "acceptedAnswers": ["No, I do not.", "No, I won't.", "No, I will not.", "No, I can't.", "No, I cannot."] },
+        { "id": "past", "label": "과거", "en": "I came with you.", "ko": "같이 갔어요.", "cue": "과거로 바꿔 보세요", "baseFormId": "statement", "level": 2 },
+        { "id": "future", "label": "가까운 미래", "en": "I'm going to come with you.", "ko": "같이 갈 거예요.", "cue": "가까운 미래로 바꿔 보세요", "baseFormId": "statement", "level": 2, "acceptedAnswers": ["I am going to come with you."] }
+      ]
+    },
+    {
+      "id": "m_want_some_time",
+      "baseExpressionId": "e083",
+      "coreVerbId": "v_want",
+      "label": "want + some time",
+      "thinkingFrame": "시간이 필요하다고 말하기·묻기",
+      "forms": [
+        { "id": "statement", "label": "평서", "en": "I want some time.", "ko": "시간이 좀 필요해요.", "cue": "평서문으로 말해 보세요" },
+        { "id": "question", "label": "의문", "en": "Do you want some time?", "ko": "시간 좀 필요해요?", "cue": "의문문으로 바꿔 보세요", "baseFormId": "statement" },
+        { "id": "negative", "label": "부정", "en": "I don't want much time.", "ko": "시간이 많이 필요하지는 않아요.", "cue": "부정문으로 바꿔 보세요", "baseFormId": "statement", "acceptedAnswers": ["I do not want much time.", "I don't want some time.", "I do not want some time."] },
+        { "id": "shortYes", "label": "짧은 답", "en": "Yes, I do.", "ko": "네, 필요해요.", "cue": "짧게 긍정으로 답해 보세요", "baseFormId": "question" },
+        { "id": "shortNo", "label": "짧은 답", "en": "No, I don't.", "ko": "아니요, 괜찮아요.", "cue": "짧게 부정으로 답해 보세요", "baseFormId": "question", "acceptedAnswers": ["No, I do not."] },
+        { "id": "past", "label": "과거", "en": "I wanted some time.", "ko": "시간이 좀 필요했어요.", "cue": "과거로 바꿔 보세요", "baseFormId": "statement", "level": 2 },
+        { "id": "future", "label": "가까운 미래", "en": "I'm going to want some time.", "ko": "시간이 좀 필요할 거예요.", "cue": "가까운 미래로 바꿔 보세요", "baseFormId": "statement", "level": 2, "acceptedAnswers": ["I am going to want some time."] }
+      ]
+    }
+  ]
+}

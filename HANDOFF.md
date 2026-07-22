@@ -17,7 +17,8 @@
 - 기존 내장 `phraseBank`는 데이터 파일 로드 실패 시에만 쓰는 fallback 역할로 남아 있음.
 - 서비스 기획 및 마케팅 문서 `docs/PRODUCT_STORY_AND_MARKETING.md`가 추가되어 있음.
 - Active Speaking Set Starter가 코드에 반영됨: `getUnlockedBank()`, Unlock pack, 홈/성장 요약, 동사 카드 잠금.
-- 묻기/답하기·시제 매트릭스와 Obsidian Brain State 동기화는 아직 없음(Phase 2~3).
+- 묻기·답하기·시제 매트릭스 모드(`data/qa-matrices.json`, mode `matrix`)가 반영됨.
+- Obsidian Brain State 동기화는 아직 없음(Phase 1/3).
 
 ## 서비스 기획 및 마케팅 요약
 - 이 서비스는 영어를 더 많이 외우게 하는 앱이 아니라, 이미 알고 있는 기본 단어를 실제 말로 연결하게 돕는 게임형 영어 사고 훈련 앱으로 정의됨.
@@ -70,9 +71,9 @@
 - 사전 탐험 상세에서 `이 표현으로 퀴즈 풀기`와 관련 표현 이동 구조 추가
 
 ## 다음 작업 우선순위
-1. 묻기/답하기·부정·짧은 답·간단 시제 매트릭스 모드/콘텐츠를 Active set 안에서 추가한다.
-2. `gapNotes`와 Obsidian `Learning/Brain State.md` / `Next Practice.md` projection 최소 루프를 구현한다.
-3. Local REST API(또는 로컬 브리지)로 Vault upsert/import를 붙인다. Drive/Git은 백업만.
+1. `gapNotes`와 Obsidian `Learning/Brain State.md` / `Next Practice.md` projection 최소 루프를 구현한다.
+2. Local REST API(또는 로컬 브리지)로 Vault upsert/import를 붙인다. Drive/Git은 백업만.
+3. 제한 어휘 설명(파인만) 챌린지와 explanation 기록을 매트릭스 결과에 연결한다.
 4. 동사 매트릭스 4형태 통과 후에만 새 동사를 해금하는 규칙을 강화한다.
 5. 그 다음에만 Unlock pack으로 동사·명사·표현을 소량 확장한다.
 

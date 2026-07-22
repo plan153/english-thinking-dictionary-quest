@@ -208,6 +208,31 @@
     .active-set-card .active-set-stats span {
       background:#eaf4f3; color:#155a57; border-radius:999px; padding:7px 10px; font-size:12px; font-weight:850;
     }
+    .matrix-form-badge {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      margin: 0 auto 10px;
+      padding:7px 12px;
+      border-radius:999px;
+      background:#fff3d5;
+      color:#8a6610;
+      font-size:12px;
+      font-weight:900;
+    }
+    .matrix-base {
+      max-width:620px;
+      align-self:center;
+      margin: 0 auto 12px;
+      padding:12px 14px;
+      border-radius:14px;
+      background:#eef7f6;
+      color:#245c5a;
+      font-size:14px;
+      line-height:1.5;
+      text-align:left;
+    }
+    .matrix-base strong { display:block; margin-bottom:4px; }
     .dictionary-location {
       margin-top: 10px;
       padding: 11px 13px;
@@ -541,7 +566,7 @@
           <div class="ring" id="dailyRing" style="--p: 0"><strong id="dailyPercent">0%</strong></div>
           <div>
             <h3>오늘의 최소 루프</h3>
-            <p id="dailyCopy">듣고 따라 말하기 1세트 → 영어 장면 고르기 2회 → 한글→영어 조립 2회 → 약한 연결 복습 1회</p>
+            <p id="dailyCopy">듣고 따라 말하기 1세트 → 영어 장면 고르기 2회 → 한글→영어 조립 1회 → 묻기·답하기 변형 1회 → 약한 연결 복습 1회</p>
             <div class="mini-progress"><div class="progress-track"><span id="dailyBar" style="width:0%"></span></div><strong id="dailyCount">0 / 7</strong></div>
           </div>
         </article>
@@ -742,6 +767,7 @@
 
     const modeCards = [
       { id:'listen', icon:'🔊', title:'듣고 따라 말하기', desc:'문장을 듣고 바로 따라 말하며 리듬과 덩어리를 익혀요.', cta:'소리로 시작' },
+      { id:'matrix', icon:'🔄', title:'묻기 · 답하기 변형', desc:'같은 표현을 평서·의문·부정·짧은 답·시제로 바꿔 입으로 연습해요.', cta:'변형 연습' },
       { id:'koen', icon:'🧩', title:'한글 → 영어 조립', desc:'한국어 뜻을 보고 핵심 동사와 표현 덩어리를 빠르게 골라요. 힌트는 안쪽에서 좁혀요.', cta:'영어 만들기' },
       { id:'enko', icon:'🎯', title:'영어 → 장면 고르기', desc:'영어를 번역하지 말고, 가장 가까운 상황과 뜻을 골라요.', cta:'뜻 연결하기' },
       { id:'review', icon:'🔁', title:'약한 연결 복습', desc:'틀린 표현과 아직 덜 익은 연결만 다시 만나요.', cta:'복습 시작' },
@@ -1625,7 +1651,7 @@
       currentMapExampleByVerb: {},
       filter: '전체',
       search: '',
-      dictionaryData: { verbs: [], nouns: [], patterns: [], expressions: [], verbMaps: [], learningPaths: null, isLoaded: false, error: null, selectedVerbId: null, selectedExpressionId: null, selectedRouteId: null, selectedPatternId: null, selectedSlotValue: null, selectedCombinationId: null, selectedMapSentenceId: null, selectedExplorerView: 'legacy', isMapMeaningOpen: false, isMapPracticeOpen: false, gameExpressions: buildMapGameExpressions(), dataSource: 'fallback' },
+      dictionaryData: { verbs: [], nouns: [], patterns: [], expressions: [], verbMaps: [], qaMatrices: [], learningPaths: null, isLoaded: false, error: null, selectedVerbId: null, selectedExpressionId: null, selectedRouteId: null, selectedPatternId: null, selectedSlotValue: null, selectedCombinationId: null, selectedMapSentenceId: null, selectedExplorerView: 'legacy', isMapMeaningOpen: false, isMapPracticeOpen: false, gameExpressions: buildMapGameExpressions(), dataSource: 'fallback' },
       progress: loadProgress(),
       sessionStudyRecords: {},
       audioContext: null,
@@ -1825,7 +1851,12 @@
 
     function handleQuestStageCompletion(mode, itemId, resultType, details = {}) {
       const questCtx = appState.questContext;
-      if (!questCtx || questCtx.source !== 'dailyQuestV1' || questCtx.expressionId !== itemId) return;
+      if (!questCtx || questCtx.source !== 'dailyQuestV1') return;
+      const matchesExpression = questCtx.expressionId === itemId
+        || questCtx.expressionId === details.baseExpressionId
+        || questCtx.expressionId === details.matrixId
+        || questCtx.expressionId === details.progressId;
+      if (!matchesExpression) return;
       if (resultType !== 'correct' && resultType !== 'almost') return;
       const quest = appState.progress.dailyQuestV1;
       const step = (quest.stepPlan || [])[questCtx.stepIndex];
@@ -1898,13 +1929,20 @@
       const fifth = picks[4] || fourth;
       const sixth = picks[5] || fifth;
       const seventh = picks[6] || sixth;
+      const matrixBases = getUnlockedMatrices()
+        .map(matrix => matrix.baseExpressionId)
+        .filter(id => bank.some(item => item.id === id));
+      const matrixSeed = matrixBases.find(id => id === fifth || id === sixth || id === fourth || id === third || id === first)
+        || matrixBases[0]
+        || fifth
+        || first;
       return [
         { key: 'step-1', label: '듣고 따라 말하기', mode: 'listen', expressionId: first, questStage: 'meaning' },
         { key: 'step-2', label: '듣고 따라 말하기', mode: 'speak', expressionId: first, questStage: 'output' },
         { key: 'step-3', label: '영어 장면 고르기', mode: 'enko', expressionId: third || second || first, questStage: 'meaning' },
         { key: 'step-4', label: '영어 장면 고르기', mode: 'enko', expressionId: fourth || third || second || first, questStage: 'meaning' },
         { key: 'step-5', label: '한글→영어 조립', mode: 'koen', expressionId: fifth || fourth || third || second || first, questStage: 'assembly' },
-        { key: 'step-6', label: '한글→영어 조립', mode: 'koen', expressionId: sixth || fifth || fourth || third || second || first, questStage: 'assembly' },
+        { key: 'step-6', label: '묻기·답하기 변형', mode: 'matrix', expressionId: matrixSeed, questStage: 'assembly', matrixFormId: 'question' },
         { key: 'step-7', label: '약한 연결 복습', mode: 'review', expressionId: seventh || sixth || fifth || fourth || third || second || first, questStage: 'output' },
       ].filter(step => step.expressionId);
     }
@@ -1957,7 +1995,7 @@
       const validPlan = Array.isArray(quest.stepPlan)
         && quest.stepPlan.length === 7
         && quest.stepPlan.every(step => step && step.key && step.mode && step.expressionId && bank.some(item => item.id === step.expressionId));
-      if (quest.version === 2 && quest.date === seoulToday && validPlan) {
+      if (quest.version === 3 && quest.date === seoulToday && validPlan) {
         quest.currentIndex = clampValue(Number.isFinite(quest.currentIndex) ? quest.currentIndex : 0, 0, quest.stepPlan.length);
         quest.completedStepKeys = Array.isArray(quest.completedStepKeys) ? quest.completedStepKeys.filter(key => quest.stepPlan.some(step => step.key === key)) : [];
         return;
@@ -1965,7 +2003,7 @@
       const stepPlan = buildDailyQuestStepPlan(bank, seoulToday);
       appState.progress.dailyQuestV1 = {
         ...defaultDailyQuestV1(),
-        version: 2,
+        version: 3,
         date: seoulToday,
         stepPlan,
         currentIndex: 0,
@@ -2102,10 +2140,18 @@
         return;
       }
       const bank = getUnlockedBank();
-      const expression = bank.find(item => item.id === step.expressionId);
-      if (!expression) {
-        finishQuest();
-        return;
+      if (step.mode === 'matrix') {
+        const matrix = getUnlockedMatrices().find(item => item.baseExpressionId === step.expressionId || item.id === step.expressionId);
+        if (!matrix && !bank.some(item => item.id === step.expressionId)) {
+          finishQuest();
+          return;
+        }
+      } else {
+        const expression = bank.find(item => item.id === step.expressionId);
+        if (!expression) {
+          finishQuest();
+          return;
+        }
       }
       const questContext = {
         source: 'dailyQuestV1',
@@ -2115,11 +2161,13 @@
         mode: step.mode,
         label: step.label,
         questStage: step.questStage,
+        matrixFormId: step.matrixFormId || 'question',
       };
       appState.questContext = questContext;
       startMode(step.mode, step.expressionId, {
         skipRoute: false,
         questContext,
+        matrixFormId: step.matrixFormId || 'question',
       });
     }
 
@@ -2151,7 +2199,7 @@
       document.getElementById('questionCard').innerHTML = `
         <div class="lesson-label">오늘의 퀘스트 v2 완료</div>
         <h2>오늘의 퀘스트를 완료했어요.</h2>
-        <p class="korean">듣고 따라 말하기 1세트 → 영어 장면 고르기 2회 → 한글→영어 조립 2회 → 약한 연결 복습 1회까지 모두 마쳤습니다. 내일 새로운 표현들이 열립니다.</p>
+        <p class="korean">듣고 따라 말하기 1세트 → 영어 장면 고르기 2회 → 한글→영어 조립 1회 → 묻기·답하기 변형 1회 → 약한 연결 복습 1회까지 모두 마쳤습니다. 내일 새로운 표현들이 열립니다.</p>
         <div class="question-actions"><button class="btn accent" id="questDoneHome">홈으로</button><button class="btn dark" id="questDoneProgress">내 성장 보기</button></div>`;
       document.getElementById('questDoneHome')?.addEventListener('click', () => showScreen('home'));
       document.getElementById('questDoneProgress')?.addEventListener('click', () => showScreen('progress'));
@@ -2242,7 +2290,11 @@
         }
 
     function shuffled(arr) { return [...arr].sort(() => Math.random() - .5); }
-    const modeQuizTypes = { listen: 'listening', koen: 'koToEn', enko: 'enToKo', hint: 'hint', build: 'blank', speak: 'speaking', review: 'koToEn' };
+    const modeQuizTypes = { listen: 'listening', koen: 'koToEn', enko: 'enToKo', hint: 'hint', build: 'blank', speak: 'speaking', review: 'koToEn', matrix: 'matrix' };
+    function progressItemId(itemOrId) {
+      if (itemOrId && typeof itemOrId === 'object') return itemOrId.progressId || itemOrId.baseExpressionId || itemOrId.id;
+      return itemOrId;
+    }
     function verbWordFromId(id, verbs = appState.dictionaryData.verbs) {
       return verbs.find(v => v.id === id)?.word || String(id || '').replace(/^v_/, '');
     }
@@ -2281,7 +2333,7 @@
     }
     function connectionTypeForMode(mode) {
       if (mode === 'listen' || mode === 'enko') return 'recognition';
-      if (mode === 'build' || mode === 'hint') return 'assembly';
+      if (mode === 'build' || mode === 'hint' || mode === 'matrix') return 'assembly';
       return 'output';
     }
     function strengthFromHints(hintLevel) {
@@ -3022,7 +3074,99 @@
       const filtered = bank.filter(item => unlockedIds.has(item.id));
       return filtered.length ? filtered : bank;
     }
+    function getQaMatrices() {
+      return Array.isArray(appState.dictionaryData.qaMatrices) ? appState.dictionaryData.qaMatrices : [];
+    }
+    function getUnlockedMatrices() {
+      const unlockedIds = new Set(getUnlockedExpressionIds());
+      const matrices = getQaMatrices().filter(matrix => unlockedIds.has(matrix.baseExpressionId));
+      return matrices.length ? matrices : getQaMatrices().filter(matrix => isVerbInActiveSet(matrix.coreVerbId));
+    }
+    function findMatrixForm(matrix, formId) {
+      return (matrix?.forms || []).find(form => form.id === formId) || null;
+    }
+    function matrixFormToItem(matrix, formId) {
+      const form = findMatrixForm(matrix, formId);
+      if (!matrix || !form) return null;
+      const baseForm = form.baseFormId ? findMatrixForm(matrix, form.baseFormId) : null;
+      const verb = verbWordFromId(matrix.coreVerbId) || matrix.coreVerbId;
+      return {
+        id: `${matrix.id}:${form.id}`,
+        progressId: matrix.baseExpressionId,
+        baseExpressionId: matrix.baseExpressionId,
+        matrixId: matrix.id,
+        formId: form.id,
+        formLabel: form.label,
+        matrixLabel: matrix.label,
+        thinkingFrame: matrix.thinkingFrame,
+        en: form.en,
+        ko: form.ko,
+        audioText: form.en,
+        verb,
+        frame: `${matrix.label} · ${form.label}`,
+        literalMeaning: form.ko,
+        chunks: String(form.en).replace(/[.?!,]/g, '').split(/\s+/).filter(Boolean),
+        hints: [
+          form.cue || `${form.label} 형태로 말해 보세요.`,
+          matrix.thinkingFrame || matrix.label,
+          form.en.replace(/[aeiou]/gi, '_'),
+        ],
+        hint: [
+          form.cue || `${form.label} 형태로 말해 보세요.`,
+          matrix.thinkingFrame || matrix.label,
+          form.en.replace(/[aeiou]/gi, '_'),
+        ],
+        quizTypes: ['matrix', 'koToEn', 'speaking', 'listening'],
+        coreVerbId: matrix.coreVerbId,
+        patternId: matrix.id,
+        nounIds: [],
+        situationTags: ['conversation', 'daily'],
+        level: form.level || 1,
+        acceptedAnswers: form.acceptedAnswers || [],
+        matrixCue: form.cue || `${form.label} 형태로 말해 보세요.`,
+        matrixBaseEn: baseForm?.en || '',
+        matrixBaseKo: baseForm?.ko || '',
+        relatedExpressionIds: [],
+      };
+    }
+    function makeMatrixLesson(seedId = null, options = {}) {
+      const matrices = getUnlockedMatrices();
+      if (!matrices.length) return [];
+      let matrix = null;
+      if (seedId) {
+        matrix = matrices.find(item => item.id === seedId || item.baseExpressionId === seedId) || null;
+      }
+      if (!matrix) {
+        const recent = new Set(appState.progress.recentExpressionIds || []);
+        const scored = matrices.map(item => ({
+          item,
+          priority: getItemReviewPriority({ id: item.baseExpressionId }),
+          recent: recent.has(item.baseExpressionId),
+        })).sort((a, b) => {
+          if (b.priority !== a.priority) return b.priority - a.priority;
+          if (a.recent !== b.recent) return a.recent ? 1 : -1;
+          return String(a.item.label).localeCompare(String(b.item.label));
+        });
+        matrix = scored[0]?.item || matrices[0];
+      }
+      const formId = options.formId || null;
+      if (formId) {
+        const single = matrixFormToItem(matrix, formId);
+        return single ? [single] : [];
+      }
+      if (options.singleForm) {
+        const single = matrixFormToItem(matrix, 'question') || matrixFormToItem(matrix, 'statement');
+        return single ? [single] : [];
+      }
+      const coreOrder = ['statement', 'question', 'negative', 'shortYes'];
+      const tenseOrder = ['past', 'future'];
+      const coreItems = coreOrder.map(id => matrixFormToItem(matrix, id)).filter(Boolean);
+      const includeTense = options.includeTense !== false && coreItems.length;
+      const tenseItems = includeTense ? tenseOrder.map(id => matrixFormToItem(matrix, id)).filter(Boolean) : [];
+      return [...coreItems, ...tenseItems].slice(0, 6);
+    }
     function supportsMode(item, mode) {
+      if (mode === 'matrix') return true;
       const quizType = modeQuizTypes[mode] || 'koToEn';
       return (item.quizTypes || []).includes(quizType);
     }
@@ -3032,7 +3176,10 @@
       appState.progress.recentExpressionIds = recent;
       writeProgressPayload(appState.progress);
     }
-    function makeLesson(mode, expressionId = null) {
+    function makeLesson(mode, expressionId = null, options = {}) {
+      if (mode === 'matrix') {
+        return makeMatrixLesson(expressionId, options);
+      }
       const unlockedBank = getUnlockedBank();
       const fullBank = getGameBank();
       const direct = expressionId
@@ -3063,19 +3210,29 @@
       return shuffled(pool).slice(0, 7);
     }
         function startMode(mode, expressionId = null, options = {}) {
-          if (expressionId && !isExpressionUnlocked(expressionId) && !options.allowLocked) {
+          const unlockId = mode === 'matrix'
+            ? (getUnlockedMatrices().find(matrix => matrix.id === expressionId || matrix.baseExpressionId === expressionId)?.baseExpressionId || expressionId)
+            : expressionId;
+          if (unlockId && !isExpressionUnlocked(unlockId) && !options.allowLocked) {
             toast('아직 해금되지 않은 표현이에요. Active Speaking Set을 먼저 익혀 주세요.');
             return;
           }
           appState.selectedMode = mode;
-          appState.lessonItems = makeLesson(mode, expressionId);
+          appState.questContext = Object.prototype.hasOwnProperty.call(options, 'questContext') ? options.questContext : null;
+          const matrixOptions = mode === 'matrix'
+            ? {
+              formId: options.matrixFormId || appState.questContext?.matrixFormId || null,
+              singleForm: Boolean(appState.questContext),
+              includeTense: !appState.questContext,
+            }
+            : {};
+          appState.lessonItems = makeLesson(mode, expressionId, matrixOptions);
           appState.currentIndex = 0;
           appState.hintStep = 0;
           appState.questionAnswered = false;
           if (mode === 'listen') appState.listenSession = null;
-          appState.questContext = Object.prototype.hasOwnProperty.call(options, 'questContext') ? options.questContext : null;
           if (!appState.lessonItems.length) {
-            toast('지금 연습할 수 있는 Active Speaking Set 표현이 없어요.');
+            toast(mode === 'matrix' ? '지금 연습할 묻기·답하기 매트릭스가 없어요.' : '지금 연습할 수 있는 Active Speaking Set 표현이 없어요.');
             return;
           }
           if (appState.dictionaryData.error && !appState.dictionaryData.gameExpressions.length) toast('사전 데이터를 불러오지 못해 기본 예비 표현으로 퀴즈를 시작해요.');
@@ -3089,24 +3246,29 @@
           if (!item || appState.currentIndex >= appState.lessonItems.length) return finishLesson();
           appState.hintStep = 0;
           appState.questionAnswered = false;
-          rememberRecentExpression(item.id);
+          rememberRecentExpression(item.progressId || item.baseExpressionId || item.id);
       const mode = appState.selectedMode;
       const card = document.getElementById('questionCard');
       const progress = Math.round((appState.currentIndex) / appState.lessonItems.length * 100);
       document.getElementById('lessonProgress').style.width = progress + '%';
       document.getElementById('lessonProgressText').textContent = `${appState.currentIndex + 1} / ${appState.lessonItems.length}`;
 
-      const questStep = appState.questContext?.source === 'dailyQuestV1' && appState.questContext?.expressionId === item.id
-        ? appState.questContext
-        : null;
+      const questStep = appState.questContext?.source === 'dailyQuestV1' && (
+        appState.questContext?.expressionId === item.id
+        || appState.questContext?.expressionId === item.baseExpressionId
+        || appState.questContext?.expressionId === item.progressId
+        || appState.questContext?.expressionId === item.matrixId
+      ) ? appState.questContext : null;
       const questStepNumber = questStep ? questStep.stepIndex + 1 : null;
       const stageLabel = questStep ? `${questStepNumber} / 7 · ${questStep.label}`
         : mode === 'listen' ? '듣고 따라 말하기'
+        : mode === 'matrix' ? `묻기·답하기 · ${item.formLabel || item.frame}`
         : `${modeTitle(mode)} · ${item.frame} · ${item.level || 1}단계`;
       const baseTop = `<div class="lesson-label">${stageLabel}</div>`;
-      const connectionSummary = `<div class="connection-strip-summary">${getConnectionGraph(item, stageToConnectionKey(questStep?.questStage))}</div>`;
+      const connectionSummary = `<div class="connection-strip-summary">${getConnectionGraph({ id: item.progressId || item.baseExpressionId || item.id, ...item }, stageToConnectionKey(questStep?.questStage))}</div>`;
       let body = '';
       if (mode === 'listen') body = renderListen(item);
+      else if (mode === 'matrix') body = renderMatrix(item);
       else if (mode === 'koen') body = renderKoEn(item);
       else if (mode === 'enko') body = renderEnKo(item);
       else if (mode === 'hint') body = renderHint(item);
@@ -3155,6 +3317,23 @@
           <div class="question-actions"><button class="btn soft text-practice-check" type="button">연습 답안 확인</button></div>
         </div>
         <div class="question-actions"><button class="btn soft text-practice-toggle" type="button">텍스트로 연습하기</button></div>
+        <div class="feedback hidden" id="feedback"></div>`;
+    }
+    function renderMatrix(item) {
+      const baseBox = item.matrixBaseEn
+        ? `<div class="matrix-base"><strong>기준 문장</strong>${escapeHtml(item.matrixBaseEn)}<div class="small-note" style="margin-top:4px">${escapeHtml(item.matrixBaseKo || '')}</div></div>`
+        : '';
+      return `
+        <div class="matrix-form-badge">${escapeHtml(item.formLabel || '변형')} · ${escapeHtml(item.matrixLabel || item.frame || '')}</div>
+        <h2>${escapeHtml(item.ko)}</h2>
+        <p class="korean">${escapeHtml(item.matrixCue || '같은 표현을 다른 형태로 말해 보세요.')}</p>
+        ${baseBox}
+        <div class="question-actions" style="margin-bottom:10px"><button class="btn soft mic-start" type="button">🎤 말하고 확인하기</button></div>
+        <div class="hint-box hidden" id="speechResultBox"></div>
+        <input class="answer-input" id="answerInput" placeholder="Type the transformed sentence" autocomplete="off" />
+        ${renderQuizNav('변형 확인')}
+        <div class="question-actions"><button class="btn soft next-hint">힌트 1/3</button></div>
+        <div class="hint-box hidden" id="hintBox"></div>
         <div class="feedback hidden" id="feedback"></div>`;
     }
     function buildMeaningChoices(item) {
@@ -3444,7 +3623,7 @@
           const result = classifyAnswer(item, transcript);
           if (result.status === 'correct' || result.status === 'almost') {
             const signature = `listen-${item.id}-${captureId}`;
-            markStudy(mode, item.id, result.status, { signature, hintLevel: 0, questStepComplete: listenSession.successCount + 1 >= 3 });
+            markStudy(mode, progressItemId(item), result.status, { signature, hintLevel: 0, questStepComplete: listenSession.successCount + 1 >= 3, baseExpressionId: item.baseExpressionId, matrixId: item.matrixId, progressId: item.progressId });
             listenSession.successCount = Math.min(3, (listenSession.successCount || 0) + 1);
             updateListenCountDisplay();
             renderListenResult(transcript, item, result, { boxId });
@@ -3621,16 +3800,16 @@
       const practiceOnly = options.practiceOnly === true || (mode === 'speak' && !isSpeechQuestAnswer);
       if (!practiceOnly) {
         if (result.status === 'correct') {
-          markStudy(mode, item.id, 'correct', { signature, hintLevel: appState.hintStep });
+          markStudy(mode, progressItemId(item), 'correct', { signature, hintLevel: appState.hintStep, baseExpressionId: item.baseExpressionId, matrixId: item.matrixId, progressId: item.progressId });
         } else if (result.status === 'almost') {
-          markStudy(mode, item.id, 'almost', { signature, hintLevel: appState.hintStep });
+          markStudy(mode, progressItemId(item), 'almost', { signature, hintLevel: appState.hintStep, baseExpressionId: item.baseExpressionId, matrixId: item.matrixId, progressId: item.progressId });
         } else if (result.status === 'meaning') {
-          markStudy(mode, item.id, 'meaning', { signature, hintLevel: appState.hintStep });
+          markStudy(mode, progressItemId(item), 'meaning', { signature, hintLevel: appState.hintStep, baseExpressionId: item.baseExpressionId, matrixId: item.matrixId, progressId: item.progressId });
         } else {
-          markStudy(mode, item.id, 'retry', { signature, hintLevel: appState.hintStep });
+          markStudy(mode, progressItemId(item), 'retry', { signature, hintLevel: appState.hintStep, baseExpressionId: item.baseExpressionId, matrixId: item.matrixId, progressId: item.progressId });
         }
       }
-      const afterGraph = renderConnectionStripFromHistory(getHistory(item.id));
+      const afterGraph = renderConnectionStripFromHistory(getHistory(progressItemId(item)));
       const connectionNote = practiceOnly ? '텍스트 연습 결과예요. 직접 말하기 완료에는 반영하지 않았어요.' : afterGraph;
       showAnswerSummary(result.feedbackClass, item, result, rawGuess, connectionNote, { allowAdvance: !practiceOnly });
     }
@@ -3645,7 +3824,7 @@
         && appState.questContext.questStage === 'meaning'
         && mode === 'enko';
       if (correct) {
-        markStudy(mode, item.id, 'correct', { signature: `choice-${item.id}-${button.dataset.value}` });
+        markStudy(mode, progressItemId(item), 'correct', { signature: `choice-${item.id}-${button.dataset.value}`, baseExpressionId: item.baseExpressionId, matrixId: item.matrixId, progressId: item.progressId });
         button.style.borderColor = 'var(--good)';
         if (isQuestMeaningStage) {
           showFeedback('good', `정답이에요! <b>${item.en}</b><br><span class="answer-key">자연스러운 한국어 뜻: ${item.ko}</span>`);
@@ -3654,7 +3833,7 @@
         }
         setTimeout(nextQuestion, isQuestMeaningStage ? 700 : 850);
       } else {
-        markStudy(mode, item.id, 'retry', { signature: `choice-${item.id}-${button.dataset.value}` });
+        markStudy(mode, progressItemId(item), 'retry', { signature: `choice-${item.id}-${button.dataset.value}`, baseExpressionId: item.baseExpressionId, matrixId: item.matrixId, progressId: item.progressId });
         button.style.borderColor = 'var(--bad)';
         if (isQuestMeaningStage) {
           showFeedback('bad', '다시 생각해 보세요.');
@@ -3807,21 +3986,23 @@
     }
 
     async function loadDictionaryExplorer() {
-      const files = ['verbs', 'nouns', 'patterns', 'expressions', 'verb-maps', 'learning-paths'];
+      const files = ['verbs', 'nouns', 'patterns', 'expressions', 'verb-maps', 'learning-paths', 'qa-matrices'];
       try {
-        const [verbs, nouns, patterns, expressions, verbMaps, learningPaths] = await Promise.all(files.map(name =>
+        const [verbs, nouns, patterns, expressions, verbMaps, learningPaths, qaMatricesFile] = await Promise.all(files.map(name =>
           fetch(`./data/${name}.json`).then(response => {
             if (!response.ok) throw new Error(`${name}.json ${response.status}`);
             return response.json();
           })
         ));
         const mapGameExpressions = buildMapGameExpressions();
+        const qaMatrices = Array.isArray(qaMatricesFile?.matrices) ? qaMatricesFile.matrices : (Array.isArray(qaMatricesFile) ? qaMatricesFile : []);
         appState.dictionaryData = {
           verbs,
           nouns,
           patterns,
           expressions,
           verbMaps,
+          qaMatrices,
           learningPaths,
           gameExpressions: dedupeGameExpressions([
             ...mapGameExpressions,
@@ -4418,7 +4599,7 @@
     initSoundEngine();
     prepareSpeechVoices();
     updateSoundToggle();
-    renderModeCards('homeModes', 3);
+    renderModeCards('homeModes', 4);
     renderModeCards('gameModes', modeCards.length);
     renderWords(); renderMap(); updateDashboard(); loadDictionaryExplorer();
     if (!window.location.hash) updateRouteForScreen('home', true);
