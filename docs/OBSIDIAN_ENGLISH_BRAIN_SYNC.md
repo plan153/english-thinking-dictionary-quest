@@ -15,6 +15,8 @@
 
 Drive·Git 백업은 이 루프의 본선이 아니다.
 
+플러그인·스킬 역할/효용 조사: [`OBSIDIAN_PLUGINS_SKILLS_FOR_LEARNING.md`](./OBSIDIAN_PLUGINS_SKILLS_FOR_LEARNING.md)
+
 ## 구현 상태
 
 | 기능 | 상태 |

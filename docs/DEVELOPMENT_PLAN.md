@@ -68,9 +68,10 @@
 4. 학습 기록은 브라우저 `localStorage`에 저장된다.
 5. 콘텐츠 원본은 `data/*.json`이며 `python3 scripts/validate.py`로 검증한다.
 6. Active Speaking Set Starter(동사 8·표현 40)가 `learning-paths.json`에 고정되어 있고, `getUnlockedBank()`가 퀴즈·데일리 퀘스트·복습·의미 선택지를 제한한다.
-7. 내 표현 비율 70%에 도달하면 Unlock pack 후보가 된다(승급은 레벨 테스트와 함께 동작하도록 발전).
-8. 묻기·답하기·시제 매트릭스 모드(`matrix`)가 Active set 표현군 12개에 대해 평서/의문/부정/짧은 답/과거/가까운 미래를 연습한다.
+7. 내 표현 비율 70%에 도달하면 **레벨 테스트**가 열린다. 테스트 통과 시 Unlock pack이 해금된다. 상위 레벨 연습은 하위 표현을 나선으로 포함한다.
+8. 묻기·답하기·시제 매트릭스 모드(`matrix`)와 데일리 **mini-matrix(평서·의문·부정)** 가 동작한다.
 9. `gapNotes` 로컬 저장, Markdown projection export, 열린 간극 복습 가중치 +2.
+10. `curriculumLevels`(L1/L2), `passedLevelTests`, 연결도 우선 “내 표현” 정의가 코드에 반영된다.
 
 ### 아직 없거나 불완전한 것
 
