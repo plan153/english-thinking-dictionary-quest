@@ -60,10 +60,10 @@
 
 ### Phase 0 — Active Speaking Set 고정
 
-- [`ACTIVE_SPEAKING_SET.md`](./ACTIVE_SPEAKING_SET.md)의 Starter 세트(동사·명사·패턴·표현 ID)를 `learning-paths.json` 또는 `CURRICULUM_CONFIG`로 코드에 고정한다.
-- 퀴즈·사전 탐험·복습 출제를 Active set으로 제한한다. Vault/전체 JSON에 더 있어도 잠근다.
-- mastery 기준(연결도 또는 성공 횟수)을 충족하면 다음 묶음만 해금한다. 한 번에 전체 사전을 열지 않는다.
-- 화면과 README에 “지금 연습 중인 영어뇌 범위”를 보여 준다.
+- [x] [`ACTIVE_SPEAKING_SET.md`](./ACTIVE_SPEAKING_SET.md)의 Starter 세트(동사·명사·패턴·표현 ID)를 `learning-paths.json` 또는 `CURRICULUM_CONFIG`로 코드에 고정한다.
+- [x] 퀴즈·사전 탐험·복습 출제를 Active set으로 제한한다. Vault/전체 JSON에 더 있어도 잠근다.
+- [x] mastery 기준(연결도 또는 성공 횟수)을 충족하면 다음 묶음만 해금한다. 한 번에 전체 사전을 열지 않는다.
+- [x] 화면과 README에 “지금 연습 중인 영어뇌 범위”를 보여 준다.
 
 ### Phase 1 — 학습 이벤트를 Obsidian 노트로 남기는 최소 루프
 
@@ -126,4 +126,5 @@
 
 - 사용자 목표는 “3~4세급 쉬운 말로 시작해, 제한된 만능동사·핵심명사로 실제 말이 되게 만들고, 그 기록이 Obsidian 영어뇌에 남아 다시 앱 학습 재료가 되는 구조”다.
 - 당장 필요한 것은 콘텐츠 양 확장보다 Active set 경계와 학습 이벤트 → Vault → Next Practice 루프다.
-- 다음 구현 우선순위: `Phase 0 Active set` → `Phase 2 Q&A/시제`(병행 가능) → `Phase 1 gapNotes/Brain State` → `Phase 3 local-rest sync` → `Phase 4 overlay`.
+- 다음 구현 우선순위: `Phase 2 Q&A/시제` → `Phase 1 gapNotes/Brain State` → `Phase 3 local-rest sync` → `Phase 4 overlay`.
+- Phase 0 Active Speaking Set 게이트는 구현됨.
