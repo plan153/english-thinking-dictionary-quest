@@ -652,7 +652,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.1.1">v1.1.1</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.1.2">v1.1.2</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -1091,7 +1091,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.1.1';
+    const APP_CACHE_VERSION = 'etd-quest-v1.1.2';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const ProgressStoreApi = window.ProgressStore;
@@ -2256,30 +2256,15 @@
         toast('지금은 제안할 Next Practice가 없어요.');
         return;
       }
-      const lessonItems = [];
-      const modesUsed = new Set();
-      for (const entry of queue.slice(0, 7)) {
-        const mode = entry.mode === 'matrix' ? 'matrix' : (entry.mode || 'review');
-        const pieces = makeLesson(mode, entry.expressionId, mode === 'matrix' ? { singleForm: true, formId: 'question' } : {});
-        if (!pieces.length) continue;
-        lessonItems.push(...pieces.slice(0, mode === 'matrix' ? 1 : 1));
-        modesUsed.add(mode);
-        if (lessonItems.length >= 7) break;
-      }
-      if (!lessonItems.length) {
-        toast('Next Practice 항목을 레슨으로 만들지 못했어요.');
+      if (!appState.dictionaryData?.isLoaded) {
+        toast('사전 데이터를 불러오는 중이에요. 잠시 후 다시 눌러 주세요.');
         return;
       }
-      appState.selectedMode = modesUsed.size === 1 ? [...modesUsed][0] : 'review';
-      appState.questContext = null;
-      appState.lessonItems = lessonItems.slice(0, 7);
-      appState.currentIndex = 0;
-      appState.hintStep = 0;
-      appState.questionAnswered = false;
-      appState.listenSession = null;
-      showScreen('lesson');
-      renderQuestion();
-      toast(`Next Practice ${appState.lessonItems.length}문항 시작`);
+      // One mode per lesson session — start the first queue item with its own mode.
+      const first = queue[0];
+      const mode = first.mode === 'matrix' ? 'matrix' : (first.mode || 'review');
+      startMode(mode, first.expressionId, mode === 'matrix' ? { matrixFormId: 'question' } : {});
+      toast(`Next Practice 시작 · ${queue.length}개 중 1번 (${nextPracticeReasonLabel(first.reason)})`);
     }
     function buildBrainExportPayload() {
       const api = window.EnglishBrainMarkdown;
@@ -4776,9 +4761,11 @@
           verbMaps,
           qaMatrices,
           learningPaths,
+          // Prefer expressions.json IDs first — map examples share English text and would
+          // otherwise win dedupe and drop starter IDs (e001, …) from the quiz bank.
           gameExpressions: dedupeGameExpressions([
-            ...mapGameExpressions,
             ...expressions.map(expression => normalizeExpression(expression, { verbs, patterns })),
+            ...mapGameExpressions,
           ]),
           isLoaded: true,
           error: null,
