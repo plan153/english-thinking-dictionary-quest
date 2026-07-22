@@ -46,7 +46,7 @@ Vault에 이미 있는·새로 추가하는 영어 문서(`Library/Verbs|Nouns|P
 1. 동사 카드에 `Vault 단어` 탐색 탭
 2. 표현 상세에 연결된 Vault 노트 링크(`obsidian://open` 또는 브리지)
 3. 후보 연결 수락/거절
-4. 수락 시 Brain State의 `watchlist` 또는 다음 Unlock pack 후보에만 추가
+4. 수락 시 Brain State의 `watchlist` 또는 다음 Unlock pack 후보에만 추가. 이미 해금된 표현만 Next Practice 제안에 넣고, 퀴즈 은행은 넓히지 않는다.
 
 ## 구현 순서
 
