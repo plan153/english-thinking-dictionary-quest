@@ -20,7 +20,38 @@
       }
     ],
     "unlockThreshold": 0.7,
-    "masteryThreshold": 3
+    "masteryThreshold": 3,
+    "spiralLowerRatio": 0.4,
+    "curriculumLevels": [
+      {
+        "id": "L1",
+        "level": 1,
+        "title": "Level 1 · Starter",
+        "description": "만능동사 8개와 쉬운 구어체 표현 40개",
+        "unlockPackIndex": null,
+        "includesLowerLevels": true,
+        "levelTest": {
+          "mineRatioRequired": 0.7,
+          "passScore": 0.7,
+          "itemCount": 6,
+          "matrixForms": ["statement", "question", "negative"]
+        }
+      },
+      {
+        "id": "L2",
+        "level": 2,
+        "title": "Level 2 · Unlock pack 1",
+        "description": "L1을 유지한 채 표현 10개 추가",
+        "unlockPackIndex": 0,
+        "includesLowerLevels": true,
+        "levelTest": {
+          "mineRatioRequired": 0.7,
+          "passScore": 0.7,
+          "itemCount": 6,
+          "matrixForms": ["statement", "question", "negative"]
+        }
+      }
+    ]
   },
   "paths": [
     {
@@ -40,6 +71,7 @@
   ],
   "dailyLoop": {
     "targetCount": 7,
-    "quizOrder": ["listening","speaking","koToEn","koToEn","enToKo","blank","hint"]
+    "quizOrder": ["listening", "speaking", "enToKo", "enToKo", "koToEn", "matrix-mini", "review"],
+    "matrixMiniForms": ["statement", "question", "negative"]
   }
 }

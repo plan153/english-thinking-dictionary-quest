@@ -10,6 +10,7 @@
 - [통합 개발 계획](docs/DEVELOPMENT_PLAN.md)
 - [Active Speaking Set](docs/ACTIVE_SPEAKING_SET.md)
 - [Obsidian 영어뇌 동기화](docs/OBSIDIAN_ENGLISH_BRAIN_SYNC.md)
+- [웹앱↔Obsidian 플러그인·스킬 조사](docs/OBSIDIAN_PLUGINS_SKILLS_FOR_LEARNING.md)
 
 ## GitHub 자동 업로드·자동 배포·자동 판올림
 

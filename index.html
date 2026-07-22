@@ -596,16 +596,20 @@
           <div class="ring" id="dailyRing" style="--p: 0"><strong id="dailyPercent">0%</strong></div>
           <div>
             <h3>오늘의 최소 루프</h3>
-            <p id="dailyCopy">듣고 따라 말하기 1세트 → 영어 장면 고르기 2회 → 한글→영어 조립 1회 → 묻기·답하기 변형 1회 → 약한 연결 복습 1회</p>
+            <p id="dailyCopy">듣고 따라 말하기 1세트 → 영어 장면 고르기 2회 → 한글→영어 조립 1회 → 묻기·답하기 미니 변형(평서·의문·부정) → 약한 연결 복습 1회</p>
             <div class="mini-progress"><div class="progress-track"><span id="dailyBar" style="width:0%"></span></div><strong id="dailyCount">0 / 7</strong></div>
           </div>
         </article>
         <article class="card active-set-card">
           <h3>지금 연습 중인 영어뇌</h3>
-          <p id="activeSetCopy">제한된 만능동사·표현만 출제합니다. Vault에 문서가 더 있어도 연습 범위는 여기서만 넓어집니다.</p>
+          <p id="activeSetCopy">제한된 만능동사·표현만 출제합니다. 상위 레벨이 열려도 하위 레벨 표현을 함께 복습합니다.</p>
           <div class="active-set-stats" id="activeSetStats"></div>
           <div class="mini-progress" style="margin-top:14px"><div class="progress-track"><span id="activeSetBar" style="width:0%"></span></div><strong id="activeSetPercent">0%</strong></div>
-          <p class="small-note" id="activeSetUnlockHint" style="margin-top:10px">내 표현 70%에 도달하면 다음 10개가 해금됩니다.</p>
+          <p class="small-note" id="activeSetUnlockHint" style="margin-top:10px">내 표현 70%에 도달하면 레벨 테스트로 다음 묶음을 열 수 있습니다.</p>
+          <p class="small-note" id="levelStatusLine" style="margin-top:8px"></p>
+          <div class="hero-actions" style="margin-top:12px">
+            <button class="btn soft" id="startLevelTest" type="button" hidden>레벨 테스트 시작</button>
+          </div>
         </article>
       </div>
       <article class="card" style="margin-top:16px">
@@ -1656,6 +1660,9 @@
 
     const APP_CACHE_VERSION = 'etd-quest-v1.0.2';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
+    // Must be before appState — loadProgress() reads these during construction.
+    const progressStorageKey = 'etdQuestProgress';
+    const progressNamePrefix = 'ETD_PROGRESS:';
 
     async function purgeStaleAppCaches() {
       if (location.protocol === 'file:') return;
@@ -1700,6 +1707,7 @@
       questContext: null,
       questRestartConfirmOpen: false,
       listenSession: null,
+      levelTestSession: null,
     };
 
     function defaultHistoryEntry() {
@@ -1743,7 +1751,7 @@
         dailyQuestV1: defaultDailyQuestV1(),
         settings: { soundEnabled: true, seenConnectionGuide: false },
         historyByExpressionId: {},
-        curriculum: { unlockedPackCount: 0, lastUnlockAt: null },
+        curriculum: { unlockedPackCount: 0, lastUnlockAt: null, passedLevelTests: [] },
         gapNotes: [],
       };
     }
@@ -1790,8 +1798,6 @@
       normalized.reviewPriority = typeof entry.reviewPriority === 'number' ? entry.reviewPriority : normalized.reviewPriority;
       return normalized;
     }
-    const progressStorageKey = 'etdQuestProgress';
-    const progressNamePrefix = 'ETD_PROGRESS:';
     function readProgressPayload() {
       try {
         if (typeof localStorage !== 'undefined') {
@@ -1914,8 +1920,96 @@
       }
       history.reviewPriority = computeReviewPriority(itemId);
       p.historyByExpressionId[itemId] = history;
+      recordLevelTestAttempt(itemId, resultType);
       syncCurriculumUnlock({ announce: true });
       saveProgress();
+    }
+
+    function recordLevelTestAttempt(itemId, resultType) {
+      const session = appState.levelTestSession;
+      if (!session) return;
+      if (!session.seen) session.seen = {};
+      const previous = session.seen[itemId];
+      if (!previous) {
+        session.seen[itemId] = resultType;
+        session.attempted = (session.attempted || 0) + 1;
+        if (resultType === 'correct' || resultType === 'almost') {
+          session.correct = (session.correct || 0) + 1;
+        }
+        return;
+      }
+      if ((resultType === 'correct' || resultType === 'almost') && previous === 'retry') {
+        session.seen[itemId] = resultType;
+        session.correct = (session.correct || 0) + 1;
+      }
+    }
+    function startLevelTest() {
+      const level = getCurrentLevelConfig();
+      if (!isLevelTestReady(level)) {
+        toast('아직 레벨 테스트 조건이 아니에요. 내 표현 비율을 더 채워 주세요.');
+        return;
+      }
+      const forms = level.levelTest?.matrixForms || ['statement', 'question', 'negative'];
+      const maxItems = level.levelTest?.itemCount || 6;
+      const matrices = getUnlockedMatrices()
+        .filter(matrix => getExpressionLevelNumber(matrix.baseExpressionId) <= (level.level || 1));
+      const chosen = shuffled(matrices).slice(0, Math.max(1, Math.ceil(maxItems / forms.length)));
+      const items = chosen
+        .flatMap(matrix => forms.map(formId => matrixFormToItem(matrix, formId)).filter(Boolean))
+        .slice(0, maxItems);
+      if (items.length < Math.min(3, forms.length)) {
+        toast('레벨 테스트용 매트릭스가 부족해요. 매트릭스 모드를 먼저 연습해 주세요.');
+        return;
+      }
+      appState.levelTestSession = {
+        levelId: level.id,
+        levelTitle: level.title,
+        required: level.levelTest?.passScore || 0.7,
+        correct: 0,
+        attempted: 0,
+        total: items.length,
+        seen: {},
+      };
+      appState.questContext = null;
+      appState.selectedMode = 'matrix';
+      appState.lessonItems = items;
+      appState.currentIndex = 0;
+      appState.hintStep = 0;
+      appState.questionAnswered = false;
+      showScreen('lesson');
+      renderQuestion();
+      toast(`${level.title} 레벨 테스트 · ${items.length}문항`);
+    }
+    function finishLevelTest() {
+      const session = appState.levelTestSession;
+      appState.levelTestSession = null;
+      if (!session) {
+        showScreen('home');
+        return;
+      }
+      const score = session.total ? session.correct / session.total : 0;
+      const percent = Math.round(score * 100);
+      if (score >= (session.required || 0.7)) {
+        if (!appState.progress.curriculum) {
+          appState.progress.curriculum = { unlockedPackCount: 0, lastUnlockAt: null, passedLevelTests: [] };
+        }
+        if (!Array.isArray(appState.progress.curriculum.passedLevelTests)) {
+          appState.progress.curriculum.passedLevelTests = [];
+        }
+        if (!appState.progress.curriculum.passedLevelTests.includes(session.levelId)) {
+          appState.progress.curriculum.passedLevelTests.push(session.levelId);
+        }
+        const unlocked = syncCurriculumUnlock({ announce: true });
+        saveProgress();
+        toast(unlocked
+          ? `${session.levelTitle} 통과 (${percent}%)! 다음 레벨 표현이 열렸어요.`
+          : `${session.levelTitle} 통과 (${percent}%)!`);
+      } else {
+        toast(`${session.levelTitle} 미통과 (${percent}%). 약한 연결을 더 연습해 봐요.`);
+        saveProgress();
+      }
+      updateDashboard();
+      showScreen('home');
     }
 
     function handleQuestStageCompletion(mode, itemId, resultType, details = {}) {
@@ -1970,27 +2064,43 @@
       if (recent.has(item.id)) score -= 2;
       if (seenToday.has(item.id)) score = -1000;
       if (previousDayIds.has(item.id)) score -= 1;
+      const currentLevel = getCurrentLevelNumber();
+      if (currentLevel > 1 && getExpressionLevelNumber(item.id) < currentLevel) score += 4;
       return score;
     }
-    function buildDailyQuestStepPlan(bank, questDate) {
+    function pickSpiralExpressionIds(bank, count = 6) {
       const recent = new Set(appState.progress.recentExpressionIds || []);
       const seenToday = new Set();
       const previousDayIds = new Set();
+      const currentLevel = getCurrentLevelNumber();
+      const spiralRatio = getActiveSpeakingSetConfig().spiralLowerRatio || 0.4;
       const scored = bank.map(item => ({ item, score: scoreDailyQuestCandidate(item, recent, seenToday, previousDayIds) }))
         .sort((a, b) => b.score - a.score);
+      const lower = scored.filter(entry => getExpressionLevelNumber(entry.item.id) < currentLevel);
+      const current = scored.filter(entry => getExpressionLevelNumber(entry.item.id) >= currentLevel);
       const picks = [];
-      for (const entry of scored) {
+      const lowerTarget = currentLevel > 1 ? Math.max(1, Math.ceil(count * spiralRatio)) : 0;
+      for (const entry of lower) {
+        if (picks.length >= lowerTarget) break;
         if (!entry.item || picks.includes(entry.item.id)) continue;
         picks.push(entry.item.id);
-        if (picks.length >= 6) break;
       }
-      if (picks.length < 6) {
+      for (const entry of [...current, ...lower, ...scored]) {
+        if (!entry.item || picks.includes(entry.item.id)) continue;
+        picks.push(entry.item.id);
+        if (picks.length >= count) break;
+      }
+      if (picks.length < count) {
         for (const item of bank) {
           if (picks.includes(item.id)) continue;
           picks.push(item.id);
-          if (picks.length >= 6) break;
+          if (picks.length >= count) break;
         }
       }
+      return picks;
+    }
+    function buildDailyQuestStepPlan(bank, questDate) {
+      const picks = pickSpiralExpressionIds(bank, 6);
       const first = picks[0] || bank[0]?.id || null;
       const second = picks[1] || first;
       const third = picks[2] || second || first;
@@ -2011,7 +2121,7 @@
         { key: 'step-3', label: '영어 장면 고르기', mode: 'enko', expressionId: third || second || first, questStage: 'meaning' },
         { key: 'step-4', label: '영어 장면 고르기', mode: 'enko', expressionId: fourth || third || second || first, questStage: 'meaning' },
         { key: 'step-5', label: '한글→영어 조립', mode: 'koen', expressionId: fifth || fourth || third || second || first, questStage: 'assembly' },
-        { key: 'step-6', label: '묻기·답하기 변형', mode: 'matrix', expressionId: matrixSeed, questStage: 'assembly', matrixFormId: 'question' },
+        { key: 'step-6', label: '묻기·답하기 미니 변형', mode: 'matrix', expressionId: matrixSeed, questStage: 'assembly', matrixMini: true },
         { key: 'step-7', label: '약한 연결 복습', mode: 'review', expressionId: seventh || sixth || fifth || fourth || third || second || first, questStage: 'output' },
       ].filter(step => step.expressionId);
     }
@@ -2064,8 +2174,9 @@
       }
       const validPlan = Array.isArray(quest.stepPlan)
         && quest.stepPlan.length === 7
+        && quest.version === 4
         && quest.stepPlan.every(step => step && step.key && step.mode && step.expressionId && bank.some(item => item.id === step.expressionId));
-      if (quest.version === 3 && quest.date === seoulToday && validPlan) {
+      if (quest.version === 4 && quest.date === seoulToday && validPlan) {
         quest.currentIndex = clampValue(Number.isFinite(quest.currentIndex) ? quest.currentIndex : 0, 0, quest.stepPlan.length);
         quest.completedStepKeys = Array.isArray(quest.completedStepKeys) ? quest.completedStepKeys.filter(key => quest.stepPlan.some(step => step.key === key)) : [];
         return;
@@ -2073,7 +2184,7 @@
       const stepPlan = buildDailyQuestStepPlan(bank, seoulToday);
       appState.progress.dailyQuestV1 = {
         ...defaultDailyQuestV1(),
-        version: 3,
+        version: 4,
         date: seoulToday,
         stepPlan,
         currentIndex: 0,
@@ -2123,7 +2234,7 @@
         questArea.innerHTML = `
           <div class="card">
             <h3>오늘의 퀘스트 · ${completed}/${total} 완료</h3>
-            <p>오늘은 <b>듣고 따라 말하기 1세트 → 영어 장면 고르기 2회 → 한글→영어 조립 2회 → 약한 연결 복습 1회</b> 순서로 자동 진행됩니다.</p>
+            <p>오늘은 <b>듣고 따라 말하기 1세트 → 영어 장면 고르기 2회 → 한글→영어 조립 1회 → 묻기·답하기 미니 변형 → 약한 연결 복습 1회</b> 순서로 자동 진행됩니다.</p>
             <ul style="margin:10px 0; padding-left:20px; line-height:1.7;">${stepSummary}</ul>
             <button class="btn dark" id="startQuestBtn">퀘스트 시작하기</button>
           </div>
@@ -2231,13 +2342,15 @@
         mode: step.mode,
         label: step.label,
         questStage: step.questStage,
-        matrixFormId: step.matrixFormId || 'question',
+        matrixFormId: step.matrixFormId || null,
+        matrixMini: Boolean(step.matrixMini),
       };
       appState.questContext = questContext;
       startMode(step.mode, step.expressionId, {
         skipRoute: false,
         questContext,
-        matrixFormId: step.matrixFormId || 'question',
+        matrixFormId: step.matrixFormId || null,
+        matrixMini: Boolean(step.matrixMini),
       });
     }
 
@@ -2469,9 +2582,36 @@
       ],
       unlockThreshold: 0.7,
       masteryThreshold: 3,
+      spiralLowerRatio: 0.4,
+      curriculumLevels: [
+        {
+          id: 'L1', level: 1, title: 'Level 1 · Starter', unlockPackIndex: null, includesLowerLevels: true,
+          levelTest: { mineRatioRequired: 0.7, passScore: 0.7, itemCount: 6, matrixForms: ['statement', 'question', 'negative'] },
+        },
+        {
+          id: 'L2', level: 2, title: 'Level 2 · Unlock pack 1', unlockPackIndex: 0, includesLowerLevels: true,
+          levelTest: { mineRatioRequired: 0.7, passScore: 0.7, itemCount: 6, matrixForms: ['statement', 'question', 'negative'] },
+        },
+      ],
     };
     function normalizeAssConfig(raw) {
       const base = raw && typeof raw === 'object' ? raw : {};
+      const levels = Array.isArray(base.curriculumLevels) && base.curriculumLevels.length
+        ? base.curriculumLevels.map((level, index) => ({
+          id: level?.id || `L${index + 1}`,
+          level: Number.isFinite(level?.level) ? level.level : index + 1,
+          title: level?.title || `Level ${index + 1}`,
+          description: level?.description || '',
+          unlockPackIndex: Number.isFinite(level?.unlockPackIndex) ? level.unlockPackIndex : (index === 0 ? null : index - 1),
+          includesLowerLevels: level?.includesLowerLevels !== false,
+          levelTest: {
+            mineRatioRequired: Number.isFinite(level?.levelTest?.mineRatioRequired) ? level.levelTest.mineRatioRequired : 0.7,
+            passScore: Number.isFinite(level?.levelTest?.passScore) ? level.levelTest.passScore : 0.7,
+            itemCount: Number.isFinite(level?.levelTest?.itemCount) ? level.levelTest.itemCount : 6,
+            matrixForms: Array.isArray(level?.levelTest?.matrixForms) ? level.levelTest.matrixForms.slice() : ['statement', 'question', 'negative'],
+          },
+        }))
+        : DEFAULT_ACTIVE_SPEAKING_SET.curriculumLevels.map(level => ({ ...level, levelTest: { ...level.levelTest, matrixForms: level.levelTest.matrixForms.slice() } }));
       return {
         ...DEFAULT_ACTIVE_SPEAKING_SET,
         ...base,
@@ -2484,6 +2624,8 @@
         })) : DEFAULT_ACTIVE_SPEAKING_SET.unlockPacks.map(pack => ({ ...pack, expressionIds: pack.expressionIds.slice() })),
         unlockThreshold: Number.isFinite(base.unlockThreshold) ? base.unlockThreshold : DEFAULT_ACTIVE_SPEAKING_SET.unlockThreshold,
         masteryThreshold: Number.isFinite(base.masteryThreshold) ? base.masteryThreshold : DEFAULT_ACTIVE_SPEAKING_SET.masteryThreshold,
+        spiralLowerRatio: Number.isFinite(base.spiralLowerRatio) ? base.spiralLowerRatio : DEFAULT_ACTIVE_SPEAKING_SET.spiralLowerRatio,
+        curriculumLevels: levels,
       };
     }
     function getActiveSpeakingSetConfig() {
@@ -2494,9 +2636,51 @@
     }
     function isMineExpression(expressionId) {
       if (!expressionId) return false;
+      const history = getHistory(expressionId);
+      if (allStrongHistory(history)) return true;
+      const connected = ['recognition', 'assembly', 'output']
+        .filter(key => (history.connections?.[key]?.strength || 0) >= 0.5).length;
+      if (connected >= 2) return true;
       const successes = appState.progress.successes?.[expressionId] || 0;
-      if (successes >= getMasteryThreshold()) return true;
-      return allStrongHistory(getHistory(expressionId));
+      return successes >= getMasteryThreshold() && connected >= 1;
+    }
+    function getPassedLevelTests() {
+      const list = appState.progress.curriculum?.passedLevelTests;
+      return Array.isArray(list) ? list.slice() : [];
+    }
+    function hasPassedLevelTest(levelId) {
+      return getPassedLevelTests().includes(levelId);
+    }
+    function getCurriculumLevels() {
+      return getActiveSpeakingSetConfig().curriculumLevels || [];
+    }
+    function getCurrentLevelNumber() {
+      return getUnlockedPackCount() + 1;
+    }
+    function getCurrentLevelConfig() {
+      const levels = getCurriculumLevels();
+      const number = getCurrentLevelNumber();
+      return levels.find(level => level.level === number) || levels[Math.min(levels.length - 1, number - 1)] || levels[0] || null;
+    }
+    function getExpressionLevelNumber(expressionId) {
+      const config = getActiveSpeakingSetConfig();
+      if ((config.expressionIds || []).includes(expressionId)) return 1;
+      for (let index = 0; index < (config.unlockPacks || []).length; index += 1) {
+        if ((config.unlockPacks[index].expressionIds || []).includes(expressionId)) return index + 2;
+      }
+      return 1;
+    }
+    function getLevelGateIdForNextPack(unlockedPackCount) {
+      const levels = getCurriculumLevels();
+      const gate = levels.find(level => level.level === unlockedPackCount + 1);
+      return gate?.id || `L${unlockedPackCount + 1}`;
+    }
+    function isLevelTestReady(level = getCurrentLevelConfig()) {
+      if (!level) return false;
+      if (getUnlockedPackCount() >= getActiveSpeakingSetConfig().unlockPacks.length) return false;
+      if (hasPassedLevelTest(level.id)) return false;
+      const required = level.levelTest?.mineRatioRequired ?? getActiveSpeakingSetConfig().unlockThreshold;
+      return getActiveSetMineRatio() >= required;
     }
     function getUnlockedPackCount() {
       const maxPacks = getActiveSpeakingSetConfig().unlockPacks.length;
@@ -2520,19 +2704,26 @@
     }
     function syncCurriculumUnlock(options = {}) {
       const config = getActiveSpeakingSetConfig();
-      if (!appState.progress.curriculum) appState.progress.curriculum = { unlockedPackCount: 0, lastUnlockAt: null };
+      if (!appState.progress.curriculum) {
+        appState.progress.curriculum = { unlockedPackCount: 0, lastUnlockAt: null, passedLevelTests: [] };
+      }
+      if (!Array.isArray(appState.progress.curriculum.passedLevelTests)) {
+        appState.progress.curriculum.passedLevelTests = [];
+      }
       let unlocked = getUnlockedPackCount();
       let changed = false;
       while (unlocked < config.unlockPacks.length) {
         const ids = getUnlockedExpressionIds(unlocked);
         if (getActiveSetMineRatio(ids) < config.unlockThreshold) break;
+        const gateId = getLevelGateIdForNextPack(unlocked);
+        if (!hasPassedLevelTest(gateId)) break;
         unlocked += 1;
         changed = true;
         appState.progress.curriculum.lastUnlockAt = new Date().toISOString();
         if (options.announce) {
           const pack = config.unlockPacks[unlocked - 1];
           const count = pack?.expressionIds?.length || 0;
-          toast(`새 표현 ${count}개가 해금됐어요. Active Speaking Set이 조금 넓어졌습니다.`);
+          toast(`레벨 테스트 통과! 새 표현 ${count}개가 해금됐어요. 하위 레벨 표현도 계속 복습합니다.`);
         }
       }
       appState.progress.curriculum.unlockedPackCount = unlocked;
@@ -2554,6 +2745,8 @@
       const mineCount = presentIds.filter(isMineExpression).length;
       const ratio = presentIds.length ? mineCount / presentIds.length : 0;
       const nextPack = config.unlockPacks[getUnlockedPackCount()] || null;
+      const level = getCurrentLevelConfig();
+      const testReady = isLevelTestReady(level);
       return {
         title: config.title,
         verbCount: config.verbIds.length,
@@ -2566,28 +2759,52 @@
         unlockedPackCount: getUnlockedPackCount(),
         totalPacks: config.unlockPacks.length,
         verbIds: config.verbIds,
+        levelId: level?.id || 'L1',
+        levelTitle: level?.title || `Level ${getCurrentLevelNumber()}`,
+        levelNumber: getCurrentLevelNumber(),
+        levelTestReady: testReady,
+        levelTestPassed: level ? hasPassedLevelTest(level.id) : false,
       };
     }
     function renderActiveSetSummary() {
       const snapshot = getActiveSetSnapshot();
       const statsMarkup = `
+        <span>${escapeHtml(snapshot.levelTitle)}</span>
         <span>동사 ${snapshot.verbCount}개</span>
         <span>해금 ${snapshot.unlockedCount}개</span>
         <span>내 표현 ${snapshot.mineCount}개</span>
       `;
-      const unlockHint = snapshot.nextPackCount
-        ? `내 표현 ${snapshot.unlockThresholdPercent}%에 도달하면 다음 ${snapshot.nextPackCount}개가 해금됩니다.`
-        : 'Starter와 Unlock pack을 모두 열었습니다. 다음 확장은 이후 단계에서 이어집니다.';
+      let unlockHint;
+      if (!snapshot.nextPackCount) {
+        unlockHint = 'Starter와 Unlock pack을 모두 열었습니다. 하위 표현도 계속 나선 복습합니다.';
+      } else if (snapshot.levelTestReady) {
+        unlockHint = `내 표현 ${snapshot.unlockThresholdPercent}% 도달! 레벨 테스트를 통과하면 다음 ${snapshot.nextPackCount}개가 열려요.`;
+      } else if (snapshot.levelTestPassed) {
+        unlockHint = '레벨 테스트를 통과했어요. 해금이 반영됩니다.';
+      } else {
+        unlockHint = `내 표현 ${snapshot.unlockThresholdPercent}%에 도달하면 레벨 테스트로 다음 ${snapshot.nextPackCount}개를 열 수 있어요. 상위 레벨에서도 하위 표현을 함께 연습합니다.`;
+      }
       const homeStats = document.getElementById('activeSetStats');
       const homeBar = document.getElementById('activeSetBar');
       const homePercent = document.getElementById('activeSetPercent');
       const homeHint = document.getElementById('activeSetUnlockHint');
       const homeCopy = document.getElementById('activeSetCopy');
+      const levelLine = document.getElementById('levelStatusLine');
+      const levelBtn = document.getElementById('startLevelTest');
       if (homeStats) homeStats.innerHTML = statsMarkup;
       if (homeBar) homeBar.style.width = `${snapshot.percent}%`;
       if (homePercent) homePercent.textContent = `${snapshot.percent}%`;
       if (homeHint) homeHint.textContent = unlockHint;
-      if (homeCopy) homeCopy.textContent = `${snapshot.title} · 지금 입으로 훈련하는 범위만 퀴즈에 나옵니다.`;
+      if (homeCopy) homeCopy.textContent = `${snapshot.title} · 지금 레벨의 표현 + 하위 레벨 나선 복습이 퀴즈에 나옵니다.`;
+      if (levelLine) {
+        levelLine.textContent = snapshot.levelTestReady
+          ? `${snapshot.levelTitle} 테스트 준비됨 · 평서·의문·부정 미니 매트릭스`
+          : `${snapshot.levelTitle} · 내 표현 ${snapshot.percent}%`;
+      }
+      if (levelBtn) {
+        levelBtn.hidden = !snapshot.levelTestReady;
+        levelBtn.textContent = `${snapshot.levelId} 레벨 테스트 시작`;
+      }
       const progressStats = document.getElementById('progressActiveSetStats');
       const progressBar = document.getElementById('progressActiveSetBar');
       const progressPercent = document.getElementById('progressActiveSetPercent');
@@ -2595,7 +2812,7 @@
       if (progressStats) progressStats.innerHTML = statsMarkup;
       if (progressBar) progressBar.style.width = `${snapshot.percent}%`;
       if (progressPercent) progressPercent.textContent = `${snapshot.percent}%`;
-      if (progressCopy) progressCopy.textContent = `해금 팩 ${snapshot.unlockedPackCount}/${snapshot.totalPacks} · ${unlockHint}`;
+      if (progressCopy) progressCopy.textContent = `${snapshot.levelTitle} · 해금 팩 ${snapshot.unlockedPackCount}/${snapshot.totalPacks} · ${unlockHint}`;
       return snapshot;
     }
     function getOpenGapNotes() {
@@ -3406,6 +3623,10 @@
         matrix = scored[0]?.item || matrices[0];
       }
       const formId = options.formId || null;
+      if (options.matrixMini) {
+        const miniOrder = options.matrixForms || ['statement', 'question', 'negative'];
+        return miniOrder.map(id => matrixFormToItem(matrix, id)).filter(Boolean);
+      }
       if (formId) {
         const single = matrixFormToItem(matrix, formId);
         return single ? [single] : [];
@@ -3475,11 +3696,14 @@
           }
           appState.selectedMode = mode;
           appState.questContext = Object.prototype.hasOwnProperty.call(options, 'questContext') ? options.questContext : null;
+          const wantsMini = Boolean(options.matrixMini || options.questContext?.matrixMini || appState.questContext?.matrixMini);
           const matrixOptions = mode === 'matrix'
             ? {
-              formId: options.matrixFormId || appState.questContext?.matrixFormId || null,
-              singleForm: Boolean(appState.questContext),
-              includeTense: !appState.questContext,
+              formId: wantsMini ? null : (options.matrixFormId || appState.questContext?.matrixFormId || null),
+              matrixMini: wantsMini,
+              matrixForms: options.matrixForms || appState.questContext?.matrixForms || ['statement', 'question', 'negative'],
+              singleForm: Boolean(appState.questContext) && !wantsMini,
+              includeTense: !appState.questContext && !wantsMini,
             }
             : {};
           appState.lessonItems = makeLesson(mode, expressionId, matrixOptions);
@@ -4243,8 +4467,10 @@
     function nextQuestion() {
       window.clearTimeout(appState.questAutoAdvanceTimer);
       if (appState.questContext && appState.questContext.source === 'dailyQuestV1') {
-        finishLesson();
-        return;
+        if (appState.currentIndex + 1 >= appState.lessonItems.length) {
+          finishLesson();
+          return;
+        }
       }
       appState.currentIndex++;
       playNextQuestionSound();
@@ -4265,6 +4491,10 @@
     }
     function finishLesson() {
       window.clearTimeout(appState.questAutoAdvanceTimer);
+      if (appState.levelTestSession) {
+        finishLevelTest();
+        return;
+      }
       if (appState.questContext && appState.questContext.source === 'dailyQuestV1') {
         appState.questContext = null;
         advanceQuestStep();
@@ -4317,8 +4547,8 @@
           qaMatrices,
           learningPaths,
           gameExpressions: dedupeGameExpressions([
-            ...mapGameExpressions,
             ...expressions.map(expression => normalizeExpression(expression, { verbs, patterns })),
+            ...mapGameExpressions,
           ]),
           isLoaded: true,
           error: null,
@@ -4337,7 +4567,9 @@
           isMapMeaningOpen: false,
           isMapPracticeOpen: false,
         };
-        syncCurriculumUnlock({ announce: false });
+        if (syncCurriculumUnlock({ announce: false })) {
+          writeProgressPayload(appState.progress);
+        }
         updateDashboard();
         updateQuestUI();
       } catch (error) {
@@ -4889,6 +5121,7 @@
         window.addEventListener('hashchange', applyRoute);
         document.querySelectorAll('.nav button').forEach(btn => btn.addEventListener('click', () => showScreen(btn.dataset.screen)));
     document.getElementById('startDaily').addEventListener('click', () => startQuest());
+    document.getElementById('startLevelTest')?.addEventListener('click', () => startLevelTest());
     document.getElementById('jumpDictionary').addEventListener('click', () => showScreen('dictionary'));
     document.getElementById('exitLesson').addEventListener('click', () => showScreen('play'));
     document.getElementById('wordSearch').addEventListener('input', e => { appState.search=e.target.value; renderWords(); });
