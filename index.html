@@ -232,7 +232,7 @@
       color:#8a6610;
       margin: 8px 0 4px;
     }
-    .gap-form textarea, .gap-form input {
+    .gap-form textarea, .gap-form input, .gap-form select {
       width:100%;
       border:1px solid var(--line);
       border-radius:12px;
@@ -568,7 +568,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.0.2">v1.0.2</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.0.3">v1.0.3</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -749,6 +749,39 @@
         </div>
         <div id="gapNotesList" style="margin-top:14px"></div>
       </article>
+      <article class="card" style="margin-top:16px" id="obsidianSyncCard">
+        <h3>Obsidian Local REST 동기화</h3>
+        <p class="small-note">Obsidian Local REST API(권장 HTTP <code>127.0.0.1:27123</code>)로 Gaps·Brain State를 upsert하고, Next Practice·Gaps를 가져옵니다. API 키는 이 브라우저에만 저장됩니다.</p>
+        <div class="gap-form" style="margin-top:12px">
+          <label>Adapter
+            <select id="syncAdapter">
+              <option value="download">download (파일 다운로드만)</option>
+              <option value="local-rest">local-rest</option>
+            </select>
+          </label>
+          <label>Base URL
+            <input id="syncBaseUrl" type="url" placeholder="http://127.0.0.1:27123" />
+          </label>
+          <label>API Key
+            <input id="syncApiKey" type="password" autocomplete="off" placeholder="Local REST API key" />
+          </label>
+          <label>Path prefix (Vault 안 Project_English 폴더일 때)
+            <input id="syncPathPrefix" type="text" placeholder="비우거나 Project_English" />
+          </label>
+          <label style="display:flex; align-items:center; gap:8px; margin-top:8px;">
+            <input id="syncAutoAfterGap" type="checkbox" />
+            간극 저장 후 자동 동기화 시도 (실패해도 학습은 계속)
+          </label>
+          <div class="question-actions" style="justify-content:flex-start; margin-top:12px; flex-wrap:wrap;">
+            <button class="btn soft" id="saveSyncSettings" type="button">설정 저장</button>
+            <button class="btn soft" id="testSyncConnection" type="button">연결 테스트</button>
+            <button class="btn dark" id="syncToObsidian" type="button">Obsidian에 동기화</button>
+            <button class="btn soft" id="importFromObsidian" type="button">Obsidian에서 가져오기</button>
+            <button class="btn soft" id="flushSyncQueue" type="button">실패 큐 재시도</button>
+          </div>
+          <p class="small-note" id="syncStatusText" style="margin-top:10px">동기화 상태: 아직 없음</p>
+        </div>
+      </article>
       <article class="card" style="margin-top:16px">
         <h3>Library 자료 후보 (Drafts)</h3>
         <p class="small-note">Vault 정원에서 자라는 표현 후보입니다. 승격(Canon) 전에는 퀴즈에 넣지 않습니다. 한글·동사·패턴이 있어야 승격할 수 있습니다.</p>
@@ -764,6 +797,7 @@
   </main>
 
   <script src="./src/domain/markdown-projection.js"></script>
+  <script src="./src/domain/obsidian-sync.js"></script>
   <script>
     const wordBank = [
       { id:'get', type:'핵심 동사', word:'get', korean:'얻다 · 받다 · 도착하다 · 이해하다 · 상태가 되다', example:'I got your message.', exKo:'네 메시지 받았어.', connections:'get a message · get home · get better · get it' },
@@ -1676,7 +1710,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.0.2';
+    const APP_CACHE_VERSION = 'etd-quest-v1.0.3';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
     // Must be before appState — loadProgress() reads these during construction.
     const progressStorageKey = 'etdQuestProgress';
@@ -1771,6 +1805,7 @@
         curriculum: { unlockedPackCount: 0, lastUnlockAt: null },
         gapNotes: [],
         expressionDrafts: [],
+        importedNextPractice: null,
       };
     }
     function normalizeGapNote(entry) {
@@ -1798,6 +1833,8 @@
         createdAt,
         updatedAt: base.updatedAt || createdAt,
         status: base.status || 'open',
+        source: base.source || 'webapp',
+        missingInVault: Boolean(base.missingInVault),
       };
     }
     function normalizeHistoryEntry(entry) {
@@ -1875,6 +1912,9 @@
           curriculum: { ...defaultProgress().curriculum, ...(saved.curriculum || {}) },
           gapNotes: Array.isArray(saved.gapNotes) ? saved.gapNotes.map(normalizeGapNote) : [],
           expressionDrafts: Array.isArray(saved.expressionDrafts) ? saved.expressionDrafts.map(normalizeExpressionDraft) : [],
+          importedNextPractice: saved.importedNextPractice && typeof saved.importedNextPractice === 'object'
+            ? saved.importedNextPractice
+            : null,
         };
       }
       catch { return defaultProgress(); }
@@ -2767,6 +2807,18 @@
       renderExpressionDraftsList();
     }
     function buildNextPracticeQueue() {
+      const imported = appState.progress.importedNextPractice;
+      if (imported?.source === 'vault' && Array.isArray(imported.queue) && imported.queue.length) {
+        const unlocked = new Set(getUnlockedExpressionIds());
+        const vaultQueue = imported.queue
+          .filter(item => item?.expressionId && unlocked.has(item.expressionId))
+          .map(item => ({
+            expressionId: item.expressionId,
+            mode: item.mode || 'review',
+            reason: item.reason || 'vault-next-practice',
+          }));
+        if (vaultQueue.length) return vaultQueue.slice(0, 8);
+      }
       const openGaps = getOpenGapNotes();
       const gapQueue = openGaps.slice(0, 5).map(gap => ({
         expressionId: gap.expressionId,
@@ -2890,6 +2942,173 @@
         console.error(error);
       }
     }
+    function getSyncApi() {
+      const api = window.EnglishBrainSync;
+      if (!api) throw new Error('obsidian sync module missing');
+      return api;
+    }
+    function readSyncSettingsFromForm() {
+      return {
+        adapter: document.getElementById('syncAdapter')?.value || 'download',
+        baseUrl: document.getElementById('syncBaseUrl')?.value || 'http://127.0.0.1:27123',
+        apiKey: document.getElementById('syncApiKey')?.value || '',
+        pathPrefix: document.getElementById('syncPathPrefix')?.value || '',
+        autoSyncAfterGap: Boolean(document.getElementById('syncAutoAfterGap')?.checked),
+      };
+    }
+    function renderSyncSettingsForm() {
+      const api = window.EnglishBrainSync;
+      if (!api) return;
+      const settings = api.loadSettings();
+      const adapter = document.getElementById('syncAdapter');
+      const baseUrl = document.getElementById('syncBaseUrl');
+      const apiKey = document.getElementById('syncApiKey');
+      const pathPrefix = document.getElementById('syncPathPrefix');
+      const auto = document.getElementById('syncAutoAfterGap');
+      if (adapter) adapter.value = settings.adapter;
+      if (baseUrl) baseUrl.value = settings.baseUrl;
+      if (apiKey) apiKey.value = settings.apiKey;
+      if (pathPrefix) pathPrefix.value = settings.pathPrefix;
+      if (auto) auto.checked = settings.autoSyncAfterGap;
+      updateSyncStatusText(settings);
+    }
+    function updateSyncStatusText(settings) {
+      const el = document.getElementById('syncStatusText');
+      if (!el) return;
+      const api = window.EnglishBrainSync;
+      const queueLen = api ? api.loadQueue().length : 0;
+      const parts = [
+        `adapter=${settings?.adapter || 'download'}`,
+        settings?.lastSyncAt ? `마지막 sync ${settings.lastSyncAt.slice(0, 19)}` : '아직 sync 없음',
+        settings?.lastImportAt ? `마지막 import ${settings.lastImportAt.slice(0, 19)}` : null,
+        queueLen ? `실패 큐 ${queueLen}건` : '실패 큐 비움',
+        settings?.lastSyncError ? `오류: ${settings.lastSyncError}` : null,
+      ].filter(Boolean);
+      el.textContent = parts.join(' · ');
+    }
+    function saveSyncSettingsFromForm() {
+      const api = getSyncApi();
+      const prev = api.loadSettings();
+      const next = api.saveSettings({
+        ...prev,
+        ...readSyncSettingsFromForm(),
+      });
+      updateSyncStatusText(next);
+      toast('Obsidian 동기화 설정을 저장했어요. (이 브라우저에만 보관)');
+      return next;
+    }
+    function requireLocalRestClient() {
+      const api = getSyncApi();
+      const settings = api.saveSettings({ ...api.loadSettings(), ...readSyncSettingsFromForm() });
+      if (settings.adapter !== 'local-rest') {
+        throw new Error('Adapter를 local-rest로 바꾼 뒤 다시 시도하세요.');
+      }
+      if (!settings.apiKey) throw new Error('API Key를 입력하세요.');
+      return { api, settings, client: api.createLocalRestClient(settings) };
+    }
+    async function testObsidianConnection() {
+      try {
+        const { api, settings, client } = requireLocalRestClient();
+        const result = await client.ping();
+        const next = api.saveSettings({
+          ...settings,
+          lastSyncError: null,
+        });
+        updateSyncStatusText(next);
+        toast(result?.authenticated === false
+          ? '연결은 됐지만 인증이 실패했어요. API Key를 확인하세요.'
+          : 'Local REST 연결 OK');
+      } catch (error) {
+        toast(`연결 실패: ${error.message || error}`);
+        console.error(error);
+      }
+    }
+    async function syncEnglishBrainToObsidian(options = {}) {
+      const quiet = options.quiet === true;
+      try {
+        const { api, settings, client } = requireLocalRestClient();
+        const payload = buildBrainExportPayload();
+        const results = await api.upsertFiles(client, payload.files, { enqueueOnFail: true });
+        const next = api.saveSettings({
+          ...settings,
+          lastSyncAt: new Date().toISOString(),
+          lastSyncError: results.failed.length
+            ? `${results.failed.length}개 실패 (큐에 보관)`
+            : null,
+        });
+        updateSyncStatusText(next);
+        if (!quiet) {
+          toast(results.failed.length
+            ? `Obsidian sync: ${results.ok.length} 성공, ${results.failed.length} 실패(큐 보관)`
+            : `Obsidian에 ${results.ok.length}개 노트를 동기화했어요.`);
+        }
+        return results;
+      } catch (error) {
+        try {
+          const api = getSyncApi();
+          const settings = api.saveSettings({
+            ...api.loadSettings(),
+            lastSyncError: String(error.message || error).slice(0, 160),
+          });
+          updateSyncStatusText(settings);
+        } catch (_) {}
+        if (!quiet) toast(`동기화 실패: ${error.message || error}`);
+        console.error(error);
+        return null;
+      }
+    }
+    async function importEnglishBrainFromObsidian() {
+      try {
+        const { api, settings, client } = requireLocalRestClient();
+        const imported = await api.importGapsAndNextPractice(client, {
+          localGaps: appState.progress.gapNotes || [],
+          appQueue: buildNextPracticeQueue(),
+        });
+        appState.progress.gapNotes = (imported.mergedGaps || []).map(normalizeGapNote);
+        appState.progress.importedNextPractice = {
+          ...imported.nextPractice,
+          importedAt: new Date().toISOString(),
+        };
+        saveProgress();
+        const next = api.saveSettings({
+          ...settings,
+          lastImportAt: new Date().toISOString(),
+          lastSyncError: null,
+        });
+        updateSyncStatusText(next);
+        renderGapNotesList();
+        renderReviewList();
+        toast(`가져오기 완료 · Gaps ${imported.vaultGaps.length} · Next Practice ${imported.nextPractice.queue.length} (Vault 우선)`);
+      } catch (error) {
+        toast(`가져오기 실패: ${error.message || error}`);
+        console.error(error);
+      }
+    }
+    async function flushObsidianSyncQueue() {
+      try {
+        const { api, settings, client } = requireLocalRestClient();
+        const result = await api.flushQueue(client);
+        const next = api.saveSettings({
+          ...settings,
+          lastSyncAt: new Date().toISOString(),
+          lastSyncError: result.remaining ? `실패 큐 ${result.remaining}건 남음` : null,
+        });
+        updateSyncStatusText(next);
+        toast(result.remaining
+          ? `재시도 ${result.flushed.length} · 남은 큐 ${result.remaining}`
+          : `실패 큐 ${result.flushed.length}건을 비웠어요.`);
+      } catch (error) {
+        toast(`큐 재시도 실패: ${error.message || error}`);
+        console.error(error);
+      }
+    }
+    function maybeAutoSyncAfterGap() {
+      const api = window.EnglishBrainSync;
+      if (!api) return;
+      const settings = api.loadSettings();
+      if (settings.adapter !== 'local-rest' || !settings.autoSyncAfterGap || !settings.apiKey) return;
+      syncEnglishBrainToObsidian({ quiet: true });
+    }
     function renderGapNotesList() {
       const target = document.getElementById('gapNotesList');
       if (!target) return;
@@ -2905,7 +3124,7 @@
           <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
             <div>
               <b>${escapeHtml(note.english || note.expressionId)}</b>
-              <div class="small-note" style="margin-top:4px">${escapeHtml(note.status || 'open')} · ${escapeHtml(note.mode || '')} · ${escapeHtml(note.id)}</div>
+              <div class="small-note" style="margin-top:4px">${escapeHtml(note.status || 'open')}${note.missingInVault ? ' · Vault에 없음' : ''} · ${escapeHtml(note.mode || '')} · ${escapeHtml(note.id)}</div>
             </div>
             <div class="question-actions" style="margin:0;flex-wrap:wrap">
               ${note.status === 'open' ? `<button class="btn soft archive-gap" type="button" data-gap-id="${escapeHtml(note.id)}">보관</button>` : ''}
@@ -4404,8 +4623,9 @@
           createdAt: new Date().toISOString(),
         });
         mount.innerHTML = `<p class="small-note">저장됨 · ${escapeHtml(note.id)} · Obsidian 경로 Gaps/${escapeHtml(note.id)}.md</p>`;
-        toast('간극 기록을 저장했어요. 내 성장에서 Markdown으로 내보낼 수 있어요.');
+        toast('간극 기록을 저장했어요. Local REST가 켜져 있으면 백그라운드 동기화를 시도합니다.');
         renderGapNotesList();
+        maybeAutoSyncAfterGap();
       });
     }
     function pulseQuestion(type) {
@@ -5089,6 +5309,12 @@
     document.getElementById('resetProgress').addEventListener('click', () => { clearProgressPayload(); appState.progress=defaultProgress(); updateDashboard(); updateSoundToggle(); toast('학습 기록을 초기화했어요.'); });
     document.getElementById('exportBrainMarkdown')?.addEventListener('click', () => exportEnglishBrainMarkdown());
     document.getElementById('exportBrainJson')?.addEventListener('click', () => exportEnglishBrainJson());
+    document.getElementById('saveSyncSettings')?.addEventListener('click', () => saveSyncSettingsFromForm());
+    document.getElementById('testSyncConnection')?.addEventListener('click', () => testObsidianConnection());
+    document.getElementById('syncToObsidian')?.addEventListener('click', () => syncEnglishBrainToObsidian());
+    document.getElementById('importFromObsidian')?.addEventListener('click', () => importEnglishBrainFromObsidian());
+    document.getElementById('flushSyncQueue')?.addEventListener('click', () => flushObsidianSyncQueue());
+    renderSyncSettingsForm();
     (async () => {
       await purgeStaleAppCaches();
       if ('serviceWorker' in navigator && location.protocol !== 'file:') {

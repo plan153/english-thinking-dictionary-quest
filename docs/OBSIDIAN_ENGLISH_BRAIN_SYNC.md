@@ -21,8 +21,8 @@ Drive·Git 백업은 이 루프의 본선이 아니다.
 | --- | --- |
 | localStorage 학습 기록 | 동작 |
 | Gap Note / Markdown projection | 동작 (로컬 저장 + Markdown/JSON 다운로드) |
-| Local REST API / 로컬 브리지 upsert | 계획 |
-| Vault → 앱 Brain State / Gaps import | 계획 (다운로드 계약만 확정) |
+| Local REST API upsert (Gaps / Brain State / Progress / Library) | 동작 (설정·실패 큐 포함) |
+| Vault → 앱 Gaps + Next Practice import | 동작 (Vault 본문/큐 우선 병합) |
 | Google Apps Script Drive 웹훅 | 선택적 백업 경로(계획) |
 | Obsidian Git / GHVault | 사용자 Vault 백업용 외부 도구 |
 
@@ -135,9 +135,11 @@ status: open   # open | reviewed | archived
 ## 웹앱 UI 계약 (구현 시)
 
 - `간극 기록 만들기` → local gapNotes 저장 → 설정 시 자동 sync 시도
-- `Obsidian에 동기화` → Brain State / Progress / Gaps / 필요 시 Verbs·Nouns upsert
-- `Obsidian에서 가져오기` → Gaps + Brain State + Next Practice 병합
+- `Obsidian에 동기화` → Brain State / Progress / Gaps / Library Drafts·Canon upsert (`src/domain/obsidian-sync.js`)
+- `Obsidian에서 가져오기` → Gaps + Next Practice 병합 (본문·큐는 Vault 우선, progress 숫자는 앱 유지)
 - `Markdown 내보내기` → adapter 없이도 동작하는 fallback
+- 설정: Base URL(기본 `http://127.0.0.1:27123`), API Key, path prefix, 자동 sync 토글 — **localStorage만**, 소스 커밋 금지
+- CORS: Local REST 플러그인에서 앱 origin 허용. 브라우저 self-signed HTTPS(27124)보다 HTTP insecure(27123) 권장.
 
 ## 보안
 
@@ -153,8 +155,9 @@ status: open   # open | reviewed | archived
 
 ## 다음 구현 순서
 
-1. gapNotes 스키마 + Markdown projection (순수 함수, 테스트 가능)
-2. download adapter
-3. local-rest adapter로 Gaps / Brain State upsert
-4. import: Gaps + Next Practice
-5. 실패 큐 / 자동 동기화 토글
+1. gapNotes 스키마 + Markdown projection (순수 함수, 테스트 가능) — 완료
+2. download adapter — 완료
+3. local-rest adapter로 Gaps / Brain State upsert — 완료
+4. import: Gaps + Next Practice — 완료
+5. 실패 큐 / 자동 동기화 토글 — 완료
+6. (다음) conflict 시각·필드 단위 테스트 보강, Learners/<id> 경로, Bridge adapter
