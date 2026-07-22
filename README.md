@@ -151,7 +151,7 @@ python3 -m http.server 8080
 | 퀴즈·연결도·localStorage 진행 기록 | 동작 |
 | Active Speaking Set 출제 제한·해금 | 동작 (Starter 40 + Unlock pack 10) |
 | 묻기/답하기·시제 변형 매트릭스 | 동작 (`matrix` 모드, Active set 12군) |
-| Gap Note → Obsidian Markdown 동기화 | 계획 |
+| Gap Note → Obsidian Markdown 동기화 | 동작 (로컬 저장 + Markdown/JSON 다운로드) |
 | Vault → 앱 Brain State / Gaps 가져오기 | 계획 |
 | Local REST API / 로컬 브리지 | 계획 (본선) |
 | Google Drive 웹훅 · Obsidian Git | 백업/호환 경로 |
