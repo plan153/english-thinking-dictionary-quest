@@ -34,10 +34,11 @@
 5. 콘텐츠 원본은 `data/*.json`이며 `python3 scripts/validate.py`로 검증한다.
 6. Active Speaking Set Starter(동사 8·표현 40)가 `learning-paths.json`에 고정되어 있고, `getUnlockedBank()`가 퀴즈·데일리 퀘스트·복습·의미 선택지를 제한한다.
 7. 내 표현 비율 70%에 도달하면 Unlock pack 1(표현 10개)이 해금된다. 홈/성장에 Active set 요약이 표시된다.
+8. 묻기·답하기·시제 매트릭스 모드(`matrix`)가 Active set 표현군 12개에 대해 평서/의문/부정/짧은 답/과거/가까운 미래를 연습한다. 오늘의 퀘스트 6번째 스텝에도 들어간다.
 
 ### 아직 없거나 불완전한 것
 
-1. 묻기/답하기·시제/뉘앙스 치환 매트릭스 모드가 없다. 의문문 표현도 매우 적다.
+1. 파인만식 제한 어휘 설명 챌린지와 explanation → Obsidian 기록은 아직이다.
 2. `gapNotes`, Obsidian Markdown projection, 로컬 브리지, Vault import/export 코드가 이 저장소에는 없다.
 3. Obsidian에서 수동 수정한 내용의 완전 자동 역동기화가 없다.
 4. Conflict policy는 아래에서 확정했지만, 구현·테스트는 아직이다.
@@ -76,11 +77,11 @@
 
 ### Phase 2 — 파인만 출력 · 묻기/답하기 · 시제 변형
 
-- 제한 어휘 설명 챌린지를 만든다.
-- 문장 구조 치환 매트릭스로 평서/의문/부정과 간단한 시제 뉘앙스를 반복한다.
-- 녹음/음성 인식 결과를 설명 노트에 추가한다.
-- 설명 결과를 `explanation` 필드와 Markdown 본문에 기록한다.
-- 동일 표현군 안에서만 변형시켜 Active set 밖으로 새지 않게 한다.
+- [ ] 제한 어휘 설명 챌린지를 만든다.
+- [x] 문장 구조 치환 매트릭스로 평서/의문/부정과 간단한 시제 뉘앙스를 반복한다. (`data/qa-matrices.json`, mode `matrix`)
+- [ ] 녹음/음성 인식 결과를 설명 노트에 추가한다.
+- [ ] 설명 결과를 `explanation` 필드와 Markdown 본문에 기록한다.
+- [x] 동일 표현군 안에서만 변형시켜 Active set 밖으로 새지 않게 한다.
 
 ### Phase 3 — Obsidian 우선 동기화
 
@@ -126,5 +127,5 @@
 
 - 사용자 목표는 “3~4세급 쉬운 말로 시작해, 제한된 만능동사·핵심명사로 실제 말이 되게 만들고, 그 기록이 Obsidian 영어뇌에 남아 다시 앱 학습 재료가 되는 구조”다.
 - 당장 필요한 것은 콘텐츠 양 확장보다 Active set 경계와 학습 이벤트 → Vault → Next Practice 루프다.
-- 다음 구현 우선순위: `Phase 2 Q&A/시제` → `Phase 1 gapNotes/Brain State` → `Phase 3 local-rest sync` → `Phase 4 overlay`.
-- Phase 0 Active Speaking Set 게이트는 구현됨.
+- 다음 구현 우선순위: `Phase 1 gapNotes/Brain State` → `Phase 3 local-rest sync` → `Phase 4 overlay` → 파인만 설명 챌린지.
+- Phase 0 Active Speaking Set 게이트와 Phase 2 매트릭스 모드는 구현됨.

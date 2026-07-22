@@ -65,6 +65,38 @@ def main() -> None:
             if expression_id not in expression_ids:
                 fail(f"activeSpeakingSet unlock pack references unknown expressionId: {expression_id}")
 
+    qa_matrices_path = ROOT / "data" / "qa-matrices.json"
+    if not qa_matrices_path.exists():
+        fail("Required file is missing: data/qa-matrices.json")
+    qa_matrices_data = json.loads(qa_matrices_path.read_text(encoding="utf-8"))
+    qa_matrices = qa_matrices_data.get("matrices") if isinstance(qa_matrices_data, dict) else qa_matrices_data
+    if not isinstance(qa_matrices, list) or not qa_matrices:
+        fail("qa-matrices.json must include a non-empty matrices list")
+    seen_matrix_ids = set()
+    for matrix in qa_matrices:
+        matrix_id = matrix.get("id")
+        if not matrix_id:
+            fail("qa-matrices.json matrix missing id")
+        if matrix_id in seen_matrix_ids:
+            fail(f"qa-matrices.json contains duplicate matrix id: {matrix_id}")
+        seen_matrix_ids.add(matrix_id)
+        base_id = matrix.get("baseExpressionId")
+        if base_id not in expression_ids:
+            fail(f"qa-matrices.json references unknown baseExpressionId: {base_id}")
+        verb_id = matrix.get("coreVerbId")
+        if verb_id not in verb_ids:
+            fail(f"qa-matrices.json references unknown coreVerbId: {verb_id}")
+        forms = matrix.get("forms") or []
+        if len(forms) < 4:
+            fail(f"qa-matrices.json matrix {matrix_id} needs at least 4 forms")
+        form_ids = {form.get("id") for form in forms}
+        for required in ["statement", "question", "negative", "shortYes"]:
+            if required not in form_ids:
+                fail(f"qa-matrices.json matrix {matrix_id} missing required form: {required}")
+        for form in forms:
+            if not form.get("en") or not form.get("ko"):
+                fail(f"qa-matrices.json matrix {matrix_id} form {form.get('id')} needs en and ko")
+
     seen_verb_ids = set()
 
     for verb_map in verb_maps:
