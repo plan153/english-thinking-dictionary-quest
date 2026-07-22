@@ -159,6 +159,7 @@ const explanationNote = {
   english: 'I need some time.',
   naturalKorean: '시간이 좀 필요해요.',
   explanation: 'I need time.',
+  speechTranscript: 'I need time',
   status: 'passed',
   allowedRatio: 1,
   blockedWords: [],
@@ -168,6 +169,9 @@ const explanationNote = {
 const explanation = api.projectExplanation(explanationNote);
 assert.strictEqual(explanation.path, 'Learning/Explanations/exp_e002_20260722_abc.md');
 assert.ok(explanation.markdown.includes('type: explanation'));
+assert.ok(explanation.markdown.includes('## 음성 인식'));
+assert.ok(explanation.markdown.includes('hasSpeech: true'));
+assert.ok(explanation.markdown.includes('I need time'));
 
 const withExplain = api.buildExportFiles({
   brainState: { updatedAt: '2026-07-22T00:00:00Z', activeExpressionCount: 1, masteredExpressionCount: 0, openGapIds: [] },

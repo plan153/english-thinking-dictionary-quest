@@ -210,9 +210,33 @@
       color: var(--accent);
       font-weight: 800;
     }
-    .map-chip.vault-linked {
+    .verb-chip.vault-only,
+    .map-example-card.vault-only,
+    .map-sentence-card.vault-only,
+    .map-frame-card.vault-only {
+      box-shadow: inset 0 0 0 2px rgba(104, 113, 125, .45);
+      opacity: .72;
+    }
+    .map-chip.vault-linked,
+    .map-example-card.vault-linked,
+    .map-sentence-card.vault-linked,
+    .map-frame-card.vault-linked,
+    .map-detail-card.vault-linked {
       box-shadow: inset 0 0 0 1px rgba(40, 111, 108, .45);
     }
+    .map-example-card.locked,
+    .map-sentence-card.locked {
+      opacity: .55;
+      border-style: dashed;
+    }
+    .graph-node-badge {
+      display: inline-block;
+      margin-top: 6px;
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--accent);
+    }
+    .graph-node-badge.vault-only { color: var(--muted); }
     .lexicon-chips {
       display: flex;
       flex-wrap: wrap;
@@ -601,7 +625,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.0.7">v1.0.7</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.0.8">v1.0.8</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -801,6 +825,11 @@
         </div>
         <div id="gapNotesList" style="margin-top:14px"></div>
       </article>
+      <article class="card" style="margin-top:16px">
+        <h3>파인만 설명 노트</h3>
+        <p class="small-note">제한 어휘로 쓴 설명입니다. 음성 인식 결과가 있으면 함께 저장됩니다. 퀴즈 은행에는 넣지 않습니다.</p>
+        <div id="explanationsList" style="margin-top:14px"></div>
+      </article>
       <article class="card" style="margin-top:16px" id="obsidianSyncCard">
         <h3>Obsidian Local REST 동기화</h3>
         <p class="small-note">Obsidian Local REST API(권장 HTTP <code>127.0.0.1:27123</code>)로 Gaps·Brain State를 upsert하고, Next Practice·Gaps를 가져옵니다. API 키는 이 브라우저에만 저장됩니다.</p>
@@ -861,6 +890,7 @@
   <script src="./src/domain/verb-matrix-gate.js"></script>
   <script src="./src/domain/vault-overlay.js"></script>
   <script src="./src/domain/feynman-challenge.js"></script>
+  <script src="./src/domain/graph-style.js"></script>
   <script>
     const wordBank = [
       { id:'get', type:'핵심 동사', word:'get', korean:'얻다 · 받다 · 도착하다 · 이해하다 · 상태가 되다', example:'I got your message.', exKo:'네 메시지 받았어.', connections:'get a message · get home · get better · get it' },
@@ -1774,7 +1804,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.0.7';
+    const APP_CACHE_VERSION = 'etd-quest-v1.0.8';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const LEGACY_PROGRESS_KEY = 'etdQuestProgress';
@@ -2125,6 +2155,7 @@
         status: entry.status || 'draft',
         allowedRatio: Number(entry.allowedRatio) || 0,
         blockedWords: Array.isArray(entry.blockedWords) ? entry.blockedWords : [],
+        speechTranscript: entry.speechTranscript || '',
         createdAt,
         updatedAt: entry.updatedAt || createdAt,
         source: entry.source || 'webapp',
@@ -2384,6 +2415,7 @@
       document.getElementById('masteredBig').textContent = snapshot.mineCount;
       renderReviewList();
       renderGapNotesList();
+      renderExplanationsList();
       renderExpressionDraftsList();
       updateQuestUI();
     }
@@ -3537,6 +3569,34 @@
         startMode('review', expressionId);
       }));
     }
+    function renderExplanationsList() {
+      const target = document.getElementById('explanationsList');
+      if (!target) return;
+      const notes = [...(appState.progress.explanations || [])]
+        .sort((a, b) => String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')))
+        .slice(0, 10);
+      if (!notes.length) {
+        target.innerHTML = '<p class="small-note">아직 설명 노트가 없습니다. 게임 모드에서 “파인만 설명 챌린지”를 해보세요.</p>';
+        return;
+      }
+      target.innerHTML = notes.map(note => `
+        <div class="gap-note-item">
+          <b>${escapeHtml(note.english || note.expressionId)}</b>
+          <div class="small-note" style="margin-top:4px">${escapeHtml(note.status)} · 허용 ${Math.round((note.allowedRatio || 0) * 100)}%${note.speechTranscript ? ' · 음성' : ''} · ${escapeHtml(note.id)}</div>
+          <div class="small-note" style="margin-top:8px">${escapeHtml(note.explanation || '')}</div>
+          ${note.speechTranscript ? `<div class="small-note">음성: ${escapeHtml(note.speechTranscript)}</div>` : ''}
+          <div class="question-actions" style="margin-top:8px; justify-content:flex-start">
+            <button class="btn soft explain-again" type="button" data-expression-id="${escapeHtml(note.expressionId)}">다시 설명</button>
+          </div>
+        </div>
+      `).join('');
+      target.querySelectorAll('.explain-again').forEach(button => {
+        button.addEventListener('click', () => {
+          if (!button.dataset.expressionId) return;
+          startMode('explain', button.dataset.expressionId);
+        });
+      });
+    }
     function renderExpressionDraftsList() {
       const target = document.getElementById('expressionDraftsList');
       if (!target) return;
@@ -4277,9 +4337,20 @@
       const isPracticeOpen = isSelected && data.isMapPracticeOpen;
       const chunks = (expression.chunks || []).map(chunk => `<span class="chunk">${escapeHtml(chunk)}</span>`).join('');
       const hints = (expression.hints || []).slice(0, 3).map(hint => `<li>${escapeHtml(hint)}</li>`).join('');
+      const unlocked = isExpressionUnlocked(expression.id);
+      const vaultLinked = getConfirmedVaultLinks('expression', expression.id).length > 0
+        || getConfirmedVaultLinks('verb', expression.coreVerbId).length > 0;
+      const styleApi = window.GraphStyle;
+      const kind = styleApi
+        ? styleApi.classifyGraphNode({ unlocked, vaultLinked })
+        : (unlocked ? (vaultLinked ? 'vault-linked' : 'active') : (vaultLinked ? 'vault-only' : 'locked'));
+      const badge = (kind === 'vault-linked' || kind === 'vault-only')
+        ? `<span class="graph-node-badge ${kind === 'vault-only' ? 'vault-only' : ''}">${kind === 'vault-only' ? 'Vault only' : 'Vault'}</span>`
+        : '';
       return `
-        <div class="map-sentence-card" data-map-sentence-card-id="${expression.id}">
+        <div class="map-sentence-card ${kind === 'vault-linked' ? 'vault-linked' : ''} ${kind === 'vault-only' ? 'vault-only locked' : ''} ${!unlocked && kind !== 'vault-only' ? 'locked' : ''}" data-map-sentence-card-id="${expression.id}" title="${escapeHtml(styleApi?.graphNodeTitle(kind) || '')}">
           <p class="map-sentence-line">${escapeHtml(expression.english)}</p>
+          ${badge}
           <p class="map-summary-note">이 문장을 더 내 것으로 만들어 볼까요?</p>
           <div class="map-action-row">
             <button class="map-action-btn ${isMeaningOpen ? 'active' : ''}" data-map-meaning-toggle-id="${expression.id}">뜻·덩어리 보기</button>
@@ -4304,7 +4375,7 @@
               <div class="connection-strip-summary">${getConnectionGraph(expression)}</div>
               <ol class="hint-list">${hints}</ol>
               <div class="map-action-row">
-                <button class="map-action-btn active" data-map-quiz-id="${expression.id}">이 문장 듣고 따라하기</button>
+                <button class="map-action-btn active" data-map-quiz-id="${expression.id}" ${unlocked ? '' : 'disabled'}>이 문장 듣고 따라하기</button>
                 <button class="map-action-btn" data-map-practice-close="true">닫기</button>
               </div>
             </div>
@@ -4698,17 +4769,22 @@
       return `
         <h2>${escapeHtml(item.en)}</h2>
         <p class="korean">${escapeHtml(item.ko)}</p>
-        <p class="sound-help">이 표현을 <b>Active Speaking Set 단어만</b>으로 영어로 설명해 보세요. 막힌 단어가 있으면 다시 씁니다.</p>
+        <p class="sound-help">이 표현을 <b>Active Speaking Set 단어만</b>으로 영어로 설명해 보세요. 말로 설명한 뒤 인식 결과를 고칠 수도 있어요.</p>
         <div class="lexicon-chips">${preview.map(word => `<span>${escapeHtml(word)}</span>`).join('')}</div>
         <p class="small-note">허용 단어 ${lexicon.size}개 · 접속·대명사 등 기능어는 기본 포함</p>
+        <div class="question-actions" style="margin:10px 0; justify-content:flex-start">
+          <button class="btn soft mic-start" type="button">🎤 말로 설명하기</button>
+        </div>
+        <div class="hint-box hidden" id="speechResultBox"></div>
         <textarea class="answer-input" id="answerInput" rows="4" placeholder="Example: It means I have time for you." style="width:100%; min-height:96px; resize:vertical; margin-top:10px"></textarea>
         ${renderQuizNav('설명 확인')}
         <div class="feedback hidden" id="feedback"></div>`;
     }
-    function saveExplanationNote(item, text, evaluation) {
+    function saveExplanationNote(item, text, evaluation, options = {}) {
       if (!Array.isArray(appState.progress.explanations)) appState.progress.explanations = [];
       const api = window.FeynmanChallenge;
       const createdAt = new Date().toISOString();
+      const speechTranscript = options.speechTranscript || appState.lastExplainSpeech || '';
       const note = normalizeExplanationNote({
         id: api?.makeExplanationId
           ? api.makeExplanationId({ expressionId: item.id, createdAt, text })
@@ -4717,6 +4793,7 @@
         english: item.en || item.english || '',
         naturalKorean: item.ko || item.naturalKorean || '',
         explanation: text,
+        speechTranscript,
         verbWord: item.verb || verbWordFromId(item.coreVerbId) || '',
         verbId: item.coreVerbId || '',
         status: evaluation.status,
@@ -4727,6 +4804,7 @@
       });
       appState.progress.explanations.unshift(note);
       appState.progress.explanations = appState.progress.explanations.slice(0, 40);
+      appState.lastExplainSpeech = '';
       saveProgress();
       return note;
     }
@@ -4737,14 +4815,19 @@
         toast('파인만 챌린지 모듈을 불러오지 못했어요.');
         return;
       }
-      const input = document.getElementById(options.inputId || 'answerInput');
+      const inputId = options.inputId || 'answerInput';
+      const input = document.getElementById(inputId);
       const rawGuess = input?.value || '';
       if (!api.tokenize(rawGuess).length) {
-        toast('먼저 영어로 설명을 써 보세요.');
+        toast('먼저 영어로 설명을 쓰거나 말해 보세요.');
         return;
       }
       const evaluation = api.evaluateExplanation(rawGuess, getFeynmanLexicon());
-      const note = saveExplanationNote(item, rawGuess, evaluation);
+      const speechTranscript = options.speechTranscript
+        || (options.fromSpeech ? rawGuess : '')
+        || appState.lastExplainSpeech
+        || '';
+      const note = saveExplanationNote(item, rawGuess, evaluation, { speechTranscript });
       const signature = `explain:${api.normalizeToken(rawGuess).slice(0, 80)}`;
       if (evaluation.passed || evaluation.softPass) {
         markStudy(mode, progressItemId(item), evaluation.passed ? 'correct' : 'almost', {
@@ -4764,12 +4847,13 @@
       const blocked = evaluation.blocked.length
         ? `막힌 단어: ${evaluation.blocked.join(', ')}`
         : '막힌 단어 없음';
+      const speechNote = speechTranscript ? ' · 음성 인식 포함' : '';
       const result = evaluation.passed
         ? { status: 'correct', feedbackClass: 'good', title: '제한 어휘로 설명했어요!', message: `허용 ${Math.round(evaluation.allowedRatio * 100)}% · ${blocked}`, countsAsSuccess: true }
         : evaluation.softPass
           ? { status: 'almost', feedbackClass: 'almost', title: '거의 통과예요.', message: `허용 ${Math.round(evaluation.allowedRatio * 100)}% · ${blocked}`, countsAsSuccess: true }
           : { status: 'retry', feedbackClass: 'bad', title: 'Active set 밖으로 새었어요.', message: `${blocked}. 위 칩에 있는 단어만 다시 써 보세요.`, countsAsSuccess: false };
-      showAnswerSummary(result.feedbackClass, item, result, rawGuess, `설명 노트 ${note.id} 저장 · 퀴즈 은행은 그대로`, { allowAdvance: evaluation.passed || evaluation.softPass });
+      showAnswerSummary(result.feedbackClass, item, result, rawGuess, `설명 노트 ${note.id} 저장${speechNote} · 퀴즈 은행은 그대로`, { allowAdvance: evaluation.passed || evaluation.softPass });
     }
     function renderListen(item) {
       const session = getListenSession(item.id);
@@ -5036,14 +5120,25 @@
         input.focus();
         input.select();
       });
-      box.querySelector('.mic-confirm')?.addEventListener('click', () => checkTextAnswer(item, mode, { fromSpeech: true, inputId: 'speechAnswerInput' }));
+      box.querySelector('.mic-confirm')?.addEventListener('click', () => checkTextAnswer(item, mode, {
+        fromSpeech: true,
+        inputId: 'speechAnswerInput',
+        speechTranscript: transcript,
+      }));
       const speechInput = document.getElementById('speechAnswerInput');
       if (speechInput) {
         speechInput.addEventListener('keydown', e => {
           if (e.key !== 'Enter') return;
           e.preventDefault();
-          checkTextAnswer(item, mode, { fromSpeech: true, inputId: 'speechAnswerInput' });
+          checkTextAnswer(item, mode, { fromSpeech: true, inputId: 'speechAnswerInput', speechTranscript: transcript });
         });
+        if (mode === 'explain') {
+          const answerInput = document.getElementById('answerInput');
+          speechInput.addEventListener('input', () => {
+            if (answerInput) answerInput.value = speechInput.value;
+            appState.lastExplainSpeech = speechInput.value;
+          });
+        }
       }
     }
 
@@ -5127,6 +5222,13 @@
           } else {
             renderListenResult(transcript, item, result, { boxId });
           }
+          return;
+        }
+        if (mode === 'explain') {
+          appState.lastExplainSpeech = transcript;
+          const answerInput = document.getElementById('answerInput');
+          if (answerInput) answerInput.value = transcript;
+          renderSpeechResult(transcript, item, mode);
           return;
         }
         renderSpeechResult(transcript, item, mode);
@@ -5748,9 +5850,16 @@
         return String(a.word).localeCompare(String(b.word));
       });
       verbButtons.innerHTML = sortedVerbs.map(verb => {
-        const locked = !isVerbInActiveSet(verb.id);
+        const unlocked = isVerbInActiveSet(verb.id);
         const vaultLinked = getConfirmedVaultLinks('verb', verb.id).length > 0;
-        return `<button class="verb-chip ${verb.id === selectedVerb.id ? 'active' : ''} ${locked ? 'locked' : ''} ${vaultLinked ? 'vault-linked' : ''}" data-verb-id="${verb.id}" title="${locked ? 'Active Speaking Set 밖 · 탐색만 가능' : (vaultLinked ? 'Vault 연결됨' : '연습 가능')}">${verb.word}</button>`;
+        const kind = window.GraphStyle
+          ? window.GraphStyle.classifyGraphNode({ unlocked, vaultLinked })
+          : (unlocked ? (vaultLinked ? 'vault-linked' : 'active') : (vaultLinked ? 'vault-only' : 'locked'));
+        const lockedClass = kind === 'locked' || kind === 'vault-only' ? 'locked' : '';
+        const vaultClass = kind === 'vault-linked' || kind === 'vault-only' ? (kind === 'vault-only' ? 'vault-linked vault-only' : 'vault-linked') : '';
+        const title = window.GraphStyle?.graphNodeTitle(kind)
+          || (unlocked ? (vaultLinked ? 'Vault 연결됨' : '연습 가능') : 'Active Speaking Set 밖 · 탐색만 가능');
+        return `<button class="verb-chip ${verb.id === selectedVerb.id ? 'active' : ''} ${lockedClass} ${vaultClass}" data-verb-id="${verb.id}" title="${escapeHtml(title)}">${verb.word}</button>`;
       }).join('');
           verbButtons.querySelectorAll('[data-verb-id]').forEach(button => button.addEventListener('click', () => {
             appState.dictionaryData.selectedVerbId = button.dataset.verbId;
@@ -5931,20 +6040,32 @@
       const selectedExample = appState.currentMapExampleByVerb[currentMapId] || '';
       const thinkingMap = document.getElementById('thinkingMap');
       if (!thinkingMap || !m) return;
+      const mapVerb = (appState.dictionaryData.verbs || []).find(verb => verb.word === currentMapId);
+      const mapVerbId = mapVerb?.id || '';
+      const mapVerbUnlocked = mapVerbId ? isVerbInActiveSet(mapVerbId) : true;
+      const mapVerbVault = mapVerbId ? getConfirmedVaultLinks('verb', mapVerbId).length > 0 : false;
+      const engineKind = window.GraphStyle
+        ? window.GraphStyle.classifyGraphNode({ unlocked: mapVerbUnlocked, vaultLinked: mapVerbVault })
+        : 'active';
+      const engineClass = [
+        engineKind === 'vault-linked' || engineKind === 'vault-only' ? 'vault-linked' : '',
+        engineKind === 'vault-only' ? 'vault-only' : '',
+      ].filter(Boolean).join(' ');
       thinkingMap.innerHTML = `
         <div class="map-col">
           <h3>1. 기본 엔진</h3>
-          <div class="map-detail-card">
+          <div class="map-detail-card ${engineClass}" title="${escapeHtml(window.GraphStyle?.graphNodeTitle(engineKind) || '')}">
             <p><b>${escapeHtml(m.title)}</b></p>
             <p>${escapeHtml(m.engineSummary)}</p>
             ${m.coreImage ? `<p class="small-note" style="margin-top:8px">${escapeHtml(m.coreImage)}</p>` : ''}
+            ${mapVerbVault ? `<span class="graph-node-badge ${engineKind === 'vault-only' ? 'vault-only' : ''}">${engineKind === 'vault-only' ? 'Vault only' : 'Vault'}</span>` : ''}
           </div>
         </div>
         <div class="map-col">
           <h3>2. 생각틀</h3>
           <p class="small-note" style="margin:0 0 10px">생각틀을 누르면 바로 아래 예문이 바뀝니다. 처음에는 랜덤으로 하나가 선택돼 있어요.</p>
           ${m.frames.map((frame, index) => `
-            <button class="map-detail-card map-frame-card ${index === activeFrameIndex ? 'active' : ''}" type="button" data-map-frame-index="${index}">
+            <button class="map-detail-card map-frame-card ${index === activeFrameIndex ? 'active' : ''} ${engineClass}" type="button" data-map-frame-index="${index}">
               <p><b>${escapeHtml(frame.label)}</b></p>
               <p>${escapeHtml(frame.meaning)}</p>
               <div class="map-frame-combos">${(frame.combos || []).map(combo => `<span class="map-chip">${escapeHtml(combo)}</span>`).join('')}</div>
@@ -5955,13 +6076,34 @@
           <h3>3. 실생활 표현</h3>
           <p class="small-note" style="margin:0 0 10px">${escapeHtml(activeFrame ? `${activeFrame.label} 예문 5개를 바로 보여줘요. 표현을 고르면 듣고 따라 말하기로 이어집니다.` : '생각틀을 고르면 예문 5개가 바로 보여줘요.')}</p>
           <p class="small-note" style="margin:0 0 10px"><b>선택됨:</b> ${escapeHtml(activeFrame?.label || '생각틀이 없습니다.')}${activeFrame?.meaning ? ` · ${escapeHtml(activeFrame.meaning)}` : ''}</p>
-          ${activeFrameExamples.map(example => `
-            <button class="map-detail-card map-example-card ${normalize(selectedExample) === normalize(example.en) ? 'selected' : ''}" type="button" data-map-example-en="${escapeHtml(example.en)}">
+          ${activeFrameExamples.map(example => {
+            const matched = (appState.dictionaryData.expressions || []).find(item => normalize(item.english || item.en || '') === normalize(example.en));
+            const unlocked = matched ? isExpressionUnlocked(matched.id) : mapVerbUnlocked;
+            const vaultLinked = matched
+              ? (getConfirmedVaultLinks('expression', matched.id).length > 0 || getConfirmedVaultLinks('verb', matched.coreVerbId).length > 0)
+              : mapVerbVault;
+            const kind = window.GraphStyle
+              ? window.GraphStyle.classifyGraphNode({ unlocked, vaultLinked })
+              : 'active';
+            const classes = [
+              'map-detail-card',
+              'map-example-card',
+              normalize(selectedExample) === normalize(example.en) ? 'selected' : '',
+              kind === 'vault-linked' ? 'vault-linked' : '',
+              kind === 'vault-only' ? 'vault-only locked' : '',
+              !unlocked && kind !== 'vault-only' ? 'locked' : '',
+            ].filter(Boolean).join(' ');
+            const badge = (kind === 'vault-linked' || kind === 'vault-only')
+              ? `<span class="graph-node-badge ${kind === 'vault-only' ? 'vault-only' : ''}">${kind === 'vault-only' ? 'Vault only' : 'Vault'}</span>`
+              : '';
+            return `
+            <button class="${classes}" type="button" data-map-example-en="${escapeHtml(example.en)}" title="${escapeHtml(window.GraphStyle?.graphNodeTitle(kind) || '')}">
               <p><b>${escapeHtml(example.en)}</b></p>
               <p>${escapeHtml(example.ko)}</p>
+              ${badge}
               ${example.note ? `<p class="small-note" style="margin-top:8px">${escapeHtml(example.note)}</p>` : ''}
-            </button>
-          `).join('')}
+            </button>`;
+          }).join('')}
         </div>`;
       updateMapConnectionText(currentMapId);
       thinkingMap.querySelectorAll('[data-map-frame-index]').forEach(button => {

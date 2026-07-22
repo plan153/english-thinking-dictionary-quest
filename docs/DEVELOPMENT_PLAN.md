@@ -48,14 +48,16 @@
 15. **Phase 4 Vault overlay**: `vault-overlay.js` + 동사 카드 `Vault 연결` 탭. Local REST로 Library/legacy 노트 매칭 → 확정/watchlist/숨기기. 퀴즈 은행 불변.
 16. **파인만 설명 챌린지**: 모드 `explain` — Active set 제한 어휘로 설명, `explanations` + `Learning/Explanations/*.md`.
 17. **Conflict 시각 병합 + Bridge adapter**: Gap 본문은 `updatedAt` 비교(동률·없음은 Vault 우선). `bridge`(:8787)는 Local REST와 동일 `/vault` 계약.
+18. **파인만 음성**: 설명 챌린지에서 마이크 인식 → `speechTranscript` + Markdown `## 음성 인식`.
+19. **Phase 5 그래프 스타일**: `graph-style.js`로 active / vault-linked / vault-only / locked. 동사 칩·문장빌드맵·생각 맵에 반영.
 
 ### 아직 없거나 불완전한 것
 
-1. 파인만 녹음/음성 인식 결과를 설명 노트에 붙이는 것은 아직이다(텍스트 챌린지는 동작).
-2. Local REST·Bridge upsert/import/실패 큐가 동작한다. Drive webhook은 이후.
+1. Drive webhook adapter는 이후.
+2. Local REST·Bridge upsert/import/실패 큐가 동작한다.
 3. Obsidian에서 수동 수정한 Brain State 전체의 완전 자동 역동기화는 Gaps + Next Practice 중심이다.
 4. Conflict policy는 시각·필드 단위 테스트로 고정. 추가 필드 테스트는 보강 가능.
-5. Vault overlay 그래프: 동사 칩 Vault 표시는 있음. 앱 그래프 전체 Vault-only 노드 스타일은 계속 Phase 5.
+5. 앱 그래프에서 연습 바로가기 UX 보강은 계속 가능(스타일 구분은 동작).
 6. 동사 매트릭스 4형태 게이트로 `verbUnlockPacks`(예: give) 해금이 동작한다. 표현 Unlock pack과 별개.
 7. Canon → JSON 후보 번들/Unlock 대기열은 동작한다. `data/expressions.json` 자동 병합은 하지 않는다(리뷰 후 수동).
 8. 로컬 학습자 프로필: `etdQuestProgress:<learnerId>` + Vault `Learners/<id>/Learning|Gaps`. Library는 공유.
@@ -137,7 +139,7 @@
 
 - [x] 제한 어휘 설명 챌린지를 만든다. (`explain` 모드 · `src/domain/feynman-challenge.js`)
 - [x] 문장 구조 치환 매트릭스로 평서/의문/부정과 간단한 시제 뉘앙스를 반복한다. (`data/qa-matrices.json`, mode `matrix`)
-- [ ] 녹음/음성 인식 결과를 설명 노트에 추가한다.
+- [x] 녹음/음성 인식 결과를 설명 노트에 추가한다. (`speechTranscript` · Markdown `## 음성 인식`)
 - [x] 설명 결과를 `explanations` 필드와 Markdown(`Learning/Explanations/`)에 기록한다.
 - [x] 동일 표현군 안에서만 변형시켜 Active set 밖으로 새지 않게 한다.
 
@@ -163,9 +165,10 @@
 
 - 앱 그래프는 핵심 동사/명사 허브 + Active set 표현 중심이다.
 - [x] Vault 연결 동사 칩에 `vault-linked` 스타일 표시 (탐색용 구분).
+- [x] `graph-style.js`: active / vault-linked / vault-only / locked 분류.
+- [x] 문장빌드맵 문장 카드 · 생각 맵 엔진/예문에 Vault·잠김 스타일 반영.
 - 노드 클릭 시 생각틀과 묻기/답하기/듣기 연습으로 바로 넘어간다.
 - Obsidian 그래프는 문서 탐색용, 앱 그래프는 훈련용으로 역할을 분리한다.
-- [ ] 문장빌드맵/생각 맵 전체에서 Vault-only 노드 스타일 확장.
 
 ## 설계 원칙
 
@@ -189,6 +192,6 @@
 ## 이 문서를 이어받는 LLM에게 남기는 작업 메모
 
 - 사용자 목표는 “3~4세급 쉬운 말로 시작해, 제한된 만능동사·핵심명사로 실제 말이 되게 만들고, 그 기록이 Obsidian 영어뇌에 남아 다시 앱 학습 재료가 되는 구조”다.
-- Cleanup 이후 다음: 파인만 음성 기록 · Drive webhook · Phase 5 맵 Vault-only 노드 · PR C0 머지.
-- Phase 0–4 + Feynman(텍스트) + Bridge/conflict + Library + Learners 경로 구현됨.
+- Cleanup 이후 다음: Drive webhook · index.html 모듈 분리 · PR C0 머지.
+- Phase 0–5(스타일) + Feynman(텍스트·음성) + Bridge/conflict + Library + Learners 경로 구현됨.
 - 열린 PR이 있으면 C0 머지 순서를 지키고, progress 키·Vault 경로·내 표현 정의가 한 버전으로 남는지 확인한다.

@@ -131,6 +131,9 @@ learnerName: ${escapeYaml(options.learnerName || options.learnerId)}
       `- 허용 비율: ${Math.round((Number(note.allowedRatio) || 0) * 100)}%`,
       `- 막힌 단어: ${blocked.length ? blocked.join(', ') : '(없음)'}`,
       '',
+      '## 음성 인식',
+      note.speechTranscript ? note.speechTranscript : '(텍스트만 제출)',
+      '',
       '## 연결',
       note.expressionId ? `- 표현 ID: \`${note.expressionId}\`` : '',
       note.verbWord ? `- 동사: [[Verbs/${note.verbWord}]]` : '',
@@ -145,6 +148,7 @@ createdAt: ${escapeYaml(note.createdAt || new Date().toISOString())}
 updatedAt: ${escapeYaml(note.updatedAt || note.createdAt || new Date().toISOString())}
 status: ${escapeYaml(note.status || 'draft')}
 allowedRatio: ${Number(note.allowedRatio) || 0}
+hasSpeech: ${note.speechTranscript ? 'true' : 'false'}
 source: webapp
 ---
 

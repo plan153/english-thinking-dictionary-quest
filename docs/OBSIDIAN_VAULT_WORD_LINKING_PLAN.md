@@ -54,7 +54,7 @@ Vault에 이미 있는·새로 추가하는 영어 문서(`Library/Verbs|Nouns|P
 2. [x] overlay 파서(로컬 REST/브리지 GET) — `src/domain/vault-overlay.js`
 3. [x] high/medium 자동 링크 + low 후보 큐 — 동사 카드 `Vault 연결` 탭
 4. [x] Active set 게이트와 Unlock pack 연동 — active / unlock-later / candidate / watchlist (출제 불변)
-5. [ ] 그래프에 Vault-only 노드는 다른 스타일로 표시 (Phase 5)
+5. [x] 그래프에 Vault-only 노드는 다른 스타일로 표시 (Phase 5 · `graph-style.js`)
 
 ## 완료 조건
 
