@@ -337,33 +337,107 @@
     };
   }
 
+  function parseInlineObjectList(raw, startKey, fieldNames) {
+    const block = String(raw || '').split(new RegExp(`^${startKey}:\\s*`, 'm'))[1] || '';
+    const lines = block.split(/\r?\n/);
+    const items = [];
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed.startsWith('-')) {
+        if (trimmed && !trimmed.startsWith('{') && items.length) break;
+        if (trimmed === '[]') break;
+        continue;
+      }
+      const entry = {};
+      let hasValue = false;
+      fieldNames.forEach(name => {
+        const match = trimmed.match(new RegExp(`${name}:\\s*([^,}]+)`));
+        if (!match) return;
+        entry[name] = match[1].trim().replace(/^"|"$/g, '');
+        hasValue = true;
+      });
+      if (hasValue) items.push(entry);
+    }
+    return items;
+  }
+
   function parseNextPracticeMarkdown(markdown) {
     const text = String(markdown || '');
     const match = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
     const raw = match ? match[1] : '';
     const updatedAtMatch = raw.match(/^updatedAt:\s*(.+)$/m);
     const updatedAt = updatedAtMatch ? updatedAtMatch[1].trim().replace(/^"|"$/g, '') : null;
-    const queue = [];
-    const queueBlock = raw.split(/^queue:\s*/m)[1] || '';
-    const lines = queueBlock.split(/\r?\n/);
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed.startsWith('-')) {
-        if (trimmed && !trimmed.startsWith('{') && queue.length) break;
-        if (trimmed === '[]') break;
-        continue;
-      }
-      const expressionId = (trimmed.match(/expressionId:\s*([^,}]+)/) || [])[1];
-      const mode = (trimmed.match(/mode:\s*([^,}]+)/) || [])[1];
-      const reason = (trimmed.match(/reason:\s*([^,}]+)/) || [])[1];
-      if (!expressionId) continue;
-      queue.push({
-        expressionId: expressionId.trim().replace(/^"|"$/g, ''),
-        mode: (mode || 'review').trim().replace(/^"|"$/g, ''),
-        reason: (reason || '').trim().replace(/^"|"$/g, ''),
-      });
-    }
+    const queue = parseInlineObjectList(raw, 'queue', ['expressionId', 'mode', 'reason'])
+      .filter(item => item.expressionId)
+      .map(item => ({
+        expressionId: item.expressionId,
+        mode: item.mode || 'review',
+        reason: item.reason || '',
+      }));
     return { updatedAt, queue };
+  }
+
+  function parseListAttribute(raw, key) {
+    const match = String(raw || '').match(new RegExp(`^${key}:\\s*(.+)$`, 'm'));
+    if (!match) return [];
+    const value = match[1].trim();
+    if (value === '[]') return [];
+    if (value.startsWith('[') && value.endsWith(']')) {
+      return value.slice(1, -1).split(',').map(part => part.trim().replace(/^"|"$/g, '')).filter(Boolean);
+    }
+    return [];
+  }
+
+  function parseBrainStateMarkdown(markdown) {
+    const text = String(markdown || '');
+    const match = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+    const raw = match ? match[1] : '';
+    const updatedAtMatch = raw.match(/^updatedAt:\s*(.+)$/m);
+    const unlockReadyMatch = raw.match(/^unlockReady:\s*(.+)$/m);
+    const weakSlots = parseInlineObjectList(raw, 'weakSlots', ['expressionId', 'patternId', 'id', 'reason'])
+      .map(slot => ({
+        expressionId: slot.expressionId || slot.patternId || slot.id || '',
+        reason: slot.reason || '',
+      }))
+      .filter(slot => slot.expressionId);
+    const openGapIds = [];
+    const body = match ? (text.slice(match[0].length) || '') : '';
+    const gapSection = sectionAfterHeading(body, '열린 간극');
+    gapSection.split(/\r?\n/).forEach(line => {
+      const trimmed = line.trim();
+      if (!trimmed.startsWith('-') || trimmed.includes('(없음)')) return;
+      const idMatch = trimmed.match(/Gaps\/([^\]|#]+)/) || trimmed.match(/`([^`]+)`/) || trimmed.match(/gap_[a-z0-9_]+/i);
+      if (idMatch) openGapIds.push(String(idMatch[1] || idMatch[0]).replace(/\.md$/, '').trim());
+    });
+    return {
+      updatedAt: updatedAtMatch ? updatedAtMatch[1].trim().replace(/^"|"$/g, '') : null,
+      activeVerbIds: parseListAttribute(raw, 'activeVerbIds'),
+      activeNounIds: parseListAttribute(raw, 'activeNounIds'),
+      weakSlots,
+      openGapIds,
+      unlockReady: unlockReadyMatch ? /true/i.test(unlockReadyMatch[1]) : false,
+      source: 'vault',
+    };
+  }
+
+  /**
+   * Soft merge only. Progress numbers (xp/successes/unlock) stay app-owned.
+   * weakSlots / openGapIds are hints for Next Practice + review boost.
+   */
+  function mergeBrainStateHints(localHints, vaultBrain) {
+    if (!vaultBrain || (!vaultBrain.weakSlots?.length && !vaultBrain.openGapIds?.length)) {
+      return localHints && typeof localHints === 'object'
+        ? { ...localHints, source: localHints.source || 'app' }
+        : null;
+    }
+    return {
+      updatedAt: vaultBrain.updatedAt || new Date().toISOString(),
+      weakSlots: Array.isArray(vaultBrain.weakSlots) ? vaultBrain.weakSlots : [],
+      openGapIds: Array.isArray(vaultBrain.openGapIds) ? vaultBrain.openGapIds : [],
+      unlockReady: Boolean(vaultBrain.unlockReady),
+      activeVerbIds: Array.isArray(vaultBrain.activeVerbIds) ? vaultBrain.activeVerbIds : [],
+      source: 'vault',
+    };
   }
 
   function parseTimestamp(value) {
@@ -488,6 +562,9 @@
     const nextPracticePath = personalRoot
       ? `${personalRoot}/Learning/Next Practice.md`
       : 'Learning/Next Practice.md';
+    const brainStatePath = personalRoot
+      ? `${personalRoot}/Learning/Brain State.md`
+      : 'Learning/Brain State.md';
     const files = await client.listDirectory(gapDir);
     const vaultGaps = [];
     for (const name of files) {
@@ -506,11 +583,20 @@
       // optional
     }
 
+    let brainState = null;
+    try {
+      const brainMd = await client.getFile(brainStatePath);
+      if (brainMd) brainState = parseBrainStateMarkdown(brainMd);
+    } catch (_) {
+      // optional soft hints only
+    }
+
     return {
       personalRoot: personalRoot || '',
       vaultGaps,
       mergedGaps: mergeGapNotes(options.localGaps || [], vaultGaps),
       nextPractice: mergeNextPractice(options.appQueue || [], nextPractice),
+      brainState: mergeBrainStateHints(options.localBrainState || null, brainState),
     };
   }
 
@@ -534,10 +620,13 @@
     parseFrontmatter,
     parseGapNoteMarkdown,
     parseNextPracticeMarkdown,
+    parseBrainStateMarkdown,
+    parseInlineObjectList,
     parseTimestamp,
     pickNarrativeSide,
     mergeGapNotes,
     mergeNextPractice,
+    mergeBrainStateHints,
     upsertFiles,
     flushQueue,
     importGapsAndNextPractice,

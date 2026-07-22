@@ -137,6 +137,64 @@ const tie = sync.pickNarrativeSide(
 );
 assert.strictEqual(tie.reason, 'vault-tie');
 
+// Additional conflict field coverage
+const narrativeFields = sync.mergeGapNotes(
+  [{
+    id: 'gap_fields',
+    expressionId: 'e001',
+    guess: 'local-guess',
+    actual: 'local-actual',
+    naturalKorean: '로컬',
+    status: 'open',
+    updatedAt: '2026-07-22T01:00:00Z',
+    source: 'webapp',
+  }],
+  [{
+    id: 'gap_fields',
+    expressionId: 'e001',
+    guess: 'vault-guess',
+    actual: 'vault-actual',
+    naturalKorean: '볼트',
+    status: 'archived',
+    updatedAt: '2026-07-22T09:00:00Z',
+  }]
+);
+assert.strictEqual(narrativeFields[0].guess, 'vault-guess');
+assert.strictEqual(narrativeFields[0].actual, 'vault-actual');
+assert.strictEqual(narrativeFields[0].naturalKorean, '볼트');
+assert.strictEqual(narrativeFields[0].status, 'archived');
+assert.strictEqual(narrativeFields[0].conflictResolvedBy, 'vault-newer');
+
+const equalEmpty = sync.pickNarrativeSide({ updatedAt: null }, { updatedAt: '' });
+assert.strictEqual(equalEmpty.reason, 'vault-tie');
+
+const brainMd = `---
+type: brain-state
+updatedAt: 2026-07-22T03:00:00Z
+activeVerbIds: [v_get, v_need]
+weakSlots:
+  - { expressionId: e010, reason: output-low }
+  - { expressionId: e002, reason: weak-link }
+unlockReady: false
+source: webapp
+---
+
+# Brain State
+
+## 열린 간극
+- [[Gaps/gap_e002_test]]
+- (없음 무시)
+`;
+const brain = sync.parseBrainStateMarkdown(brainMd);
+assert.strictEqual(brain.weakSlots.length, 2);
+assert.strictEqual(brain.weakSlots[0].expressionId, 'e010');
+assert.ok(brain.activeVerbIds.includes('v_get'));
+assert.ok(brain.openGapIds.includes('gap_e002_test'));
+
+const mergedBrain = sync.mergeBrainStateHints(null, brain);
+assert.strictEqual(mergedBrain.source, 'vault');
+assert.strictEqual(mergedBrain.weakSlots[0].expressionId, 'e010');
+
 const bridgeSettings = sync.normalizeSettings({ adapter: 'bridge', apiKey: 'bridge-key' });
 assert.strictEqual(bridgeSettings.adapter, 'bridge');
 assert.strictEqual(bridgeSettings.baseUrl, 'http://127.0.0.1:8787');
@@ -196,6 +254,14 @@ const fakeFetch = async (url, options = {}) => {
       headers: { get: () => 'text/markdown' },
     };
   }
+  if (options.method === 'GET' && String(url).includes('Brain%20State.md')) {
+    return {
+      ok: true,
+      status: 200,
+      text: async () => brainMd,
+      headers: { get: () => 'text/markdown' },
+    };
+  }
   return { ok: false, status: 500, text: async () => 'no', headers: { get: () => '' } };
 };
 
@@ -218,6 +284,8 @@ async function main() {
   });
   assert.strictEqual(imported.mergedGaps.find(g => g.id === 'gap_e002_test').missedClue, 'some');
   assert.strictEqual(imported.nextPractice.queue[0].expressionId, 'e010');
+  assert.strictEqual(imported.brainState.source, 'vault');
+  assert.strictEqual(imported.brainState.weakSlots[0].expressionId, 'e010');
 
   const failingFetch = async () => ({
     ok: false,

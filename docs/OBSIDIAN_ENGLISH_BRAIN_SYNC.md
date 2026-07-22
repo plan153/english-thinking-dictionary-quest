@@ -22,8 +22,8 @@ Drive·Git 백업은 이 루프의 본선이 아니다.
 | localStorage 학습 기록 | 동작 |
 | Gap Note / Markdown projection | 동작 (로컬 저장 + Markdown/JSON 다운로드) |
 | Local REST API upsert (Gaps / Brain State / Progress / Library) | 동작 (설정·실패 큐 포함) |
-| Vault → 앱 Gaps + Next Practice import | 동작 (Vault 본문/큐 우선 병합) |
-| Google Apps Script Drive 웹훅 | 선택적 백업 경로(계획) |
+| Vault → 앱 Gaps + Next Practice + Brain State soft hints | 동작 (Vault 본문/큐 우선, progress 숫자는 앱) |
+| Google Apps Script Drive 웹훅 | 선택적 백업 POST (`drive-webhook`) |
 | Obsidian Git / GHVault | 사용자 Vault 백업용 외부 도구 |
 
 ## Vault 폴더 계약
@@ -136,7 +136,8 @@ status: open   # open | reviewed | archived
 
 - `간극 기록 만들기` → local gapNotes 저장 → 설정 시 자동 sync 시도
 - `Obsidian에 동기화` → Brain State / Progress / Gaps / Library Drafts·Canon upsert (`src/domain/obsidian-sync.js`)
-- `Obsidian에서 가져오기` → Gaps + Next Practice 병합 (본문·큐는 Vault 우선, progress 숫자는 앱 유지)
+- `Obsidian에서 가져오기` → Gaps + Next Practice + Brain State weakSlots 소프트 힌트 (본문·큐는 Vault 우선, progress 숫자는 앱 유지)
+- `Next Practice 시작` → 해금된 표현만 연습 세션으로 연결 (`src/domain/next-practice.js`)
 - `Markdown 내보내기` → adapter 없이도 동작하는 fallback
 - 설정: Base URL(기본 `http://127.0.0.1:27123`), API Key, path prefix, 자동 sync 토글 — **localStorage만**, 소스 커밋 금지
 - CORS: Local REST 플러그인에서 앱 origin 허용. 브라우저 self-signed HTTPS(27124)보다 HTTP insecure(27123) 권장.
@@ -158,6 +159,6 @@ status: open   # open | reviewed | archived
 1. gapNotes 스키마 + Markdown projection (순수 함수, 테스트 가능) — 완료
 2. download adapter — 완료
 3. local-rest adapter로 Gaps / Brain State upsert — 완료
-4. import: Gaps + Next Practice — 완료
+4. import: Gaps + Next Practice + Brain State soft hints — 완료
 5. 실패 큐 / 자동 동기화 토글 — 완료
-6. Drive webhook 백업·Bridge·conflict 시각 병합·Learners 경로·progress/ASS/export 모듈 분리 구현됨.
+6. Drive webhook 백업·Bridge·conflict·Learners·Next Practice 세션·그래프 바로가기·mapSets 분리 구현됨.
