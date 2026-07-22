@@ -217,6 +217,12 @@
       opacity: .72;
       font-weight: 700;
     }
+    .learner-pill { cursor: pointer; max-width: 160px; overflow: hidden; text-overflow: ellipsis; }
+    .learner-panel { display: grid; gap: 12px; margin-top: 12px; }
+    .learner-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .learner-row select, .learner-row input[type="text"] {
+      border:1px solid var(--line); border-radius:12px; padding:10px 12px; font:inherit; background:#fff; min-width:140px;
+    }
     .gap-form {
       margin-top: 12px;
       padding: 12px;
@@ -568,10 +574,11 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.0.3">v1.0.3</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.0.4">v1.0.4</span></p>
         </div>
       </div>
       <div class="top-controls">
+        <button class="stat-pill learner-pill" id="learnerPill" type="button" aria-label="학습자 공책" title="학습자 공책 바꾸기">👤 <span id="learnerPillName">나</span></button>
         <button class="stat-pill sound-pill" id="toggleSound" type="button" aria-label="소리 켬" title="소리 켬">🔊</button>
         <div class="top-stats">
           <div class="stat-pill" title="내 표현 / 해금된 Active set">🧠 <span id="mastered">0</span> / <span id="totalWords">0</span></div>
@@ -730,6 +737,22 @@
         <article class="card"><h3>연속 학습</h3><div style="font-size:34px;font-weight:900;letter-spacing:-1.5px" id="streakBig">0일</div><p>보조 지표입니다. 오늘 한 문제라도 풀면 이어집니다.</p></article>
         <article class="card"><h3>내 표현</h3><div style="font-size:34px;font-weight:900;letter-spacing:-1.5px" id="masteredBig">0</div><p>주신호: 연결도 ●—●—● 또는 충분히 맞혀 Active set 안에서 “내 말”이 된 표현입니다.</p></article>
       </div>
+      <article class="card" id="learnerCard" style="margin-top:16px">
+        <h3>학습자 공책</h3>
+        <p class="small-note">로그인 없이 사람마다 진도와 Obsidian 영어뇌를 나눕니다. 교과서는 같고, 공책만 다릅니다.</p>
+        <div class="learner-panel">
+          <div class="learner-row">
+            <label class="small-note" for="learnerSelect">지금 공책</label>
+            <select id="learnerSelect" aria-label="학습자 선택"></select>
+            <button class="btn soft" id="switchLearnerBtn" type="button">이 공책으로</button>
+          </div>
+          <div class="learner-row">
+            <input id="newLearnerName" type="text" placeholder="새 공책 이름 (예: 민수)" aria-label="새 학습자 이름" />
+            <button class="btn dark" id="addLearnerBtn" type="button">추가</button>
+          </div>
+          <p class="small-note" id="learnerVaultHint">Obsidian 경로: Learners/me/</p>
+        </div>
+      </article>
       <article class="card active-set-card" style="margin-top:16px">
         <h3>Active Speaking Set</h3>
         <p id="progressActiveSetCopy">지금 입으로 훈련하는 제한 범위입니다.</p>
@@ -1710,11 +1733,108 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.0.3';
+    const APP_CACHE_VERSION = 'etd-quest-v1.0.4';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
-    // Must be before appState — loadProgress() reads these during construction.
-    const progressStorageKey = 'etdQuestProgress';
-    const progressNamePrefix = 'ETD_PROGRESS:';
+
+    const LEGACY_PROGRESS_KEY = 'etdQuestProgress';
+    const LEARNER_PROFILES_KEY = 'etdLearnerProfiles';
+    const DEFAULT_LEARNER_ID = 'me';
+    const DEFAULT_LEARNER_NAME = '나';
+
+    function defaultLearnerStore() {
+      return {
+        activeLearnerId: DEFAULT_LEARNER_ID,
+        learners: [{ id: DEFAULT_LEARNER_ID, name: DEFAULT_LEARNER_NAME, createdAt: new Date().toISOString() }],
+      };
+    }
+    function readLearnerStoreRaw() {
+      try {
+        if (typeof localStorage === 'undefined') return null;
+        const raw = localStorage.getItem(LEARNER_PROFILES_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch {
+        return null;
+      }
+    }
+    function writeLearnerStore(store) {
+      try {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem(LEARNER_PROFILES_KEY, JSON.stringify(store));
+        }
+      } catch {}
+    }
+    function migrateLegacyProgressIfNeeded(learnerId = DEFAULT_LEARNER_ID) {
+      try {
+        if (typeof localStorage === 'undefined') return;
+        const legacy = localStorage.getItem(LEGACY_PROGRESS_KEY);
+        if (!legacy) return;
+        const namespaced = `etdQuestProgress:${learnerId}`;
+        if (!localStorage.getItem(namespaced)) {
+          localStorage.setItem(namespaced, legacy);
+        }
+        localStorage.removeItem(LEGACY_PROGRESS_KEY);
+      } catch {}
+    }
+    function ensureLearnerProfiles() {
+      let store = readLearnerStoreRaw();
+      if (!store || !Array.isArray(store.learners) || !store.learners.length) {
+        store = defaultLearnerStore();
+        migrateLegacyProgressIfNeeded(DEFAULT_LEARNER_ID);
+        writeLearnerStore(store);
+        return store;
+      }
+      store.learners = store.learners
+        .filter(item => item && item.id)
+        .map(item => ({
+          id: String(item.id),
+          name: String(item.name || item.id),
+          createdAt: item.createdAt || new Date().toISOString(),
+        }));
+      if (!store.learners.length) store = defaultLearnerStore();
+      if (!store.learners.some(item => item.id === store.activeLearnerId)) {
+        store.activeLearnerId = store.learners[0].id;
+      }
+      migrateLegacyProgressIfNeeded(store.activeLearnerId || DEFAULT_LEARNER_ID);
+      writeLearnerStore(store);
+      return store;
+    }
+    function getLearnerStore() {
+      return ensureLearnerProfiles();
+    }
+    function getActiveLearnerId() {
+      return getLearnerStore().activeLearnerId || DEFAULT_LEARNER_ID;
+    }
+    function getActiveLearner() {
+      const store = getLearnerStore();
+      return store.learners.find(item => item.id === store.activeLearnerId) || store.learners[0];
+    }
+    function getProgressStorageKey(learnerId = getActiveLearnerId()) {
+      return `etdQuestProgress:${learnerId}`;
+    }
+    function progressNamePrefixFor(learnerId = getActiveLearnerId()) {
+      return `ETD_PROGRESS:${learnerId}:`;
+    }
+    function hashString(text) {
+      let hash = 0;
+      const value = String(text || '');
+      for (let i = 0; i < value.length; i += 1) hash = ((hash << 5) - hash) + value.charCodeAt(i);
+      return hash || 1;
+    }
+    function makeLearnerId(name, existingIds = []) {
+      const cleaned = String(name || '').trim();
+      const ascii = cleaned
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-]/g, '');
+      let base = ascii.length >= 2 ? ascii.slice(0, 24) : `learner-${Math.abs(hashString(cleaned || 'x')).toString(36).slice(0, 6)}`;
+      let candidate = base;
+      let n = 2;
+      while (existingIds.includes(candidate)) {
+        candidate = `${base}-${n}`;
+        n += 1;
+      }
+      return candidate;
+    }
 
     async function purgeStaleAppCaches() {
       if (location.protocol === 'file:') return;
@@ -1853,32 +1973,36 @@
       normalized.reviewPriority = typeof entry.reviewPriority === 'number' ? entry.reviewPriority : normalized.reviewPriority;
       return normalized;
     }
-    function readProgressPayload() {
+    function readProgressPayload(learnerId = getActiveLearnerId()) {
+      const storageKey = getProgressStorageKey(learnerId);
+      const namePrefix = progressNamePrefixFor(learnerId);
       try {
         if (typeof localStorage !== 'undefined') {
-          const raw = localStorage.getItem(progressStorageKey);
+          const raw = localStorage.getItem(storageKey);
           if (raw) return JSON.parse(raw);
         }
       } catch {}
       try {
-        if (typeof window !== 'undefined' && typeof window.name === 'string' && window.name.startsWith(progressNamePrefix)) {
-          return JSON.parse(window.name.slice(progressNamePrefix.length));
+        if (typeof window !== 'undefined' && typeof window.name === 'string' && window.name.startsWith(namePrefix)) {
+          return JSON.parse(window.name.slice(namePrefix.length));
         }
       } catch {}
       return null;
     }
-    function writeProgressPayload(progress) {
+    function writeProgressPayload(progress, learnerId = getActiveLearnerId()) {
       const payload = JSON.stringify(progress);
+      const storageKey = getProgressStorageKey(learnerId);
+      const namePrefix = progressNamePrefixFor(learnerId);
       let saved = false;
       try {
         if (typeof localStorage !== 'undefined') {
-          localStorage.setItem(progressStorageKey, payload);
+          localStorage.setItem(storageKey, payload);
           saved = true;
         }
       } catch {}
       if (!saved && typeof window !== 'undefined') {
         try {
-          window.name = `${progressNamePrefix}${payload}`;
+          window.name = `${namePrefix}${payload}`;
           saved = true;
         } catch {}
       }
@@ -1886,12 +2010,14 @@
         window.__etdQuestProgressFallback = payload;
       }
     }
-    function clearProgressPayload() {
+    function clearProgressPayload(learnerId = getActiveLearnerId()) {
+      const storageKey = getProgressStorageKey(learnerId);
+      const namePrefix = progressNamePrefixFor(learnerId);
       try {
-        if (typeof localStorage !== 'undefined') localStorage.removeItem(progressStorageKey);
+        if (typeof localStorage !== 'undefined') localStorage.removeItem(storageKey);
       } catch {}
       try {
-        if (typeof window !== 'undefined' && typeof window.name === 'string' && window.name.startsWith(progressNamePrefix)) {
+        if (typeof window !== 'undefined' && typeof window.name === 'string' && window.name.startsWith(namePrefix)) {
           window.name = '';
         }
       } catch {}
@@ -1899,9 +2025,9 @@
         window.__etdQuestProgressFallback = '';
       }
     }
-    function loadProgress() {
+    function loadProgress(learnerId = getActiveLearnerId()) {
       try {
-        const saved = readProgressPayload() || {};
+        const saved = readProgressPayload(learnerId) || {};
         return {
           ...defaultProgress(),
           ...saved,
@@ -2806,6 +2932,63 @@
       saveProgress();
       renderExpressionDraftsList();
     }
+
+    function renderLearnerUI() {
+      const learner = getActiveLearner();
+      const store = getLearnerStore();
+      const pillName = document.getElementById('learnerPillName');
+      const select = document.getElementById('learnerSelect');
+      const hint = document.getElementById('learnerVaultHint');
+      if (pillName) pillName.textContent = learner?.name || DEFAULT_LEARNER_NAME;
+      if (select) {
+        select.innerHTML = store.learners.map(item => (
+          `<option value="${escapeHtml(item.id)}"${item.id === store.activeLearnerId ? ' selected' : ''}>${escapeHtml(item.name)}</option>`
+        )).join('');
+      }
+      if (hint) {
+        const root = window.EnglishBrainMarkdown?.learnerVaultRoot?.(learner?.id) || `Learners/${learner?.id || DEFAULT_LEARNER_ID}`;
+        hint.textContent = `Obsidian 경로: ${root}/Learning|Gaps · 공유 Library/`;
+      }
+    }
+    function switchActiveLearner(learnerId, options = {}) {
+      const store = getLearnerStore();
+      if (!store.learners.some(item => item.id === learnerId)) {
+        toast('공책을 찾지 못했어요.');
+        return;
+      }
+      if (learnerId === store.activeLearnerId && !options.force) {
+        renderLearnerUI();
+        return;
+      }
+      writeProgressPayload(appState.progress, store.activeLearnerId);
+      store.activeLearnerId = learnerId;
+      writeLearnerStore(store);
+      appState.progress = loadProgress(learnerId);
+      updateDashboard();
+      renderLearnerUI();
+      updateSoundToggle();
+      renderWords();
+      renderMap();
+      toast(`공책을 바꿨어요: ${getActiveLearner()?.name || learnerId}`);
+    }
+    function addLearnerProfile(name) {
+      const trimmed = String(name || '').trim();
+      if (!trimmed) {
+        toast('이름을 입력해 주세요.');
+        return null;
+      }
+      const store = getLearnerStore();
+      if (store.learners.some(item => item.name === trimmed)) {
+        toast('같은 이름 공책이 이미 있어요.');
+        return null;
+      }
+      const id = makeLearnerId(trimmed, store.learners.map(item => item.id));
+      store.learners.push({ id, name: trimmed, createdAt: new Date().toISOString() });
+      writeLearnerStore(store);
+      writeProgressPayload(defaultProgress(), id);
+      return id;
+    }
+
     function buildNextPracticeQueue() {
       const imported = appState.progress.importedNextPractice;
       if (imported?.source === 'vault' && Array.isArray(imported.queue) && imported.queue.length) {
@@ -2875,15 +3058,20 @@
         activeExpressionCount: snapshot.unlockedCount,
         openGapCount: openGaps.length,
       };
+      const learner = getActiveLearner();
       const files = api.buildExportFiles({
         brainState,
         nextPractice,
         progress,
         gaps: appState.progress.gapNotes || [],
         drafts: (appState.progress.expressionDrafts || []).filter(item => (item.status || 'draft') !== 'archived'),
+        learnerId: getActiveLearnerId(),
+        learnerName: learner?.name || DEFAULT_LEARNER_NAME,
       });
       return {
         files,
+        learnerId: getActiveLearnerId(),
+        learnerName: learner?.name || DEFAULT_LEARNER_NAME,
         brainState,
         nextPractice,
         progress,
@@ -2913,7 +3101,7 @@
           downloadTextFile(filenameFromVaultPath(path), markdown);
           await new Promise(resolve => setTimeout(resolve, 120));
         }
-        toast(`Obsidian용 Markdown ${entries.length}개를 내려받았어요. Learning/Gaps + Library/Drafts|Canon 경로를 확인하세요.`);
+        toast(`Obsidian용 Markdown ${entries.length}개를 내려받았어요. Learners/<id>/Learning|Gaps + Library/ 경로를 확인하세요.`);
       } catch (error) {
         toast('Markdown 내보내기에 실패했어요.');
         console.error(error);
@@ -2927,6 +3115,8 @@
           JSON.stringify({
             version: 1,
             exportedAt: new Date().toISOString(),
+            learnerId: payload.learnerId,
+            learnerName: payload.learnerName,
             files: payload.files,
             gapNotes: payload.gapNotes,
             expressionDrafts: payload.expressionDrafts,
@@ -3060,7 +3250,9 @@
     async function importEnglishBrainFromObsidian() {
       try {
         const { api, settings, client } = requireLocalRestClient();
+        const personalRoot = window.EnglishBrainMarkdown?.learnerVaultRoot?.(getActiveLearnerId()) || `Learners/${getActiveLearnerId()}`;
         const imported = await api.importGapsAndNextPractice(client, {
+          personalRoot,
           localGaps: appState.progress.gapNotes || [],
           appQueue: buildNextPracticeQueue(),
         });
@@ -5307,6 +5499,25 @@
       toast(settings.soundEnabled ? '소리를 켰어요.' : '소리를 껐어요.');
     });
     document.getElementById('resetProgress').addEventListener('click', () => { clearProgressPayload(); appState.progress=defaultProgress(); updateDashboard(); updateSoundToggle(); toast('학습 기록을 초기화했어요.'); });
+    document.getElementById('learnerPill')?.addEventListener('click', () => {
+      showScreen('progress');
+      document.getElementById('learnerCard')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    document.getElementById('switchLearnerBtn')?.addEventListener('click', () => {
+      const id = document.getElementById('learnerSelect')?.value;
+      if (id) switchActiveLearner(id);
+    });
+    document.getElementById('addLearnerBtn')?.addEventListener('click', () => {
+      const input = document.getElementById('newLearnerName');
+      const id = addLearnerProfile(input?.value || '');
+      if (id) {
+        if (input) input.value = '';
+        switchActiveLearner(id, { force: true });
+      }
+    });
+    document.getElementById('newLearnerName')?.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') document.getElementById('addLearnerBtn')?.click();
+    });
     document.getElementById('exportBrainMarkdown')?.addEventListener('click', () => exportEnglishBrainMarkdown());
     document.getElementById('exportBrainJson')?.addEventListener('click', () => exportEnglishBrainJson());
     document.getElementById('saveSyncSettings')?.addEventListener('click', () => saveSyncSettingsFromForm());

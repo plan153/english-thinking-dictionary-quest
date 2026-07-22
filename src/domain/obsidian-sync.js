@@ -376,7 +376,11 @@
   }
 
   async function importGapsAndNextPractice(client, options = {}) {
-    const gapDir = 'Gaps';
+    const personalRoot = String(options.personalRoot || '').replace(/^\/+|\/+$/g, '');
+    const gapDir = personalRoot ? `${personalRoot}/Gaps` : 'Gaps';
+    const nextPracticePath = personalRoot
+      ? `${personalRoot}/Learning/Next Practice.md`
+      : 'Learning/Next Practice.md';
     const files = await client.listDirectory(gapDir);
     const vaultGaps = [];
     for (const name of files) {
@@ -389,13 +393,14 @@
 
     let nextPractice = { updatedAt: null, queue: [] };
     try {
-      const nextMd = await client.getFile('Learning/Next Practice.md');
+      const nextMd = await client.getFile(nextPracticePath);
       if (nextMd) nextPractice = parseNextPracticeMarkdown(nextMd);
     } catch (_) {
       // optional
     }
 
     return {
+      personalRoot: personalRoot || '',
       vaultGaps,
       mergedGaps: mergeGapNotes(options.localGaps || [], vaultGaps),
       nextPractice: mergeNextPractice(options.appQueue || [], nextPractice),

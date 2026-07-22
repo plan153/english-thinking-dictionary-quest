@@ -41,7 +41,8 @@
 8. 묻기·답하기·시제 매트릭스 모드(`matrix`)가 Active set 표현군 12개에 대해 평서/의문/부정/짧은 답/과거/가까운 미래를 연습한다. 오늘의 퀘스트 6번째 스텝은 **의문 형태 맛보기**다.
 9. `gapNotes` 로컬 저장, 퀴즈 결과의 간극 기록 UI, Obsidian Markdown projection(`src/domain/markdown-projection.js`)과 내보내기가 동작한다. 열린 간극은 복습 우선순위에 +2 반영된다.
 10. Vault **Library 정원**: Gap → `expressionDrafts` → `Library/Drafts` export, 체크리스트 승격 시 `Library/Canon`. Canon이 곧장 퀴즈 은행에 들어가지는 않는다.
-11. **Phase 3 Local REST**: `src/domain/obsidian-sync.js`로 upsert(Gaps/Brain State/Progress/Library)·import(Gaps+Next Practice)·실패 큐·설정 UI. download adapter는 fallback으로 유지.
+11. **Phase 3 Local REST**: `src/domain/obsidian-sync.js`로 upsert·import·실패 큐·설정 UI.
+12. **Learners 경로**: 로그인 없이 공책 전환, export/sync 개인 루트 `Learners/<id>/…`, Library 공유 유지.
 
 ### 아직 없거나 불완전한 것
 
@@ -52,7 +53,7 @@
 5. Vault 단어/표현 overlay와 앱·Obsidian 그래프 통합은 계획 단계다.
 6. 동사 단위 매트릭스 4형태 통과 조건으로 새 동사 해금하는 규칙은 아직 표현 팩 해금만 구현했다. (당분간 레벨업 스토리는 **팩 해금만**.)
 7. Canon → `data/expressions.json` 자동 편입은 아직이다(리뷰 후 수동/도구).
-8. 로컬 학습자 프로필(`Learners/<id>/`) 경로 분리는 별도 PR. export/sync는 당분간 루트 `Learning/` · `Gaps/` + `Library/` (+ optional pathPrefix).
+8. 로컬 학습자 프로필: `etdQuestProgress:<learnerId>` + Vault `Learners/<id>/Learning|Gaps`. Library는 공유.
 
 ## 확정된 충돌·원본 정책
 
@@ -102,10 +103,10 @@
 
 ### Cleanup C4 — 이후 구현 게이트 (아직 코드 안 함)
 
-- [ ] 학습자 프로필 머지 시 export 루트를 `Learners/<id>/Learning|Gaps`로 이전.
+- [x] 학습자 프로필 머지 시 export 루트를 `Learners/<id>/Learning|Gaps`로 이전.
 - [ ] Canon → Unlock 후보/JSON 편입 도구(수동 리뷰 후).
 - [ ] 동사 매트릭스 4형태 통과 시 새 동사 해금.
-- [ ] Phase 3 conflict 테스트 보강 + Bridge · Learners 경로 · Canon→JSON · 동사 4형태 해금.
+- [ ] conflict 시각·필드 단위 테스트 보강 · Bridge adapter.
 - [ ] `index.html`에서 progress/ASS/export 모듈 분리(동작 동일 유지).
 
 ## 다음 단계 (기능 Phase)
@@ -142,7 +143,7 @@
 - [x] 실패 큐와 재시도. 동기화 실패가 학습을 막지 않음.
 - [x] import: Gaps + Next Practice (Vault 본문/큐 우선).
 - [ ] Bridge adapter, conflict 시각·필드 단위 테스트 보강.
-- 파일 경로(목표): 개인 `Learners/<id>/Learning|Gaps` (과도기: 루트 `Learning/`·`Gaps/` + optional `pathPrefix`), 공유 `Library/...`.
+- 파일 경로: 개인 `Learners/<id>/Learning|Gaps` (+ optional Vault `pathPrefix`), 공유 `Library/...`.
 - Google Drive 웹훅과 Obsidian Git/GHVault는 Vault 백업·기기 동기용으로만 유지한다.
 - AI 에이전트 보조는 Local REST API의 MCP, 또는 Obsidian CLI skills로 Vault 정리만 담당한다.
 
@@ -181,6 +182,6 @@
 ## 이 문서를 이어받는 LLM에게 남기는 작업 메모
 
 - 사용자 목표는 “3~4세급 쉬운 말로 시작해, 제한된 만능동사·핵심명사로 실제 말이 되게 만들고, 그 기록이 Obsidian 영어뇌에 남아 다시 앱 학습 재료가 되는 구조”다.
-- Cleanup C0–C3 이후 기능: Local REST 본선은 들어감. 다음은 Learners 경로 · Canon→JSON · Phase 4 overlay · 파인만 챌린지.
-- Phase 0 ASS, Phase 1 gapNotes/export, Phase 2 매트릭스, Phase 3 local-rest upsert/import/실패 큐, Library Drafts/Canon export는 구현됨.
+- Cleanup 이후 다음: Canon→JSON · 동사 4형태 해금 · Phase 4 overlay · 파인만 챌린지.
+- Phase 0–3 + Library + Learners(`Learners/<id>/…`) 경로 구현됨.
 - 열린 PR이 있으면 C0 머지 순서를 지키고, progress 키·Vault 경로·내 표현 정의가 한 버전으로 남는지 확인한다.

@@ -43,8 +43,8 @@ Project_English/
   Reviews/                       # 선택
 ```
 
-**과도기(현재 export):** 프로필 분리 전까지 개인 루프는 루트 `Learning/` · `Gaps/`에 쓴다. Library는 `Library/Drafts|Canon|Index`.  
-레거시 루트 `Verbs/`·`Nouns/`·`Patterns/`가 있으면 overlay 시 `Library/`와 동일 ID로 병합하고, 신규 노트는 Library에만 만든다.
+**과도기 종료:** 개인 루프는 `Learners/<learnerId>/Learning|Gaps|English Brain Index.md`.  
+Library는 공유(`Library/Drafts|Canon|Index`). Local REST pathPrefix는 Vault 상위 루트일 때만 사용.
 
 약점 흐름: **간극 → Library/Drafts → (승격) Canon → (리뷰 후) Unlock/JSON**. Next Practice는 연습 순서 큐다.
 

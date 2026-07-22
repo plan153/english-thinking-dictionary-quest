@@ -24,7 +24,7 @@ const gap = api.projectGapNote({
   createdAt: '2026-07-22T00:00:00Z',
   updatedAt: '2026-07-22T00:00:00Z',
 });
-assert.strictEqual(gap.path, `Gaps/${id}.md`);
+assert.strictEqual(gap.path, `Gaps/${id}.md`); // no learnerId
 assert.ok(gap.markdown.includes('type: gap-note'));
 assert.ok(gap.markdown.includes('## 내 추측'));
 assert.ok(gap.markdown.includes('[[Verbs/need]]'));
@@ -73,6 +73,31 @@ assert.ok(files['Learning/Next Practice.md']);
 assert.ok(files['Learning/Progress.md']);
 assert.ok(files['English Brain Index.md']);
 assert.ok(files[`Gaps/${id}.md`]);
+
+const learnerFiles = api.buildExportFiles({
+  brainState: {
+    updatedAt: '2026-07-22T00:00:00Z',
+    activeVerbIds: ['v_need'],
+    activeExpressionCount: 40,
+    masteredExpressionCount: 3,
+    weakSlots: [],
+    openGapIds: [id],
+    unlockReady: false,
+  },
+  nextPractice: { updatedAt: '2026-07-22T00:00:00Z', queue: [] },
+  progress: { updatedAt: '2026-07-22T00:00:00Z', xp: 0, streak: 0, unlockedPackCount: 0, mineCount: 0, activeExpressionCount: 40, openGapCount: 1 },
+  gaps: [{ id, expressionId: 'e002', english: 'I need some time.', status: 'open', createdAt: '2026-07-22T00:00:00Z', updatedAt: '2026-07-22T00:00:00Z' }],
+  drafts: [],
+  learnerId: 'me',
+  learnerName: '나',
+});
+assert.ok(learnerFiles['Learners/me/Learning/Brain State.md']);
+assert.ok(learnerFiles['Learners/me/Learning/Next Practice.md']);
+assert.ok(learnerFiles[`Learners/me/Gaps/${id}.md`]);
+assert.ok(learnerFiles['Library/Index.md']); // shared
+assert.strictEqual(api.learnerVaultRoot('me'), 'Learners/me');
+assert.strictEqual(api.withLearnerPath('Gaps/x.md', 'me'), 'Learners/me/Gaps/x.md');
+
 
 const draftEval = api.evaluatePromoteChecklist({
   english: 'I need some time.',

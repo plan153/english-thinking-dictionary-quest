@@ -170,6 +170,15 @@ async function main() {
   assert.strictEqual(failed.failed.length, 1);
   assert.ok(sync.loadQueue(memory).some(job => job.path === 'Gaps/x.md'));
 
+
+  const importedLearner = await sync.importGapsAndNextPractice(client, {
+    personalRoot: 'Learners/me',
+    localGaps: [],
+    appQueue: [],
+  });
+  // Without matching fake routes this may be empty; ensure API accepts personalRoot
+  assert.strictEqual(importedLearner.personalRoot, 'Learners/me');
+
   console.log('✅ obsidian-sync tests passed');
 }
 

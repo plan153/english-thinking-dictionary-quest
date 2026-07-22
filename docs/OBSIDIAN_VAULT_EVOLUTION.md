@@ -27,8 +27,8 @@ Project_English/
 
 **이 문서가 Vault 폴더 계약의 SoT다.** SYNC·WORD_LINKING은 여기 구조를 따른다.
 
-지금 웹앱 export는 과도기로 루트 `Learning/` · `Gaps/` + `Library/Drafts|Canon|Index`를 채운다.  
-로컬 학습자 프로필이 들어오면 개인 루프만 `Learners/<id>/Learning|Gaps`로 옮긴다. Library는 공유로 유지한다.
+지금 웹앱은 로컬 학습자 공책(`etdQuestProgress:<id>`)과 export/sync 경로 `Learners/<id>/Learning|Gaps`를 쓴다.  
+Library는 공유로 유지한다.
 
 ## 진화 루프
 
