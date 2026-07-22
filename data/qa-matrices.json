@@ -192,6 +192,38 @@
         { "id": "past", "label": "과거", "en": "I wanted some time.", "ko": "시간이 좀 필요했어요.", "cue": "과거로 바꿔 보세요", "baseFormId": "statement", "level": 2 },
         { "id": "future", "label": "가까운 미래", "en": "I'm going to want some time.", "ko": "시간이 좀 필요할 거예요.", "cue": "가까운 미래로 바꿔 보세요", "baseFormId": "statement", "level": 2, "acceptedAnswers": ["I am going to want some time."] }
       ]
+    },
+    {
+      "id": "m_give_a_second",
+      "baseExpressionId": "e007",
+      "coreVerbId": "v_give",
+      "label": "give + me + a second",
+      "thinkingFrame": "잠깐 달라고 말하기·묻기",
+      "forms": [
+        { "id": "statement", "label": "평서", "en": "Give me a second.", "ko": "잠깐만요.", "cue": "평서문으로 말해 보세요", "acceptedAnswers": ["Give me a sec.", "Give me one second."] },
+        { "id": "question", "label": "의문", "en": "Can you give me a second?", "ko": "잠깐만 줄 수 있어요?", "cue": "의문문으로 바꿔 보세요", "baseFormId": "statement", "acceptedAnswers": ["Could you give me a second?", "Will you give me a second?"] },
+        { "id": "negative", "label": "부정", "en": "I can't give you a second.", "ko": "잠깐도 줄 수 없어요.", "cue": "부정문으로 바꿔 보세요", "baseFormId": "statement", "acceptedAnswers": ["I cannot give you a second.", "I will not give you a second."] },
+        { "id": "shortYes", "label": "짧은 답", "en": "Yes, I can.", "ko": "네, 줄게요.", "cue": "짧게 긍정으로 답해 보세요", "baseFormId": "question", "acceptedAnswers": ["Yes, I will."] },
+        { "id": "shortNo", "label": "짧은 답", "en": "No, I can't.", "ko": "아니요, 안 돼요.", "cue": "짧게 부정으로 답해 보세요", "baseFormId": "question", "acceptedAnswers": ["No, I cannot.", "No, I won't.", "No, I will not."] },
+        { "id": "past", "label": "과거", "en": "I gave you a second.", "ko": "잠깐 드렸어요.", "cue": "과거로 바꿔 보세요", "baseFormId": "statement", "level": 2 },
+        { "id": "future", "label": "가까운 미래", "en": "I'm going to give you a second.", "ko": "잠깐 드릴게요.", "cue": "가까운 미래로 바꿔 보세요", "baseFormId": "statement", "level": 2, "acceptedAnswers": ["I am going to give you a second."] }
+      ]
+    },
+    {
+      "id": "m_be_ready",
+      "baseExpressionId": "e016",
+      "coreVerbId": "v_be",
+      "label": "be + ready",
+      "thinkingFrame": "준비됐다고 말하기·묻기",
+      "forms": [
+        { "id": "statement", "label": "평서", "en": "I'm ready.", "ko": "준비됐어요.", "cue": "평서문으로 말해 보세요", "acceptedAnswers": ["I am ready."] },
+        { "id": "question", "label": "의문", "en": "Are you ready?", "ko": "준비됐어요?", "cue": "의문문으로 바꿔 보세요", "baseFormId": "statement" },
+        { "id": "negative", "label": "부정", "en": "I'm not ready.", "ko": "아직 준비 안 됐어요.", "cue": "부정문으로 바꿔 보세요", "baseFormId": "statement", "acceptedAnswers": ["I am not ready."] },
+        { "id": "shortYes", "label": "짧은 답", "en": "Yes, I am.", "ko": "네, 준비됐어요.", "cue": "짧게 긍정으로 답해 보세요", "baseFormId": "question" },
+        { "id": "shortNo", "label": "짧은 답", "en": "No, I'm not.", "ko": "아니요, 아직이에요.", "cue": "짧게 부정으로 답해 보세요", "baseFormId": "question", "acceptedAnswers": ["No, I am not."] },
+        { "id": "past", "label": "과거", "en": "I was ready.", "ko": "준비돼 있었어요.", "cue": "과거로 바꿔 보세요", "baseFormId": "statement", "level": 2 },
+        { "id": "future", "label": "가까운 미래", "en": "I'm going to be ready.", "ko": "곧 준비될 거예요.", "cue": "가까운 미래로 바꿔 보세요", "baseFormId": "statement", "level": 2, "acceptedAnswers": ["I am going to be ready."] }
+      ]
     }
   ]
 }
