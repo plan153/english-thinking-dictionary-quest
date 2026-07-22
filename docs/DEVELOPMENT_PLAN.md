@@ -91,7 +91,7 @@
 
 권장 머지 순서: progress TDZ/E2E(#8) → learner profiles(#9) → level/spiral 계획(#10) → Library garden(#11) → 본 Cleanup.
 
-- [x] tip(#19)이 `main`에 합쳐짐. “이미 동작”을 main 기준으로 갱신. 하위 draft(#3,#8–#18)는 superseded로 닫기(에이전트 권한 제한 시 사람이 닫음).
+- [x] tip(#19)이 `main`에 합쳐짐. “이미 동작”을 main 기준으로 갱신. 하위 draft(#3,#8–#18) supersede 종료.
 - [x] 개발 Phase 번호(0–5)와 마케팅 Phase(1–7)를 분리한다. 마케팅은 비전 로드맵만.
 - [x] Vault 폴더 계약 SoT를 [`OBSIDIAN_VAULT_EVOLUTION.md`](./OBSIDIAN_VAULT_EVOLUTION.md)로 고정하고 SYNC/WORD_LINKING은 이를 참조한다.
 - [x] `docs/development-plan-and-changelog.docx|html`는 파생 아카이브로 두고, 편집 SoT는 이 Markdown만 쓴다.
