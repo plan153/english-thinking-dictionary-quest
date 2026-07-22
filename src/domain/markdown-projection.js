@@ -206,6 +206,7 @@ ${body}
     const path = withLearnerPath('Learning/Brain State.md', options.learnerId);
     const weak = state.weakSlots || [];
     const openGaps = state.openGapIds || [];
+    const watchlist = state.watchlist || [];
     const markdown = `---
 type: brain-state
 vaultPath: ${escapeYaml(path)}
@@ -215,6 +216,10 @@ activeNounIds: ${yamlList(state.activeNounIds || [])}
 activeExpressionCount: ${Number(state.activeExpressionCount || 0)}
 masteredExpressionCount: ${Number(state.masteredExpressionCount || 0)}
 weakSlots: ${yamlWeakSlots(weak)}
+watchlist: ${yamlWeakSlots(watchlist.map(item => ({
+  expressionId: item.entityId || item.expressionId || item.id,
+  reason: item.reason || item.status || 'watchlist',
+})))}
 unlockReady: ${state.unlockReady ? 'true' : 'false'}
 source: webapp
 ---
@@ -231,6 +236,9 @@ source: webapp
 
 ## 약한 슬롯
 ${weak.length ? weak.map(slot => `- ${slot.expressionId || slot.patternId}: ${slot.reason}`).join('\n') : '- (없음)'}
+
+## Watchlist (해금 전 · 퀴즈 제외)
+${watchlist.length ? watchlist.map(item => `- ${item.entityLabel || item.entityId || item.noteWord}: ${item.entityType || 'item'} · ${item.gate || 'later'}`).join('\n') : '- (없음)'}
 
 ## 열린 간극
 ${openGaps.length ? openGaps.map(id => `- ${gapWikiLink(id, options.learnerId)}`).join('\n') : '- (없음)'}

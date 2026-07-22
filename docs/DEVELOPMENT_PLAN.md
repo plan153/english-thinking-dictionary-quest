@@ -52,17 +52,24 @@
 19. **Phase 5 그래프 스타일**: `graph-style.js`로 active / vault-linked / vault-only / locked. 동사 칩·문장빌드맵·생각 맵에 반영.
 20. **Drive webhook adapter**: `drive-webhook` — Apps Script 등으로 JSON 백업 POST (읽기/import 없음).
 21. **모듈 분리(C4)**: `progress-store.js` · `active-speaking-set.js` · `english-brain-export.js` (index는 얇은 래퍼).
+22. **Next Practice 세션**: 성장 화면에서 큐를 보고 바로 연습 시작. Vault/간극/watchlist/Brain 힌트 반영.
+23. **Brain State 역동기화(소프트)**: import 시 weakSlots·openGapIds 힌트만 저장. XP/성공/해금은 앱 SoT.
+24. **Phase 5 그래프 바로가기**: 문장빌드맵·생각 맵·표현 상세에서 듣기/말하기/한글→영어/묻기·답하기.
+25. **Watchlist → Next Practice**: 이미 해금된 표현만 제안(퀴즈 은행 불변). Brain State에 watchlist 투영.
+26. **생각 맵 데이터 분리**: `src/data/thinking-map-sets.js` + `next-practice.js`.
+
 
 ### 아직 없거나 불완전한 것
 
 1. Drive webhook은 백업 POST만. Google OAuth를 정적 앱에 넣지 않는다.
-2. Local REST·Bridge upsert/import/실패 큐가 동작한다.
-3. Obsidian에서 수동 수정한 Brain State 전체의 완전 자동 역동기화는 Gaps + Next Practice 중심이다.
-4. Conflict policy는 시각·필드 단위 테스트로 고정. 추가 필드 테스트는 보강 가능.
-5. 앱 그래프에서 연습 바로가기 UX 보강은 계속 가능(스타일 구분은 동작).
+2. Local REST·Bridge upsert/import/실패 큐가 동작한다. Brain State import는 weakSlots 소프트 힌트만(진행 숫자 불변).
+3. Progress.md / Explanations의 Vault→앱 완전 역동기화는 하지 않는다(앱 SoT).
+4. Conflict policy는 시각·필드 단위 테스트로 고정.
+5. 그래프 연습 바로가기는 듣기/말하기/koen/matrix까지 동작. explain은 모드 카드에서.
 6. 동사 매트릭스 4형태 게이트로 `verbUnlockPacks`(예: give) 해금이 동작한다. 표현 Unlock pack과 별개.
 7. Canon → JSON 후보 번들/Unlock 대기열은 동작한다. `data/expressions.json` 자동 병합은 하지 않는다(리뷰 후 수동).
 8. 로컬 학습자 프로필: `etdQuestProgress:<learnerId>` + Vault `Learners/<id>/Learning|Gaps`. Library는 공유.
+9. 열린 draft PR(#3, #8–#18)은 tip(#19 등)에 흡수됨. 사람이 GitHub에서 superseded로 닫으면 C0 완료.
 
 ## 확정된 충돌·원본 정책
 
@@ -84,7 +91,7 @@
 
 권장 머지 순서: progress TDZ/E2E(#8) → learner profiles(#9) → level/spiral 계획(#10) → Library garden(#11) → 본 Cleanup.
 
-- [ ] 열린 기능 PR을 tip(누적) 기준으로 `main`에 합친 뒤, 이 문서의 “이미 동작”을 `main` 기준으로 다시 맞춘다.
+- [x] tip(#19)이 `main`에 합쳐짐. “이미 동작”을 main 기준으로 갱신. 하위 draft(#3,#8–#18)는 superseded로 닫기(에이전트 권한 제한 시 사람이 닫음).
 - [x] 개발 Phase 번호(0–5)와 마케팅 Phase(1–7)를 분리한다. 마케팅은 비전 로드맵만.
 - [x] Vault 폴더 계약 SoT를 [`OBSIDIAN_VAULT_EVOLUTION.md`](./OBSIDIAN_VAULT_EVOLUTION.md)로 고정하고 SYNC/WORD_LINKING은 이를 참조한다.
 - [x] `docs/development-plan-and-changelog.docx|html`는 파생 아카이브로 두고, 편집 SoT는 이 Markdown만 쓴다.
@@ -108,7 +115,7 @@
 
 - [x] `isMineExpression`: 연결도 3축 강함 **우선**, 없으면 성공 횟수 ≥ threshold (둘 다 인정).
 - [x] 헤더/성장의 주신호는 내 표현 수·해금 범위. XP/streak는 보조 유지.
-- [ ] (이후) 성공 카운트를 화면에서 더 줄이고 연결도 스트립만 강조 — Chapter 1과 추가 정렬.
+- [x] 성장 화면에서 내 표현·연결도 스트립을 주신호로, XP/streak·말하기 세션 카운트를 보조로 정렬.
 
 ### Cleanup C4 — 이후 구현 게이트 (아직 코드 안 함)
 
@@ -150,7 +157,7 @@
 - [x] `SyncAdapter`로 `download`, `local-rest`, `bridge`, `drive-webhook` 분리 (`src/domain/obsidian-sync.js`).
 - [x] Obsidian Local REST API로 Vault upsert/read (Gaps, Learning/*, Library Drafts·Canon·Index).
 - [x] 실패 큐와 재시도. 동기화 실패가 학습을 막지 않음.
-- [x] import: Gaps + Next Practice (Vault 본문/큐 우선).
+- [x] import: Gaps + Next Practice + Brain State weakSlots 소프트 힌트 (Vault 본문/큐 우선, 진행 숫자는 앱).
 - [x] Bridge adapter(`:8787`, 동일 `/vault` 계약) · Gap conflict `updatedAt` 병합 테스트.
 - [x] Drive webhook: 앱 → JSON 백업 POST (import 없음, 비밀값은 localStorage만).
 - 파일 경로: 개인 `Learners/<id>/Learning|Gaps` (+ optional Vault `pathPrefix`), 공유 `Library/...`.
@@ -162,6 +169,7 @@
 - [x] Vault의 `Library/Verbs|Nouns|Patterns` (및 legacy 루트 노트)를 읽기 전용 overlay로 가져온다. (`src/domain/vault-overlay.js`)
 - [x] 자동 연결은 후보만 보여 주고 사용자가 확정한다. (동사 카드 `Vault 연결` 탭 · confirmed / watchlist / dismissed)
 - [x] overlay 단어가 Active set 밖이면 연습 출제에 넣지 않고 “나중에 해금” 후보로만 표시한다.
+- [x] watchlist 중 이미 해금된 표현만 Next Practice 제안에 넣고, Brain State에 watchlist를 투영한다.
 - 상세는 [`OBSIDIAN_VAULT_WORD_LINKING_PLAN.md`](./OBSIDIAN_VAULT_WORD_LINKING_PLAN.md).
 
 ### Phase 5 — 그래프와 연습 화면 통합
@@ -170,7 +178,7 @@
 - [x] Vault 연결 동사 칩에 `vault-linked` 스타일 표시 (탐색용 구분).
 - [x] `graph-style.js`: active / vault-linked / vault-only / locked 분류.
 - [x] 문장빌드맵 문장 카드 · 생각 맵 엔진/예문에 Vault·잠김 스타일 반영.
-- 노드 클릭 시 생각틀과 묻기/답하기/듣기 연습으로 바로 넘어간다.
+- [x] 노드/예문에서 듣기 · 말하기 · 한글→영어 · 묻기/답하기 바로가기.
 - Obsidian 그래프는 문서 탐색용, 앱 그래프는 훈련용으로 역할을 분리한다.
 
 ## 설계 원칙
@@ -195,6 +203,5 @@
 ## 이 문서를 이어받는 LLM에게 남기는 작업 메모
 
 - 사용자 목표는 “3~4세급 쉬운 말로 시작해, 제한된 만능동사·핵심명사로 실제 말이 되게 만들고, 그 기록이 Obsidian 영어뇌에 남아 다시 앱 학습 재료가 되는 구조”다.
-- Cleanup 이후 다음: 열린 draft PR을 tip 기준으로 `main`에 합치고, SoT 문서를 main 기준으로 재확인.
-- Phase 0–5 + Feynman + Bridge/conflict + Drive webhook + progress/ASS/export 모듈 분리 + Library + Learners 구현됨.
-- 열린 PR이 있으면 C0 머지 순서를 지키거나, cumulative tip PR 하나를 `main`에 합친 뒤 하위 draft를 정리한다.
+- Phase 0–5 + Feynman + Bridge/conflict + Drive webhook + Next Practice 세션 + Brain soft import + 그래프 바로가기 + watchlist 연동 + mapSets 분리까지 구현됨.
+- tip(#19)은 main에 있음. 하위 draft(#3,#8–#18)는 superseded로 닫아 C0를 마무리하면 된다.

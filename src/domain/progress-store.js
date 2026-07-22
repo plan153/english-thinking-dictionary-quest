@@ -117,6 +117,7 @@
       expressionDrafts: [],
       canonUnlockQueue: [],
       importedNextPractice: null,
+      importedBrainState: null,
       vaultOverlay: defaultVaultOverlay(),
       explanations: [],
     };
@@ -247,6 +248,7 @@
       entityLabel: entry.entityLabel || entry.noteWord || notePath,
       confidence: entry.confidence || 'low',
       gate: entry.gate || 'background',
+      relatedExpressionIds: Array.isArray(entry.relatedExpressionIds) ? entry.relatedExpressionIds.slice(0, 12) : [],
       status: entry.status === 'watchlist' || entry.status === 'dismissed' ? entry.status : 'confirmed',
       updatedAt: entry.updatedAt || new Date().toISOString(),
     };
@@ -351,6 +353,9 @@
         canonUnlockQueue: Array.isArray(saved.canonUnlockQueue) ? saved.canonUnlockQueue : [],
         importedNextPractice: saved.importedNextPractice && typeof saved.importedNextPractice === 'object'
           ? saved.importedNextPractice
+          : null,
+        importedBrainState: saved.importedBrainState && typeof saved.importedBrainState === 'object'
+          ? saved.importedBrainState
           : null,
         vaultOverlay: normalizeVaultOverlay(saved.vaultOverlay),
         explanations: Array.isArray(saved.explanations)

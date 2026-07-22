@@ -152,10 +152,11 @@ python3 -m http.server 8080
 | 퀴즈·연결도·localStorage 진행 기록 | 동작 |
 | Active Speaking Set 출제 제한·해금 | 동작 (Starter 40 + Unlock pack 10) |
 | 묻기/답하기·시제 변형 매트릭스 | 동작 (`matrix` 모드, Active set 12군) |
-| Gap Note → Obsidian Markdown 동기화 | 동작 (로컬 저장 + Markdown/JSON 다운로드) |
-| Vault → 앱 Brain State / Gaps 가져오기 | 계획 |
-| Local REST API / 로컬 브리지 | 계획 (본선) |
-| Google Drive 웹훅 · Obsidian Git | 백업/호환 경로 |
+| Gap Note → Obsidian Markdown 동기화 | 동작 (다운로드 + Local REST/Bridge upsert) |
+| Vault → 앱 Gaps / Next Practice / Brain 힌트 | 동작 (진행 숫자는 앱 우선) |
+| Local REST API / 로컬 브리지 | 동작 |
+| Next Practice 세션 · 그래프 연습 바로가기 | 동작 |
+| Google Drive 웹훅 · Obsidian Git | 백업/호환 경로 (webhook POST만) |
 
 동기화 계약과 Vault 폴더 구조는 [`docs/OBSIDIAN_ENGLISH_BRAIN_SYNC.md`](docs/OBSIDIAN_ENGLISH_BRAIN_SYNC.md), 단계별 순서는 [`docs/DEVELOPMENT_PLAN.md`](docs/DEVELOPMENT_PLAN.md)를 참고하세요.
 
