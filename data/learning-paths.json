@@ -1,10 +1,32 @@
 {
   "version": 1,
+  "activeSpeakingSet": {
+    "id": "ass_starter_v0",
+    "title": "Active Speaking Set Starter",
+    "description": "3~4세급 구어체를 위한 만능동사 8개와 Starter 표현 40개. Vault나 전체 JSON에 더 있어도 연습은 이 범위만 사용한다.",
+    "verbIds": ["v_have", "v_get", "v_want", "v_need", "v_go", "v_come", "v_make", "v_take"],
+    "expressionIds": [
+      "e001", "e003", "e068", "e002", "e044", "e009", "e005", "e006",
+      "e018", "e026", "e069", "e015", "e047", "e048", "e035", "e038",
+      "e021", "e030", "e083", "e074", "e045", "e061", "e020", "e039",
+      "e022", "e004", "e014", "e090", "e046", "e033", "e036", "e024",
+      "e019", "e070", "e075", "e079", "e031", "e037", "e025", "e029"
+    ],
+    "unlockPacks": [
+      {
+        "id": "pack_1",
+        "title": "Unlock pack 1",
+        "expressionIds": ["e023", "e032", "e062", "e071", "e072", "e027", "e028", "e034", "e080", "e082"]
+      }
+    ],
+    "unlockThreshold": 0.7,
+    "masteryThreshold": 3
+  },
   "paths": [
     {
       "id": "lp_starter_core_15",
       "title": "Core 15 Starter",
-      "description": "15개 핵심 동사를 빠르게 만나고 생활 표현 80개를 연결한다.",
+      "description": "전체 후보 풀. Active Speaking Set은 이 경로의 부분집합으로 출제한다.",
       "level": 1,
       "verbIds": ["v_be","v_do","v_have","v_get","v_make","v_take","v_give","v_go","v_come","v_put","v_keep","v_find","v_feel","v_want","v_need"],
       "expressionIds": ["e001","e002","e003","e004","e005","e006","e007","e008","e009","e010","e011","e012","e013","e014","e015","e016","e017","e018","e019","e020","e021","e022","e023","e024","e025","e026","e027","e028","e029","e030","e031","e032","e033","e034","e035","e036","e037","e038","e039","e040","e041","e042","e043","e044","e045","e046","e047","e048","e049","e050","e051","e052","e053","e054","e055","e056","e057","e058","e059","e060","e061","e062","e063","e064","e065","e066","e067","e068","e069","e070","e071","e072","e073","e074","e075","e076","e077","e078","e079","e080"],

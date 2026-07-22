@@ -191,6 +191,23 @@
     }
     .dictionary-tab.active { background:var(--ink); color:#fff; border-color:var(--ink); }
     .dictionary-subnav-note { margin-top:10px; color:var(--muted); font-size:12px; line-height:1.5; }
+    .verb-chip.locked, .expression-item.locked {
+      opacity: .58;
+      border-style: dashed;
+    }
+    .verb-chip.locked::after {
+      content: " 잠김";
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 800;
+    }
+    .expression-item .lock-mark { display:inline-block; margin-left:6px; font-size:11px; color:var(--muted); font-weight:800; }
+    .active-set-card .active-set-stats {
+      display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;
+    }
+    .active-set-card .active-set-stats span {
+      background:#eaf4f3; color:#155a57; border-radius:999px; padding:7px 10px; font-size:12px; font-weight:850;
+    }
     .dictionary-location {
       margin-top: 10px;
       padding: 11px 13px;
@@ -512,7 +529,7 @@
       <div class="hero">
         <div class="eyebrow">Think in building blocks</div>
         <h2>영어 문장을 외우지 말고,<br>핵심 단어를 조립하세요.</h2>
-        <p><b>be · do · have · get · make · take · give · go · come · put · keep · find · feel · want · need</b> 같은 기본 동사와 핵심 명사를 연결합니다. 듣고, 따라 말하고, 힌트를 보며 직접 조립하면 한국어를 거치지 않고 말이 나옵니다.</p>
+        <p>지금은 <b>have · get · want · need · go · come · make · take</b> 만능동사와 핵심 명사만으로 쉬운 구어체를 만듭니다. 듣고, 따라 말하고, 힌트를 보며 조립하세요. 익숙해지면 다음 표현 묶음이 해금됩니다.</p>
         <div class="hero-actions">
           <button class="btn primary" id="startDaily">오늘의 7분 퀘스트 시작</button>
           <button class="btn ghost" id="jumpDictionary">동사 카드 보기</button>
@@ -528,13 +545,20 @@
             <div class="mini-progress"><div class="progress-track"><span id="dailyBar" style="width:0%"></span></div><strong id="dailyCount">0 / 7</strong></div>
           </div>
         </article>
-        <article class="card">
-          <h3>오늘의 연결</h3>
-          <p>하나의 기본 엔진은 “한 단어”가 아니라 여러 표현을 만드는 출발점입니다.</p>
-          <div id="homeConnectionChips" style="margin-top:14px; display:flex; flex-wrap:wrap; gap:8px;"></div>
-          <p class="small-note" id="connectionText" style="margin-top:12px">기본 엔진 get · 얻다 · 받다 · 도착하다 · 이해하다 · 상태가 되다</p>
+        <article class="card active-set-card">
+          <h3>지금 연습 중인 영어뇌</h3>
+          <p id="activeSetCopy">제한된 만능동사·표현만 출제합니다. Vault에 문서가 더 있어도 연습 범위는 여기서만 넓어집니다.</p>
+          <div class="active-set-stats" id="activeSetStats"></div>
+          <div class="mini-progress" style="margin-top:14px"><div class="progress-track"><span id="activeSetBar" style="width:0%"></span></div><strong id="activeSetPercent">0%</strong></div>
+          <p class="small-note" id="activeSetUnlockHint" style="margin-top:10px">내 표현 70%에 도달하면 다음 10개가 해금됩니다.</p>
         </article>
       </div>
+      <article class="card" style="margin-top:16px">
+        <h3>오늘의 연결</h3>
+        <p>하나의 기본 엔진은 “한 단어”가 아니라 여러 표현을 만드는 출발점입니다.</p>
+        <div id="homeConnectionChips" style="margin-top:14px; display:flex; flex-wrap:wrap; gap:8px;"></div>
+        <p class="small-note" id="connectionText" style="margin-top:12px">기본 엔진 get · 얻다 · 받다 · 도착하다 · 이해하다 · 상태가 되다</p>
+      </article>
 
       <div class="section-head" style="margin-top:28px">
         <div><h2>오늘 바로 할 게임</h2><p>틀려도 힌트로 길을 찾는 방식입니다.</p></div>
@@ -632,8 +656,14 @@
       <div class="grid cols-3">
         <article class="card"><h3>총 경험치</h3><div style="font-size:34px;font-weight:900;letter-spacing:-1.5px" id="xpBig">0 XP</div><p>정답, 따라 말하기, 복습으로 얻습니다.</p></article>
         <article class="card"><h3>연속 학습</h3><div style="font-size:34px;font-weight:900;letter-spacing:-1.5px" id="streakBig">0일</div><p>오늘 한 문제라도 풀면 이어집니다.</p></article>
-        <article class="card"><h3>완성한 연결</h3><div style="font-size:34px;font-weight:900;letter-spacing:-1.5px" id="masteredBig">0</div><p>각 표현을 3번 성공하면 “내 말”이 됩니다.</p></article>
+        <article class="card"><h3>내 표현</h3><div style="font-size:34px;font-weight:900;letter-spacing:-1.5px" id="masteredBig">0</div><p>Active Speaking Set 안에서 “내 말”이 된 표현입니다.</p></article>
       </div>
+      <article class="card active-set-card" style="margin-top:16px">
+        <h3>Active Speaking Set</h3>
+        <p id="progressActiveSetCopy">지금 입으로 훈련하는 제한 범위입니다.</p>
+        <div class="active-set-stats" id="progressActiveSetStats"></div>
+        <div class="mini-progress" style="margin-top:14px"><div class="progress-track"><span id="progressActiveSetBar" style="width:0%"></span></div><strong id="progressActiveSetPercent">0%</strong></div>
+      </article>
       <article class="card" style="margin-top:16px">
         <h3>다음 복습 추천</h3>
         <div id="reviewList" style="margin-top:12px"></div>
@@ -1647,6 +1677,7 @@
         dailyQuestV1: defaultDailyQuestV1(),
         settings: { soundEnabled: true, seenConnectionGuide: false },
         historyByExpressionId: {},
+        curriculum: { unlockedPackCount: 0, lastUnlockAt: null },
       };
     }
     function normalizeHistoryEntry(entry) {
@@ -1723,6 +1754,7 @@
           dailyQuestV1: { ...defaultDailyQuestV1(), ...(saved.dailyQuestV1 || {}) },
           settings: { ...defaultProgress().settings, ...(saved.settings || {}) },
           historyByExpressionId: Object.fromEntries(Object.entries(saved.historyByExpressionId || {}).map(([id, history]) => [id, normalizeHistoryEntry(history)])),
+          curriculum: { ...defaultProgress().curriculum, ...(saved.curriculum || {}) },
         };
       }
       catch { return defaultProgress(); }
@@ -1787,6 +1819,7 @@
       }
       history.reviewPriority = computeReviewPriority(itemId);
       p.historyByExpressionId[itemId] = history;
+      syncCurriculumUnlock({ announce: true });
       saveProgress();
     }
 
@@ -1883,17 +1916,18 @@
       const p = appState.progress;
       const done = p.daily?.date === todayKey() ? countDailyQuestDoneTokens(p.daily.done) : 0;
       const percent = Math.min(100, Math.round(done / 7 * 100));
+      const snapshot = renderActiveSetSummary();
       document.getElementById('streak').textContent = p.streak || 0;
       document.getElementById('xp').textContent = p.xp || 0;
-      document.getElementById('mastered').textContent = masteredCount();
-      document.getElementById('totalWords').textContent = getGameBank().length;
+      document.getElementById('mastered').textContent = snapshot.mineCount;
+      document.getElementById('totalWords').textContent = snapshot.unlockedCount;
       document.getElementById('dailyPercent').textContent = percent + '%';
       document.getElementById('dailyRing').style.setProperty('--p', percent);
       document.getElementById('dailyBar').style.width = percent + '%';
       document.getElementById('dailyCount').textContent = `${done} / 7`;
       document.getElementById('xpBig').textContent = `${p.xp || 0} XP`;
       document.getElementById('streakBig').textContent = `${p.streak || 0}일`;
-      document.getElementById('masteredBig').textContent = masteredCount();
+      document.getElementById('masteredBig').textContent = snapshot.mineCount;
       renderReviewList();
       updateQuestUI();
     }
@@ -1914,7 +1948,7 @@
     function ensureDailyQuest() {
       const seoulToday = seoulTodayKey();
       const quest = appState.progress.dailyQuestV1;
-      const bank = getGameBank();
+      const bank = getUnlockedBank();
       if (bank.length === 0) {
         quest.stepPlan = [];
         quest.currentIndex = 0;
@@ -2067,7 +2101,7 @@
         finishQuest();
         return;
       }
-      const bank = getGameBank();
+      const bank = getUnlockedBank();
       const expression = bank.find(item => item.id === step.expressionId);
       if (!expression) {
         finishQuest();
@@ -2294,6 +2328,151 @@
     }
     function allStrongHistory(history) {
       return ['recognition', 'assembly', 'output'].every(key => (history.connections?.[key]?.strength || 0) === 1);
+    }
+    const DEFAULT_ACTIVE_SPEAKING_SET = {
+      id: 'ass_starter_v0',
+      title: 'Active Speaking Set Starter',
+      verbIds: ['v_have', 'v_get', 'v_want', 'v_need', 'v_go', 'v_come', 'v_make', 'v_take'],
+      expressionIds: [
+        'e001', 'e003', 'e068', 'e002', 'e044', 'e009', 'e005', 'e006',
+        'e018', 'e026', 'e069', 'e015', 'e047', 'e048', 'e035', 'e038',
+        'e021', 'e030', 'e083', 'e074', 'e045', 'e061', 'e020', 'e039',
+        'e022', 'e004', 'e014', 'e090', 'e046', 'e033', 'e036', 'e024',
+        'e019', 'e070', 'e075', 'e079', 'e031', 'e037', 'e025', 'e029'
+      ],
+      unlockPacks: [
+        { id: 'pack_1', title: 'Unlock pack 1', expressionIds: ['e023', 'e032', 'e062', 'e071', 'e072', 'e027', 'e028', 'e034', 'e080', 'e082'] }
+      ],
+      unlockThreshold: 0.7,
+      masteryThreshold: 3,
+    };
+    function normalizeAssConfig(raw) {
+      const base = raw && typeof raw === 'object' ? raw : {};
+      return {
+        ...DEFAULT_ACTIVE_SPEAKING_SET,
+        ...base,
+        verbIds: Array.isArray(base.verbIds) && base.verbIds.length ? base.verbIds.slice() : DEFAULT_ACTIVE_SPEAKING_SET.verbIds.slice(),
+        expressionIds: Array.isArray(base.expressionIds) && base.expressionIds.length ? base.expressionIds.slice() : DEFAULT_ACTIVE_SPEAKING_SET.expressionIds.slice(),
+        unlockPacks: Array.isArray(base.unlockPacks) ? base.unlockPacks.map((pack, index) => ({
+          id: pack?.id || `pack_${index + 1}`,
+          title: pack?.title || `Unlock pack ${index + 1}`,
+          expressionIds: Array.isArray(pack?.expressionIds) ? pack.expressionIds.slice() : [],
+        })) : DEFAULT_ACTIVE_SPEAKING_SET.unlockPacks.map(pack => ({ ...pack, expressionIds: pack.expressionIds.slice() })),
+        unlockThreshold: Number.isFinite(base.unlockThreshold) ? base.unlockThreshold : DEFAULT_ACTIVE_SPEAKING_SET.unlockThreshold,
+        masteryThreshold: Number.isFinite(base.masteryThreshold) ? base.masteryThreshold : DEFAULT_ACTIVE_SPEAKING_SET.masteryThreshold,
+      };
+    }
+    function getActiveSpeakingSetConfig() {
+      return normalizeAssConfig(appState.dictionaryData.learningPaths?.activeSpeakingSet);
+    }
+    function getMasteryThreshold() {
+      return getActiveSpeakingSetConfig().masteryThreshold || 3;
+    }
+    function isMineExpression(expressionId) {
+      if (!expressionId) return false;
+      const successes = appState.progress.successes?.[expressionId] || 0;
+      if (successes >= getMasteryThreshold()) return true;
+      return allStrongHistory(getHistory(expressionId));
+    }
+    function getUnlockedPackCount() {
+      const maxPacks = getActiveSpeakingSetConfig().unlockPacks.length;
+      const stored = Number(appState.progress.curriculum?.unlockedPackCount || 0);
+      return clampValue(Number.isFinite(stored) ? stored : 0, 0, maxPacks);
+    }
+    function getUnlockedExpressionIds(packCount = getUnlockedPackCount()) {
+      const config = getActiveSpeakingSetConfig();
+      const ids = config.expressionIds.slice();
+      config.unlockPacks.slice(0, packCount).forEach(pack => {
+        (pack.expressionIds || []).forEach(id => {
+          if (!ids.includes(id)) ids.push(id);
+        });
+      });
+      return ids;
+    }
+    function getActiveSetMineRatio(expressionIds = getUnlockedExpressionIds()) {
+      if (!expressionIds.length) return 0;
+      const mine = expressionIds.filter(isMineExpression).length;
+      return mine / expressionIds.length;
+    }
+    function syncCurriculumUnlock(options = {}) {
+      const config = getActiveSpeakingSetConfig();
+      if (!appState.progress.curriculum) appState.progress.curriculum = { unlockedPackCount: 0, lastUnlockAt: null };
+      let unlocked = getUnlockedPackCount();
+      let changed = false;
+      while (unlocked < config.unlockPacks.length) {
+        const ids = getUnlockedExpressionIds(unlocked);
+        if (getActiveSetMineRatio(ids) < config.unlockThreshold) break;
+        unlocked += 1;
+        changed = true;
+        appState.progress.curriculum.lastUnlockAt = new Date().toISOString();
+        if (options.announce) {
+          const pack = config.unlockPacks[unlocked - 1];
+          const count = pack?.expressionIds?.length || 0;
+          toast(`새 표현 ${count}개가 해금됐어요. Active Speaking Set이 조금 넓어졌습니다.`);
+        }
+      }
+      appState.progress.curriculum.unlockedPackCount = unlocked;
+      return changed;
+    }
+    function isExpressionUnlocked(expressionId) {
+      if (!expressionId) return false;
+      return getUnlockedExpressionIds().includes(expressionId);
+    }
+    function isVerbInActiveSet(verbId) {
+      return getActiveSpeakingSetConfig().verbIds.includes(verbId);
+    }
+    function getActiveSetSnapshot() {
+      syncCurriculumUnlock({ announce: false });
+      const config = getActiveSpeakingSetConfig();
+      const unlockedIds = getUnlockedExpressionIds();
+      const bankIds = new Set(getGameBank().map(item => item.id));
+      const presentIds = unlockedIds.filter(id => bankIds.has(id));
+      const mineCount = presentIds.filter(isMineExpression).length;
+      const ratio = presentIds.length ? mineCount / presentIds.length : 0;
+      const nextPack = config.unlockPacks[getUnlockedPackCount()] || null;
+      return {
+        title: config.title,
+        verbCount: config.verbIds.length,
+        unlockedCount: presentIds.length || unlockedIds.length,
+        mineCount,
+        ratio,
+        percent: Math.round(ratio * 100),
+        unlockThresholdPercent: Math.round((config.unlockThreshold || 0.7) * 100),
+        nextPackCount: nextPack?.expressionIds?.length || 0,
+        unlockedPackCount: getUnlockedPackCount(),
+        totalPacks: config.unlockPacks.length,
+        verbIds: config.verbIds,
+      };
+    }
+    function renderActiveSetSummary() {
+      const snapshot = getActiveSetSnapshot();
+      const statsMarkup = `
+        <span>동사 ${snapshot.verbCount}개</span>
+        <span>해금 ${snapshot.unlockedCount}개</span>
+        <span>내 표현 ${snapshot.mineCount}개</span>
+      `;
+      const unlockHint = snapshot.nextPackCount
+        ? `내 표현 ${snapshot.unlockThresholdPercent}%에 도달하면 다음 ${snapshot.nextPackCount}개가 해금됩니다.`
+        : 'Starter와 Unlock pack을 모두 열었습니다. 다음 확장은 이후 단계에서 이어집니다.';
+      const homeStats = document.getElementById('activeSetStats');
+      const homeBar = document.getElementById('activeSetBar');
+      const homePercent = document.getElementById('activeSetPercent');
+      const homeHint = document.getElementById('activeSetUnlockHint');
+      const homeCopy = document.getElementById('activeSetCopy');
+      if (homeStats) homeStats.innerHTML = statsMarkup;
+      if (homeBar) homeBar.style.width = `${snapshot.percent}%`;
+      if (homePercent) homePercent.textContent = `${snapshot.percent}%`;
+      if (homeHint) homeHint.textContent = unlockHint;
+      if (homeCopy) homeCopy.textContent = `${snapshot.title} · 지금 입으로 훈련하는 범위만 퀴즈에 나옵니다.`;
+      const progressStats = document.getElementById('progressActiveSetStats');
+      const progressBar = document.getElementById('progressActiveSetBar');
+      const progressPercent = document.getElementById('progressActiveSetPercent');
+      const progressCopy = document.getElementById('progressActiveSetCopy');
+      if (progressStats) progressStats.innerHTML = statsMarkup;
+      if (progressBar) progressBar.style.width = `${snapshot.percent}%`;
+      if (progressPercent) progressPercent.textContent = `${snapshot.percent}%`;
+      if (progressCopy) progressCopy.textContent = `해금 팩 ${snapshot.unlockedPackCount}/${snapshot.totalPacks} · ${unlockHint}`;
+      return snapshot;
     }
     function updateHistoryConnections(itemId, connectionType, strength) {
       const history = getHistory(itemId);
@@ -2837,6 +3016,12 @@
     function getGameBank() {
       return appState.dictionaryData.gameExpressions.length ? appState.dictionaryData.gameExpressions : phraseBank.map(normalizeFallbackPhrase);
     }
+    function getUnlockedBank() {
+      const bank = getGameBank();
+      const unlockedIds = new Set(getUnlockedExpressionIds());
+      const filtered = bank.filter(item => unlockedIds.has(item.id));
+      return filtered.length ? filtered : bank;
+    }
     function supportsMode(item, mode) {
       const quizType = modeQuizTypes[mode] || 'koToEn';
       return (item.quizTypes || []).includes(quizType);
@@ -2848,9 +3033,13 @@
       writeProgressPayload(appState.progress);
     }
     function makeLesson(mode, expressionId = null) {
-      const bank = getGameBank();
-      const direct = expressionId ? bank.find(item => item.id === expressionId) : null;
+      const unlockedBank = getUnlockedBank();
+      const fullBank = getGameBank();
+      const direct = expressionId
+        ? (unlockedBank.find(item => item.id === expressionId) || fullBank.find(item => item.id === expressionId))
+        : null;
       if (direct) return [direct];
+      const bank = unlockedBank;
       const recent = new Set(appState.progress.recentExpressionIds || []);
       const eligible = bank.filter(item => supportsMode(item, mode));
       const basePool = eligible.length ? eligible : bank;
@@ -2874,6 +3063,10 @@
       return shuffled(pool).slice(0, 7);
     }
         function startMode(mode, expressionId = null, options = {}) {
+          if (expressionId && !isExpressionUnlocked(expressionId) && !options.allowLocked) {
+            toast('아직 해금되지 않은 표현이에요. Active Speaking Set을 먼저 익혀 주세요.');
+            return;
+          }
           appState.selectedMode = mode;
           appState.lessonItems = makeLesson(mode, expressionId);
           appState.currentIndex = 0;
@@ -2881,6 +3074,10 @@
           appState.questionAnswered = false;
           if (mode === 'listen') appState.listenSession = null;
           appState.questContext = Object.prototype.hasOwnProperty.call(options, 'questContext') ? options.questContext : null;
+          if (!appState.lessonItems.length) {
+            toast('지금 연습할 수 있는 Active Speaking Set 표현이 없어요.');
+            return;
+          }
           if (appState.dictionaryData.error && !appState.dictionaryData.gameExpressions.length) toast('사전 데이터를 불러오지 못해 기본 예비 표현으로 퀴즈를 시작해요.');
           showScreen('lesson', { skipRoute: options.skipRoute });
           renderQuestion();
@@ -2961,7 +3158,7 @@
         <div class="feedback hidden" id="feedback"></div>`;
     }
     function buildMeaningChoices(item) {
-      const bank = getGameBank();
+      const bank = getUnlockedBank();
       const uniq = values => [...new Set(values.filter(Boolean).map(value => String(value).trim()))];
       const sameVerb = bank.filter(p => p.id !== item.id && p.coreVerbId === item.coreVerbId && supportsMode(p, 'enko')).map(p => p.ko);
       const samePattern = bank.filter(p => p.id !== item.id && p.patternId === item.patternId && supportsMode(p, 'enko')).map(p => p.ko);
@@ -3633,7 +3830,10 @@
           isLoaded: true,
           error: null,
           dataSource: 'expressions.json',
-          selectedVerbId: appState.dictionaryData.selectedVerbId || verbs[0]?.id || null,
+          selectedVerbId: appState.dictionaryData.selectedVerbId
+            || (Array.isArray(learningPaths?.activeSpeakingSet?.verbIds) && learningPaths.activeSpeakingSet.verbIds.find(id => verbs.some(verb => verb.id === id)))
+            || verbs[0]?.id
+            || null,
           selectedExpressionId: null,
           selectedRouteId: null,
           selectedPatternId: null,
@@ -3644,6 +3844,8 @@
           isMapMeaningOpen: false,
           isMapPracticeOpen: false,
         };
+        syncCurriculumUnlock({ announce: false });
+        updateDashboard();
         updateQuestUI();
       } catch (error) {
         const fallbackGameExpressions = appState.dictionaryData.gameExpressions.length ? appState.dictionaryData.gameExpressions : buildMapGameExpressions();
@@ -3696,7 +3898,9 @@
         return;
       }
 
-      const selectedVerb = data.verbs.find(v => v.id === data.selectedVerbId) || data.verbs[0];
+      const selectedVerb = data.verbs.find(v => v.id === data.selectedVerbId)
+        || data.verbs.find(v => isVerbInActiveSet(v.id))
+        || data.verbs[0];
       if (!selectedVerb) return;
       appState.dictionaryData.selectedVerbId = selectedVerb.id;
       const patterns = data.patterns.filter(p => selectedVerb.patternIds.includes(p.id));
@@ -3798,8 +4002,18 @@
       }
 
       status.className = 'explorer-status';
-      status.textContent = `${data.verbs.length}개 핵심 동사, ${data.patterns.length}개 표현 틀, ${data.expressions.length}개 표현 카드를 불러왔습니다.`;
-      verbButtons.innerHTML = data.verbs.map(verb => `<button class="verb-chip ${verb.id === selectedVerb.id ? 'active' : ''}" data-verb-id="${verb.id}">${verb.word}</button>`).join('');
+      const snapshot = getActiveSetSnapshot();
+      status.textContent = `Active Speaking Set ${snapshot.unlockedCount}개 연습 중 · 전체 ${data.verbs.length}동사 / ${data.expressions.length}표현 (해금되지 않은 항목은 잠김)`;
+      const sortedVerbs = [...data.verbs].sort((a, b) => {
+        const aActive = isVerbInActiveSet(a.id) ? 0 : 1;
+        const bActive = isVerbInActiveSet(b.id) ? 0 : 1;
+        if (aActive !== bActive) return aActive - bActive;
+        return String(a.word).localeCompare(String(b.word));
+      });
+      verbButtons.innerHTML = sortedVerbs.map(verb => {
+        const locked = !isVerbInActiveSet(verb.id);
+        return `<button class="verb-chip ${verb.id === selectedVerb.id ? 'active' : ''} ${locked ? 'locked' : ''}" data-verb-id="${verb.id}" title="${locked ? 'Active Speaking Set 밖 · 탐색만 가능' : '연습 가능'}">${verb.word}</button>`;
+      }).join('');
           verbButtons.querySelectorAll('[data-verb-id]').forEach(button => button.addEventListener('click', () => {
             appState.dictionaryData.selectedVerbId = button.dataset.verbId;
             appState.dictionaryData.selectedExpressionId = null;
@@ -3846,22 +4060,30 @@
               updateRouteForScreen('dictionary');
           }));
 
-      expressionList.innerHTML = visibleExpressions.length ? visibleExpressions.map(expression => `
-        <button class="expression-item ${selectedExpression?.id === expression.id ? 'active' : ''}" data-expression-id="${expression.id}">
-          ${escapeHtml(expression.english)}
+      expressionList.innerHTML = visibleExpressions.length ? visibleExpressions.map(expression => {
+        const locked = !isExpressionUnlocked(expression.id);
+        return `
+        <button class="expression-item ${selectedExpression?.id === expression.id ? 'active' : ''} ${locked ? 'locked' : ''}" data-expression-id="${expression.id}">
+          ${escapeHtml(expression.english)}${locked ? '<span class="lock-mark">잠김</span>' : ''}
           <span>${escapeHtml(expression.naturalKorean)}</span>
-        </button>
-      `).join('') : '<p class="small-note">선택한 표현 틀에 해당하는 실생활 표현이 아직 없습니다.</p>';
+        </button>`;
+      }).join('') : '<p class="small-note">선택한 표현 틀에 해당하는 실생활 표현이 아직 없습니다.</p>';
           expressionList.querySelectorAll('[data-expression-id]').forEach(button => button.addEventListener('click', () => {
               const expression = data.expressions.find(item => item.id === button.dataset.expressionId);
               if (!expression) return;
               selectMapExpression(expression.id);
+              if (!isExpressionUnlocked(expression.id)) {
+                toast('아직 해금되지 않은 표현이에요. Active Speaking Set을 먼저 익혀 주세요.');
+                renderDictionaryExplorer();
+                return;
+              }
               startMode('listen', expression.id);
           }));
 
       if (selectedExpression) {
         const pattern = data.patterns.find(p => p.id === selectedExpression.patternId);
         const nouns = selectedExpression.nounIds.map(id => data.nouns.find(noun => noun.id === id)?.word || id);
+        const unlocked = isExpressionUnlocked(selectedExpression.id);
           const guideBanner = appState.progress.settings.seenConnectionGuide ? '' : '<div class="connection-guide">뜻, 문장, 말하기가 연결돼요.</div>';
         if (!appState.progress.settings.seenConnectionGuide) {
           appState.progress.settings.seenConnectionGuide = true;
@@ -3874,11 +4096,11 @@
           <p><b>${escapeHtml(selectedExpression.naturalKorean)}</b></p>
           <p class="small-note">직역 이미지: ${escapeHtml(selectedExpression.literalMeaning)}</p>
           <div class="chunk-row">${selectedExpression.chunks.map(chunk => `<span class="chunk">${escapeHtml(chunk)}</span>`).join('')}</div>
-          <p class="explorer-guide">덩어리를 보고 바로 퀴즈로 넘어가세요.</p>
+          <p class="explorer-guide">${unlocked ? '덩어리를 보고 바로 퀴즈로 넘어가세요.' : '이 표현은 아직 잠겨 있어요. Active Speaking Set을 익히면 해금됩니다.'}</p>
           <p class="small-note">표현 틀: ${escapeHtml(pattern?.label || selectedExpression.patternId)} · 핵심 명사: ${nouns.map(escapeHtml).join(' · ') || '없음'}</p>
           <ol class="hint-list">${selectedExpression.hints.map(hint => `<li>${escapeHtml(hint)}</li>`).join('')}</ol>
           <div class="question-actions" style="justify-content:flex-start">
-            <button class="btn dark quiz-expression" data-expression-id="${selectedExpression.id}">듣고 따라하기</button>
+            <button class="btn dark quiz-expression" data-expression-id="${selectedExpression.id}" ${unlocked ? '' : 'disabled'}>${unlocked ? '듣고 따라하기' : '잠긴 표현'}</button>
           </div>
           <div class="filter-row" style="margin-top:10px">
             ${(selectedExpression.relatedExpressionIds || []).map(id => {
@@ -3887,7 +4109,13 @@
             }).join('')}
           </div>
         `;
-        detail.querySelectorAll('.quiz-expression').forEach(button => button.addEventListener('click', () => startMode('listen', button.dataset.expressionId)));
+        detail.querySelectorAll('.quiz-expression').forEach(button => button.addEventListener('click', () => {
+          if (!isExpressionUnlocked(button.dataset.expressionId)) {
+            toast('아직 해금되지 않은 표현이에요.');
+            return;
+          }
+          startMode('listen', button.dataset.expressionId);
+        }));
         detail.querySelectorAll('.related-expression').forEach(button => button.addEventListener('click', () => {
           const related = data.expressions.find(expression => expression.id === button.dataset.expressionId);
           if (!related) return;
@@ -4002,7 +4230,7 @@
     function renderReviewList() {
       const target = document.getElementById('reviewList');
       if (!target) return;
-      const review = [...getGameBank()]
+      const review = [...getUnlockedBank()]
         .map(item => ({ item, priority: getItemReviewPriority(item), recent: appState.progress.recentExpressionIds.includes(item.id) }))
         .filter(entry => entry.priority > 0)
         .sort((a, b) => {
@@ -4030,7 +4258,7 @@
         </div>`;
       }).join('');
       target.querySelectorAll('.review-one').forEach(btn => btn.addEventListener('click', () => {
-        const item = getGameBank().find(p => p.id === btn.dataset.id);
+        const item = getUnlockedBank().find(p => p.id === btn.dataset.id);
         if (!item) return;
         appState.selectedMode = 'review'; appState.lessonItems=[item]; appState.currentIndex=0; showScreen('lesson'); renderQuestion();
       }));

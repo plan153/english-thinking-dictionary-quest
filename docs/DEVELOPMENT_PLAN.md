@@ -32,15 +32,17 @@
 3. `historyByExpressionId`로 뜻·문장·말하기 연결 강도와 `reviewPriority`를 저장한다.
 4. 학습 기록은 브라우저 `localStorage`에 저장된다.
 5. 콘텐츠 원본은 `data/*.json`이며 `python3 scripts/validate.py`로 검증한다.
+6. Active Speaking Set Starter(동사 8·표현 40)가 `learning-paths.json`에 고정되어 있고, `getUnlockedBank()`가 퀴즈·데일리 퀘스트·복습·의미 선택지를 제한한다.
+7. 내 표현 비율 70%에 도달하면 Unlock pack 1(표현 10개)이 해금된다. 홈/성장에 Active set 요약이 표시된다.
 
 ### 아직 없거나 불완전한 것
 
-1. Active Speaking Set 게이트와 Core 해금 루프가 코드에 없다. 현재는 학습 경로의 표현이 넓게 열려 있다.
-2. 묻기/답하기·시제/뉘앙스 치환 매트릭스 모드가 없다. 의문문 표현도 매우 적다.
-3. `gapNotes`, Obsidian Markdown projection, 로컬 브리지, Vault import/export 코드가 이 저장소에는 없다.
-4. Obsidian에서 수동 수정한 내용의 완전 자동 역동기화가 없다.
-5. Conflict policy는 아래에서 확정했지만, 구현·테스트는 아직이다.
-6. Vault 단어/표현 overlay와 앱·Obsidian 그래프 통합은 계획 단계다.
+1. 묻기/답하기·시제/뉘앙스 치환 매트릭스 모드가 없다. 의문문 표현도 매우 적다.
+2. `gapNotes`, Obsidian Markdown projection, 로컬 브리지, Vault import/export 코드가 이 저장소에는 없다.
+3. Obsidian에서 수동 수정한 내용의 완전 자동 역동기화가 없다.
+4. Conflict policy는 아래에서 확정했지만, 구현·테스트는 아직이다.
+5. Vault 단어/표현 overlay와 앱·Obsidian 그래프 통합은 계획 단계다.
+6. 동사 단위 매트릭스 4형태 통과 조건으로 새 동사 해금하는 규칙은 아직 표현 팩 해금만 구현했다.
 
 ## 확정된 충돌·원본 정책
 
@@ -58,10 +60,10 @@
 
 ### Phase 0 — Active Speaking Set 고정
 
-- [`ACTIVE_SPEAKING_SET.md`](./ACTIVE_SPEAKING_SET.md)의 Starter 세트(동사·명사·패턴·표현 ID)를 `learning-paths.json` 또는 `CURRICULUM_CONFIG`로 코드에 고정한다.
-- 퀴즈·사전 탐험·복습 출제를 Active set으로 제한한다. Vault/전체 JSON에 더 있어도 잠근다.
-- mastery 기준(연결도 또는 성공 횟수)을 충족하면 다음 묶음만 해금한다. 한 번에 전체 사전을 열지 않는다.
-- 화면과 README에 “지금 연습 중인 영어뇌 범위”를 보여 준다.
+- [x] [`ACTIVE_SPEAKING_SET.md`](./ACTIVE_SPEAKING_SET.md)의 Starter 세트(동사·명사·패턴·표현 ID)를 `learning-paths.json` 또는 `CURRICULUM_CONFIG`로 코드에 고정한다.
+- [x] 퀴즈·사전 탐험·복습 출제를 Active set으로 제한한다. Vault/전체 JSON에 더 있어도 잠근다.
+- [x] mastery 기준(연결도 또는 성공 횟수)을 충족하면 다음 묶음만 해금한다. 한 번에 전체 사전을 열지 않는다.
+- [x] 화면과 README에 “지금 연습 중인 영어뇌 범위”를 보여 준다.
 
 ### Phase 1 — 학습 이벤트를 Obsidian 노트로 남기는 최소 루프
 
@@ -124,4 +126,5 @@
 
 - 사용자 목표는 “3~4세급 쉬운 말로 시작해, 제한된 만능동사·핵심명사로 실제 말이 되게 만들고, 그 기록이 Obsidian 영어뇌에 남아 다시 앱 학습 재료가 되는 구조”다.
 - 당장 필요한 것은 콘텐츠 양 확장보다 Active set 경계와 학습 이벤트 → Vault → Next Practice 루프다.
-- 다음 구현 우선순위: `Phase 0 Active set` → `Phase 2 Q&A/시제`(병행 가능) → `Phase 1 gapNotes/Brain State` → `Phase 3 local-rest sync` → `Phase 4 overlay`.
+- 다음 구현 우선순위: `Phase 2 Q&A/시제` → `Phase 1 gapNotes/Brain State` → `Phase 3 local-rest sync` → `Phase 4 overlay`.
+- Phase 0 Active Speaking Set 게이트는 구현됨.

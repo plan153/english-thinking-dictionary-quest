@@ -133,7 +133,7 @@ python3 -m http.server 8080
 | 표현 카드 | 약 90 |
 | 학습 경로 | Core 15 Starter |
 
-출제 게이트(Active set 40~50)와 묻기/답하기·시제 매트릭스는 [개발 계획](docs/DEVELOPMENT_PLAN.md) Phase 0·2로 구현 예정입니다.
+출제 게이트는 Active Speaking Set Starter(표현 40)로 동작하며, 내 표현 70% 도달 시 Unlock pack 1(10개)이 해금됩니다. 묻기/답하기·시제 매트릭스는 [개발 계획](docs/DEVELOPMENT_PLAN.md) Phase 2입니다.
 
 ## 파인만식 영어뇌 · Obsidian 연동
 
@@ -149,7 +149,7 @@ python3 -m http.server 8080
 | 기능 | 상태 |
 | --- | --- |
 | 퀴즈·연결도·localStorage 진행 기록 | 동작 |
-| Active Speaking Set 출제 제한·해금 | 계획 |
+| Active Speaking Set 출제 제한·해금 | 동작 (Starter 40 + Unlock pack 10) |
 | 묻기/답하기·시제 변형 매트릭스 | 계획 |
 | Gap Note → Obsidian Markdown 동기화 | 계획 |
 | Vault → 앱 Brain State / Gaps 가져오기 | 계획 |
