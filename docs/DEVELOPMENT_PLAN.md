@@ -36,6 +36,7 @@
 7. 내 표현 비율 70%에 도달하면 Unlock pack 1(표현 10개)이 해금된다. 홈/성장에 Active set 요약이 표시된다.
 8. 묻기·답하기·시제 매트릭스 모드(`matrix`)가 Active set 표현군 12개에 대해 평서/의문/부정/짧은 답/과거/가까운 미래를 연습한다. 오늘의 퀘스트 6번째 스텝에도 들어간다.
 9. `gapNotes` 로컬 저장, 퀴즈 결과의 간극 기록 UI, Obsidian Markdown projection(`src/domain/markdown-projection.js`)과 내보내기가 동작한다. 열린 간극은 복습 우선순위에 +2 반영된다.
+10. 로컬 학습자 프로필(로그인 없음): `etdLearnerProfiles` + `etdQuestProgress:<learnerId>`. 영어뇌 내보내기는 `Learners/<learnerId>/` 아래에 둔다. 공통 교과서는 `data/*.json` / Vault `Verbs|Nouns|Patterns`를 공유한다.
 
 ### 아직 없거나 불완전한 것
 
@@ -45,12 +46,13 @@
 4. Conflict policy는 아래에서 확정했지만, 구현·테스트는 아직이다.
 5. Vault 단어/표현 overlay와 앱·Obsidian 그래프 통합은 계획 단계다.
 6. 동사 단위 매트릭스 4형태 통과 조건으로 새 동사 해금하는 규칙은 아직 표현 팩 해금만 구현했다.
+7. 계정 로그인으로 기기 간 progress 이어하기는 아직이다(로컬 프로필만).
 
 ## 확정된 충돌·원본 정책
 
 | 데이터 | 원본(Source of Truth) | 동기화 시 우선 |
 | --- | --- | --- |
-| 퀴즈 진행도, 연결 강도, `reviewPriority`, Active set 해금 상태 | 웹앱 `progress` (localStorage → 이후 progress sync) | 앱 우선 |
+| 퀴즈 진행도, 연결 강도, `reviewPriority`, Active set 해금 상태 | 웹앱 `progress` (`etdQuestProgress:<learnerId>` → 이후 로그인 sync) | 앱 우선 |
 | 간극 설명 본문, 수동 메모, wikilink 편집 | Obsidian Vault | Vault 우선 |
 | 동일 Gap Note ID | 항상 같은 Markdown 경로로 upsert | 마지막 쓰기 시각이 같으면 앱 이벤트 로그 우선 |
 | 사전 콘텐츠(`verbs/nouns/patterns/expressions`) | 저장소 `data/*.json` | JSON 우선. Vault 투영본은 파생 문서 |

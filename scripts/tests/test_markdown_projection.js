@@ -73,4 +73,32 @@ assert.ok(files['Learning/Next Practice.md']);
 assert.ok(files['Learning/Progress.md']);
 assert.ok(files['English Brain Index.md']);
 assert.ok(files[`Gaps/${id}.md`]);
+
+const personal = api.buildExportFiles({
+  brainState: {
+    updatedAt: '2026-07-22T00:00:00Z',
+    activeVerbIds: ['v_need'],
+    activeExpressionCount: 40,
+    masteredExpressionCount: 1,
+    openGapIds: [id],
+  },
+  nextPractice: { updatedAt: '2026-07-22T00:00:00Z', queue: [] },
+  progress: { updatedAt: '2026-07-22T00:00:00Z', xp: 10, streak: 1, mineCount: 1, activeExpressionCount: 40, openGapCount: 1 },
+  gaps: [{ id, expressionId: 'e002', english: 'I need some time.', status: 'open', verbWord: 'need' }],
+  learnerId: 'minsu',
+  learnerName: '민수',
+});
+
+assert.ok(personal[`Learners/minsu/Learning/Brain State.md`]);
+assert.ok(personal[`Learners/minsu/Learning/Next Practice.md`]);
+assert.ok(personal[`Learners/minsu/Learning/Progress.md`]);
+assert.ok(personal[`Learners/minsu/English Brain Index.md`]);
+assert.ok(personal[`Learners/minsu/Gaps/${id}.md`]);
+assert.ok(personal[`Learners/minsu/Learning/Brain State.md`].includes('learnerId: minsu'));
+assert.ok(personal[`Learners/minsu/Learning/Brain State.md`].includes('learnerName: 민수'));
+assert.ok(personal[`Learners/minsu/English Brain Index.md`].includes(`[[Learners/minsu/Gaps/${id}]]`));
+assert.ok(personal[`Learners/minsu/Gaps/${id}.md`].includes('[[Verbs/need]]'));
+assert.strictEqual(api.learnerVaultRoot('minsu'), 'Learners/minsu');
+assert.strictEqual(api.withLearnerPath('Learning/Progress.md', 'minsu'), 'Learners/minsu/Learning/Progress.md');
+
 console.log('✅ markdown-projection tests passed');

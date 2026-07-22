@@ -2,6 +2,9 @@
  * Pure Markdown projection for Obsidian English-brain notes.
  * Browser: window.EnglishBrainMarkdown
  * Node: module.exports
+ *
+ * Personal brain notes live under Learners/<learnerId>/ when learnerId is set.
+ * Shared textbook notes (Verbs/Nouns/…) stay at Project_English root.
  */
 (function (root, factory) {
   const api = factory();
@@ -49,8 +52,36 @@
     return `gap_${expressionId}_${stamp}_${digest}`;
   }
 
-  function gapVaultPath(gapId) {
-    return `Gaps/${gapId}.md`;
+  function learnerVaultRoot(learnerId) {
+    const id = String(learnerId || '').trim();
+    return id ? `Learners/${id}` : '';
+  }
+
+  function withLearnerPath(relativePath, learnerId) {
+    const root = learnerVaultRoot(learnerId);
+    const path = String(relativePath || '').replace(/^\/+/, '');
+    return root ? `${root}/${path}` : path;
+  }
+
+  function gapVaultPath(gapId, learnerId) {
+    return withLearnerPath(`Gaps/${gapId}.md`, learnerId);
+  }
+
+  function gapWikiLink(gapId, learnerId) {
+    const root = learnerVaultRoot(learnerId);
+    return root ? `[[${root}/Gaps/${gapId}]]` : `[[Gaps/${gapId}]]`;
+  }
+
+  function learningWikiLink(noteName, learnerId) {
+    const root = learnerVaultRoot(learnerId);
+    return root ? `[[${root}/Learning/${noteName}]]` : `[[Learning/${noteName}]]`;
+  }
+
+  function learnerFrontmatter(options = {}) {
+    if (!options.learnerId) return '';
+    return `learnerId: ${escapeYaml(options.learnerId)}
+learnerName: ${escapeYaml(options.learnerName || options.learnerId)}
+`;
   }
 
   function yamlList(values) {
@@ -72,9 +103,9 @@
     return `\n${queue.map(item => `  - { expressionId: ${escapeYaml(item.expressionId)}, mode: ${escapeYaml(item.mode || 'review')}, reason: ${escapeYaml(item.reason || '')} }`).join('\n')}`;
   }
 
-  function projectGapNote(gap) {
+  function projectGapNote(gap, options = {}) {
     const id = gap.id || makeGapId(gap);
-    const path = gapVaultPath(id);
+    const path = gapVaultPath(id, options.learnerId);
     const verbLink = gap.verbWord ? `[[Verbs/${gap.verbWord}]]` : '';
     const body = [
       '## 내 추측',
@@ -100,7 +131,7 @@
 type: gap-note
 id: ${escapeYaml(id)}
 vaultPath: ${escapeYaml(path)}
-expressionId: ${escapeYaml(gap.expressionId || '')}
+${learnerFrontmatter(options)}expressionId: ${escapeYaml(gap.expressionId || '')}
 mode: ${escapeYaml(gap.mode || '')}
 createdAt: ${escapeYaml(gap.createdAt || new Date().toISOString())}
 updatedAt: ${escapeYaml(gap.updatedAt || gap.createdAt || new Date().toISOString())}
@@ -115,14 +146,14 @@ ${body}
     return { path, markdown, id };
   }
 
-  function projectBrainState(state) {
-    const path = 'Learning/Brain State.md';
+  function projectBrainState(state, options = {}) {
+    const path = withLearnerPath('Learning/Brain State.md', options.learnerId);
     const weak = state.weakSlots || [];
     const openGaps = state.openGapIds || [];
     const markdown = `---
 type: brain-state
 vaultPath: ${escapeYaml(path)}
-updatedAt: ${escapeYaml(state.updatedAt || new Date().toISOString())}
+${learnerFrontmatter(options)}updatedAt: ${escapeYaml(state.updatedAt || new Date().toISOString())}
 activeVerbIds: ${yamlList(state.activeVerbIds || [])}
 activeNounIds: ${yamlList(state.activeNounIds || [])}
 activeExpressionCount: ${Number(state.activeExpressionCount || 0)}
@@ -146,18 +177,18 @@ source: webapp
 ${weak.length ? weak.map(slot => `- ${slot.expressionId || slot.patternId}: ${slot.reason}`).join('\n') : '- (없음)'}
 
 ## 열린 간극
-${openGaps.length ? openGaps.map(id => `- [[Gaps/${id}]]`).join('\n') : '- (없음)'}
+${openGaps.length ? openGaps.map(id => `- ${gapWikiLink(id, options.learnerId)}`).join('\n') : '- (없음)'}
 `;
     return { path, markdown };
   }
 
-  function projectNextPractice(state) {
-    const path = 'Learning/Next Practice.md';
+  function projectNextPractice(state, options = {}) {
+    const path = withLearnerPath('Learning/Next Practice.md', options.learnerId);
     const queue = state.queue || [];
     const markdown = `---
 type: next-practice
 vaultPath: ${escapeYaml(path)}
-updatedAt: ${escapeYaml(state.updatedAt || new Date().toISOString())}
+${learnerFrontmatter(options)}updatedAt: ${escapeYaml(state.updatedAt || new Date().toISOString())}
 queue: ${yamlQueue(queue)}
 source: webapp
 ---
@@ -171,12 +202,12 @@ ${queue.length ? queue.map((item, index) => `${index + 1}. \`${item.expressionId
     return { path, markdown };
   }
 
-  function projectProgress(state) {
-    const path = 'Learning/Progress.md';
+  function projectProgress(state, options = {}) {
+    const path = withLearnerPath('Learning/Progress.md', options.learnerId);
     const markdown = `---
 type: progress
 vaultPath: ${escapeYaml(path)}
-updatedAt: ${escapeYaml(state.updatedAt || new Date().toISOString())}
+${learnerFrontmatter(options)}updatedAt: ${escapeYaml(state.updatedAt || new Date().toISOString())}
 xp: ${Number(state.xp || 0)}
 streak: ${Number(state.streak || 0)}
 unlockedPackCount: ${Number(state.unlockedPackCount || 0)}
@@ -197,39 +228,44 @@ source: webapp
     return { path, markdown };
   }
 
-  function projectIndex(state) {
-    const path = 'English Brain Index.md';
+  function projectIndex(state, options = {}) {
+    const path = withLearnerPath('English Brain Index.md', options.learnerId);
+    const openGaps = state.openGapIds || [];
+    const title = options.learnerName
+      ? `English Brain Index · ${options.learnerName}`
+      : 'English Brain Index';
     const markdown = `---
 type: english-brain-index
 vaultPath: ${escapeYaml(path)}
-updatedAt: ${escapeYaml(state.updatedAt || new Date().toISOString())}
+${learnerFrontmatter(options)}updatedAt: ${escapeYaml(state.updatedAt || new Date().toISOString())}
 source: webapp
 ---
 
-# English Brain Index
+# ${title}
 
-제2의 영어뇌 입구입니다.
+제2의 영어뇌 입구입니다. 교과서는 공유하고, 이 폴더는 개인 공책입니다.
 
-- [[Learning/Brain State]]
-- [[Learning/Next Practice]]
-- [[Learning/Progress]]
-- Gaps: ${(state.openGapIds || []).map(id => `[[Gaps/${id}]]`).join(', ') || '(없음)'}
+- ${learningWikiLink('Brain State', options.learnerId)}
+- ${learningWikiLink('Next Practice', options.learnerId)}
+- ${learningWikiLink('Progress', options.learnerId)}
+- Gaps: ${openGaps.length ? openGaps.map(id => gapWikiLink(id, options.learnerId)).join(', ') : '(없음)'}
 `;
     return { path, markdown };
   }
 
-  function buildExportFiles({ brainState, nextPractice, progress, gaps }) {
+  function buildExportFiles({ brainState, nextPractice, progress, gaps, learnerId, learnerName }) {
+    const options = { learnerId, learnerName };
     const files = {};
     const index = projectIndex({
       updatedAt: brainState?.updatedAt,
       openGapIds: (gaps || []).filter(gap => (gap.status || 'open') === 'open').map(gap => gap.id),
-    });
+    }, options);
     const projected = [
       index,
-      projectBrainState(brainState || {}),
-      projectNextPractice(nextPractice || {}),
-      projectProgress(progress || {}),
-      ...(gaps || []).map(projectGapNote),
+      projectBrainState(brainState || {}, options),
+      projectNextPractice(nextPractice || {}, options),
+      projectProgress(progress || {}, options),
+      ...(gaps || []).map(gap => projectGapNote(gap, options)),
     ];
     projected.forEach(file => {
       files[file.path] = file.markdown;
@@ -239,7 +275,10 @@ source: webapp
 
   return {
     makeGapId,
+    learnerVaultRoot,
+    withLearnerPath,
     gapVaultPath,
+    gapWikiLink,
     projectGapNote,
     projectBrainState,
     projectNextPractice,

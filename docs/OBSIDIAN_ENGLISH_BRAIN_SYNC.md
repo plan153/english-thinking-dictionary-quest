@@ -19,8 +19,8 @@ Drive·Git 백업은 이 루프의 본선이 아니다.
 
 | 기능 | 상태 |
 | --- | --- |
-| localStorage 학습 기록 | 동작 |
-| Gap Note / Markdown projection | 동작 (로컬 저장 + Markdown/JSON 다운로드) |
+| localStorage 학습 기록 | 동작 (`etdQuestProgress:<learnerId>` + 프로필 목록) |
+| Gap Note / Markdown projection | 동작 (로컬 저장 + `Learners/<id>/` Markdown/JSON 다운로드) |
 | Local REST API / 로컬 브리지 upsert | 계획 |
 | Vault → 앱 Brain State / Gaps import | 계획 (다운로드 계약만 확정) |
 | Google Apps Script Drive 웹훅 | 선택적 백업 경로(계획) |
@@ -28,21 +28,29 @@ Drive·Git 백업은 이 루프의 본선이 아니다.
 
 ## Vault 폴더 계약
 
+공통 교과서 노트와 개인 영어뇌 공책을 나눈다.
+
 ```text
 Project_English/
-  English Brain Index.md
-  Learning/
-    Brain State.md
-    Next Practice.md
-    Progress.md
-    Today Review.md
-  Patterns/<문형>.md
-  Verbs/<동사>.md
+  Verbs/<동사>.md                 # 공유 교과서(파생)
   Nouns/<명사>.md
+  Patterns/<문형>.md
   Prepositions/<전치사>.md
-  Gaps/<간극 ID>.md
-  Reviews/                 # 선택
+  Learners/
+    <learnerId>/                  # 개인 공책 (앱 로컬 프로필)
+      English Brain Index.md
+      Learning/
+        Brain State.md
+        Next Practice.md
+        Progress.md
+        Today Review.md
+      Gaps/<간극 ID>.md
+      Reviews/                    # 선택
 ```
+
+앱은 로그인 없이 `learnerId` 로컬 프로필로 공책을 나눈다. progress 키는 `etdQuestProgress:<learnerId>`다. 기존 `etdQuestProgress`는 기본 프로필 `me`(이름: 나)로 한 번 이전한다.
+
+하위 호환: learnerId 없이 projection 하면 예전처럼 Vault 루트 `Learning/`, `Gaps/` 경로를 쓴다. 웹앱 내보내기는 항상 `Learners/<id>/`를 붙인다.
 
 ### `Learning/Brain State.md` (최소 frontmatter)
 
