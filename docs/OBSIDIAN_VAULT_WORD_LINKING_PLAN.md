@@ -2,8 +2,9 @@
 
 ## 목적
 
-Vault에 이미 있는·새로 추가하는 영어 문서(`Verbs/`, `Nouns/`, `Words/` 등)를 웹앱 표현·패턴과 연결해 영어뇌를 풍부하게 만든다.  
-다만 **연결 ≠ 즉시 출제**다. Active Speaking Set 밖의 단어는 후보·해금 대기만 하고 연습 은행에 넣지 않는다.
+Vault에 이미 있는·새로 추가하는 영어 문서(`Library/Verbs|Nouns|Patterns`, 레거시 루트 `Verbs/`/`Nouns/` 등)를 웹앱 표현·패턴과 연결해 영어뇌를 풍부하게 만든다.  
+다만 **연결 ≠ 즉시 출제**다. Active Speaking Set 밖의 단어는 후보·해금 대기만 하고 연습 은행에 넣지 않는다.  
+폴더 계약 SoT: [`OBSIDIAN_VAULT_EVOLUTION.md`](./OBSIDIAN_VAULT_EVOLUTION.md).
 
 ## 범위
 
@@ -49,7 +50,7 @@ Vault에 이미 있는·새로 추가하는 영어 문서(`Verbs/`, `Nouns/`, `W
 
 ## 구현 순서
 
-1. Vault 노트 frontmatter 스키마 문서화 (`id`, `word`, `type`, `aliases`)
+1. Vault 노트 frontmatter 스키마 문서화 (`id`, `word`, `type`, `aliases`); 신규는 `Library/` 하위
 2. overlay 파서(로컬 REST/브리지 GET)
 3. high/medium 자동 링크 + low 후보 큐
 4. Active set 게이트와 Unlock pack 연동

@@ -1,5 +1,7 @@
 /**
  * Pure Markdown projection for Obsidian English-brain notes.
+ * Path SoT: docs/OBSIDIAN_VAULT_EVOLUTION.md
+ * Transition: personal notes at Learning/ + Gaps/; shared Library/; later Learners/<id>/.
  * Browser: window.EnglishBrainMarkdown
  * Node: module.exports
  */

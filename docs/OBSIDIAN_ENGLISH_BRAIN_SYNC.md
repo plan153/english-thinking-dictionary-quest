@@ -28,28 +28,26 @@ Drive·Git 백업은 이 루프의 본선이 아니다.
 
 ## Vault 폴더 계약
 
+**폴더 SoT:** [`OBSIDIAN_VAULT_EVOLUTION.md`](./OBSIDIAN_VAULT_EVOLUTION.md). 이 절은 동기화 경로만 요약한다.
+
 ```text
 Project_English/
-  English Brain Index.md
-  Learning/
-    Brain State.md
-    Next Practice.md
-    Progress.md
-    Today Review.md
-  Patterns/<문형>.md
-  Verbs/<동사>.md
-  Nouns/<명사>.md
-  Prepositions/<전치사>.md
-  Gaps/<간극 ID>.md
-  Library/                 # 진화하는 학습 자료 정원
+  Learners/<learnerId>/          # 목표: 개인 영어뇌 (프로필 PR 이후)
+    English Brain Index.md
+    Learning/                    # Brain State, Next Practice, Progress…
+    Gaps/<간극 ID>.md
+  Library/                       # 공유 자료 정원
     Index.md
-    Drafts/<draft id>.md   # 미확정 후보
-    Canon/<draft id>.md    # 승격 완료 (퀴즈 편입 전 리뷰)
-    Scenes/
-  Reviews/                 # 선택
+    Verbs/ Nouns/ Patterns/ Scenes/
+    Drafts/ Canon/
+  Reviews/                       # 선택
 ```
 
-정원(Library)과 개인 학습 루프(Learning/Gaps) 역할 분리는 [`OBSIDIAN_VAULT_EVOLUTION.md`](./OBSIDIAN_VAULT_EVOLUTION.md).
+**과도기(현재 export):** 프로필 분리 전까지 개인 루프는 루트 `Learning/` · `Gaps/`에 쓴다. Library는 `Library/Drafts|Canon|Index`.  
+레거시 루트 `Verbs/`·`Nouns/`·`Patterns/`가 있으면 overlay 시 `Library/`와 동일 ID로 병합하고, 신규 노트는 Library에만 만든다.
+
+약점 흐름: **간극 → Library/Drafts → (승격) Canon → (리뷰 후) Unlock/JSON**. Next Practice는 연습 순서 큐다.
+
 ### `Learning/Brain State.md` (최소 frontmatter)
 
 ```yaml
@@ -146,6 +144,12 @@ status: open   # open | reviewed | archived
 - API 키·Vault 절대 경로는 브라우저 local settings 또는 로컬 브리지 설정에만 둔다.
 - GitHub Pages에 배포되는 정적 파일에 비밀값을 커밋하지 않는다.
 - REST는 localhost에서만 쓰고, 원격 공개 엔드포인트로 열지 않는다.
+
+## 관련 문서
+
+- 폴더·진화: [`OBSIDIAN_VAULT_EVOLUTION.md`](./OBSIDIAN_VAULT_EVOLUTION.md)
+- overlay: [`OBSIDIAN_VAULT_WORD_LINKING_PLAN.md`](./OBSIDIAN_VAULT_WORD_LINKING_PLAN.md)
+- 정리 백로그: [`DEVELOPMENT_PLAN.md`](./DEVELOPMENT_PLAN.md) Cleanup C0–C4
 
 ## 다음 구현 순서
 
