@@ -50,10 +50,12 @@
 17. **Conflict 시각 병합 + Bridge adapter**: Gap 본문은 `updatedAt` 비교(동률·없음은 Vault 우선). `bridge`(:8787)는 Local REST와 동일 `/vault` 계약.
 18. **파인만 음성**: 설명 챌린지에서 마이크 인식 → `speechTranscript` + Markdown `## 음성 인식`.
 19. **Phase 5 그래프 스타일**: `graph-style.js`로 active / vault-linked / vault-only / locked. 동사 칩·문장빌드맵·생각 맵에 반영.
+20. **Drive webhook adapter**: `drive-webhook` — Apps Script 등으로 JSON 백업 POST (읽기/import 없음).
+21. **모듈 분리(C4)**: `progress-store.js` · `active-speaking-set.js` · `english-brain-export.js` (index는 얇은 래퍼).
 
 ### 아직 없거나 불완전한 것
 
-1. Drive webhook adapter는 이후.
+1. Drive webhook은 백업 POST만. Google OAuth를 정적 앱에 넣지 않는다.
 2. Local REST·Bridge upsert/import/실패 큐가 동작한다.
 3. Obsidian에서 수동 수정한 Brain State 전체의 완전 자동 역동기화는 Gaps + Next Practice 중심이다.
 4. Conflict policy는 시각·필드 단위 테스트로 고정. 추가 필드 테스트는 보강 가능.
@@ -82,7 +84,7 @@
 
 권장 머지 순서: progress TDZ/E2E(#8) → learner profiles(#9) → level/spiral 계획(#10) → Library garden(#11) → 본 Cleanup.
 
-- [ ] 열린 기능 PR을 위 순서로 `main`에 합친 뒤, 이 문서의 “이미 동작”을 `main` 기준으로 다시 맞춘다.
+- [ ] 열린 기능 PR을 tip(누적) 기준으로 `main`에 합친 뒤, 이 문서의 “이미 동작”을 `main` 기준으로 다시 맞춘다.
 - [x] 개발 Phase 번호(0–5)와 마케팅 Phase(1–7)를 분리한다. 마케팅은 비전 로드맵만.
 - [x] Vault 폴더 계약 SoT를 [`OBSIDIAN_VAULT_EVOLUTION.md`](./OBSIDIAN_VAULT_EVOLUTION.md)로 고정하고 SYNC/WORD_LINKING은 이를 참조한다.
 - [x] `docs/development-plan-and-changelog.docx|html`는 파생 아카이브로 두고, 편집 SoT는 이 Markdown만 쓴다.
@@ -114,7 +116,7 @@
 - [x] Canon → Unlock 후보/JSON 편입 도구(수동 리뷰 후, 자동 출제 없음).
 - [x] 동사 매트릭스 4형태 통과 시 새 동사 해금 (`verb_pack_give`).
 - [x] conflict 시각·필드 단위 테스트 보강 · Bridge adapter.
-- [ ] `index.html`에서 progress/ASS/export 모듈 분리(동작 동일 유지).
+- [x] `index.html`에서 progress/ASS/export 모듈 분리(동작 동일 유지).
 
 ## 다음 단계 (기능 Phase)
 
@@ -145,11 +147,12 @@
 
 ### Phase 3 — Obsidian 우선 동기화
 
-- [x] `SyncAdapter`로 `download`, `local-rest`, `bridge` 분리 (`src/domain/obsidian-sync.js`). `drive-webhook`은 이후.
+- [x] `SyncAdapter`로 `download`, `local-rest`, `bridge`, `drive-webhook` 분리 (`src/domain/obsidian-sync.js`).
 - [x] Obsidian Local REST API로 Vault upsert/read (Gaps, Learning/*, Library Drafts·Canon·Index).
 - [x] 실패 큐와 재시도. 동기화 실패가 학습을 막지 않음.
 - [x] import: Gaps + Next Practice (Vault 본문/큐 우선).
 - [x] Bridge adapter(`:8787`, 동일 `/vault` 계약) · Gap conflict `updatedAt` 병합 테스트.
+- [x] Drive webhook: 앱 → JSON 백업 POST (import 없음, 비밀값은 localStorage만).
 - 파일 경로: 개인 `Learners/<id>/Learning|Gaps` (+ optional Vault `pathPrefix`), 공유 `Library/...`.
 - Google Drive 웹훅과 Obsidian Git/GHVault는 Vault 백업·기기 동기용으로만 유지한다.
 - AI 에이전트 보조는 Local REST API의 MCP, 또는 Obsidian CLI skills로 Vault 정리만 담당한다.
@@ -192,6 +195,6 @@
 ## 이 문서를 이어받는 LLM에게 남기는 작업 메모
 
 - 사용자 목표는 “3~4세급 쉬운 말로 시작해, 제한된 만능동사·핵심명사로 실제 말이 되게 만들고, 그 기록이 Obsidian 영어뇌에 남아 다시 앱 학습 재료가 되는 구조”다.
-- Cleanup 이후 다음: Drive webhook · index.html 모듈 분리 · PR C0 머지.
-- Phase 0–5(스타일) + Feynman(텍스트·음성) + Bridge/conflict + Library + Learners 경로 구현됨.
-- 열린 PR이 있으면 C0 머지 순서를 지키고, progress 키·Vault 경로·내 표현 정의가 한 버전으로 남는지 확인한다.
+- Cleanup 이후 다음: 열린 draft PR을 tip 기준으로 `main`에 합치고, SoT 문서를 main 기준으로 재확인.
+- Phase 0–5 + Feynman + Bridge/conflict + Drive webhook + progress/ASS/export 모듈 분리 + Library + Learners 구현됨.
+- 열린 PR이 있으면 C0 머지 순서를 지키거나, cumulative tip PR 하나를 `main`에 합친 뒤 하위 draft를 정리한다.

@@ -1,7 +1,7 @@
 /**
  * Obsidian English-brain SyncAdapter.
- * Adapters: download (fallback), local-rest (Phase 3).
- * API keys stay in localStorage only — never commit secrets.
+ * Adapters: download (fallback), local-rest, bridge, drive-webhook (backup).
+ * API keys / webhook URLs stay in localStorage only — never commit secrets.
  * Browser: window.EnglishBrainSync
  * Node: module.exports
  */
@@ -17,8 +17,9 @@
 
   function defaultSettings() {
     return {
-      adapter: 'download', // download | local-rest | bridge
+      adapter: 'download', // download | local-rest | bridge | drive-webhook
       baseUrl: 'http://127.0.0.1:27123',
+      webhookUrl: '',
       apiKey: '',
       pathPrefix: '', // e.g. Project_English when vault root is parent
       autoSyncAfterGap: false,
@@ -31,7 +32,7 @@
   function normalizeSettings(raw) {
     const base = defaultSettings();
     const src = raw && typeof raw === 'object' ? raw : {};
-    const adapter = ['local-rest', 'bridge'].includes(src.adapter) ? src.adapter : 'download';
+    const adapter = ['local-rest', 'bridge', 'drive-webhook'].includes(src.adapter) ? src.adapter : 'download';
     let baseUrl = String(src.baseUrl || base.baseUrl).replace(/\/$/, '');
     if (adapter === 'bridge' && !src.baseUrl) {
       baseUrl = 'http://127.0.0.1:8787';
@@ -41,6 +42,7 @@
       ...src,
       adapter,
       baseUrl,
+      webhookUrl: String(src.webhookUrl || '').trim(),
       apiKey: String(src.apiKey || ''),
       pathPrefix: String(src.pathPrefix || '').replace(/^\/+|\/+$/g, ''),
       autoSyncAfterGap: Boolean(src.autoSyncAfterGap),
@@ -203,10 +205,70 @@
     };
   }
 
+  function createDriveWebhookClient(settings, fetchImpl) {
+    const cfg = normalizeSettings({
+      ...(settings || {}),
+      adapter: 'drive-webhook',
+    });
+    const fetchFn = fetchImpl || (typeof fetch !== 'undefined' ? fetch.bind(globalThis) : null);
+    if (!fetchFn) throw new Error('fetch is not available');
+    const endpoint = cfg.webhookUrl || cfg.baseUrl;
+    if (!endpoint) throw new Error('Drive webhook URL이 비어 있어요.');
+
+    async function postJson(body) {
+      const response = await fetchFn(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(cfg.apiKey ? { Authorization: `Bearer ${cfg.apiKey}` } : {}),
+        },
+        body: JSON.stringify(body),
+      });
+      if (!response.ok) {
+        const text = await response.text().catch(() => '');
+        throw new Error(`Drive webhook failed (${response.status}): ${text.slice(0, 200)}`);
+      }
+      const contentType = response.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) return response.json();
+      return { ok: true, status: response.status };
+    }
+
+    return {
+      kind: 'drive-webhook',
+      settings: cfg,
+      async ping() {
+        return postJson({ type: 'ping', at: new Date().toISOString() });
+      },
+      async postBackup(payload) {
+        return postJson({
+          type: 'english-brain-backup',
+          version: 1,
+          exportedAt: new Date().toISOString(),
+          ...(payload || {}),
+        });
+      },
+      async putFile(vaultPath, markdown) {
+        await this.postBackup({
+          files: { [vaultPath]: markdown },
+          fileCount: 1,
+          pathPrefix: cfg.pathPrefix || '',
+        });
+        return true;
+      },
+      async getFile() {
+        throw new Error('drive-webhook는 읽기(import)를 지원하지 않습니다. Local REST/Bridge를 쓰세요.');
+      },
+      async listDirectory() {
+        throw new Error('drive-webhook는 디렉터리 목록을 지원하지 않습니다.');
+      },
+    };
+  }
+
   function createSyncClient(settings, fetchImpl) {
     const cfg = normalizeSettings(settings);
     if (cfg.adapter === 'bridge') return createBridgeClient(cfg, fetchImpl);
     if (cfg.adapter === 'local-rest') return createLocalRestClient(cfg, fetchImpl);
+    if (cfg.adapter === 'drive-webhook') return createDriveWebhookClient(cfg, fetchImpl);
     throw new Error(`Adapter "${cfg.adapter}" has no live sync client (use download export instead).`);
   }
 
@@ -467,6 +529,7 @@
     encodeVaultPath,
     createLocalRestClient,
     createBridgeClient,
+    createDriveWebhookClient,
     createSyncClient,
     parseFrontmatter,
     parseGapNoteMarkdown,

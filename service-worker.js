@@ -1,4 +1,4 @@
-const CACHE = 'etd-quest-v1.0.8';
+const CACHE = 'etd-quest-v1.0.9';
 const ASSETS = [
   './',
   './index.html',
@@ -10,6 +10,9 @@ const ASSETS = [
   './src/domain/vault-overlay.js',
   './src/domain/feynman-challenge.js',
   './src/domain/graph-style.js',
+  './src/domain/progress-store.js',
+  './src/domain/active-speaking-set.js',
+  './src/domain/english-brain-export.js',
   './data/verbs.json',
   './data/nouns.json',
   './data/patterns.json',
