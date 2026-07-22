@@ -41,6 +41,7 @@ def main() -> None:
 
     patterns = json.loads((ROOT / "data" / "patterns.json").read_text(encoding="utf-8"))
     expressions = json.loads((ROOT / "data" / "expressions.json").read_text(encoding="utf-8"))
+    learning_paths = json.loads((ROOT / "data" / "learning-paths.json").read_text(encoding="utf-8"))
     verb_maps_path = ROOT / "data" / "verb-maps.json"
     if not verb_maps_path.exists():
         fail("Required file is missing: data/verb-maps.json")
@@ -49,6 +50,21 @@ def main() -> None:
     pattern_ids = {item.get("id") for item in patterns}
     expression_ids = {item.get("id") for item in expressions}
     verb_ids = {item.get("id") for item in json.loads((ROOT / "data" / "verbs.json").read_text(encoding="utf-8"))}
+
+    active_set = learning_paths.get("activeSpeakingSet") or {}
+    if not active_set.get("expressionIds"):
+        fail("learning-paths.json activeSpeakingSet.expressionIds is required")
+    for verb_id in active_set.get("verbIds") or []:
+        if verb_id not in verb_ids:
+            fail(f"activeSpeakingSet references unknown verbId: {verb_id}")
+    for expression_id in active_set.get("expressionIds") or []:
+        if expression_id not in expression_ids:
+            fail(f"activeSpeakingSet references unknown expressionId: {expression_id}")
+    for pack in active_set.get("unlockPacks") or []:
+        for expression_id in pack.get("expressionIds") or []:
+            if expression_id not in expression_ids:
+                fail(f"activeSpeakingSet unlock pack references unknown expressionId: {expression_id}")
+
     seen_verb_ids = set()
 
     for verb_map in verb_maps:

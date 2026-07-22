@@ -32,15 +32,17 @@
 3. `historyByExpressionId`로 뜻·문장·말하기 연결 강도와 `reviewPriority`를 저장한다.
 4. 학습 기록은 브라우저 `localStorage`에 저장된다.
 5. 콘텐츠 원본은 `data/*.json`이며 `python3 scripts/validate.py`로 검증한다.
+6. Active Speaking Set Starter(동사 8·표현 40)가 `learning-paths.json`에 고정되어 있고, `getUnlockedBank()`가 퀴즈·데일리 퀘스트·복습·의미 선택지를 제한한다.
+7. 내 표현 비율 70%에 도달하면 Unlock pack 1(표현 10개)이 해금된다. 홈/성장에 Active set 요약이 표시된다.
 
 ### 아직 없거나 불완전한 것
 
-1. Active Speaking Set 게이트와 Core 해금 루프가 코드에 없다. 현재는 학습 경로의 표현이 넓게 열려 있다.
-2. 묻기/답하기·시제/뉘앙스 치환 매트릭스 모드가 없다. 의문문 표현도 매우 적다.
-3. `gapNotes`, Obsidian Markdown projection, 로컬 브리지, Vault import/export 코드가 이 저장소에는 없다.
-4. Obsidian에서 수동 수정한 내용의 완전 자동 역동기화가 없다.
-5. Conflict policy는 아래에서 확정했지만, 구현·테스트는 아직이다.
-6. Vault 단어/표현 overlay와 앱·Obsidian 그래프 통합은 계획 단계다.
+1. 묻기/답하기·시제/뉘앙스 치환 매트릭스 모드가 없다. 의문문 표현도 매우 적다.
+2. `gapNotes`, Obsidian Markdown projection, 로컬 브리지, Vault import/export 코드가 이 저장소에는 없다.
+3. Obsidian에서 수동 수정한 내용의 완전 자동 역동기화가 없다.
+4. Conflict policy는 아래에서 확정했지만, 구현·테스트는 아직이다.
+5. Vault 단어/표현 overlay와 앱·Obsidian 그래프 통합은 계획 단계다.
+6. 동사 단위 매트릭스 4형태 통과 조건으로 새 동사 해금하는 규칙은 아직 표현 팩 해금만 구현했다.
 
 ## 확정된 충돌·원본 정책
 
