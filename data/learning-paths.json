@@ -17,6 +17,11 @@
         "id": "pack_1",
         "title": "Unlock pack 1",
         "expressionIds": ["e023", "e032", "e062", "e071", "e072", "e027", "e028", "e034", "e080", "e082"]
+      },
+      {
+        "id": "pack_2",
+        "title": "Unlock pack 2",
+        "expressionIds": ["e065", "e073", "e084", "e088", "e089", "e081", "e085", "e086", "e087"]
       }
     ],
     "verbUnlockPacks": [
@@ -27,6 +32,14 @@
         "expressionIds": ["e007", "e040", "e042", "e043", "e041"],
         "requiresMatrixGate": true,
         "note": "Starter 동사들의 매트릭스 4형태(평서·의문·부정·짧은 답) 통과 후 해금"
+      },
+      {
+        "id": "verb_pack_be",
+        "title": "동사 해금 · be",
+        "verbIds": ["v_be"],
+        "expressionIds": ["e008", "e016", "e059", "e060"],
+        "requiresMatrixGate": true,
+        "note": "give 해금 후, give 매트릭스 4형태 통과 시 해금"
       }
     ],
     "unlockThreshold": 0.7,

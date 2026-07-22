@@ -81,4 +81,22 @@ assert.strictEqual(synced.unlockedVerbPackCount, 1);
 assert.deepStrictEqual(gate.getUnlockedVerbIds(config, synced.curriculum), ['v_have', 'v_get', 'v_give']);
 assert.deepStrictEqual(gate.getUnlockedVerbExpressionIds(config, synced.curriculum), ['e007', 'e040']);
 
+// Sequential: second pack waits until newly unlocked verb matrices pass
+config.verbUnlockPacks.push({
+  id: 'verb_pack_be',
+  verbIds: ['v_be'],
+  expressionIds: ['e016'],
+});
+matrices.push({ id: 'm_give', coreVerbId: 'v_give' }, { id: 'm_be', coreVerbId: 'v_be' });
+const noBeYet = gate.syncVerbUnlock(synced.curriculum, config, matrices);
+assert.strictEqual(noBeYet.unlockedVerbPackCount, 1);
+curriculum = noBeYet.curriculum;
+['statement', 'question', 'negative', 'shortYes'].forEach(formId => {
+  curriculum = gate.recordMatrixFormSuccess(curriculum, 'v_give', formId).curriculum;
+});
+const syncedBe = gate.syncVerbUnlock(curriculum, config, matrices, { collectAnnounce: true });
+assert.strictEqual(syncedBe.unlockedVerbPackCount, 2);
+assert.deepStrictEqual(syncedBe.announce.map(item => item.packId), ['verb_pack_be']);
+assert.ok(gate.getUnlockedVerbIds(config, syncedBe.curriculum).includes('v_be'));
+
 console.log('✅ canon-intake + verb-matrix-gate tests passed');

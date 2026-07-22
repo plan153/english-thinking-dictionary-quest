@@ -108,8 +108,11 @@
     let unlocked = Math.max(0, Number(next.unlockedVerbPackCount || 0));
     let changed = false;
     const announce = [];
+    // Sequential gate: unlock the next pack only when all currently unlocked
+    // verbs that have matrices (starter + already unlocked packs) pass 4-form.
     while (unlocked < packs.length) {
-      const snapshot = getVerbGateSnapshot(next, config.verbIds || [], matrices);
+      const gateVerbIds = getUnlockedVerbIds(config, { ...next, unlockedVerbPackCount: unlocked });
+      const snapshot = getVerbGateSnapshot(next, gateVerbIds, matrices);
       if (!snapshot.allPassed) break;
       unlocked += 1;
       changed = true;
@@ -122,8 +125,6 @@
           expressionCount: pack?.expressionIds?.length || 0,
         });
       }
-      // After unlocking one pack, require gate again only for newly relevant set;
-      // starter verbs already passed; keep loop for sequential packs if still allPassed.
       next.unlockedVerbPackCount = unlocked;
     }
     next.unlockedVerbPackCount = unlocked;
