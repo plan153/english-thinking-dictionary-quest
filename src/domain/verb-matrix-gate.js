@@ -1,0 +1,145 @@
+/**
+ * Verb matrix 4-form unlock gate helpers.
+ * Core forms: statement · question · negative · shortAnswer (shortYes|shortNo).
+ * Browser: window.VerbMatrixGate
+ * Node: module.exports
+ */
+(function (root, factory) {
+  const api = factory();
+  if (typeof module === 'object' && module.exports) module.exports = api;
+  root.VerbMatrixGate = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this, function () {
+  const CORE_FORMS = ['statement', 'question', 'negative', 'shortAnswer'];
+
+  function normalizeFormKey(formId) {
+    const id = String(formId || '');
+    if (id === 'shortYes' || id === 'shortNo') return 'shortAnswer';
+    if (CORE_FORMS.includes(id)) return id;
+    return '';
+  }
+
+  function ensureMatrixFormSuccess(curriculum = {}) {
+    const base = curriculum && typeof curriculum === 'object' ? curriculum : {};
+    return {
+      ...base,
+      unlockedPackCount: Number.isFinite(base.unlockedPackCount) ? base.unlockedPackCount : 0,
+      unlockedVerbPackCount: Number.isFinite(base.unlockedVerbPackCount) ? base.unlockedVerbPackCount : 0,
+      lastUnlockAt: base.lastUnlockAt || null,
+      lastVerbUnlockAt: base.lastVerbUnlockAt || null,
+      matrixFormSuccess: base.matrixFormSuccess && typeof base.matrixFormSuccess === 'object'
+        ? { ...base.matrixFormSuccess }
+        : {},
+    };
+  }
+
+  function recordMatrixFormSuccess(curriculum, verbId, formId) {
+    const next = ensureMatrixFormSuccess(curriculum);
+    const verb = String(verbId || '');
+    const formKey = normalizeFormKey(formId);
+    if (!verb || !formKey) return { curriculum: next, recorded: false, formKey: '' };
+    const current = { ...(next.matrixFormSuccess[verb] || {}) };
+    current[formKey] = (current[formKey] || 0) + 1;
+    next.matrixFormSuccess[verb] = current;
+    return { curriculum: next, recorded: true, formKey };
+  }
+
+  function isVerbMatrixGatePassed(curriculum, verbId) {
+    const forms = ensureMatrixFormSuccess(curriculum).matrixFormSuccess[verbId] || {};
+    return CORE_FORMS.every(key => (forms[key] || 0) >= 1);
+  }
+
+  function verbsWithMatrices(verbIds, matrices) {
+    const withMatrix = new Set((matrices || []).map(item => item.coreVerbId));
+    return (verbIds || []).filter(id => withMatrix.has(id));
+  }
+
+  function getVerbGateSnapshot(curriculum, verbIds, matrices) {
+    const required = verbsWithMatrices(verbIds, matrices);
+    const rows = required.map(verbId => {
+      const forms = ensureMatrixFormSuccess(curriculum).matrixFormSuccess[verbId] || {};
+      const passedForms = CORE_FORMS.filter(key => (forms[key] || 0) >= 1);
+      return {
+        verbId,
+        passed: passedForms.length === CORE_FORMS.length,
+        passedCount: passedForms.length,
+        total: CORE_FORMS.length,
+        forms: Object.fromEntries(CORE_FORMS.map(key => [key, forms[key] || 0])),
+      };
+    });
+    const passedCount = rows.filter(row => row.passed).length;
+    return {
+      requiredVerbIds: required,
+      rows,
+      passedCount,
+      requiredCount: rows.length,
+      allPassed: rows.length > 0 && passedCount === rows.length,
+      coreForms: CORE_FORMS.slice(),
+    };
+  }
+
+  function getUnlockedVerbIds(config, curriculum) {
+    const starter = (config?.verbIds || []).slice();
+    const packs = Array.isArray(config?.verbUnlockPacks) ? config.verbUnlockPacks : [];
+    const count = Math.max(0, Number(ensureMatrixFormSuccess(curriculum).unlockedVerbPackCount || 0));
+    const extra = [];
+    packs.slice(0, count).forEach(pack => {
+      (pack.verbIds || []).forEach(id => {
+        if (!starter.includes(id) && !extra.includes(id)) extra.push(id);
+      });
+    });
+    return [...starter, ...extra];
+  }
+
+  function getUnlockedVerbExpressionIds(config, curriculum) {
+    const packs = Array.isArray(config?.verbUnlockPacks) ? config.verbUnlockPacks : [];
+    const count = Math.max(0, Number(ensureMatrixFormSuccess(curriculum).unlockedVerbPackCount || 0));
+    const ids = [];
+    packs.slice(0, count).forEach(pack => {
+      (pack.expressionIds || []).forEach(id => {
+        if (!ids.includes(id)) ids.push(id);
+      });
+    });
+    return ids;
+  }
+
+  function syncVerbUnlock(curriculum, config, matrices, options = {}) {
+    let next = ensureMatrixFormSuccess(curriculum);
+    const packs = Array.isArray(config?.verbUnlockPacks) ? config.verbUnlockPacks : [];
+    let unlocked = Math.max(0, Number(next.unlockedVerbPackCount || 0));
+    let changed = false;
+    const announce = [];
+    while (unlocked < packs.length) {
+      const snapshot = getVerbGateSnapshot(next, config.verbIds || [], matrices);
+      if (!snapshot.allPassed) break;
+      unlocked += 1;
+      changed = true;
+      next.lastVerbUnlockAt = new Date().toISOString();
+      const pack = packs[unlocked - 1];
+      if (options.collectAnnounce) {
+        announce.push({
+          packId: pack?.id,
+          verbIds: pack?.verbIds || [],
+          expressionCount: pack?.expressionIds?.length || 0,
+        });
+      }
+      // After unlocking one pack, require gate again only for newly relevant set;
+      // starter verbs already passed; keep loop for sequential packs if still allPassed.
+      next.unlockedVerbPackCount = unlocked;
+    }
+    next.unlockedVerbPackCount = unlocked;
+    return { curriculum: next, changed, unlockedVerbPackCount: unlocked, announce };
+  }
+
+  return {
+    CORE_FORMS,
+    normalizeFormKey,
+    ensureMatrixFormSuccess,
+    recordMatrixFormSuccess,
+    isVerbMatrixGatePassed,
+    verbsWithMatrices,
+    getVerbGateSnapshot,
+    getUnlockedVerbIds,
+    getUnlockedVerbExpressionIds,
+    syncVerbUnlock,
+  };
+});

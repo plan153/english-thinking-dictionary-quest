@@ -1,6 +1,6 @@
 {
   "name": "english-thinking-dictionary-quest",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "private": true,
   "description": "핵심 동사와 명사를 조합해 실제 영어 표현을 만드는 **게임형 웹 앱**입니다.",
   "main": "index.html",

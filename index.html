@@ -574,7 +574,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.0.4">v1.0.4</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.0.5">v1.0.5</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -809,6 +809,12 @@
         <h3>Library 자료 후보 (Drafts)</h3>
         <p class="small-note">Vault 정원에서 자라는 표현 후보입니다. 승격(Canon) 전에는 퀴즈에 넣지 않습니다. 한글·동사·패턴이 있어야 승격할 수 있습니다.</p>
         <div id="expressionDraftsList" style="margin-top:14px"></div>
+        <div id="canonIntakePanel" style="margin-top:14px"></div>
+      </article>
+      <article class="card" style="margin-top:16px">
+        <h3>동사 매트릭스 4형태 게이트</h3>
+        <p class="small-note">Starter 동사의 평서·의문·부정·짧은 답을 모두 통과하면 다음 동사(예: give)가 해금됩니다. 표현 Unlock pack과는 별 게이트입니다.</p>
+        <div id="verbGatePanel" style="margin-top:12px"></div>
       </article>
       <article class="card" style="margin-top:16px">
         <button class="btn warn" id="resetProgress">학습 기록 초기화</button>
@@ -821,6 +827,8 @@
 
   <script src="./src/domain/markdown-projection.js"></script>
   <script src="./src/domain/obsidian-sync.js"></script>
+  <script src="./src/domain/canon-intake.js"></script>
+  <script src="./src/domain/verb-matrix-gate.js"></script>
   <script>
     const wordBank = [
       { id:'get', type:'핵심 동사', word:'get', korean:'얻다 · 받다 · 도착하다 · 이해하다 · 상태가 되다', example:'I got your message.', exKo:'네 메시지 받았어.', connections:'get a message · get home · get better · get it' },
@@ -1733,7 +1741,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.0.4';
+    const APP_CACHE_VERSION = 'etd-quest-v1.0.5';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const LEGACY_PROGRESS_KEY = 'etdQuestProgress';
@@ -1922,9 +1930,10 @@
         dailyQuestV1: defaultDailyQuestV1(),
         settings: { soundEnabled: true, seenConnectionGuide: false },
         historyByExpressionId: {},
-        curriculum: { unlockedPackCount: 0, lastUnlockAt: null },
+        curriculum: { unlockedPackCount: 0, unlockedVerbPackCount: 0, lastUnlockAt: null, lastVerbUnlockAt: null, matrixFormSuccess: {} },
         gapNotes: [],
         expressionDrafts: [],
+        canonUnlockQueue: [],
         importedNextPractice: null,
       };
     }
@@ -2035,9 +2044,17 @@
           dailyQuestV1: { ...defaultDailyQuestV1(), ...(saved.dailyQuestV1 || {}) },
           settings: { ...defaultProgress().settings, ...(saved.settings || {}) },
           historyByExpressionId: Object.fromEntries(Object.entries(saved.historyByExpressionId || {}).map(([id, history]) => [id, normalizeHistoryEntry(history)])),
-          curriculum: { ...defaultProgress().curriculum, ...(saved.curriculum || {}) },
+          curriculum: {
+            ...defaultProgress().curriculum,
+            ...(saved.curriculum || {}),
+            matrixFormSuccess: {
+              ...(defaultProgress().curriculum.matrixFormSuccess || {}),
+              ...((saved.curriculum && saved.curriculum.matrixFormSuccess) || {}),
+            },
+          },
           gapNotes: Array.isArray(saved.gapNotes) ? saved.gapNotes.map(normalizeGapNote) : [],
           expressionDrafts: Array.isArray(saved.expressionDrafts) ? saved.expressionDrafts.map(normalizeExpressionDraft) : [],
+          canonUnlockQueue: Array.isArray(saved.canonUnlockQueue) ? saved.canonUnlockQueue : [],
           importedNextPractice: saved.importedNextPractice && typeof saved.importedNextPractice === 'object'
             ? saved.importedNextPractice
             : null,
@@ -2119,6 +2136,14 @@
           history.lastCorrectAt = now;
           history.lastHintLevel = hintLevel;
           updateHistoryConnections(itemId, connectionType, strength);
+          if (mode === 'matrix' && window.VerbMatrixGate && (details.coreVerbId || details.formId)) {
+            const recorded = window.VerbMatrixGate.recordMatrixFormSuccess(
+              p.curriculum || {},
+              details.coreVerbId,
+              details.formId
+            );
+            p.curriculum = recorded.curriculum;
+          }
         }
         appState.sessionStudyRecords[itemId] = { lastRecordedSignature: signature };
         handleQuestStageCompletion(mode, itemId, resultType, details);
@@ -2693,6 +2718,9 @@
       unlockPacks: [
         { id: 'pack_1', title: 'Unlock pack 1', expressionIds: ['e023', 'e032', 'e062', 'e071', 'e072', 'e027', 'e028', 'e034', 'e080', 'e082'] }
       ],
+      verbUnlockPacks: [
+        { id: 'verb_pack_give', title: '동사 해금 · give', verbIds: ['v_give'], expressionIds: ['e007', 'e040', 'e042', 'e043', 'e041'] }
+      ],
       unlockThreshold: 0.7,
       masteryThreshold: 3,
     };
@@ -2708,6 +2736,16 @@
           title: pack?.title || `Unlock pack ${index + 1}`,
           expressionIds: Array.isArray(pack?.expressionIds) ? pack.expressionIds.slice() : [],
         })) : DEFAULT_ACTIVE_SPEAKING_SET.unlockPacks.map(pack => ({ ...pack, expressionIds: pack.expressionIds.slice() })),
+        verbUnlockPacks: Array.isArray(base.verbUnlockPacks) ? base.verbUnlockPacks.map((pack, index) => ({
+          id: pack?.id || `verb_pack_${index + 1}`,
+          title: pack?.title || `Verb unlock ${index + 1}`,
+          verbIds: Array.isArray(pack?.verbIds) ? pack.verbIds.slice() : [],
+          expressionIds: Array.isArray(pack?.expressionIds) ? pack.expressionIds.slice() : [],
+        })) : (DEFAULT_ACTIVE_SPEAKING_SET.verbUnlockPacks || []).map(pack => ({
+          ...pack,
+          verbIds: (pack.verbIds || []).slice(),
+          expressionIds: (pack.expressionIds || []).slice(),
+        })),
         unlockThreshold: Number.isFinite(base.unlockThreshold) ? base.unlockThreshold : DEFAULT_ACTIVE_SPEAKING_SET.unlockThreshold,
         masteryThreshold: Number.isFinite(base.masteryThreshold) ? base.masteryThreshold : DEFAULT_ACTIVE_SPEAKING_SET.masteryThreshold,
       };
@@ -2730,14 +2768,20 @@
       const stored = Number(appState.progress.curriculum?.unlockedPackCount || 0);
       return clampValue(Number.isFinite(stored) ? stored : 0, 0, maxPacks);
     }
-    function getUnlockedExpressionIds(packCount = getUnlockedPackCount()) {
+    function getUnlockedExpressionIds(packCount = getUnlockedPackCount(), options = {}) {
       const config = getActiveSpeakingSetConfig();
+      const gate = window.VerbMatrixGate;
       const ids = config.expressionIds.slice();
       config.unlockPacks.slice(0, packCount).forEach(pack => {
         (pack.expressionIds || []).forEach(id => {
           if (!ids.includes(id)) ids.push(id);
         });
       });
+      if (options.includeVerbPacks !== false && gate) {
+        gate.getUnlockedVerbExpressionIds(config, appState.progress.curriculum || {}).forEach(id => {
+          if (!ids.includes(id)) ids.push(id);
+        });
+      }
       return ids;
     }
     function getActiveSetMineRatio(expressionIds = getUnlockedExpressionIds()) {
@@ -2747,11 +2791,23 @@
     }
     function syncCurriculumUnlock(options = {}) {
       const config = getActiveSpeakingSetConfig();
-      if (!appState.progress.curriculum) appState.progress.curriculum = { unlockedPackCount: 0, lastUnlockAt: null };
+      const gate = window.VerbMatrixGate;
+      if (!appState.progress.curriculum) {
+        appState.progress.curriculum = {
+          unlockedPackCount: 0,
+          unlockedVerbPackCount: 0,
+          lastUnlockAt: null,
+          lastVerbUnlockAt: null,
+          matrixFormSuccess: {},
+        };
+      }
+      if (gate) {
+        appState.progress.curriculum = gate.ensureMatrixFormSuccess(appState.progress.curriculum);
+      }
       let unlocked = getUnlockedPackCount();
       let changed = false;
       while (unlocked < config.unlockPacks.length) {
-        const ids = getUnlockedExpressionIds(unlocked);
+        const ids = getUnlockedExpressionIds(unlocked, { includeVerbPacks: false });
         if (getActiveSetMineRatio(ids) < config.unlockThreshold) break;
         unlocked += 1;
         changed = true;
@@ -2763,6 +2819,20 @@
         }
       }
       appState.progress.curriculum.unlockedPackCount = unlocked;
+      if (gate) {
+        const matrices = getQaMatrices();
+        const verbSync = gate.syncVerbUnlock(appState.progress.curriculum, config, matrices, { collectAnnounce: true });
+        appState.progress.curriculum = verbSync.curriculum;
+        if (verbSync.changed) {
+          changed = true;
+          if (options.announce) {
+            verbSync.announce.forEach(item => {
+              const verbs = (item.verbIds || []).map(id => verbWordFromId(id) || id).join(', ');
+              toast(`동사 해금: ${verbs || item.packId} · 표현 ${item.expressionCount}개 (매트릭스 4형태 통과)`);
+            });
+          }
+        }
+      }
       return changed;
     }
     function isExpressionUnlocked(expressionId) {
@@ -2770,20 +2840,32 @@
       return getUnlockedExpressionIds().includes(expressionId);
     }
     function isVerbInActiveSet(verbId) {
-      return getActiveSpeakingSetConfig().verbIds.includes(verbId);
+      const gate = window.VerbMatrixGate;
+      const config = getActiveSpeakingSetConfig();
+      if (!gate) return config.verbIds.includes(verbId);
+      return gate.getUnlockedVerbIds(config, appState.progress.curriculum || {}).includes(verbId);
     }
     function getActiveSetSnapshot() {
       syncCurriculumUnlock({ announce: false });
       const config = getActiveSpeakingSetConfig();
+      const gate = window.VerbMatrixGate;
       const unlockedIds = getUnlockedExpressionIds();
       const bankIds = new Set(getGameBank().map(item => item.id));
       const presentIds = unlockedIds.filter(id => bankIds.has(id));
       const mineCount = presentIds.filter(isMineExpression).length;
       const ratio = presentIds.length ? mineCount / presentIds.length : 0;
       const nextPack = config.unlockPacks[getUnlockedPackCount()] || null;
+      const unlockedVerbIds = gate
+        ? gate.getUnlockedVerbIds(config, appState.progress.curriculum || {})
+        : config.verbIds.slice();
+      const verbGate = gate
+        ? gate.getVerbGateSnapshot(appState.progress.curriculum || {}, config.verbIds || [], getQaMatrices())
+        : null;
+      const nextVerbPack = (config.verbUnlockPacks || [])[Number(appState.progress.curriculum?.unlockedVerbPackCount || 0)] || null;
       return {
         title: config.title,
-        verbCount: config.verbIds.length,
+        verbCount: unlockedVerbIds.length,
+        starterVerbCount: config.verbIds.length,
         unlockedCount: presentIds.length || unlockedIds.length,
         mineCount,
         ratio,
@@ -2792,7 +2874,11 @@
         nextPackCount: nextPack?.expressionIds?.length || 0,
         unlockedPackCount: getUnlockedPackCount(),
         totalPacks: config.unlockPacks.length,
-        verbIds: config.verbIds,
+        unlockedVerbPackCount: Number(appState.progress.curriculum?.unlockedVerbPackCount || 0),
+        totalVerbPacks: (config.verbUnlockPacks || []).length,
+        nextVerbPackTitle: nextVerbPack?.title || '',
+        verbGate,
+        verbIds: unlockedVerbIds,
       };
     }
     function renderActiveSetSummary() {
@@ -2801,10 +2887,13 @@
         <span>동사 ${snapshot.verbCount}개</span>
         <span>해금 ${snapshot.unlockedCount}개</span>
         <span>내 표현 ${snapshot.mineCount}개</span>
+        ${snapshot.verbGate ? `<span>4형태 ${snapshot.verbGate.passedCount}/${snapshot.verbGate.requiredCount}</span>` : ''}
       `;
       const unlockHint = snapshot.nextPackCount
         ? `레벨업: 내 표현 ${snapshot.unlockThresholdPercent}%면 다음 Unlock pack ${snapshot.nextPackCount}개가 열립니다. (연결도 ●—●—● 또는 충분히 맞히면 “내 표현”)`
-        : 'Starter와 Unlock pack을 모두 열었습니다. Canon·새 동사 게이트는 이후 단계에서 이어집니다.';
+        : (snapshot.nextVerbPackTitle
+          ? `표현 팩 완료. 다음 동사 게이트: ${snapshot.nextVerbPackTitle} (Starter 동사 매트릭스 4형태 통과 필요 · ${snapshot.verbGate ? `${snapshot.verbGate.passedCount}/${snapshot.verbGate.requiredCount}` : ''})`
+          : 'Starter·Unlock pack·동사 해금을 모두 열었거나 대기 중입니다. Canon JSON은 리뷰 후 편입하세요.');
       const homeStats = document.getElementById('activeSetStats');
       const homeBar = document.getElementById('activeSetBar');
       const homePercent = document.getElementById('activeSetPercent');
@@ -2822,7 +2911,9 @@
       if (progressStats) progressStats.innerHTML = statsMarkup;
       if (progressBar) progressBar.style.width = `${snapshot.percent}%`;
       if (progressPercent) progressPercent.textContent = `${snapshot.percent}%`;
-      if (progressCopy) progressCopy.textContent = `해금 팩 ${snapshot.unlockedPackCount}/${snapshot.totalPacks} · ${unlockHint}`;
+      if (progressCopy) progressCopy.textContent = `해금 팩 ${snapshot.unlockedPackCount}/${snapshot.totalPacks} · 동사 팩 ${snapshot.unlockedVerbPackCount}/${snapshot.totalVerbPacks} · ${unlockHint}`;
+      renderVerbGatePanel(snapshot);
+      renderCanonIntakePanel();
       return snapshot;
     }
     function getOpenGapNotes() {
@@ -2861,7 +2952,8 @@
       if (!expressionId) return false;
       const config = getActiveSpeakingSetConfig();
       if ((config.expressionIds || []).includes(expressionId)) return true;
-      return (config.unlockPacks || []).some(pack => (pack.expressionIds || []).includes(expressionId));
+      if ((config.unlockPacks || []).some(pack => (pack.expressionIds || []).includes(expressionId))) return true;
+      return (config.verbUnlockPacks || []).some(pack => (pack.expressionIds || []).includes(expressionId));
     }
     function upsertExpressionDraft(partial) {
       const note = normalizeExpressionDraft({
@@ -2921,7 +3013,7 @@
       draft.promoteReady = true;
       draft.updatedAt = new Date().toISOString();
       saveProgress();
-      toast('Canon으로 승격했어요. 내보내기 시 Library/Canon/ 경로로 저장됩니다. JSON 편입은 리뷰 후 진행하세요.');
+      toast('Canon으로 승격했어요. “JSON 후보 받기”로 리뷰용 번들을 받을 수 있어요. 퀴즈 은행에는 자동으로 안 들어갑니다.');
       renderExpressionDraftsList();
     }
     function archiveExpressionDraft(draftId) {
@@ -3365,7 +3457,9 @@
               <div class="small-note">KO: ${escapeHtml(draft.naturalKorean || '(없음)')} · 동사: ${escapeHtml(draft.coreVerb || '(없음)')} · 패턴: ${escapeHtml(draft.pattern || '(없음)')}</div>
             </div>
             <div class="question-actions" style="margin:0;flex-wrap:wrap">
-              ${draft.status !== 'approved' ? `<button class="btn dark promote-draft" type="button" data-draft-id="${escapeHtml(draft.id)}">승격</button>` : ''}
+              ${draft.status !== 'approved' ? `<button class="btn dark promote-draft" type="button" data-draft-id="${escapeHtml(draft.id)}">승격</button>` : `
+                <button class="btn soft canon-json-one" type="button" data-draft-id="${escapeHtml(draft.id)}">JSON 후보</button>
+                <button class="btn soft canon-queue-one" type="button" data-draft-id="${escapeHtml(draft.id)}">Unlock 대기열</button>`}
               <button class="btn soft archive-draft" type="button" data-draft-id="${escapeHtml(draft.id)}">보관</button>
             </div>
           </div>
@@ -3374,10 +3468,118 @@
       target.querySelectorAll('.promote-draft').forEach(button => button.addEventListener('click', () => {
         promoteExpressionDraft(button.dataset.draftId);
       }));
+      target.querySelectorAll('.canon-json-one').forEach(button => button.addEventListener('click', () => {
+        downloadCanonIntakeBundle({ draftIds: [button.dataset.draftId] });
+      }));
+      target.querySelectorAll('.canon-queue-one').forEach(button => button.addEventListener('click', () => {
+        queueCanonDraftForUnlock(button.dataset.draftId);
+      }));
       target.querySelectorAll('.archive-draft').forEach(button => button.addEventListener('click', () => {
         archiveExpressionDraft(button.dataset.draftId);
         toast('Draft를 보관했어요.');
       }));
+    }
+    function getApprovedCanonDrafts(draftIds = null) {
+      const all = (appState.progress.expressionDrafts || []).filter(item => (item.status || 'draft') === 'approved');
+      if (!draftIds || !draftIds.length) return all;
+      const wanted = new Set(draftIds);
+      return all.filter(item => wanted.has(item.id));
+    }
+    function buildCanonIntakeFromDrafts(drafts) {
+      const api = window.CanonIntake;
+      if (!api) throw new Error('canon intake module missing');
+      const existingIds = (appState.dictionaryData.expressions || []).map(item => item.id);
+      (appState.progress.canonUnlockQueue || []).forEach(item => {
+        if (item.expressionId && !existingIds.includes(item.expressionId)) existingIds.push(item.expressionId);
+      });
+      return api.buildCanonIntakeBundle({
+        drafts,
+        existingExpressionIds: existingIds,
+        verbs: appState.dictionaryData.verbs || [],
+      });
+    }
+    function downloadCanonIntakeBundle(options = {}) {
+      try {
+        const drafts = getApprovedCanonDrafts(options.draftIds || null);
+        if (!drafts.length) {
+          toast('승격된 Canon Draft가 없어요.');
+          return;
+        }
+        const bundle = buildCanonIntakeFromDrafts(drafts);
+        downloadTextFile(
+          `canon-intake-${new Date().toISOString().slice(0, 10)}.json`,
+          JSON.stringify(bundle, null, 2),
+          'application/json;charset=utf-8'
+        );
+        toast(`Canon 편입 후보 ${bundle.expressionsToAdd.length}개를 내려받았어요. expressions.json에는 직접 넣지 마세요 — 리뷰 후 병합하세요.`);
+      } catch (error) {
+        toast(`Canon 번들 실패: ${error.message || error}`);
+        console.error(error);
+      }
+    }
+    function queueCanonDraftForUnlock(draftId) {
+      const api = window.CanonIntake;
+      if (!api) {
+        toast('canon intake module missing');
+        return;
+      }
+      const drafts = getApprovedCanonDrafts(draftId ? [draftId] : null);
+      if (!drafts.length) {
+        toast('승격된 Canon Draft가 없어요.');
+        return;
+      }
+      const bundle = buildCanonIntakeFromDrafts(drafts);
+      if (!Array.isArray(appState.progress.canonUnlockQueue)) appState.progress.canonUnlockQueue = [];
+      let added = 0;
+      bundle.candidates.forEach(candidate => {
+        const exists = appState.progress.canonUnlockQueue.some(item => item.draftId === candidate._intake?.sourceDraftId || item.expressionId === candidate.id);
+        if (exists) return;
+        appState.progress.canonUnlockQueue.unshift(api.queueItemFromCandidate(candidate));
+        added += 1;
+      });
+      saveProgress();
+      renderCanonIntakePanel();
+      toast(added
+        ? `Unlock 대기열에 ${added}개 넣었어요. 퀴즈에는 아직 안 나옵니다.`
+        : '이미 대기열에 있는 후보예요.');
+    }
+    function renderCanonIntakePanel() {
+      const target = document.getElementById('canonIntakePanel');
+      if (!target) return;
+      const approved = getApprovedCanonDrafts();
+      const queue = appState.progress.canonUnlockQueue || [];
+      target.innerHTML = `
+        <div class="question-actions" style="justify-content:flex-start; flex-wrap:wrap; gap:8px;">
+          <button class="btn soft" id="downloadAllCanonIntake" type="button">Canon → JSON 후보 번들</button>
+          <button class="btn soft" id="queueAllCanonIntake" type="button">승인 Canon 전부 대기열</button>
+        </div>
+        <p class="small-note" style="margin-top:10px">승인 Canon ${approved.length}개 · Unlock 대기열 ${queue.length}개 (자동 출제 없음)</p>
+        ${queue.length ? `<ul class="small-note" style="margin:8px 0 0; padding-left:18px;">${queue.slice(0, 6).map(item => `<li>${escapeHtml(item.expressionId)} · ${escapeHtml(item.english || '')}</li>`).join('')}</ul>` : ''}
+      `;
+      document.getElementById('downloadAllCanonIntake')?.addEventListener('click', () => downloadCanonIntakeBundle());
+      document.getElementById('queueAllCanonIntake')?.addEventListener('click', () => queueCanonDraftForUnlock(null));
+    }
+    function renderVerbGatePanel(snapshot = null) {
+      const target = document.getElementById('verbGatePanel');
+      if (!target) return;
+      const snap = snapshot || getActiveSetSnapshot();
+      const gate = snap.verbGate;
+      if (!gate) {
+        target.innerHTML = '<p class="small-note">매트릭스 게이트 모듈을 불러오지 못했어요.</p>';
+        return;
+      }
+      const next = snap.nextVerbPackTitle
+        ? `다음: ${escapeHtml(snap.nextVerbPackTitle)}`
+        : (snap.totalVerbPacks <= snap.unlockedVerbPackCount ? '동사 해금 팩을 모두 열었거나 없어요.' : '다음 동사 팩 대기');
+      target.innerHTML = `
+        <p class="small-note">${next} · 통과 ${gate.passedCount}/${gate.requiredCount}</p>
+        <div class="active-set-stats" style="margin-top:10px">
+          ${gate.rows.map(row => {
+            const word = verbWordFromId(row.verbId) || row.verbId;
+            return `<span title="${escapeHtml(JSON.stringify(row.forms))}">${escapeHtml(word)} ${row.passed ? '✓' : `${row.passedCount}/4`}</span>`;
+          }).join('')}
+        </div>
+      `;
     }
     function updateHistoryConnections(itemId, connectionType, strength) {
       const history = getHistory(itemId);

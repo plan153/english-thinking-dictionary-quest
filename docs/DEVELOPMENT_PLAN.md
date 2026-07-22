@@ -51,8 +51,8 @@
 3. Obsidian에서 수동 수정한 Brain State 전체의 완전 자동 역동기화는 Gaps + Next Practice 중심이다.
 4. Conflict policy는 아래에서 확정했고 Gaps/Next Practice 병합은 구현됐다. 추가 필드 테스트는 보강 예정.
 5. Vault 단어/표현 overlay와 앱·Obsidian 그래프 통합은 계획 단계다.
-6. 동사 단위 매트릭스 4형태 통과 조건으로 새 동사 해금하는 규칙은 아직 표현 팩 해금만 구현했다. (당분간 레벨업 스토리는 **팩 해금만**.)
-7. Canon → `data/expressions.json` 자동 편입은 아직이다(리뷰 후 수동/도구).
+6. 동사 매트릭스 4형태 게이트로 `verbUnlockPacks`(예: give) 해금이 동작한다. 표현 Unlock pack과 별개.
+7. Canon → JSON 후보 번들/Unlock 대기열은 동작한다. `data/expressions.json` 자동 병합은 하지 않는다(리뷰 후 수동).
 8. 로컬 학습자 프로필: `etdQuestProgress:<learnerId>` + Vault `Learners/<id>/Learning|Gaps`. Library는 공유.
 
 ## 확정된 충돌·원본 정책
@@ -104,8 +104,8 @@
 ### Cleanup C4 — 이후 구현 게이트 (아직 코드 안 함)
 
 - [x] 학습자 프로필 머지 시 export 루트를 `Learners/<id>/Learning|Gaps`로 이전.
-- [ ] Canon → Unlock 후보/JSON 편입 도구(수동 리뷰 후).
-- [ ] 동사 매트릭스 4형태 통과 시 새 동사 해금.
+- [x] Canon → Unlock 후보/JSON 편입 도구(수동 리뷰 후, 자동 출제 없음).
+- [x] 동사 매트릭스 4형태 통과 시 새 동사 해금 (`verb_pack_give`).
 - [ ] conflict 시각·필드 단위 테스트 보강 · Bridge adapter.
 - [ ] `index.html`에서 progress/ASS/export 모듈 분리(동작 동일 유지).
 
@@ -182,6 +182,6 @@
 ## 이 문서를 이어받는 LLM에게 남기는 작업 메모
 
 - 사용자 목표는 “3~4세급 쉬운 말로 시작해, 제한된 만능동사·핵심명사로 실제 말이 되게 만들고, 그 기록이 Obsidian 영어뇌에 남아 다시 앱 학습 재료가 되는 구조”다.
-- Cleanup 이후 다음: Canon→JSON · 동사 4형태 해금 · Phase 4 overlay · 파인만 챌린지.
+- Cleanup 이후 다음: Phase 4 overlay · 파인만 챌린지 · conflict 테스트 보강.
 - Phase 0–3 + Library + Learners(`Learners/<id>/…`) 경로 구현됨.
 - 열린 PR이 있으면 C0 머지 순서를 지키고, progress 키·Vault 경로·내 표현 정의가 한 버전으로 남는지 확인한다.
