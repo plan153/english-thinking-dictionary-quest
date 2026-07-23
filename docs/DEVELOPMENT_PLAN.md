@@ -69,7 +69,7 @@
 3. Progress.md / Explanations의 Vault→앱 완전 역동기화는 하지 않는다(앱 SoT). → P2b
 4. Conflict policy는 시각·필드 단위 테스트로 고정.
 5. 그래프 연습 바로가기: listen/speak/koen/matrix/**explain** (v1.2.0)
-6. 동사 매트릭스 게이트 have→get→take→… 구현됨. 구동사 **4단계 순차 해금·입자 드릴** 구현됨(v1.1.9). 구동사 전용 매트릭스는 선택 잔여.
+6. 동사 매트릭스 게이트 have→get→take→… 구현됨. 구동사 **4단계 순차 해금·입자 드릴·전용 매트릭스** 구현됨(v1.2.2). ASS 매트릭스와 분리.
 7. Canon → JSON 후보/Unlock 대기열만. `expressions.json` 자동 병합 안 함 → P2a
 8. 로컬 학습자 프로필 + Learners 경로 동작.
 9. 열린 draft PR(#3, #8–#18) superseded 종료는 사람 작업 → O1
@@ -77,8 +77,8 @@
 
 ### 다음에 구현할 것 (우선순위)
 
-1. D1 → D2 — **사용자 PC**에서 실 Obsidian day loop·pathPrefix 검증 ([`DAY_LOOP.md`](./DAY_LOOP.md), [`BACKLOG.md`](./BACKLOG.md)). 클라우드에서는 Vault 검사 도구만 준비됨(v1.2.1).
-2. F1–F5 — ~~모두 완료~~ (v1.1.8–v1.2.0)
+1. **D1 → D2** — **보류·다음에** (사용자 지시 2026-07-23). Mac에서 [`DAY_LOOP.md`](./DAY_LOOP.md).
+2. F1–F6 — ~~모두 완료~~ (v1.1.8–v1.2.2)
 3. P2 정책 항목은 요청 없이 구현하지 않음
 4. O1–O3 — ~~완료~~ (v1.2.1)
 
@@ -215,7 +215,7 @@
 ## 이 문서를 이어받는 LLM에게 남기는 작업 메모
 
 - 사용자 목표는 “3~4세급 쉬운 말로 시작해, 제한된 만능동사·핵심명사로 실제 말이 되게 만들고, 그 기록이 Obsidian 영어뇌에 남아 다시 앱 학습 재료가 되는 구조”다.
-- Phase 0–5 + Feynman + Bridge/conflict + Drive webhook + Next Practice + Brain soft import + 그래프 바로가기(explain 포함) + watchlist + mapSets + verb have→get→take gate + daily v5 + 구동사 F1 + IA F2 + Draft 품질 + **PC Vault 검사 도구**까지 구현됨 (tip **v1.2.1**).
-- **미구현·보류 SoT = [`BACKLOG.md`](./BACKLOG.md).** 새 작업 전 반드시 읽고 **D1→D2(PC)** 를 기본으로 한다.
-- 실제 Obsidian day loop 절차는 [`DAY_LOOP.md`](./DAY_LOOP.md). CI는 mock Local REST만 검증한다 — **실 vault 검증(D1)은 PC에서만 닫힌다.**
+- Phase 0–5 + Feynman + Bridge/conflict + Drive webhook + Next Practice + Brain soft import + 그래프 바로가기(explain 포함) + watchlist + mapSets + verb have→get→take gate + daily v5 + 구동사 F1·**F6 매트릭스** + IA F2 + Draft 품질 + PC Vault 검사 도구까지 구현됨 (tip **v1.2.2**).
+- **미구현·보류 SoT = [`BACKLOG.md`](./BACKLOG.md).** **D1·D2는 보류·다음에** (사용자 지시). P2는 요청 없이 구현하지 않음.
+- 실제 Obsidian day loop 절차는 [`DAY_LOOP.md`](./DAY_LOOP.md). CI는 mock Local REST만 검증한다 — **실 vault 검증(D1)은 PC에서만**, 지금은 보류.
 - 클라우드 에이전트는 사용자 Mac vault(`/Users/.../Project_English`)에 접근할 수 없다. D1·D2는 사용자가 연 로컬 세션(또는 동등한 PC)에서만 닫힌다.

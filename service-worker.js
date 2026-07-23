@@ -1,4 +1,4 @@
-const CACHE = 'etd-quest-v1.2.1';
+const CACHE = 'etd-quest-v1.2.2';
 const ASSETS = [
   './',
   './index.html',
@@ -22,6 +22,7 @@ const ASSETS = [
   './data/learning-paths.json',
   './data/qa-matrices.json',
   './data/phrasal-verbs.json',
+  './data/phrasal-qa-matrices.json',
 ];
 
 function sameOriginGet(request) {

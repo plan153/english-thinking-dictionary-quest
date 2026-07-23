@@ -131,6 +131,46 @@ def main() -> None:
             if not form.get("en") or not form.get("ko"):
                 fail(f"qa-matrices.json matrix {matrix_id} form {form.get('id')} needs en and ko")
 
+    phrasal_qa_path = ROOT / "data" / "phrasal-qa-matrices.json"
+    if not phrasal_qa_path.exists():
+        fail("Required file is missing: data/phrasal-qa-matrices.json")
+    phrasal_qa_data = json.loads(phrasal_qa_path.read_text(encoding="utf-8"))
+    phrasal_qa = phrasal_qa_data.get("matrices") if isinstance(phrasal_qa_data, dict) else phrasal_qa_data
+    if not isinstance(phrasal_qa, list) or not phrasal_qa:
+        fail("phrasal-qa-matrices.json must include a non-empty matrices list")
+    phrasal_expression_ids = set()
+    for group in phrasal_verbs.get("groups") or []:
+        for expression_id in group.get("expressionIds") or []:
+            phrasal_expression_ids.add(expression_id)
+    seen_phrasal_matrix_ids = set()
+    for matrix in phrasal_qa:
+        matrix_id = matrix.get("id")
+        if not matrix_id:
+            fail("phrasal-qa-matrices.json matrix missing id")
+        if matrix_id in seen_matrix_ids:
+            fail(f"phrasal-qa-matrices.json id collides with ASS qa-matrices: {matrix_id}")
+        if matrix_id in seen_phrasal_matrix_ids:
+            fail(f"phrasal-qa-matrices.json duplicate id: {matrix_id}")
+        seen_phrasal_matrix_ids.add(matrix_id)
+        base_id = matrix.get("baseExpressionId")
+        if base_id not in expression_ids:
+            fail(f"phrasal-qa-matrices.json references unknown baseExpressionId: {base_id}")
+        if base_id not in phrasal_expression_ids:
+            fail(f"phrasal-qa-matrices.json baseExpressionId not in phrasal set: {base_id}")
+        verb_id = matrix.get("coreVerbId")
+        if verb_id not in verb_ids:
+            fail(f"phrasal-qa-matrices.json references unknown coreVerbId: {verb_id}")
+        forms = matrix.get("forms") or []
+        if len(forms) < 4:
+            fail(f"phrasal-qa-matrices.json matrix {matrix_id} needs at least 4 forms")
+        form_ids = {form.get("id") for form in forms}
+        for required in ["statement", "question", "negative", "shortYes"]:
+            if required not in form_ids:
+                fail(f"phrasal-qa-matrices.json matrix {matrix_id} missing required form: {required}")
+        for form in forms:
+            if not form.get("en") or not form.get("ko"):
+                fail(f"phrasal-qa-matrices.json matrix {matrix_id} form {form.get('id')} needs en and ko")
+
     seen_verb_ids = set()
 
     for verb_map in verb_maps:

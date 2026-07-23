@@ -680,7 +680,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.2.1">v1.2.1</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.2.2">v1.2.2</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -1144,7 +1144,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.2.1';
+    const APP_CACHE_VERSION = 'etd-quest-v1.2.2';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const ProgressStoreApi = window.ProgressStore;
@@ -1211,7 +1211,7 @@
       currentMapExampleByVerb: {},
       filter: '전체',
       search: '',
-      dictionaryData: { verbs: [], nouns: [], patterns: [], expressions: [], verbMaps: [], qaMatrices: [], learningPaths: null, phrasalVerbs: null, isLoaded: false, error: null, selectedVerbId: null, selectedExpressionId: null, selectedRouteId: null, selectedPatternId: null, selectedSlotValue: null, selectedCombinationId: null, selectedMapSentenceId: null, selectedExplorerView: 'legacy', isMapMeaningOpen: false, isMapPracticeOpen: false, gameExpressions: buildMapGameExpressions(), dataSource: 'fallback' },
+      dictionaryData: { verbs: [], nouns: [], patterns: [], expressions: [], verbMaps: [], qaMatrices: [], phrasalQaMatrices: [], learningPaths: null, phrasalVerbs: null, isLoaded: false, error: null, selectedVerbId: null, selectedExpressionId: null, selectedRouteId: null, selectedPatternId: null, selectedSlotValue: null, selectedCombinationId: null, selectedMapSentenceId: null, selectedExplorerView: 'legacy', isMapMeaningOpen: false, isMapPracticeOpen: false, gameExpressions: buildMapGameExpressions(), dataSource: 'fallback' },
       progress: loadProgress(),
       sessionStudyRecords: {},
       audioContext: null,
@@ -1296,7 +1296,8 @@
           history.lastCorrectAt = now;
           history.lastHintLevel = hintLevel;
           updateHistoryConnections(itemId, connectionType, strength);
-          if (mode === 'matrix' && window.VerbMatrixGate && (details.coreVerbId || details.formId)) {
+          if (mode === 'matrix' && window.VerbMatrixGate && (details.coreVerbId || details.formId)
+            && appState.lessonReturn?.screen !== 'phrasal') {
             const recorded = window.VerbMatrixGate.recordMatrixFormSuccess(
               p.curriculum || {},
               details.coreVerbId,
@@ -2022,6 +2023,8 @@
       list.innerHTML = (snap.groups || []).map(group => {
         const particles = (group.particles || []).join(' · ') || '—';
         const count = (group.expressionIds || []).length;
+        const hasMatrix = getPhrasalQaMatrices().some(matrix => matrix.groupId === group.id
+          || (group.expressionIds || []).includes(matrix.baseExpressionId));
         if (group.locked) {
           return `
             <article class="card" style="margin-bottom:12px; opacity:.72" data-phrasal-group="${escapeHtml(group.id)}">
@@ -2039,6 +2042,7 @@
               <button class="btn soft phrasal-start" type="button" data-mode="speak" data-group="${escapeHtml(group.id)}">말하기</button>
               <button class="btn soft phrasal-start" type="button" data-mode="koen" data-group="${escapeHtml(group.id)}">한글→영어</button>
               <button class="btn soft phrasal-start" type="button" data-mode="particle" data-group="${escapeHtml(group.id)}">입자 드릴</button>
+              ${hasMatrix ? `<button class="btn soft phrasal-start" type="button" data-mode="matrix" data-group="${escapeHtml(group.id)}">평서·의문·부정</button>` : ''}
               <button class="btn soft phrasal-start" type="button" data-mode="enko" data-group="${escapeHtml(group.id)}">장면 고르기</button>
             </div>
           </article>
@@ -4040,6 +4044,29 @@
     function getQaMatrices() {
       return Array.isArray(appState.dictionaryData.qaMatrices) ? appState.dictionaryData.qaMatrices : [];
     }
+    function getPhrasalQaMatrices() {
+      return Array.isArray(appState.dictionaryData.phrasalQaMatrices) ? appState.dictionaryData.phrasalQaMatrices : [];
+    }
+    function getPhrasalMatrices(groupId = null) {
+      const all = getPhrasalQaMatrices();
+      if (!all.length) return [];
+      const api = window.PhrasalSpeakingSet;
+      const config = getPhrasalSpeakingSetConfig();
+      const unlockedIds = new Set(
+        api
+          ? api.listUnlockedExpressionIds(appState.progress.curriculum || {}, config)
+          : []
+      );
+      let matrices = all.filter(matrix => unlockedIds.has(matrix.baseExpressionId));
+      if (groupId) {
+        const groupIds = new Set(
+          (config.groups || []).find(group => group.id === groupId)?.expressionIds || []
+        );
+        matrices = matrices.filter(matrix => groupIds.has(matrix.baseExpressionId)
+          || matrix.groupId === groupId);
+      }
+      return matrices;
+    }
     function getUnlockedMatrices() {
       const unlockedIds = new Set(getUnlockedExpressionIds());
       const matrices = getQaMatrices().filter(matrix => (
@@ -4131,6 +4158,35 @@
       const tenseItems = includeTense ? tenseOrder.map(id => matrixFormToItem(matrix, id)).filter(Boolean) : [];
       return [...coreItems, ...tenseItems].slice(0, 6);
     }
+    function makePhrasalMatrixLesson(seedId = null, options = {}) {
+      const matrices = getPhrasalMatrices(options.phrasalGroupId || null);
+      if (!matrices.length) return [];
+      let matrix = null;
+      if (seedId) {
+        matrix = matrices.find(item => item.id === seedId || item.baseExpressionId === seedId) || null;
+      }
+      if (!matrix) {
+        const recent = new Set(appState.progress.recentExpressionIds || []);
+        const scored = matrices.map(item => ({
+          item,
+          priority: getItemReviewPriority({ id: item.baseExpressionId }),
+          recent: recent.has(item.baseExpressionId),
+        })).sort((a, b) => {
+          if (b.priority !== a.priority) return b.priority - a.priority;
+          if (a.recent !== b.recent) return a.recent ? 1 : -1;
+          return String(a.item.label).localeCompare(String(b.item.label));
+        });
+        matrix = scored[0]?.item || matrices[0];
+      }
+      const formId = options.formId || null;
+      if (formId) {
+        const single = matrixFormToItem(matrix, formId);
+        return single ? [single] : [];
+      }
+      // Phrasal matrix: core Q/A only (no tense spiral) — keeps ASS day loop separate.
+      const coreOrder = ['statement', 'question', 'negative', 'shortYes'];
+      return coreOrder.map(id => matrixFormToItem(matrix, id)).filter(Boolean);
+    }
     function supportsMode(item, mode) {
       if (mode === 'matrix' || mode === 'explain' || mode === 'particle') return true;
       const quizType = modeQuizTypes[mode] || 'koToEn';
@@ -4144,6 +4200,9 @@
     }
     function makeLesson(mode, expressionId = null, options = {}) {
       if (mode === 'matrix') {
+        if (options.bankSource === 'phrasal') {
+          return makePhrasalMatrixLesson(expressionId, options);
+        }
         return makeMatrixLesson(expressionId, options);
       }
       const unlockedBank = options.bankSource === 'phrasal'
@@ -4196,7 +4255,9 @@
             return;
           }
           const unlockId = mode === 'matrix'
-            ? (getUnlockedMatrices().find(matrix => matrix.id === expressionId || matrix.baseExpressionId === expressionId)?.baseExpressionId || expressionId)
+            ? (isPhrasal
+              ? (getPhrasalMatrices(options.phrasalGroupId).find(matrix => matrix.id === expressionId || matrix.baseExpressionId === expressionId)?.baseExpressionId || expressionId)
+              : (getUnlockedMatrices().find(matrix => matrix.id === expressionId || matrix.baseExpressionId === expressionId)?.baseExpressionId || expressionId))
             : expressionId;
           if (unlockId && !isPhrasal && !isExpressionUnlocked(unlockId) && !options.allowLocked) {
             toast('아직 해금되지 않은 표현이에요. Active Speaking Set을 먼저 익혀 주세요.');
@@ -5222,9 +5283,9 @@
     }
 
     async function loadDictionaryExplorer() {
-      const files = ['verbs', 'nouns', 'patterns', 'expressions', 'verb-maps', 'learning-paths', 'qa-matrices', 'phrasal-verbs'];
+      const files = ['verbs', 'nouns', 'patterns', 'expressions', 'verb-maps', 'learning-paths', 'qa-matrices', 'phrasal-verbs', 'phrasal-qa-matrices'];
       try {
-        const [verbs, nouns, patterns, expressions, verbMaps, learningPaths, qaMatricesFile, phrasalVerbs] = await Promise.all(files.map(name =>
+        const [verbs, nouns, patterns, expressions, verbMaps, learningPaths, qaMatricesFile, phrasalVerbs, phrasalQaMatricesFile] = await Promise.all(files.map(name =>
           fetch(`./data/${name}.json`).then(response => {
             if (!response.ok) throw new Error(`${name}.json ${response.status}`);
             return response.json();
@@ -5232,6 +5293,9 @@
         ));
         const mapGameExpressions = buildMapGameExpressions();
         const qaMatrices = Array.isArray(qaMatricesFile?.matrices) ? qaMatricesFile.matrices : (Array.isArray(qaMatricesFile) ? qaMatricesFile : []);
+        const phrasalQaMatrices = Array.isArray(phrasalQaMatricesFile?.matrices)
+          ? phrasalQaMatricesFile.matrices
+          : (Array.isArray(phrasalQaMatricesFile) ? phrasalQaMatricesFile : []);
         appState.dictionaryData = {
           verbs,
           nouns,
@@ -5239,6 +5303,7 @@
           expressions,
           verbMaps,
           qaMatrices,
+          phrasalQaMatrices,
           learningPaths,
           phrasalVerbs,
           // Prefer expressions.json IDs first — map examples share English text and would

@@ -61,4 +61,23 @@ const assStarter = new Set(ass.listUnlockedExpressionIds(assConfig, { unlockedPa
   assert.strictEqual(assStarter.has(id), false, `${id} must stay out of ASS starter bank`);
 });
 
-console.log('✅ phrasal-speaking-set sequential + particle blank tests passed');
+// Phrasal Q/A matrices stay out of ASS qa-matrices SoT
+const qa = JSON.parse(fs.readFileSync(path.join(root, 'data/qa-matrices.json'), 'utf8'));
+const pqa = JSON.parse(fs.readFileSync(path.join(root, 'data/phrasal-qa-matrices.json'), 'utf8'));
+const assMatrixIds = new Set((qa.matrices || []).map(item => item.id));
+const assMatrixBases = new Set((qa.matrices || []).map(item => item.baseExpressionId));
+assert.ok((pqa.matrices || []).length >= 4, 'phrasal matrices present');
+(pqa.matrices || []).forEach(matrix => {
+  assert.ok(!assMatrixIds.has(matrix.id), `phrasal matrix id must not collide: ${matrix.id}`);
+  assert.ok(ids.includes(matrix.baseExpressionId), `phrasal matrix base must be phrasal id: ${matrix.baseExpressionId}`);
+  // Exclusive stage-1 IDs must not appear as ASS matrix bases
+  if (['e081', 'e085', 'e086', 'e087'].includes(matrix.baseExpressionId)) {
+    assert.ok(!assMatrixBases.has(matrix.baseExpressionId), `${matrix.baseExpressionId} must not be ASS matrix base`);
+  }
+  const formIds = new Set((matrix.forms || []).map(form => form.id));
+  ['statement', 'question', 'negative', 'shortYes'].forEach(formId => {
+    assert.ok(formIds.has(formId), `${matrix.id} missing ${formId}`);
+  });
+});
+
+console.log('✅ phrasal-speaking-set sequential + particle blank + matrix isolation tests passed');

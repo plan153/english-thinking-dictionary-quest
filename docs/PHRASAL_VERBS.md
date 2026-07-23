@@ -1,6 +1,6 @@
 # 구동사 Speaking Set (Phrasal Verbs)
 
-> 상태: **앱 메뉴 + 단계 해금 + 입자 드릴 (v1.1.9)** — Unlock pack ≥1 이면 메뉴 열림. 그룹은 4단계 순차. 기본 `getUnlockedBank()`에는 합류하지 않음.
+> 상태: **앱 메뉴 + 단계 해금 + 입자 드릴 + 전용 매트릭스 (v1.2.2)** — Unlock pack ≥1 이면 메뉴 열림. 그룹은 4단계 순차. 기본 `getUnlockedBank()` / ASS `qa-matrices`에는 합류하지 않음.
 
 
 단일동사 Active Speaking Set과 **분리된** 커리큘럼이다.  
@@ -11,7 +11,8 @@
 1. **잠금 기본값:** Starter만 열린 동안 구동사 메뉴는 잠긴다.
 2. **해금:** 표현 Unlock pack 1개 이상(`unlockedPackCount >= 1`)이면 메뉴가 열린다.
 3. **출제 분리:** 해금 전·후에도 구동사는 기본 `getUnlockedBank()`에 자동 합류하지 않는다. **구동사 메뉴·구동사 연습**에서만 따로 구성한다.
-4. **단일동사 비중과 혼동하지 말 것:** Starter 목표 비중은 have 40% · get 25% · take 15% · 나머지 20% (단일동사 카드 기준).
+4. **매트릭스 분리:** 구동사 평서·의문·부정은 `data/phrasal-qa-matrices.json`만 사용. ASS `qa-matrices.json`·데일리 퀘스트·VerbMatrixGate에 섞지 않는다.
+5. **단일동사 비중과 혼동하지 말 것:** Starter 목표 비중은 have 40% · get 25% · take 15% · 나머지 20% (단일동사 카드 기준).
 
 ## 그룹 (v0)
 
@@ -25,7 +26,7 @@
 | find out | 알아내다 | e063 |
 | make sure | 확인하다 | e034 |
 
-데이터 SoT: `data/phrasal-verbs.json` · `learning-paths.json` → `phrasalSpeakingSet`.
+데이터 SoT: `data/phrasal-verbs.json` · `data/phrasal-qa-matrices.json` · `learning-paths.json` → `phrasalSpeakingSet`(선택).
 
 ## 학습 순서 (해금 후)
 
@@ -36,11 +37,11 @@
 
 같은 입자로 평서·의문·부정을 돌려 보고, 단일동사 have/get/take 코어와 섞어 하루 루프를 늘리지 않는다.
 
-## 아직 안 한 것 (BACKLOG F1 잔여)
+## 구현 체크
 
 - [x] 그룹 **순차** 해금 (v1.1.9)
 - [x] 구동사 **입자 드릴** 모드 (v1.1.9)
 - [x] 상세 UX(잠금 사유·다음 그룹 힌트) (v1.1.9)
-- [ ] 구동사 전용 매트릭스(평서·의문·부정) — 선택 심화
+- [x] 구동사 **전용 매트릭스**(평서·의문·부정·짧은답) (v1.2.2)
 
-전체 목록: [`BACKLOG.md`](./BACKLOG.md) F1.
+전체 목록: [`BACKLOG.md`](./BACKLOG.md) F6.
