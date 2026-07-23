@@ -338,7 +338,7 @@ async function main() {
     }
 
     // Graph shortcut smoke on thinking map — pick an ASS-unlocked example (map frames vary).
-    await page.click('nav button[data-screen="map"]');
+    await page.goto(`http://127.0.0.1:${APP_PORT}/#/map`, { waitUntil: 'domcontentloaded', timeout: 45000 });
     await page.waitForSelector('#thinkingMap', { timeout: 10000 });
     await page.waitForSelector('#mapFilters [data-map="have"]', { timeout: 10000 });
     await page.click('#mapFilters [data-map="have"]');

@@ -1,6 +1,6 @@
 # 구동사 Speaking Set (Phrasal Verbs)
 
-> 상태: **구현 보류** — 데이터/초안만 보관. 앱 메뉴 연동은 다음 작업.
+> 상태: **앱 메뉴 연동됨 (v1.1.7)** — Unlock pack ≥1 이면 구동사 화면이 열림. 기본 `getUnlockedBank()`에는 합류하지 않음.
 
 
 단일동사 Active Speaking Set과 **분리된** 커리큘럼이다.  

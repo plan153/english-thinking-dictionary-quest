@@ -38,7 +38,7 @@
 4. 학습 기록은 브라우저 `localStorage`에 저장된다. (`progressStorageKey`는 `appState` 생성 **이전**에 선언해야 한다.)
 5. 콘텐츠 원본은 `data/*.json`이며 `python3 scripts/validate.py`로 검증한다.
 6. Active Speaking Set Starter(동사 8·표현 40)가 `learning-paths.json`에 고정되어 있고, `getUnlockedBank()`가 퀴즈·데일리 퀘스트·복습·의미 선택지를 제한한다.
-7. **내 표현** = 연결도 3축 강함 **또는** 성공 ≥ masteryThreshold. 비율 70%면 다음 Unlock pack(`pack_1`–`pack_3`)이 해금된다. 홈/성장에 Active set 요약이 표시된다.
+7. **내 표현** = 연결도 3축 강함 **또는** (성공 ≥ masteryThreshold **그리고** output touch). 비율 70%면 다음 Unlock pack(`pack_1`–`pack_3`)이 해금된다. 홈/성장에 Active set 요약이 표시된다.
 8. 묻기·답하기·시제 매트릭스 모드(`matrix`)가 Active set 표현군에 대해 평서/의문/부정/짧은 답/과거/가까운 미래를 연습한다. 오늘의 퀘스트는 **의문 + (부정|짧은 답)** 두 형태를 넣고, enko MCQ는 1회로 줄인다.
 9. `gapNotes` 로컬 저장, 퀴즈 결과의 간극 기록 UI, Obsidian Markdown projection(`src/domain/markdown-projection.js`)과 내보내기가 동작한다. 열린 간극은 복습 우선순위에 +2 반영된다.
 10. Vault **Library 정원**: Gap → `expressionDrafts` → `Library/Drafts` export, 체크리스트 승격 시 `Library/Canon`. Canon이 곧장 퀴즈 은행에 들어가지는 않는다.
@@ -114,7 +114,7 @@
 
 ### Cleanup C3 — 내 표현·숙달 신호 통일
 
-- [x] `isMineExpression`: 연결도 3축 강함 **우선**, 없으면 성공 횟수 ≥ threshold (둘 다 인정).
+- [x] `isMineExpression`: 연결도 3축 강함 **우선**, 없으면 성공 횟수 ≥ threshold **그리고** output 축 touch.
 - [x] 헤더/성장의 주신호는 내 표현 수·해금 범위. XP/streak는 보조 유지.
 - [x] 성장 화면에서 내 표현·연결도 스트립을 주신호로, XP/streak·말하기 세션 카운트를 보조로 정렬.
 
@@ -204,5 +204,5 @@
 ## 이 문서를 이어받는 LLM에게 남기는 작업 메모
 
 - 사용자 목표는 “3~4세급 쉬운 말로 시작해, 제한된 만능동사·핵심명사로 실제 말이 되게 만들고, 그 기록이 Obsidian 영어뇌에 남아 다시 앱 학습 재료가 되는 구조”다.
-- Phase 0–5 + Feynman + Bridge/conflict + Drive webhook + Next Practice + Brain soft import + 그래프 바로가기 + watchlist + mapSets + verb keep/find + day-loop smoke까지 구현됨.
-- 실제 Obsidian day loop는 [`DAY_LOOP.md`](./DAY_LOOP.md). CI는 mock Local REST로 동일 경로를 검증한다.
+- Phase 0–5 + Feynman + Bridge/conflict + Drive webhook + Next Practice + Brain soft import + 그래프 바로가기 + watchlist + mapSets + verb have→get→take gate + daily v4 + **구동사 메뉴** + day-loop guide까지 구현됨.
+- 실제 Obsidian day loop는 [`DAY_LOOP.md`](./DAY_LOOP.md). 성장 화면에 체크리스트 UI. CI는 mock Local REST로 동일 경로를 검증한다.
