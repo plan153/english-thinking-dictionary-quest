@@ -680,7 +680,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.2.2">v1.2.2</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.0">v1.3.0</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -918,8 +918,8 @@
         <div class="section-head" style="margin:0 0 8px">
           <div><h3 style="margin:0">동기화 설정</h3><p class="small-note" style="margin:6px 0 0">학습 기록과 분리된 앱↔Vault 연결입니다. 키는 이 브라우저에만 저장됩니다.</p></div>
         </div>
-        <h3>Obsidian Local REST 동기화</h3>
-        <p class="small-note">Obsidian Local REST API(권장 HTTP <code>127.0.0.1:27123</code>)로 Gaps·Brain State·Next Practice를 upsert합니다. 가져오기는 Gaps · Next Practice · Brain State 약한 슬롯 힌트(진행 숫자는 앱 우선)입니다. API 키는 이 브라우저에만 저장됩니다.</p>
+        <h3>Obsidian / Drive 동기화</h3>
+        <p class="small-note">Local REST로 Gaps·Brain·Next Practice·Progress·Explanations를 주고받습니다. Google 키·토큰은 <b>이 브라우저 localStorage에만</b> 저장되며 저장소에 커밋하지 마세요.</p>
         <div class="gap-form" style="margin-top:12px">
           <label>Adapter
             <select id="syncAdapter">
@@ -927,6 +927,7 @@
               <option value="local-rest">local-rest (Obsidian :27123)</option>
               <option value="bridge">bridge (로컬 브리지 :8787)</option>
               <option value="drive-webhook">drive-webhook (Apps Script 백업)</option>
+              <option value="drive-oauth">drive-oauth (Google Access Token 백업)</option>
             </select>
           </label>
           <label>Base URL
@@ -938,12 +939,38 @@
           <label>API Key
             <input id="syncApiKey" type="password" autocomplete="off" placeholder="Local REST API key" />
           </label>
+          <label>Google Client ID (drive-oauth · 공개 ID)
+            <input id="syncGoogleClientId" type="text" autocomplete="off" placeholder="xxxx.apps.googleusercontent.com" />
+          </label>
+          <label>Google Access Token (drive-oauth · 비밀·localStorage only)
+            <input id="syncGoogleAccessToken" type="password" autocomplete="off" placeholder="ya29...." />
+          </label>
+          <label>Drive Folder ID (선택)
+            <input id="syncDriveFolderId" type="text" autocomplete="off" placeholder="Drive 폴더 ID" />
+          </label>
           <label>Path prefix (Vault 안 Project_English 폴더일 때)
             <input id="syncPathPrefix" type="text" placeholder="비우거나 Project_English" />
           </label>
           <label style="display:flex; align-items:center; gap:8px; margin-top:8px;">
             <input id="syncAutoAfterGap" type="checkbox" />
             간극 저장 후 자동 동기화 시도 (실패해도 학습은 계속)
+          </label>
+          <p class="small-note" style="margin-top:12px"><b>P2 정책</b> (기본 ON · 끌 수 있음)</p>
+          <label style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+            <input id="policyCanonAutoMerge" type="checkbox" />
+            P2a Canon → 런타임 퀴즈 은행 자동 합류
+          </label>
+          <label style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+            <input id="policyImportProgressFromVault" type="checkbox" />
+            P2b Vault Progress.md → 앱 진행 숫자 병합 (max)
+          </label>
+          <label style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+            <input id="policyImportExplanationsFromVault" type="checkbox" />
+            P2b Vault Explanations → 앱 설명 노트 병합
+          </label>
+          <label style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+            <input id="policyPhrasalInAssBank" type="checkbox" />
+            P2d 해금된 구동사를 getUnlockedBank()에 합류
           </label>
           <div class="question-actions" style="justify-content:flex-start; margin-top:12px; flex-wrap:wrap;">
             <button class="btn soft" id="saveSyncSettings" type="button">설정 저장</button>
@@ -959,7 +986,7 @@
       </article>
       <article class="card" style="margin-top:16px">
         <h3>Library 자료 후보 (Drafts)</h3>
-        <p class="small-note">Vault 정원에서 자라는 표현 후보입니다. 승격(Canon) 전에는 퀴즈에 넣지 않습니다. 한글·동사·패턴이 있어야 승격할 수 있습니다. 14일 이상 미승격 Draft는 보관으로 정원을 정리하세요.</p>
+        <p class="small-note">Vault 정원 후보입니다. 승격 후 Unlock 대기열에 넣으면(P2a ON 시) 런타임 퀴즈 은행에 합류합니다. 저장소 SoT 반영은 <code>scripts/merge_canon_intake.js</code>로 JSON을 머지하세요.</p>
         <div id="expressionDraftsList" style="margin-top:14px"></div>
         <div id="canonIntakePanel" style="margin-top:14px"></div>
       </article>
@@ -1144,7 +1171,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.2.2';
+    const APP_CACHE_VERSION = 'etd-quest-v1.3.0';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const ProgressStoreApi = window.ProgressStore;
@@ -2019,7 +2046,7 @@
         ? `단계 ${snap.unlockedPhrasalStageCount}/${snap.totalStages} · ${snap.currentStage.title}${snap.nextStage ? ` · 다음: ${snap.nextStage.title}` : ' · 모두 열림'}`
         : '';
       title.textContent = `${snap.title} · 열림`;
-      copy.textContent = `${stageLine} · 해금 표현 ${snap.unlockedExpressionCount}/${snap.expressionCount}. 기본 퀴즈 은행에는 섞이지 않습니다. 현재 단계 표현을 말하고 조립하면 다음 단계가 열려요.`;
+      copy.textContent = `${stageLine} · 해금 표현 ${snap.unlockedExpressionCount}/${snap.expressionCount}. P2d ON이면 해금 구동사가 퀴즈 은행에 합류합니다. 단계 숙달로 다음 그룹이 열려요.`;
       list.innerHTML = (snap.groups || []).map(group => {
         const particles = (group.particles || []).join(' · ') || '—';
         const count = (group.expressionIds || []).length;
@@ -2732,6 +2759,19 @@
       if (!api) throw new Error('obsidian sync module missing');
       return api;
     }
+    function getPolicyFlag(key, fallback = true) {
+      const settings = appState.progress?.settings || {};
+      if (Object.prototype.hasOwnProperty.call(settings, key)) return Boolean(settings[key]);
+      return fallback;
+    }
+    function readPolicyFlagsFromForm() {
+      return {
+        policyCanonAutoMerge: Boolean(document.getElementById('policyCanonAutoMerge')?.checked),
+        policyImportProgressFromVault: Boolean(document.getElementById('policyImportProgressFromVault')?.checked),
+        policyImportExplanationsFromVault: Boolean(document.getElementById('policyImportExplanationsFromVault')?.checked),
+        policyPhrasalInAssBank: Boolean(document.getElementById('policyPhrasalInAssBank')?.checked),
+      };
+    }
     function readSyncSettingsFromForm() {
       return {
         adapter: document.getElementById('syncAdapter')?.value || 'download',
@@ -2739,6 +2779,9 @@
         webhookUrl: document.getElementById('syncWebhookUrl')?.value || '',
         apiKey: document.getElementById('syncApiKey')?.value || '',
         pathPrefix: document.getElementById('syncPathPrefix')?.value || '',
+        googleClientId: document.getElementById('syncGoogleClientId')?.value || '',
+        googleAccessToken: document.getElementById('syncGoogleAccessToken')?.value || '',
+        driveFolderId: document.getElementById('syncDriveFolderId')?.value || '',
         autoSyncAfterGap: Boolean(document.getElementById('syncAutoAfterGap')?.checked),
       };
     }
@@ -2752,12 +2795,26 @@
       const apiKey = document.getElementById('syncApiKey');
       const pathPrefix = document.getElementById('syncPathPrefix');
       const auto = document.getElementById('syncAutoAfterGap');
+      const googleClientId = document.getElementById('syncGoogleClientId');
+      const googleAccessToken = document.getElementById('syncGoogleAccessToken');
+      const driveFolderId = document.getElementById('syncDriveFolderId');
       if (adapter) adapter.value = settings.adapter;
       if (baseUrl) baseUrl.value = settings.baseUrl;
       if (webhookUrl) webhookUrl.value = settings.webhookUrl || '';
       if (apiKey) apiKey.value = settings.apiKey;
       if (pathPrefix) pathPrefix.value = settings.pathPrefix;
       if (auto) auto.checked = settings.autoSyncAfterGap;
+      if (googleClientId) googleClientId.value = settings.googleClientId || '';
+      if (googleAccessToken) googleAccessToken.value = settings.googleAccessToken || '';
+      if (driveFolderId) driveFolderId.value = settings.driveFolderId || '';
+      const policyCanon = document.getElementById('policyCanonAutoMerge');
+      const policyProgress = document.getElementById('policyImportProgressFromVault');
+      const policyExplain = document.getElementById('policyImportExplanationsFromVault');
+      const policyPhrasal = document.getElementById('policyPhrasalInAssBank');
+      if (policyCanon) policyCanon.checked = getPolicyFlag('policyCanonAutoMerge', true);
+      if (policyProgress) policyProgress.checked = getPolicyFlag('policyImportProgressFromVault', true);
+      if (policyExplain) policyExplain.checked = getPolicyFlag('policyImportExplanationsFromVault', true);
+      if (policyPhrasal) policyPhrasal.checked = getPolicyFlag('policyPhrasalInAssBank', true);
       updateSyncStatusText(settings);
     }
     function updateSyncStatusText(settings) {
@@ -2781,18 +2838,26 @@
         ...prev,
         ...readSyncSettingsFromForm(),
       });
+      appState.progress.settings = {
+        ...(appState.progress.settings || {}),
+        ...readPolicyFlagsFromForm(),
+      };
+      saveProgress();
       updateSyncStatusText(next);
-      toast('Obsidian 동기화 설정을 저장했어요. (이 브라우저에만 보관)');
+      toast('동기화·P2 정책 설정을 저장했어요. (이 브라우저에만 보관)');
+      updateDashboard();
       return next;
     }
     function requireLocalRestClient() {
       const api = getSyncApi();
       const settings = api.saveSettings({ ...api.loadSettings(), ...readSyncSettingsFromForm() });
-      if (!['local-rest', 'bridge', 'drive-webhook'].includes(settings.adapter)) {
-        throw new Error('Adapter를 local-rest / bridge / drive-webhook로 바꾼 뒤 다시 시도하세요.');
+      if (!['local-rest', 'bridge', 'drive-webhook', 'drive-oauth'].includes(settings.adapter)) {
+        throw new Error('Adapter를 local-rest / bridge / drive-webhook / drive-oauth로 바꾼 뒤 다시 시도하세요.');
       }
       if (settings.adapter === 'drive-webhook') {
         if (!settings.webhookUrl && !settings.baseUrl) throw new Error('Drive webhook URL을 입력하세요.');
+      } else if (settings.adapter === 'drive-oauth') {
+        if (!settings.googleAccessToken) throw new Error('Google Access Token을 입력하세요. (커밋 금지 · localStorage only)');
       } else if (!settings.apiKey) {
         throw new Error('API Key를 입력하세요.');
       }
@@ -2810,9 +2875,13 @@
           lastSyncError: null,
         });
         updateSyncStatusText(next);
-        const label = settings.adapter === 'drive-webhook' ? 'Drive webhook' : (settings.adapter === 'bridge' ? 'Bridge' : 'Local REST');
+        const label = settings.adapter === 'drive-webhook'
+          ? 'Drive webhook'
+          : (settings.adapter === 'drive-oauth'
+            ? 'Drive OAuth'
+            : (settings.adapter === 'bridge' ? 'Bridge' : 'Local REST'));
         toast(result?.authenticated === false
-          ? '연결은 됐지만 인증이 실패했어요. API Key를 확인하세요.'
+          ? '연결은 됐지만 인증이 실패했어요. API Key / Token을 확인하세요.'
           : `${label} 연결 OK`);
       } catch (error) {
         toast(`연결 실패: ${error.message || error}`);
@@ -2857,7 +2926,7 @@
         const { api, settings, client } = requireLocalRestClient();
         const payload = buildBrainExportPayload();
         let results;
-        if (settings.adapter === 'drive-webhook' && client.postBackup) {
+        if ((settings.adapter === 'drive-webhook' || settings.adapter === 'drive-oauth') && client.postBackup) {
           const body = window.EnglishBrainExport
             ? window.EnglishBrainExport.buildDriveWebhookPayload(payload, { pathPrefix: settings.pathPrefix })
             : { files: payload.files, learnerId: payload.learnerId, learnerName: payload.learnerName };
@@ -2875,7 +2944,9 @@
         });
         updateSyncStatusText(next);
         if (!quiet) {
-          const dest = settings.adapter === 'drive-webhook' ? 'Drive webhook' : 'Obsidian';
+          const dest = settings.adapter === 'drive-webhook'
+            ? 'Drive webhook'
+            : (settings.adapter === 'drive-oauth' ? 'Drive OAuth' : 'Obsidian');
           toast(results.failed.length
             ? `${dest} sync: ${results.ok.length} 성공, ${results.failed.length} 실패(큐 보관)`
             : `${dest}에 ${results.ok.length}개 노트를 동기화했어요.`);
@@ -2898,15 +2969,22 @@
     async function importEnglishBrainFromObsidian() {
       try {
         const { api, settings, client } = requireLocalRestClient();
-        if (settings.adapter === 'drive-webhook') {
-          throw new Error('drive-webhook는 백업 전용이라 가져오기를 지원하지 않습니다. local-rest 또는 bridge를 쓰세요.');
+        if (settings.adapter === 'drive-webhook' || settings.adapter === 'drive-oauth') {
+          throw new Error('Drive adapter는 백업 전용이라 가져오기를 지원하지 않습니다. local-rest 또는 bridge를 쓰세요.');
         }
         const personalRoot = window.EnglishBrainMarkdown?.learnerVaultRoot?.(getActiveLearnerId()) || `Learners/${getActiveLearnerId()}`;
+        const importProgress = getPolicyFlag('policyImportProgressFromVault', true);
+        const importExplanations = getPolicyFlag('policyImportExplanationsFromVault', true);
         const imported = await api.importGapsAndNextPractice(client, {
           personalRoot,
           localGaps: appState.progress.gapNotes || [],
           appQueue: buildNextPracticeQueue(),
           localBrainState: appState.progress.importedBrainState,
+          localProgress: appState.progress,
+          localExplanations: appState.progress.explanations || [],
+          importProgress,
+          importExplanations,
+          progressMergeMode: 'max',
         });
         appState.progress.gapNotes = (imported.mergedGaps || []).map(normalizeGapNote);
         appState.progress.importedNextPractice = {
@@ -2919,6 +2997,15 @@
             importedAt: new Date().toISOString(),
           };
         }
+        if (imported.progressMerge?.applied && imported.progressMerge.progress) {
+          const merged = imported.progressMerge.progress;
+          appState.progress.xp = merged.xp;
+          appState.progress.streak = merged.streak;
+          if (merged.curriculum) appState.progress.curriculum = merged.curriculum;
+        }
+        if (imported.explanationMerge?.explanations) {
+          appState.progress.explanations = imported.explanationMerge.explanations;
+        }
         saveProgress();
         const next = api.saveSettings({
           ...settings,
@@ -2929,8 +3016,16 @@
         renderGapNotesList();
         renderNextPracticeList();
         renderReviewList();
+        renderExplanationsList();
+        updateDashboard();
         const brainHintCount = imported.brainState?.weakSlots?.length || 0;
-        toast(`가져오기 완료 · Gaps ${imported.vaultGaps.length} · Next Practice ${imported.nextPractice.queue.length} · Brain 힌트 ${brainHintCount}`);
+        const progressNote = imported.progressMerge?.applied
+          ? ` · Progress ${imported.progressMerge.changed.join('+')}`
+          : '';
+        const explainNote = imported.explanationMerge
+          ? ` · Explanations +${imported.explanationMerge.added}/~${imported.explanationMerge.updated}`
+          : '';
+        toast(`가져오기 완료 · Gaps ${imported.vaultGaps.length} · Next Practice ${imported.nextPractice.queue.length} · Brain 힌트 ${brainHintCount}${progressNote}${explainNote}`);
       } catch (error) {
         toast(`가져오기 실패: ${error.message || error}`);
         console.error(error);
@@ -2959,9 +3054,10 @@
       if (!api) return;
       const settings = api.loadSettings();
       if (!settings.autoSyncAfterGap) return;
-      if (!['local-rest', 'bridge', 'drive-webhook'].includes(settings.adapter)) return;
-      if (settings.adapter !== 'drive-webhook' && !settings.apiKey) return;
+      if (!['local-rest', 'bridge', 'drive-webhook', 'drive-oauth'].includes(settings.adapter)) return;
       if (settings.adapter === 'drive-webhook' && !(settings.webhookUrl || settings.baseUrl)) return;
+      if (settings.adapter === 'drive-oauth' && !settings.googleAccessToken) return;
+      if (!['drive-webhook', 'drive-oauth'].includes(settings.adapter) && !settings.apiKey) return;
       syncEnglishBrainToObsidian({ quiet: true });
     }
     function renderGapNotesList() {
@@ -3135,6 +3231,28 @@
         console.error(error);
       }
     }
+    function applyCanonRuntimeMerge(candidates = []) {
+      const api = window.CanonIntake;
+      if (!api?.mergeCandidatesIntoExpressions) return { added: [], runtime: [] };
+      if (!Array.isArray(appState.progress.canonExpressions)) appState.progress.canonExpressions = [];
+      const mergedRuntime = api.mergeCandidatesIntoExpressions(appState.progress.canonExpressions, candidates, { overwrite: false });
+      appState.progress.canonExpressions = mergedRuntime.expressions;
+      const collections = {
+        verbs: appState.dictionaryData.verbs || [],
+        patterns: appState.dictionaryData.patterns || [],
+      };
+      const normalized = mergedRuntime.expressions.map(expression => normalizeExpression(expression, collections));
+      const existingIds = new Set((appState.dictionaryData.expressions || []).map(item => item.id));
+      const fresh = normalized.filter(item => !existingIds.has(item.id));
+      if (fresh.length) {
+        appState.dictionaryData.expressions = [...(appState.dictionaryData.expressions || []), ...fresh];
+        appState.dictionaryData.gameExpressions = dedupeGameExpressions([
+          ...fresh,
+          ...(appState.dictionaryData.gameExpressions || []),
+        ]);
+      }
+      return { added: mergedRuntime.added, runtime: appState.progress.canonExpressions };
+    }
     function queueCanonDraftForUnlock(draftId) {
       const api = window.CanonIntake;
       if (!api) {
@@ -3155,30 +3273,39 @@
         appState.progress.canonUnlockQueue.unshift(api.queueItemFromCandidate(candidate));
         added += 1;
       });
+      let runtimeAdded = 0;
+      if (getPolicyFlag('policyCanonAutoMerge', true)) {
+        runtimeAdded = applyCanonRuntimeMerge(bundle.candidates).added.length;
+      }
       saveProgress();
       renderCanonIntakePanel();
+      updateDashboard();
       toast(added
-        ? `Unlock 대기열에 ${added}개 넣었어요. 퀴즈에는 아직 안 나옵니다.`
-        : '이미 대기열에 있는 후보예요.');
+        ? `Unlock 대기열 ${added}개${runtimeAdded ? ` · 런타임 퀴즈 합류 ${runtimeAdded}개` : ''} · 저장소 JSON은 merge_canon_intake.js`
+        : (runtimeAdded
+          ? `이미 대기열에 있어요. 런타임 합류 ${runtimeAdded}개 갱신.`
+          : '이미 대기열에 있는 후보예요.'));
     }
     function renderCanonIntakePanel() {
       const target = document.getElementById('canonIntakePanel');
       if (!target) return;
       const approved = getApprovedCanonDrafts();
       const queue = appState.progress.canonUnlockQueue || [];
+      const runtimeCount = (appState.progress.canonExpressions || []).length;
       const queuedDraftIds = new Set(queue.map(item => item.draftId).filter(Boolean));
       const awaitingQueue = approved.filter(draft => !queuedDraftIds.has(draft.id)
         && !queue.some(item => item.expressionId && draft.expressionId && item.expressionId === draft.expressionId));
+      const autoOn = getPolicyFlag('policyCanonAutoMerge', true);
       target.innerHTML = `
-        <h4 style="margin:0 0 8px;font-size:1rem">Canon 리뷰 대기열</h4>
-        <p class="small-note" style="margin:0">승격된 Canon은 JSON 후보·Unlock 대기열로만 갑니다. <b>expressions.json 자동 병합·퀴즈 합류는 없습니다.</b></p>
+        <h4 style="margin:0 0 8px;font-size:1rem">Canon 리뷰 대기열 (P2a ${autoOn ? 'ON' : 'OFF'})</h4>
+        <p class="small-note" style="margin:0">대기열 + 런타임 합류 ${runtimeCount}개. 저장소 <code>expressions.json</code> SoT는 <code>scripts/merge_canon_intake.js</code>로 반영합니다.</p>
         <div class="question-actions" style="justify-content:flex-start; flex-wrap:wrap; gap:8px; margin-top:10px;">
           <button class="btn soft" id="downloadAllCanonIntake" type="button">Canon → JSON 후보 번들</button>
-          <button class="btn soft" id="queueAllCanonIntake" type="button">승인 Canon 전부 대기열</button>
+          <button class="btn soft" id="queueAllCanonIntake" type="button">승인 Canon 전부 대기열/합류</button>
         </div>
         <p class="small-note" style="margin-top:10px">승인 Canon ${approved.length}개 · Unlock 대기열 ${queue.length}개 · 대기열 미등록 ${awaitingQueue.length}개</p>
-        ${awaitingQueue.length ? `<p class="small-note" style="margin-top:6px"><b>대기열 미등록 Canon</b></p><ul class="small-note" style="margin:4px 0 0; padding-left:18px;">${awaitingQueue.slice(0, 6).map(item => `<li>${escapeHtml(item.english || item.id)} · 승격됨 · JSON/대기열 버튼으로 리뷰</li>`).join('')}</ul>` : ''}
-        ${queue.length ? `<p class="small-note" style="margin-top:8px"><b>Unlock 대기열</b> (사람 리뷰 후 수동 편입)</p><ul class="small-note" style="margin:4px 0 0; padding-left:18px;">${queue.slice(0, 8).map(item => `<li>${escapeHtml(item.expressionId || item.draftId || '?')} · ${escapeHtml(item.english || '')}</li>`).join('')}</ul>` : '<p class="small-note" style="margin-top:8px">Unlock 대기열이 비어 있어요.</p>'}
+        ${awaitingQueue.length ? `<p class="small-note" style="margin-top:6px"><b>대기열 미등록 Canon</b></p><ul class="small-note" style="margin:4px 0 0; padding-left:18px;">${awaitingQueue.slice(0, 6).map(item => `<li>${escapeHtml(item.english || item.id)} · 승격됨</li>`).join('')}</ul>` : ''}
+        ${queue.length ? `<p class="small-note" style="margin-top:8px"><b>Unlock 대기열</b></p><ul class="small-note" style="margin:4px 0 0; padding-left:18px;">${queue.slice(0, 8).map(item => `<li>${escapeHtml(item.expressionId || item.draftId || '?')} · ${escapeHtml(item.english || '')}</li>`).join('')}</ul>` : '<p class="small-note" style="margin-top:8px">Unlock 대기열이 비어 있어요.</p>'}
       `;
       document.getElementById('downloadAllCanonIntake')?.addEventListener('click', () => downloadCanonIntakeBundle());
       document.getElementById('queueAllCanonIntake')?.addEventListener('click', () => queueCanonDraftForUnlock(null));
@@ -4035,9 +4162,23 @@
       return appState.dictionaryData.gameExpressions.length ? appState.dictionaryData.gameExpressions : phraseBank.map(normalizeFallbackPhrase);
     }
     function getUnlockedBank() {
-      // Vault overlay / watchlist never expand this bank — ASS unlock packs only.
       const bank = getGameBank();
       const unlockedIds = new Set(getUnlockedExpressionIds());
+      // P2a: Canon runtime admissions
+      if (getPolicyFlag('policyCanonAutoMerge', true)) {
+        (appState.progress.canonUnlockQueue || []).forEach(item => {
+          if (item?.expressionId) unlockedIds.add(item.expressionId);
+        });
+        (appState.progress.canonExpressions || []).forEach(item => {
+          if (item?.id) unlockedIds.add(item.id);
+        });
+      }
+      // P2d: unlocked phrasal expressions
+      if (getPolicyFlag('policyPhrasalInAssBank', true) && isPhrasalMenuUnlocked()) {
+        getPhrasalBank().forEach(item => {
+          if (item?.id) unlockedIds.add(item.id);
+        });
+      }
       const filtered = bank.filter(item => unlockedIds.has(item.id));
       return filtered.length ? filtered : bank;
     }
@@ -5296,11 +5437,15 @@
         const phrasalQaMatrices = Array.isArray(phrasalQaMatricesFile?.matrices)
           ? phrasalQaMatricesFile.matrices
           : (Array.isArray(phrasalQaMatricesFile) ? phrasalQaMatricesFile : []);
+        const canonRuntime = Array.isArray(appState.progress.canonExpressions) ? appState.progress.canonExpressions : [];
+        const mergedExpressions = window.CanonIntake?.mergeCandidatesIntoExpressions
+          ? window.CanonIntake.mergeCandidatesIntoExpressions(expressions, canonRuntime, { overwrite: false }).expressions
+          : [...expressions, ...canonRuntime.filter(item => item?.id && !expressions.some(row => row.id === item.id))];
         appState.dictionaryData = {
           verbs,
           nouns,
           patterns,
-          expressions,
+          expressions: mergedExpressions,
           verbMaps,
           qaMatrices,
           phrasalQaMatrices,
@@ -5309,7 +5454,7 @@
           // Prefer expressions.json IDs first — map examples share English text and would
           // otherwise win dedupe and drop starter IDs (e001, …) from the quiz bank.
           gameExpressions: dedupeGameExpressions([
-            ...expressions.map(expression => normalizeExpression(expression, { verbs, patterns })),
+            ...mergedExpressions.map(expression => normalizeExpression(expression, { verbs, patterns })),
             ...mapGameExpressions,
           ]),
           isLoaded: true,

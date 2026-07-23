@@ -17,11 +17,15 @@
 
   function defaultSettings() {
     return {
-      adapter: 'download', // download | local-rest | bridge | drive-webhook
+      adapter: 'download', // download | local-rest | bridge | drive-webhook | drive-oauth
       baseUrl: 'http://127.0.0.1:27123',
       webhookUrl: '',
       apiKey: '',
       pathPrefix: '', // e.g. Project_English when vault root is parent
+      // P2c: Google OAuth tokens/ids — localStorage only, never commit
+      googleClientId: '',
+      googleAccessToken: '',
+      driveFolderId: '',
       autoSyncAfterGap: false,
       lastSyncAt: null,
       lastSyncError: null,
@@ -32,7 +36,9 @@
   function normalizeSettings(raw) {
     const base = defaultSettings();
     const src = raw && typeof raw === 'object' ? raw : {};
-    const adapter = ['local-rest', 'bridge', 'drive-webhook'].includes(src.adapter) ? src.adapter : 'download';
+    const adapter = ['local-rest', 'bridge', 'drive-webhook', 'drive-oauth'].includes(src.adapter)
+      ? src.adapter
+      : 'download';
     let baseUrl = String(src.baseUrl || base.baseUrl).replace(/\/$/, '');
     if (adapter === 'bridge' && !src.baseUrl) {
       baseUrl = 'http://127.0.0.1:8787';
@@ -45,6 +51,9 @@
       webhookUrl: String(src.webhookUrl || '').trim(),
       apiKey: String(src.apiKey || ''),
       pathPrefix: String(src.pathPrefix || '').replace(/^\/+|\/+$/g, ''),
+      googleClientId: String(src.googleClientId || '').trim(),
+      googleAccessToken: String(src.googleAccessToken || '').trim(),
+      driveFolderId: String(src.driveFolderId || '').trim(),
       autoSyncAfterGap: Boolean(src.autoSyncAfterGap),
     };
   }
@@ -368,11 +377,95 @@
     };
   }
 
+  function createDriveOauthClient(settings, fetchImpl) {
+    const cfg = normalizeSettings({
+      ...(settings || {}),
+      adapter: 'drive-oauth',
+    });
+    const fetchFn = fetchImpl || (typeof fetch !== 'undefined' ? fetch.bind(globalThis) : null);
+    if (!fetchFn) throw new Error('fetch is not available');
+    if (!cfg.googleAccessToken) {
+      throw new Error('Google Access Token이 비어 있어요. (localStorage에만 저장 · 저장소에 커밋하지 마세요)');
+    }
+    const authHeaders = {
+      Authorization: `Bearer ${cfg.googleAccessToken}`,
+    };
+
+    async function driveJson(url, options = {}) {
+      const response = await fetchFn(url, {
+        ...options,
+        headers: {
+          ...authHeaders,
+          ...(options.headers || {}),
+        },
+      });
+      if (!response.ok) {
+        const text = await response.text().catch(() => '');
+        throw new Error(`Drive API failed (${response.status}): ${text.slice(0, 200)}`);
+      }
+      const contentType = response.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) return response.json();
+      return { ok: true, status: response.status };
+    }
+
+    return {
+      kind: 'drive-oauth',
+      settings: cfg,
+      async ping() {
+        return driveJson('https://www.googleapis.com/drive/v3/about?fields=user,storageQuota');
+      },
+      async putFile(vaultPath, markdown) {
+        const name = String(vaultPath || 'note.md').split('/').filter(Boolean).join('__');
+        const metadata = {
+          name: name.endsWith('.md') ? name : `${name}.md`,
+          mimeType: 'text/markdown',
+        };
+        if (cfg.driveFolderId) metadata.parents = [cfg.driveFolderId];
+        const boundary = `etd_${Date.now()}`;
+        const body = [
+          `--${boundary}`,
+          'Content-Type: application/json; charset=UTF-8',
+          '',
+          JSON.stringify(metadata),
+          `--${boundary}`,
+          'Content-Type: text/markdown; charset=UTF-8',
+          '',
+          String(markdown || ''),
+          `--${boundary}--`,
+          '',
+        ].join('\r\n');
+        await driveJson('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+          method: 'POST',
+          headers: {
+            'Content-Type': `multipart/related; boundary=${boundary}`,
+          },
+          body,
+        });
+        return true;
+      },
+      async postBackup(payload) {
+        const files = payload?.files || {};
+        const entries = Object.entries(files);
+        for (const [vaultPath, markdown] of entries) {
+          await this.putFile(vaultPath, markdown);
+        }
+        return { ok: true, fileCount: entries.length };
+      },
+      async getFile() {
+        throw new Error('drive-oauth는 현재 업로드/백업용입니다. Vault import는 Local REST/Bridge를 쓰세요.');
+      },
+      async listDirectory() {
+        throw new Error('drive-oauth는 디렉터리 목록을 지원하지 않습니다.');
+      },
+    };
+  }
+
   function createSyncClient(settings, fetchImpl) {
     const cfg = normalizeSettings(settings);
     if (cfg.adapter === 'bridge') return createBridgeClient(cfg, fetchImpl);
     if (cfg.adapter === 'local-rest') return createLocalRestClient(cfg, fetchImpl);
     if (cfg.adapter === 'drive-webhook') return createDriveWebhookClient(cfg, fetchImpl);
+    if (cfg.adapter === 'drive-oauth') return createDriveOauthClient(cfg, fetchImpl);
     throw new Error(`Adapter "${cfg.adapter}" has no live sync client (use download export instead).`);
   }
 
@@ -524,8 +617,120 @@
     };
   }
 
+  function parseProgressMarkdown(markdown) {
+    const { attributes } = parseFrontmatter(markdown);
+    const num = (key) => {
+      const value = Number(attributes[key]);
+      return Number.isFinite(value) ? value : null;
+    };
+    return {
+      updatedAt: attributes.updatedAt || null,
+      xp: num('xp'),
+      streak: num('streak'),
+      unlockedPackCount: num('unlockedPackCount'),
+      mineCount: num('mineCount'),
+      activeExpressionCount: num('activeExpressionCount'),
+      openGapCount: num('openGapCount'),
+      source: attributes.source || 'vault',
+    };
+  }
+
+  function parseExplanationMarkdown(markdown, path = '') {
+    const { attributes, body } = parseFrontmatter(markdown);
+    const id = attributes.id
+      || String(path || '').split('/').pop()?.replace(/\.md$/i, '')
+      || '';
+    return {
+      id,
+      expressionId: attributes.expressionId || '',
+      english: attributes.english || '',
+      naturalKorean: attributes.naturalKorean || '',
+      explanation: String(body || '').trim() || attributes.explanation || '',
+      speechTranscript: attributes.speechTranscript || '',
+      verbWord: attributes.verbWord || '',
+      verbId: attributes.verbId || '',
+      status: attributes.status || 'open',
+      allowedRatio: attributes.allowedRatio != null ? Number(attributes.allowedRatio) : null,
+      createdAt: attributes.createdAt || attributes.updatedAt || null,
+      updatedAt: attributes.updatedAt || attributes.createdAt || null,
+      source: 'vault',
+      vaultPath: path || attributes.vaultPath || '',
+    };
+  }
+
+  function mergeProgressFromVault(localProgress = {}, vaultProgress = null, options = {}) {
+    if (!vaultProgress || typeof vaultProgress !== 'object') {
+      return { progress: localProgress, applied: false, reason: 'no-vault-progress' };
+    }
+    if (options.enabled === false) {
+      return { progress: localProgress, applied: false, reason: 'disabled' };
+    }
+    const next = { ...localProgress };
+    const applyMax = options.mode !== 'overwrite';
+    const fields = ['xp', 'streak', 'unlockedPackCount'];
+    const changed = [];
+    fields.forEach((key) => {
+      const vaultValue = vaultProgress[key];
+      if (!Number.isFinite(vaultValue)) return;
+      const localValue = Number(next[key] || 0);
+      const value = applyMax ? Math.max(localValue, vaultValue) : vaultValue;
+      if (value !== localValue) {
+        next[key] = value;
+        changed.push(key);
+      }
+    });
+    if (Number.isFinite(vaultProgress.unlockedPackCount) && next.curriculum) {
+      const localPacks = Number(next.curriculum.unlockedPackCount || 0);
+      const vaultPacks = Number(vaultProgress.unlockedPackCount || 0);
+      const packs = applyMax ? Math.max(localPacks, vaultPacks) : vaultPacks;
+      if (packs !== localPacks) {
+        next.curriculum = { ...next.curriculum, unlockedPackCount: packs };
+        changed.push('curriculum.unlockedPackCount');
+      }
+    }
+    return {
+      progress: next,
+      applied: changed.length > 0,
+      changed,
+      reason: changed.length ? 'merged' : 'noop',
+    };
+  }
+
+  function mergeExplanationsFromVault(localList = [], vaultList = [], options = {}) {
+    if (options.enabled === false) {
+      return { explanations: localList, added: 0, updated: 0 };
+    }
+    const byId = new Map((localList || []).map(item => [item.id, { ...item }]));
+    let added = 0;
+    let updated = 0;
+    (vaultList || []).forEach((vaultNote) => {
+      if (!vaultNote?.id) return;
+      const local = byId.get(vaultNote.id);
+      if (!local) {
+        byId.set(vaultNote.id, { ...vaultNote });
+        added += 1;
+        return;
+      }
+      const side = pickNarrativeSide(local.updatedAt, vaultNote.updatedAt);
+      if (side.side === 'vault') {
+        byId.set(vaultNote.id, {
+          ...local,
+          ...vaultNote,
+          id: local.id,
+          createdAt: local.createdAt || vaultNote.createdAt,
+        });
+        updated += 1;
+      }
+    });
+    return {
+      explanations: [...byId.values()],
+      added,
+      updated,
+    };
+  }
+
   /**
-   * Soft merge only. Progress numbers (xp/successes/unlock) stay app-owned.
+   * Soft merge for brain hints. Progress numbers can be merged separately (P2b).
    * weakSlots / openGapIds are hints for Next Practice + review boost.
    */
   function mergeBrainStateHints(localHints, vaultBrain) {
@@ -663,12 +868,11 @@
   async function importGapsAndNextPractice(client, options = {}) {
     const personalRoot = String(options.personalRoot || '').replace(/^\/+|\/+$/g, '');
     const gapDir = personalRoot ? `${personalRoot}/Gaps` : 'Gaps';
-    const nextPracticePath = personalRoot
-      ? `${personalRoot}/Learning/Next Practice.md`
-      : 'Learning/Next Practice.md';
-    const brainStatePath = personalRoot
-      ? `${personalRoot}/Learning/Brain State.md`
-      : 'Learning/Brain State.md';
+    const learningDir = personalRoot ? `${personalRoot}/Learning` : 'Learning';
+    const nextPracticePath = `${learningDir}/Next Practice.md`;
+    const brainStatePath = `${learningDir}/Brain State.md`;
+    const progressPath = `${learningDir}/Progress.md`;
+    const explanationsDir = `${learningDir}/Explanations`;
     const files = await client.listDirectory(gapDir);
     const vaultGaps = [];
     for (const name of files) {
@@ -695,12 +899,50 @@
       // optional soft hints only
     }
 
+    let vaultProgress = null;
+    try {
+      const progressMd = await client.getFile(progressPath);
+      if (progressMd) vaultProgress = parseProgressMarkdown(progressMd);
+    } catch (_) {
+      // optional P2b
+    }
+
+    const vaultExplanations = [];
+    if (options.importExplanations !== false) {
+      try {
+        const explanationFiles = await client.listDirectory(explanationsDir);
+        for (const name of explanationFiles) {
+          if (!String(name).endsWith('.md') || String(name).endsWith('/')) continue;
+          const path = `${explanationsDir}/${name}`;
+          const markdown = await client.getFile(path);
+          if (!markdown) continue;
+          vaultExplanations.push(parseExplanationMarkdown(markdown, path));
+        }
+      } catch (_) {
+        // optional P2b
+      }
+    }
+
+    const progressMerge = mergeProgressFromVault(options.localProgress || {}, vaultProgress, {
+      enabled: options.importProgress !== false,
+      mode: options.progressMergeMode || 'max',
+    });
+    const explanationMerge = mergeExplanationsFromVault(
+      options.localExplanations || [],
+      vaultExplanations,
+      { enabled: options.importExplanations !== false }
+    );
+
     return {
       personalRoot: personalRoot || '',
       vaultGaps,
       mergedGaps: mergeGapNotes(options.localGaps || [], vaultGaps),
       nextPractice: mergeNextPractice(options.appQueue || [], nextPractice),
       brainState: mergeBrainStateHints(options.localBrainState || null, brainState),
+      vaultProgress,
+      progressMerge,
+      vaultExplanations,
+      explanationMerge,
     };
   }
 
@@ -720,6 +962,7 @@
     createLocalRestClient,
     createBridgeClient,
     createDriveWebhookClient,
+    createDriveOauthClient,
     createSyncClient,
     evaluateVaultFolderContract,
     verifyVaultContract,
@@ -727,12 +970,16 @@
     parseGapNoteMarkdown,
     parseNextPracticeMarkdown,
     parseBrainStateMarkdown,
+    parseProgressMarkdown,
+    parseExplanationMarkdown,
     parseInlineObjectList,
     parseTimestamp,
     pickNarrativeSide,
     mergeGapNotes,
     mergeNextPractice,
     mergeBrainStateHints,
+    mergeProgressFromVault,
+    mergeExplanationsFromVault,
     upsertFiles,
     flushQueue,
     importGapsAndNextPractice,

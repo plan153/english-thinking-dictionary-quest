@@ -1,8 +1,8 @@
 /**
- * Phrasal Speaking Set helpers (separate from Active Speaking Set quiz bank).
+ * Phrasal Speaking Set helpers (separate curriculum from ASS packs).
  * Menu unlock: expression unlockPackCount >= required (default 1).
  * Group unlock: sequential stages after menu opens.
- * Never merge into getUnlockedBank() — practice only via phrasal menu.
+ * P2d: when policyPhrasalInAssBank is ON, unlocked phrasal IDs may join getUnlockedBank().
  * Browser: window.PhrasalSpeakingSet
  * Node: module.exports
  */

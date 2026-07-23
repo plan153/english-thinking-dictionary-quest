@@ -104,7 +104,15 @@
       recentExpressionIds: [],
       daily: { date: null, done: [] },
       dailyQuestV1: defaultDailyQuestV1(),
-      settings: { soundEnabled: true, seenConnectionGuide: false },
+      settings: {
+        soundEnabled: true,
+        seenConnectionGuide: false,
+        // P2 policy lift (v1.3.0): default ON
+        policyCanonAutoMerge: true,
+        policyImportProgressFromVault: true,
+        policyImportExplanationsFromVault: true,
+        policyPhrasalInAssBank: true,
+      },
       historyByExpressionId: {},
       curriculum: {
         unlockedPackCount: 0,
@@ -118,6 +126,7 @@
       gapNotes: [],
       expressionDrafts: [],
       canonUnlockQueue: [],
+      canonExpressions: [],
       importedNextPractice: null,
       importedBrainState: null,
       vaultOverlay: defaultVaultOverlay(),
@@ -353,6 +362,7 @@
           ? saved.expressionDrafts.map(item => normalizeExpressionDraft(item, markdownApi))
           : [],
         canonUnlockQueue: Array.isArray(saved.canonUnlockQueue) ? saved.canonUnlockQueue : [],
+        canonExpressions: Array.isArray(saved.canonExpressions) ? saved.canonExpressions : [],
         importedNextPractice: saved.importedNextPractice && typeof saved.importedNextPractice === 'object'
           ? saved.importedNextPractice
           : null,

@@ -1,6 +1,6 @@
 /**
- * Canon → expression JSON / Unlock-pack candidate helpers.
- * Never auto-loads into the quiz bank — review gate only.
+ * Canon → expression JSON / Unlock-pack / runtime bank helpers.
+ * P2a: runtime merge + file merge script allowed when policy is on.
  * Browser: window.CanonIntake
  * Node: module.exports
  */
@@ -77,9 +77,41 @@
         assEligible: draft.assEligible !== false,
         reviewStatus: 'pending',
         patternHint,
-        warning: 'Review before merging into data/expressions.json. Not in quiz bank until reviewed.',
+        warning: 'Canon candidate. Runtime/file merge controlled by policyCanonAutoMerge.',
       },
     };
+  }
+
+  function stripIntakeMeta(expression) {
+    const clone = { ...(expression || {}) };
+    delete clone._intake;
+    return clone;
+  }
+
+  function mergeCandidatesIntoExpressions(existingExpressions = [], candidates = [], options = {}) {
+    const list = Array.isArray(existingExpressions) ? existingExpressions.map(item => ({ ...item })) : [];
+    const byId = new Map(list.map(item => [item.id, item]));
+    const byEnglish = new Map(list.map(item => [String(item.english || '').trim().toLowerCase(), item]));
+    const added = [];
+    const updated = [];
+    (candidates || []).forEach(raw => {
+      const clean = stripIntakeMeta(raw);
+      if (!clean.id || !clean.english) return;
+      const engKey = String(clean.english).trim().toLowerCase();
+      const existing = byId.get(clean.id) || byEnglish.get(engKey);
+      if (existing) {
+        if (options.overwrite) {
+          Object.assign(existing, clean, { id: existing.id });
+          updated.push(existing.id);
+        }
+        return;
+      }
+      list.push(clean);
+      byId.set(clean.id, clean);
+      byEnglish.set(engKey, clean);
+      added.push(clean.id);
+    });
+    return { expressions: list, added, updated };
   }
 
   function buildCanonIntakeBundle({ drafts, existingExpressionIds, verbs, packId }) {
@@ -97,15 +129,11 @@
       });
     });
     const expressionIds = candidates.map(item => item.id);
-    const cleanExpressions = candidates.map(item => {
-      const clone = { ...item };
-      delete clone._intake;
-      return clone;
-    });
+    const cleanExpressions = candidates.map(item => stripIntakeMeta(item));
     return {
       version: 1,
       generatedAt: new Date().toISOString(),
-      warning: 'Manual review required. Do not auto-merge into the live quiz bank.',
+      warning: 'P2a enabled: runtime merge / scripts/merge_canon_intake.js can admit these into the quiz bank.',
       expressionsToAdd: cleanExpressions,
       candidates,
       suggestedUnlockPack: {
@@ -140,6 +168,8 @@
     nextExpressionId,
     resolveCoreVerbId,
     draftToExpressionCandidate,
+    stripIntakeMeta,
+    mergeCandidatesIntoExpressions,
     buildCanonIntakeBundle,
     queueItemFromCandidate,
   };

@@ -64,23 +64,22 @@
 
 > **전체 보류·미구현 목록은 [`BACKLOG.md`](./BACKLOG.md)가 SoT다.** 아래는 요약.
 
-1. Drive webhook은 백업 POST만. Google OAuth를 정적 앱에 넣지 않는다. → BACKLOG P2c
-2. Local REST·Bridge는 동작. **실 Mac Obsidian vault day loop 검증은 미완** → BACKLOG D1
-3. Progress.md / Explanations의 Vault→앱 완전 역동기화는 하지 않는다(앱 SoT). → P2b
+1. ~~Drive webhook만~~ → **P2c** `drive-oauth` (토큰은 localStorage only, 커밋 금지) v1.3.0
+2. Local REST·Bridge 동작. **실 Mac day loop는 보류** → BACKLOG D1
+3. ~~Progress/Explanations 역동기화 안 함~~ → **P2b** import max 병합 v1.3.0
 4. Conflict policy는 시각·필드 단위 테스트로 고정.
 5. 그래프 연습 바로가기: listen/speak/koen/matrix/**explain** (v1.2.0)
-6. 동사 매트릭스 게이트 have→get→take→… 구현됨. 구동사 **4단계 순차 해금·입자 드릴·전용 매트릭스** 구현됨(v1.2.2). ASS 매트릭스와 분리.
-7. Canon → JSON 후보/Unlock 대기열만. `expressions.json` 자동 병합 안 함 → P2a
+6. 구동사 단계·입자·전용 매트릭스 (v1.2.2). **P2d**로 해금 구동사 은행 합류 가능(토글).
+7. ~~Canon 자동 병합 안 함~~ → **P2a** 런타임 합류 + `merge_canon_intake.js` v1.3.0
 8. 로컬 학습자 프로필 + Learners 경로 동작.
-9. 열린 draft PR(#3, #8–#18) superseded 종료는 사람 작업 → O1
-10. ~~IA 2차(홈 더 단순화·레슨 복귀 동선)~~ v1.1.8. ~~Gap→Draft 품질~~ v1.2.0
+9. O1–O3 완료.
+10. IA / Draft 품질 완료.
 
 ### 다음에 구현할 것 (우선순위)
 
-1. **D1 → D2** — **보류·다음에** (사용자 지시 2026-07-23). Mac에서 [`DAY_LOOP.md`](./DAY_LOOP.md).
-2. F1–F6 — ~~모두 완료~~ (v1.1.8–v1.2.2)
-3. P2 정책 항목은 요청 없이 구현하지 않음
-4. O1–O3 — ~~완료~~ (v1.2.1)
+1. **D1 → D2** — **보류·다음에** (사용자 지시). Mac에서 [`DAY_LOOP.md`](./DAY_LOOP.md).
+2. F1–F6 · P2a–P2d — ~~완료~~ (v1.3.0)
+3. O1–O3 — ~~완료~~
 
 ## 확정된 충돌·원본 정책
 
