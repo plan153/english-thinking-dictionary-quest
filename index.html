@@ -652,7 +652,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.1.6">v1.1.6</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.1.7">v1.1.7</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -670,7 +670,7 @@
       <button class="active" data-screen="home">오늘의 퀘스트</button>
       <button data-screen="play">게임 모드</button>
       <button data-screen="dictionary">동사 카드</button>
-      <button data-screen="map">문장빌드맵</button>
+      <button data-screen="phrasal">구동사</button>
       <button data-screen="progress">내 성장</button>
     </nav>
 
@@ -782,6 +782,7 @@
         <div class="explorer-panel verb-map" id="dictionaryMap" style="margin-top:14px" data-dictionary-view="build"></div>
         <div class="explorer-panel" id="vaultOverlayPanel" style="margin-top:14px" data-dictionary-view="vault" hidden></div>
         <div class="map-focus-actions" id="mapFocusActions">
+          <button class="btn soft" type="button" id="openFullThinkingMap">전체 화면 맵</button>
           <button class="btn soft" type="button" id="showDictionaryLegacy">문장빌드맵 닫고 전체 사전 보기</button>
         </div>
       </article>
@@ -797,10 +798,22 @@
       </div>
     </section>
 
+    <section id="phrasal" class="screen">
+      <div class="section-head">
+        <div><h2>구동사 Speaking Set</h2><p>입자(back/up/on/off/out/to…)가 뜻을 바꾸는 표현만 모았습니다. 기본 퀴즈 은행에는 섞지 않습니다.</p></div>
+      </div>
+      <article class="card" id="phrasalStatusCard">
+        <h3 id="phrasalStatusTitle">잠금</h3>
+        <p id="phrasalStatusCopy" class="small-note">표현 Unlock pack을 하나 열면 구동사 메뉴가 열려요.</p>
+      </article>
+      <div id="phrasalGroupList" style="margin-top:16px"></div>
+    </section>
+
     <section id="map" class="screen">
       <div class="section-head">
-        <div><h2>문장빌드맵</h2><p>기본 엔진 → 생각틀 → 실생활 표현 5개를 함께 봅니다. 동사 카드의 빌드 뼈대를 더 크게 펼쳐 보는 곳입니다.</p></div>
+        <div><h2>문장빌드맵</h2><p>동사 카드의 빌드 탭을 크게 펼친 화면입니다. 기본 엔진 → 생각틀 → 실생활 표현.</p></div>
       </div>
+      <p class="small-note" style="margin-bottom:12px"><button class="btn soft" type="button" id="mapBackToDictionary">← 동사 카드 빌드 탭으로</button></p>
       <article class="card">
         <div class="filter-row" id="mapFilters" style="margin-bottom:15px"></div>
         <div class="map-wrap"><div class="thinking-map" id="thinkingMap"></div></div>
@@ -870,6 +883,18 @@
         <h3>파인만 설명 노트</h3>
         <p class="small-note">제한 어휘로 쓴 설명입니다. 음성 인식 결과가 있으면 함께 저장됩니다. 퀴즈 은행에는 넣지 않습니다.</p>
         <div id="explanationsList" style="margin-top:14px"></div>
+      </article>
+      <article class="card" style="margin-top:16px" id="dayLoopGuideCard">
+        <h3>하루 루프 체크리스트</h3>
+        <p class="small-note">앱에서 틀리고 → Vault에 남기고 → Next Practice로 돌아오는 최소 루프입니다. Local REST가 켜져 있으면 자동 sync가 됩니다.</p>
+        <ol class="small-note" style="margin:10px 0 0; padding-left:20px; line-height:1.7" id="dayLoopChecklist">
+          <li>오늘의 퀘스트 또는 게임 모드로 연습</li>
+          <li>틀림 → 간극 기록 저장</li>
+          <li>Obsidian 동기화(자동 또는 수동)</li>
+          <li>Vault에서 가져오기(선택)</li>
+          <li>Next Practice 시작</li>
+        </ol>
+        <p class="small-note" id="dayLoopGuideStatus" style="margin-top:10px">동기화 어댑터를 설정하면 상태가 여기 표시됩니다.</p>
       </article>
       <article class="card" style="margin-top:16px" id="obsidianSyncCard">
         <div class="section-head" style="margin:0 0 8px">
@@ -943,6 +968,7 @@
   <script src="./src/domain/graph-style.js"></script>
   <script src="./src/domain/progress-store.js"></script>
   <script src="./src/domain/active-speaking-set.js"></script>
+  <script src="./src/domain/phrasal-speaking-set.js"></script>
   <script src="./src/domain/english-brain-export.js"></script>
   <script>
     const wordBank = [
@@ -1097,7 +1123,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.1.6';
+    const APP_CACHE_VERSION = 'etd-quest-v1.1.7';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const ProgressStoreApi = window.ProgressStore;
@@ -1164,7 +1190,7 @@
       currentMapExampleByVerb: {},
       filter: '전체',
       search: '',
-      dictionaryData: { verbs: [], nouns: [], patterns: [], expressions: [], verbMaps: [], qaMatrices: [], learningPaths: null, isLoaded: false, error: null, selectedVerbId: null, selectedExpressionId: null, selectedRouteId: null, selectedPatternId: null, selectedSlotValue: null, selectedCombinationId: null, selectedMapSentenceId: null, selectedExplorerView: 'legacy', isMapMeaningOpen: false, isMapPracticeOpen: false, gameExpressions: buildMapGameExpressions(), dataSource: 'fallback' },
+      dictionaryData: { verbs: [], nouns: [], patterns: [], expressions: [], verbMaps: [], qaMatrices: [], learningPaths: null, phrasalVerbs: null, isLoaded: false, error: null, selectedVerbId: null, selectedExpressionId: null, selectedRouteId: null, selectedPatternId: null, selectedSlotValue: null, selectedCombinationId: null, selectedMapSentenceId: null, selectedExplorerView: 'legacy', isMapMeaningOpen: false, isMapPracticeOpen: false, gameExpressions: buildMapGameExpressions(), dataSource: 'fallback' },
       progress: loadProgress(),
       sessionStudyRecords: {},
       audioContext: null,
@@ -1671,7 +1697,11 @@
           if (id === 'dictionary') renderWords();
           if (id === 'dictionary') renderDictionaryExplorer();
           if (id === 'map') renderMap();
-          if (id === 'progress') updateDashboard();
+          if (id === 'phrasal') renderPhrasalScreen();
+          if (id === 'progress') {
+            updateDashboard();
+            updateDayLoopGuideStatus();
+          }
           if (!options.skipRoute && !appState.isApplyingRoute) updateRouteForScreen(id);
         }
 
@@ -1845,15 +1875,100 @@
     function getActiveSpeakingSetConfig() {
       return normalizeAssConfig(appState.dictionaryData.learningPaths?.activeSpeakingSet);
     }
+    function getPhrasalSpeakingSetConfig() {
+      const api = window.PhrasalSpeakingSet;
+      const raw = appState.dictionaryData.phrasalVerbs
+        || appState.dictionaryData.learningPaths?.phrasalSpeakingSet
+        || null;
+      return api ? api.normalizePhrasalConfig(raw) : (raw || { groups: [], unlockPackCountRequired: 1 });
+    }
+    function isPhrasalMenuUnlocked() {
+      const api = window.PhrasalSpeakingSet;
+      if (!api) return getUnlockedPackCount() >= 1;
+      return api.isMenuUnlocked(appState.progress.curriculum || {}, getPhrasalSpeakingSetConfig());
+    }
+    function getPhrasalBank(groupId = null) {
+      const api = window.PhrasalSpeakingSet;
+      const config = getPhrasalSpeakingSetConfig();
+      const ids = api
+        ? (groupId ? api.listGroupExpressionIds(config, groupId) : api.listExpressionIds(config))
+        : [];
+      const idSet = new Set(ids);
+      return getGameBank().filter(item => idSet.has(item.id));
+    }
+    function renderPhrasalScreen() {
+      const api = window.PhrasalSpeakingSet;
+      const config = getPhrasalSpeakingSetConfig();
+      const snap = api
+        ? api.getSnapshot(appState.progress.curriculum || {}, config)
+        : { unlocked: isPhrasalMenuUnlocked(), groups: config.groups || [], unlockPackCountRequired: 1, unlockedPackCount: getUnlockedPackCount(), expressionCount: 0 };
+      const title = document.getElementById('phrasalStatusTitle');
+      const copy = document.getElementById('phrasalStatusCopy');
+      const list = document.getElementById('phrasalGroupList');
+      if (!title || !copy || !list) return;
+      if (!snap.unlocked) {
+        title.textContent = '잠금 · Unlock pack 필요';
+        copy.textContent = `표현 Unlock pack ${snap.unlockPackCountRequired}개를 열면 구동사 메뉴가 열려요. (지금 ${snap.unlockedPackCount}/${snap.unlockPackCountRequired}) 기본 퀴즈 은행에는 합류하지 않습니다.`;
+        list.innerHTML = `<article class="card empty"><p>have → get → take 코어와 표현 팩을 먼저 익히세요. 구동사는 입자 연습용 별도 세트입니다.</p></article>`;
+        return;
+      }
+      title.textContent = `${snap.title} · 열림`;
+      copy.textContent = `그룹 ${snap.groupCount} · 표현 ${snap.expressionCount}개. 여기서만 연습하며 Active Speaking Set 출제에는 섞이지 않습니다.`;
+      list.innerHTML = (snap.groups || []).map(group => {
+        const particles = (group.particles || []).join(' · ') || '—';
+        const count = (group.expressionIds || []).length;
+        return `
+          <article class="card" style="margin-bottom:12px" data-phrasal-group="${escapeHtml(group.id)}">
+            <h3>${escapeHtml(group.title)}</h3>
+            <p class="small-note">${escapeHtml(group.note || '')} · 입자 ${escapeHtml(particles)} · ${count}표현</p>
+            <div class="question-actions" style="justify-content:flex-start; margin-top:12px; flex-wrap:wrap; gap:8px">
+              <button class="btn dark phrasal-start" type="button" data-mode="listen" data-group="${escapeHtml(group.id)}">듣기</button>
+              <button class="btn soft phrasal-start" type="button" data-mode="speak" data-group="${escapeHtml(group.id)}">말하기</button>
+              <button class="btn soft phrasal-start" type="button" data-mode="koen" data-group="${escapeHtml(group.id)}">한글→영어</button>
+              <button class="btn soft phrasal-start" type="button" data-mode="enko" data-group="${escapeHtml(group.id)}">장면 고르기</button>
+            </div>
+          </article>
+        `;
+      }).join('') || `<article class="card empty"><p>구동사 그룹 데이터가 없어요.</p></article>`;
+      list.querySelectorAll('.phrasal-start').forEach(btn => {
+        btn.addEventListener('click', () => {
+          startMode(btn.dataset.mode, null, {
+            bankSource: 'phrasal',
+            phrasalGroupId: btn.dataset.group,
+            allowLocked: true,
+          });
+        });
+      });
+    }
+    function updateDayLoopGuideStatus() {
+      const el = document.getElementById('dayLoopGuideStatus');
+      if (!el) return;
+      const syncApi = window.ObsidianSync;
+      const settings = syncApi?.loadSettings
+        ? syncApi.loadSettings(localStore || localStorage)
+        : {};
+      const adapter = settings.adapter || 'download';
+      const auto = Boolean(settings.autoSyncAfterGap);
+      const statusText = document.getElementById('syncStatusText')?.textContent || '';
+      if (adapter === 'download') {
+        el.textContent = '지금 adapter=download 입니다. Local REST로 바꾸면 간극→Vault→Next Practice 루프가 자동화됩니다.';
+        return;
+      }
+      el.textContent = `adapter=${adapter}${auto ? ' · 간극 후 자동 sync ON' : ' · 자동 sync OFF'}. ${statusText || '아래에서 연결을 설정하세요.'}`;
+    }
     function getMasteryThreshold() {
       return getActiveSpeakingSetConfig().masteryThreshold || 3;
     }
     function isMineExpression(expressionId) {
       if (!expressionId) return false;
-      // Prefer connection strength (Chapter 1); fall back to success count.
-      if (allStrongHistory(getHistory(expressionId))) return true;
+      // Prefer connection strength (Chapter 1). Success-count fallback requires output touch
+      // so MCQ-only streaks do not inflate “내 표현” / unlock progress.
+      const history = getHistory(expressionId);
+      if (allStrongHistory(history)) return true;
       const successes = appState.progress.successes?.[expressionId] || 0;
-      return successes >= getMasteryThreshold();
+      if (successes < getMasteryThreshold()) return false;
+      const output = history.connections?.output || {};
+      return (output.strength || 0) > 0 || (output.attempts || 0) > 0;
     }
     function getUnlockedPackCount() {
       return ActiveSpeakingSetApi
@@ -3776,7 +3891,9 @@
       if (mode === 'matrix') {
         return makeMatrixLesson(expressionId, options);
       }
-      const unlockedBank = getUnlockedBank();
+      const unlockedBank = options.bankSource === 'phrasal'
+        ? (Array.isArray(options.bank) ? options.bank : getPhrasalBank(options.phrasalGroupId))
+        : getUnlockedBank();
       const fullBank = getGameBank();
       const direct = expressionId
         ? (unlockedBank.find(item => item.id === expressionId) || fullBank.find(item => item.id === expressionId))
@@ -3806,12 +3923,27 @@
       return shuffled(pool).slice(0, 7);
     }
         function startMode(mode, expressionId = null, options = {}) {
+          const isPhrasal = options.bankSource === 'phrasal';
+          if (isPhrasal && !isPhrasalMenuUnlocked()) {
+            toast('표현 Unlock pack을 하나 열면 구동사 메뉴가 열려요.');
+            showScreen('phrasal');
+            return;
+          }
           const unlockId = mode === 'matrix'
             ? (getUnlockedMatrices().find(matrix => matrix.id === expressionId || matrix.baseExpressionId === expressionId)?.baseExpressionId || expressionId)
             : expressionId;
-          if (unlockId && !isExpressionUnlocked(unlockId) && !options.allowLocked) {
+          if (unlockId && !isPhrasal && !isExpressionUnlocked(unlockId) && !options.allowLocked) {
             toast('아직 해금되지 않은 표현이에요. Active Speaking Set을 먼저 익혀 주세요.');
             return;
+          }
+          if (unlockId && isPhrasal) {
+            const phrasalIds = new Set(window.PhrasalSpeakingSet
+              ? window.PhrasalSpeakingSet.listExpressionIds(getPhrasalSpeakingSetConfig())
+              : []);
+            if (!phrasalIds.has(unlockId) && !options.allowLocked) {
+              toast('구동사 세트에 없는 표현이에요.');
+              return;
+            }
           }
           appState.selectedMode = mode;
           appState.questContext = Object.prototype.hasOwnProperty.call(options, 'questContext') ? options.questContext : null;
@@ -3822,13 +3954,21 @@
               includeTense: !appState.questContext,
             }
             : {};
-          appState.lessonItems = makeLesson(mode, expressionId, matrixOptions);
+          const lessonOptions = {
+            ...matrixOptions,
+            bankSource: isPhrasal ? 'phrasal' : 'ass',
+            phrasalGroupId: options.phrasalGroupId || null,
+            bank: isPhrasal ? getPhrasalBank(options.phrasalGroupId || null) : null,
+          };
+          appState.lessonItems = makeLesson(mode, expressionId, lessonOptions);
           appState.currentIndex = 0;
           appState.hintStep = 0;
           appState.questionAnswered = false;
           if (mode === 'listen') appState.listenSession = null;
           if (!appState.lessonItems.length) {
-            toast(mode === 'matrix' ? '지금 연습할 묻기·답하기 매트릭스가 없어요.' : '지금 연습할 수 있는 Active Speaking Set 표현이 없어요.');
+            toast(isPhrasal
+              ? '이 구동사 그룹에서 지금 연습할 표현이 없어요.'
+              : (mode === 'matrix' ? '지금 연습할 묻기·답하기 매트릭스가 없어요.' : '지금 연습할 수 있는 Active Speaking Set 표현이 없어요.'));
             return;
           }
           if (appState.dictionaryData.error && !appState.dictionaryData.gameExpressions.length) toast('사전 데이터를 불러오지 못해 기본 예비 표현으로 퀴즈를 시작해요.');
@@ -4766,9 +4906,9 @@
     }
 
     async function loadDictionaryExplorer() {
-      const files = ['verbs', 'nouns', 'patterns', 'expressions', 'verb-maps', 'learning-paths', 'qa-matrices'];
+      const files = ['verbs', 'nouns', 'patterns', 'expressions', 'verb-maps', 'learning-paths', 'qa-matrices', 'phrasal-verbs'];
       try {
-        const [verbs, nouns, patterns, expressions, verbMaps, learningPaths, qaMatricesFile] = await Promise.all(files.map(name =>
+        const [verbs, nouns, patterns, expressions, verbMaps, learningPaths, qaMatricesFile, phrasalVerbs] = await Promise.all(files.map(name =>
           fetch(`./data/${name}.json`).then(response => {
             if (!response.ok) throw new Error(`${name}.json ${response.status}`);
             return response.json();
@@ -4784,6 +4924,7 @@
           verbMaps,
           qaMatrices,
           learningPaths,
+          phrasalVerbs,
           // Prefer expressions.json IDs first — map examples share English text and would
           // otherwise win dedupe and drop starter IDs (e001, …) from the quiz bank.
           gameExpressions: dedupeGameExpressions([
@@ -5444,6 +5585,11 @@
     document.getElementById('startDaily').addEventListener('click', () => startQuest());
     document.getElementById('jumpDictionary').addEventListener('click', () => showScreen('dictionary'));
     document.getElementById('exitLesson').addEventListener('click', () => showScreen('play'));
+    document.getElementById('mapBackToDictionary')?.addEventListener('click', () => {
+      appState.dictionaryData.selectedExplorerView = 'build';
+      showScreen('dictionary', { keepExplorerView: true });
+    });
+    document.getElementById('openFullThinkingMap')?.addEventListener('click', () => showScreen('map'));
     document.getElementById('wordSearch').addEventListener('input', e => { appState.search=e.target.value; renderWords(); });
     document.getElementById('toggleSound').addEventListener('click', () => {
       const settings = appState.progress.settings || { soundEnabled: true };

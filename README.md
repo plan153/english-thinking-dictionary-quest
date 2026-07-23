@@ -151,6 +151,7 @@ python3 -m http.server 8080
 | --- | --- |
 | 퀴즈·연결도·localStorage 진행 기록 | 동작 |
 | Active Speaking Set 출제 제한·해금 | 동작 (Starter 40 + pack_1–3 · verb have→get→take→…) |
+| 구동사 메뉴 (별도 은행) | 동작 (Unlock pack≥1 · `getUnlockedBank` 비합류) |
 | 묻기/답하기·시제 변형 매트릭스 | 동작 (`matrix` 모드, Active set 12군) |
 | Gap Note → Obsidian Markdown 동기화 | 동작 (다운로드 + Local REST/Bridge upsert) |
 | Vault → 앱 Gaps / Next Practice / Brain 힌트 | 동작 (진행 숫자는 앱 우선) |

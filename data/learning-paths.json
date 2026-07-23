@@ -236,7 +236,7 @@
       "v_come": 0.03,
       "v_make": 0.03
     },
-    "verbCurriculumNote": "단일동사 커리큘럼 목표 비중: have 40% · get 25% · take 15% · 나머지 20%. 숙달 해금 순서도 동일(have→get→take→나머지→give…). Starter 표현 구성·데일리 가중치·매트릭스 게이트에 반영. 구동사는 추후."
+    "verbCurriculumNote": "단일동사 커리큘럼 목표 비중: have 40% · get 25% · take 15% · 나머지 20%. 숙달 해금 순서도 동일(have→get→take→나머지→give…). Starter 표현 구성·데일리 가중치·매트릭스 게이트에 반영. 구동사는 data/phrasal-verbs.json · 앱 구동사 메뉴(Unlock pack≥1)."
   },
   "paths": [
     {

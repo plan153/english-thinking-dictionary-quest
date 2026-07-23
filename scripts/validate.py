@@ -35,13 +35,17 @@ def main() -> None:
     if f"etd-quest-v{version}" not in worker:
         fail("service-worker cache version does not match VERSION")
 
-    for required in ["index.html", "manifest.webmanifest", "service-worker.js", "README.md", "src/domain/markdown-projection.js", "src/domain/obsidian-sync.js", "src/domain/canon-intake.js", "src/domain/verb-matrix-gate.js", "src/domain/vault-overlay.js", "src/domain/feynman-challenge.js", "src/domain/graph-style.js", "src/domain/progress-store.js", "src/domain/active-speaking-set.js", "src/domain/english-brain-export.js", "src/domain/next-practice.js", "src/data/thinking-map-sets.js"]:
+    for required in ["index.html", "manifest.webmanifest", "service-worker.js", "README.md", "src/domain/markdown-projection.js", "src/domain/obsidian-sync.js", "src/domain/canon-intake.js", "src/domain/verb-matrix-gate.js", "src/domain/vault-overlay.js", "src/domain/feynman-challenge.js", "src/domain/graph-style.js", "src/domain/progress-store.js", "src/domain/active-speaking-set.js", "src/domain/phrasal-speaking-set.js", "src/domain/english-brain-export.js", "src/domain/next-practice.js", "src/data/thinking-map-sets.js"]:
         if not (ROOT / required).exists():
             fail(f"Required file is missing: {required}")
 
     patterns = json.loads((ROOT / "data" / "patterns.json").read_text(encoding="utf-8"))
     expressions = json.loads((ROOT / "data" / "expressions.json").read_text(encoding="utf-8"))
     learning_paths = json.loads((ROOT / "data" / "learning-paths.json").read_text(encoding="utf-8"))
+    phrasal_verbs_path = ROOT / "data" / "phrasal-verbs.json"
+    if not phrasal_verbs_path.exists():
+        fail("Required file is missing: data/phrasal-verbs.json")
+    phrasal_verbs = json.loads(phrasal_verbs_path.read_text(encoding="utf-8"))
     verb_maps_path = ROOT / "data" / "verb-maps.json"
     if not verb_maps_path.exists():
         fail("Required file is missing: data/verb-maps.json")
@@ -71,6 +75,14 @@ def main() -> None:
         for expression_id in pack.get("expressionIds") or []:
             if expression_id not in expression_ids:
                 fail(f"activeSpeakingSet verbUnlockPack references unknown expressionId: {expression_id}")
+
+    for group in phrasal_verbs.get("groups") or []:
+        for expression_id in group.get("expressionIds") or []:
+            if expression_id not in expression_ids:
+                fail(f"phrasal-verbs.json references unknown expressionId: {expression_id}")
+        verb_id = group.get("coreVerbId")
+        if verb_id and verb_id not in verb_ids:
+            fail(f"phrasal-verbs.json references unknown coreVerbId: {verb_id}")
 
     weights = active_set.get("verbCurriculumWeights") or {}
     if weights:
