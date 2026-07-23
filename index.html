@@ -680,7 +680,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.2.0">v1.2.0</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.2.1">v1.2.1</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -948,11 +948,13 @@
           <div class="question-actions" style="justify-content:flex-start; margin-top:12px; flex-wrap:wrap;">
             <button class="btn soft" id="saveSyncSettings" type="button">설정 저장</button>
             <button class="btn soft" id="testSyncConnection" type="button">연결 테스트</button>
+            <button class="btn soft" id="inspectVaultFolders" type="button">Vault 폴더 검사</button>
             <button class="btn dark" id="syncToObsidian" type="button">Obsidian에 동기화</button>
             <button class="btn soft" id="importFromObsidian" type="button">Obsidian에서 가져오기</button>
             <button class="btn soft" id="flushSyncQueue" type="button">실패 큐 재시도</button>
           </div>
           <p class="small-note" id="syncStatusText" style="margin-top:10px">동기화 상태: 아직 없음</p>
+          <p class="small-note" id="vaultInspectText" style="margin-top:6px">Vault 폴더 검사: 아직 없음 · PC에서 Local REST를 켠 뒤 검사하세요.</p>
         </div>
       </article>
       <article class="card" style="margin-top:16px">
@@ -969,6 +971,7 @@
       <article class="card" style="margin-top:16px">
         <button class="btn warn" id="resetProgress">학습 기록 초기화</button>
         <p class="small-note">이 기기 브라우저에만 저장된 XP, 정답 기록, 연속 학습일, 간극·Draft 기록을 지웁니다.</p>
+        <p class="small-note" style="margin-top:8px"><b>배포 후 옛 UI가 보이면</b> (GitHub Pages 캐시): Safari/Chrome에서 사이트 데이터·캐시를 지우거나, 주소창에 강력 새로고침하세요. 앱은 버전 바뀌면 서비스워커 캐시를 자동 정리합니다. 자세한 절차는 <code>docs/DAY_LOOP.md</code> O3 절.</p>
       </article>
     </section>
 
@@ -1141,7 +1144,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.2.0';
+    const APP_CACHE_VERSION = 'etd-quest-v1.2.1';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const ProgressStoreApi = window.ProgressStore;
@@ -2809,6 +2812,38 @@
           : `${label} 연결 OK`);
       } catch (error) {
         toast(`연결 실패: ${error.message || error}`);
+        console.error(error);
+      }
+    }
+    async function inspectVaultFolders() {
+      const out = document.getElementById('vaultInspectText');
+      try {
+        const { api, settings, client } = requireLocalRestClient();
+        if (settings.adapter === 'drive-webhook') {
+          toast('Vault 폴더 검사는 local-rest / bridge만 지원합니다.');
+          return;
+        }
+        if (typeof api.verifyVaultContract !== 'function' || typeof client.listDirectory !== 'function') {
+          throw new Error('이 빌드에 Vault 검사 API가 없어요. 최신 버전으로 새로고침하세요.');
+        }
+        const learnerId = getActiveLearner()?.id || 'me';
+        const result = await api.verifyVaultContract(client, { learnerId, probe: true });
+        const lines = result.checks.map(check => `${check.ok ? '✓' : '✗'} ${check.path}`);
+        if (result.probe) {
+          lines.push(`${result.probe.ok ? '✓' : '✗'} probe ${result.probe.path}${result.probe.deleted ? ' (정리됨)' : ''}`);
+        }
+        if (result.missing?.length) {
+          lines.push(`부족: ${result.missing.join(', ')}`);
+        }
+        const summary = result.ready
+          ? `Vault 폴더 검사 PASS · pathPrefix=${settings.pathPrefix || '(비움)'} · learner=${learnerId}`
+          : `Vault 폴더 검사 FAIL · pathPrefix=${settings.pathPrefix || '(비움)'} · 부족한 폴더를 만들거나 Path prefix를 바꾸세요`;
+        if (out) out.textContent = `${summary} · ${lines.join(' · ')}`;
+        toast(result.ready ? 'Vault 폴더 계약 OK' : 'Vault 폴더가 계약과 달라요. 성장 화면 로그를 확인하세요.');
+        updateDayLoopGuideStatus();
+      } catch (error) {
+        if (out) out.textContent = `Vault 폴더 검사 실패: ${error.message || error}`;
+        toast(`Vault 검사 실패: ${error.message || error}`);
         console.error(error);
       }
     }
@@ -5910,6 +5945,7 @@
     document.getElementById('exportBrainJson')?.addEventListener('click', () => exportEnglishBrainJson());
     document.getElementById('saveSyncSettings')?.addEventListener('click', () => saveSyncSettingsFromForm());
     document.getElementById('testSyncConnection')?.addEventListener('click', () => testObsidianConnection());
+    document.getElementById('inspectVaultFolders')?.addEventListener('click', () => inspectVaultFolders());
     document.getElementById('syncToObsidian')?.addEventListener('click', () => syncEnglishBrainToObsidian());
     document.getElementById('importFromObsidian')?.addEventListener('click', () => importEnglishBrainFromObsidian());
     document.getElementById('flushSyncQueue')?.addEventListener('click', () => flushObsidianSyncQueue());

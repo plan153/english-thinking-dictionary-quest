@@ -77,11 +77,10 @@
 
 ### 다음에 구현할 것 (우선순위)
 
-1. D1 — 실 Obsidian day loop 검증·보정 ([`DAY_LOOP.md`](./DAY_LOOP.md), [`BACKLOG.md`](./BACKLOG.md))
-2. F1 — ~~구동사 심화~~ **완료 v1.1.9**
-3. F2 — ~~IA 2차 정리~~ (v1.1.8)
-4. F3–F5 — ~~숙달 신호·Draft 품질·explain 바로가기~~ **완료 v1.2.0**
-5. P2 정책 항목은 요청 없이 구현하지 않음
+1. D1 → D2 — **사용자 PC**에서 실 Obsidian day loop·pathPrefix 검증 ([`DAY_LOOP.md`](./DAY_LOOP.md), [`BACKLOG.md`](./BACKLOG.md)). 클라우드에서는 Vault 검사 도구만 준비됨(v1.2.1).
+2. F1–F5 — ~~모두 완료~~ (v1.1.8–v1.2.0)
+3. P2 정책 항목은 요청 없이 구현하지 않음
+4. O1–O3 — ~~완료~~ (v1.2.1)
 
 ## 확정된 충돌·원본 정책
 
@@ -216,7 +215,7 @@
 ## 이 문서를 이어받는 LLM에게 남기는 작업 메모
 
 - 사용자 목표는 “3~4세급 쉬운 말로 시작해, 제한된 만능동사·핵심명사로 실제 말이 되게 만들고, 그 기록이 Obsidian 영어뇌에 남아 다시 앱 학습 재료가 되는 구조”다.
-- Phase 0–5 + Feynman + Bridge/conflict + Drive webhook + Next Practice + Brain soft import + 그래프 바로가기(explain 포함) + watchlist + mapSets + verb have→get→take gate + daily v5 + 구동사 F1 + IA F2 + Draft 품질까지 구현됨 (tip **v1.2.0**).
-- **미구현·보류 SoT = [`BACKLOG.md`](./BACKLOG.md).** 새 작업 전 반드시 읽고 D1→F1→F2 순을 기본으로 한다.
-- 실제 Obsidian day loop 절차는 [`DAY_LOOP.md`](./DAY_LOOP.md). CI는 mock Local REST만 검증한다 — **실 vault 검증(D1)은 아직이다.**
-- 클라우드 에이전트는 사용자 Mac vault(`/Users/.../Project_English`)에 접근할 수 없다. D1은 사용자 협조 또는 사용자가 연 로컬 세션에서만 닫힌다.
+- Phase 0–5 + Feynman + Bridge/conflict + Drive webhook + Next Practice + Brain soft import + 그래프 바로가기(explain 포함) + watchlist + mapSets + verb have→get→take gate + daily v5 + 구동사 F1 + IA F2 + Draft 품질 + **PC Vault 검사 도구**까지 구현됨 (tip **v1.2.1**).
+- **미구현·보류 SoT = [`BACKLOG.md`](./BACKLOG.md).** 새 작업 전 반드시 읽고 **D1→D2(PC)** 를 기본으로 한다.
+- 실제 Obsidian day loop 절차는 [`DAY_LOOP.md`](./DAY_LOOP.md). CI는 mock Local REST만 검증한다 — **실 vault 검증(D1)은 PC에서만 닫힌다.**
+- 클라우드 에이전트는 사용자 Mac vault(`/Users/.../Project_English`)에 접근할 수 없다. D1·D2는 사용자가 연 로컬 세션(또는 동등한 PC)에서만 닫힌다.

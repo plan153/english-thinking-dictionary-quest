@@ -187,6 +187,110 @@
         const data = await response.json();
         return Array.isArray(data.files) ? data.files : [];
       },
+      async deleteFile(vaultPath) {
+        const response = await request('DELETE', vaultPath);
+        if (response.status === 404) return false;
+        if (!(response.status === 200 || response.status === 204)) {
+          const text = await response.text().catch(() => '');
+          throw new Error(`DELETE ${vaultPath} failed (${response.status}): ${text.slice(0, 200)}`);
+        }
+        return true;
+      },
+    };
+  }
+
+  function normalizeListingName(name) {
+    return String(name || '').replace(/^\/+|\/+$/g, '');
+  }
+
+  function listingIncludes(files, name) {
+    const want = normalizeListingName(name);
+    if (!want) return false;
+    return (Array.isArray(files) ? files : []).some((entry) => {
+      const clean = normalizeListingName(entry);
+      return clean === want || clean === `${want}/`;
+    });
+  }
+
+  /**
+   * Compare Local REST directory listings against OBSIDIAN_VAULT_EVOLUTION contract.
+   * listings keys: '' | 'Learners' | 'Learners/<id>' | 'Library'
+   */
+  function evaluateVaultFolderContract(listings = {}, options = {}) {
+    const learnerId = String(options.learnerId || 'me').trim() || 'me';
+    const rows = [
+      { dir: '', need: ['Learners', 'Library'] },
+      { dir: 'Learners', need: [learnerId] },
+      { dir: `Learners/${learnerId}`, need: ['Learning', 'Gaps'] },
+      { dir: 'Library', need: ['Drafts', 'Canon'] },
+    ];
+    const checks = [];
+    rows.forEach((row) => {
+      const files = listings[row.dir] || [];
+      row.need.forEach((name) => {
+        const path = row.dir ? `${row.dir}/${name}` : name;
+        checks.push({ path, ok: listingIncludes(files, name) });
+      });
+    });
+    return {
+      learnerId,
+      ready: checks.every(item => item.ok),
+      checks,
+      missing: checks.filter(item => !item.ok).map(item => item.path),
+    };
+  }
+
+  async function verifyVaultContract(client, options = {}) {
+    if (!client || typeof client.listDirectory !== 'function') {
+      throw new Error('Vault 검사는 local-rest / bridge 클라이언트가 필요합니다.');
+    }
+    const learnerId = String(options.learnerId || 'me').trim() || 'me';
+    const doProbe = options.probe !== false;
+    if (typeof client.ping === 'function') await client.ping();
+
+    const dirs = ['', 'Learners', `Learners/${learnerId}`, 'Library'];
+    const listings = {};
+    const listErrors = [];
+    for (const dir of dirs) {
+      try {
+        listings[dir] = await client.listDirectory(dir);
+      } catch (error) {
+        listings[dir] = [];
+        listErrors.push({ dir: dir || '(vault root)', error: String(error.message || error) });
+      }
+    }
+    const evaluation = evaluateVaultFolderContract(listings, { learnerId });
+    let probe = null;
+    if (doProbe) {
+      const probePath = `Learners/${learnerId}/Learning/_etd_vault_probe.md`;
+      const stamp = new Date().toISOString();
+      const markdown = `---\ntype: etd-vault-probe\nupdatedAt: ${stamp}\nsourceApp: webapp\n---\n\n# ETD vault probe\n\nSafe to delete. Written by verifyVaultContract.\n`;
+      try {
+        await client.putFile(probePath, markdown);
+        const readBack = await client.getFile(probePath);
+        let deleted = false;
+        if (typeof client.deleteFile === 'function') {
+          try {
+            deleted = await client.deleteFile(probePath);
+          } catch (_) {
+            deleted = false;
+          }
+        }
+        probe = {
+          path: probePath,
+          ok: Boolean(readBack && String(readBack).includes('etd-vault-probe')),
+          deleted,
+        };
+      } catch (error) {
+        probe = { path: probePath, ok: false, deleted: false, error: String(error.message || error) };
+      }
+    }
+    return {
+      ...evaluation,
+      listings,
+      listErrors,
+      probe,
+      ready: evaluation.ready && (!probe || probe.ok),
     };
   }
 
@@ -617,6 +721,8 @@
     createBridgeClient,
     createDriveWebhookClient,
     createSyncClient,
+    evaluateVaultFolderContract,
+    verifyVaultContract,
     parseFrontmatter,
     parseGapNoteMarkdown,
     parseNextPracticeMarkdown,

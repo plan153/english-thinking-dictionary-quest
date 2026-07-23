@@ -107,7 +107,7 @@ python3 -m http.server 8080
 
 ## 오늘의 7분 퀘스트
 
-홈의 `오늘의 7분 퀘스트`는 `듣고 따라 말하기 1세트 → 영어 장면 고르기 2회 → 한글→영어 조립 2회 → 약한 연결 복습 1회` 순서로 자동 진행됩니다.
+홈의 `오늘의 7분 퀘스트`는 7스텝(**daily v5**): 듣기 → 말하기 → 한글→영어 조립 → 묻기 변형 → 부정/짧은답 변형 → 영어 장면 고르기 → **약한 연결 말하기** 순서로 자동 진행됩니다.
 `힌트 사다리`는 `한글 → 영어 조립` 안의 보조 풀이로, `문장빌드맵`은 `동사 카드` 안의 동사 선택 코너로 들어갑니다.
 
 보조 코너는 따로 분리해 두었습니다.
@@ -121,7 +121,7 @@ python3 -m http.server 8080
 - `동사 → 생각 틀 → 핵심 명사/장면` 구조로 표현을 연결합니다.
 - 힌트는 `koen` 안의 보조 풀이로, 문장빌드맵은 동사 카드 안의 코너로 제공합니다.
 - 한 표현을 듣기, 말하기, 한영, 영한 등 다른 채널로 반복해 실제로 꺼내 쓰게 합니다.
-- 정답 횟수 3회 이상이면 “내 표현”으로 표시됩니다.
+- 정답 횟수와 연결도(특히 **output strength**)로 “내 표현”을 표시합니다.
 - 학습 기록은 브라우저 `localStorage`에 저장됩니다.
 - 어휘를 먼저 늘리지 않습니다. Active Speaking Set을 숙달한 뒤 Unlock pack으로만 확장합니다.
 
@@ -161,6 +161,14 @@ python3 -m http.server 8080
 | Google Drive 웹훅 · Obsidian Git | 백업/호환 경로 (webhook POST만) |
 
 동기화 계약과 Vault 폴더 구조는 [`docs/OBSIDIAN_ENGLISH_BRAIN_SYNC.md`](docs/OBSIDIAN_ENGLISH_BRAIN_SYNC.md), 단계별 순서는 [`docs/DEVELOPMENT_PLAN.md`](docs/DEVELOPMENT_PLAN.md)를 참고하세요.
+
+**PC에서 실 Vault 검증 (D1·D2):** Obsidian Local REST를 켠 뒤 성장 화면의 **Vault 폴더 검사**를 누르거나:
+
+```bash
+OBSIDIAN_API_KEY='(Local REST key)' node scripts/verify_local_vault.js
+```
+
+절차 전체: [`docs/DAY_LOOP.md`](docs/DAY_LOOP.md). 배포 후 옛 UI가 보이면 같은 문서의 **O3 캐시** 절을 보세요.
 
 ### 목표 Vault 구조
 

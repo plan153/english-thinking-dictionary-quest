@@ -1,27 +1,27 @@
 # 미구현·보류 백로그 (잊지 말 것)
 
 > SoT: 이 문서. `DEVELOPMENT_PLAN.md`의 “다음에 구현”이 요약이고, 여기는 **아직 못 한/일부만 한** 항목을 빠짐없이 남긴다.  
-> 기준 tip: **v1.2.0** (F3–F5). 이전: v1.1.9 구동사 F1 · v1.1.8 IA F2 · v1.1.7 구동사 메뉴.  
+> 기준 tip: **v1.2.1** (PC day-loop ops). 이전: v1.2.0 F3–F5 · v1.1.9 구동사 F1.  
 > 에이전트/사람: 새 기능을 시작할 때 **이 목록을 먼저 읽고** 체크하거나 이어서 구현한다.
 
-## P0 — 사용자 기기에서만 완성 가능 (앱 코드는 준비됨)
+## P0 — 사용자 기기(PC/Mac)에서만 최종 완료
 
 | ID | 항목 | 현재 상태 | 나중에 할 일 | 의존 |
 | --- | --- | --- | --- | --- |
-| D1 | **실제 Obsidian day loop** | 앱: sync UI·체크리스트·실패 큐. CI: mock Local REST smoke만 | 사용자 Mac에서 Local REST(`127.0.0.1:27123`) + API key + `Learners/<id>/` 경로로 **실 Vault** 한 바퀴 검증. `Project_English` pathPrefix 확인 | Obsidian + Local REST 플러그인, vault 접근 |
-| D2 | **Vault pathPrefix / 폴더 실측** | 계약 문서만 SoT | 실제 vault 트리와 `OBSIDIAN_VAULT_EVOLUTION.md`가 맞는지 대조 후 어긋나면 문서·기본값 수정 | D1 |
+| D1 | **실제 Obsidian day loop** | 앱·mock smoke·**Vault 폴더 검사 버튼**·`scripts/verify_local_vault.js` 준비됨 (v1.2.1). 실 vault 한 바퀴는 미실행 | PC에서 Local REST + API key로 [`DAY_LOOP.md`](./DAY_LOOP.md) 체크리스트 통과 후 이 행을 완료로 표시 | Obsidian + Local REST, vault 접근 |
+| D2 | **Vault pathPrefix / 폴더 실측** | 계약 SoT + 검사 API/스크립트가 empty↔`Project_English` 후보 시도 | PC에서 검사 PASS한 pathPrefix를 앱에 저장. 어긋나면 폴더 생성 또는 문서 수정 | D1과 같은 세션 |
 
-절차 참고: [`DAY_LOOP.md`](./DAY_LOOP.md)
+> 클라우드 에이전트는 `127.0.0.1:27123` / 사용자 Mac vault에 **접근 불가**. D1·D2는 PC 실행 전까지 “도구 준비됨 / 실측 미완”으로 둔다.
 
-## P1 — 제품 기능으로 아직 얕거나 빠진 것
+## P1 — 제품 기능 (앱 코드)
 
 | ID | 항목 | 현재 상태 | 나중에 할 일 | 비고 |
 | --- | --- | --- | --- | --- |
-| F1 | **구동사 심화** | **완료 v1.1.9** — 4단계 순차 해금(get장소→come/go→put→keep/find/make) · 입자 드릴 · 잠금 사유 UX. 하루 루프/ASS 비합류 유지 | — | [`PHRASAL_VERBS.md`](./PHRASAL_VERBS.md) |
-| F2 | **IA 2차 정리** | **완료 v1.1.8** — 홈은 하루 루프만(범위/더연습은 `<details>`). 레슨 exit은 퀘스트→홈 / 구동사→구동사 / Next Practice·복습→성장 / 맵·사전→각각 / 기본→게임모드 | — | 디자인 감사 잔여 |
-| F3 | **데일리·숙달 신호 추가 다듬기** | **완료 v1.2.0** — “내 표현” fallback은 output **strength**만 인정(attempts 제외). daily **v5**: step-7 speak는 약한 연결/약한 output 우선 | — | 교육 감사 잔여 |
-| F4 | **Gap → Draft 품질** | **완료 v1.2.0** — 승격 누락 항목 표시, 14일+ 미승격 “오래됨”·일괄 보관, Canon 리뷰 대기열 패널 명확화 | — | 정원 정책 |
-| F5 | **그래프 explain 바로가기** | **완료 v1.2.0** — 맵 그래프·표현 상세·생각맵 예문에 `explain`(파인만) 바로가기 | — | Phase 5 잔여 |
+| F1 | **구동사 심화** | **완료 v1.1.9** | — | [`PHRASAL_VERBS.md`](./PHRASAL_VERBS.md) |
+| F2 | **IA 2차 정리** | **완료 v1.1.8** | — | — |
+| F3 | **데일리·숙달 신호** | **완료 v1.2.0** | — | daily v5 |
+| F4 | **Gap → Draft 품질** | **완료 v1.2.0** | — | — |
+| F5 | **그래프 explain 바로가기** | **완료 v1.2.0** | — | — |
 
 ## P2 — 의도적으로 안 한 것 (자동 구현 금지 / 정책)
 
@@ -34,11 +34,11 @@
 
 ## P3 — 문서·운영 잔여
 
-| ID | 항목 | 할 일 |
+| ID | 항목 | 현재 상태 |
 | --- | --- | --- |
-| O1 | GitHub superseded draft PR(#3,#8–#18) | 사람이 GitHub에서 닫기 (코드 작업 아님) |
-| O2 | C2 데일리 카피 체크리스트 | DEVELOPMENT_PLAN C2에 “장면×2” 등 구식 문구 → daily v4/v5 문구로 문서만 갱신 |
-| O3 | Pages 캐시 | 배포 후 iPhone/Chrome이 옛 UI면 SW·사이트 데이터 삭제 안내 |
+| O1 | GitHub superseded draft PR(#3,#8–#18) | **완료** — 모두 CLOSED 확인 (2026-07-23) |
+| O2 | C2 데일리 카피 (“장면×2” 폐기 → daily v5) | **완료 v1.2.1** — DEVELOPMENT_PLAN C2·카피 정리 |
+| O3 | Pages 캐시 안내 | **완료 v1.2.1** — [`DAY_LOOP.md`](./DAY_LOOP.md) O3 + 성장 화면 안내 |
 
 ## 구현 시 불변 규칙 (다시 적음)
 
@@ -50,10 +50,7 @@
 
 ## 다음 작업 추천 순서
 
-1. **D1** 사용자와 실 Obsidian day loop 검증 (막히면 로그·adapter 설정만 수정)
-2. ~~**F1** 구동사 심화~~ **완료 v1.1.9**
-3. ~~**F2** IA 2차~~ **완료 v1.1.8**
-4. ~~**F3–F5** 숙달/Draft/explain~~ **완료 v1.2.0**
-5. P2 항목은 요청 없이 구현하지 않음
+1. **D1 → D2** — 사용자 PC에서 [`DAY_LOOP.md`](./DAY_LOOP.md) 순서대로 (연결 테스트 → Vault 폴더 검사 → 하루 루프)
+2. P2 항목은 요청 없이 구현하지 않음
 
-변경할 때마다 이 표의 해당 행을 `[x]` 하거나 “완료: vX.Y.Z / PR#”를 Status에 적어 둔다.
+변경할 때마다 이 표의 해당 행 Status를 갱신한다.
