@@ -38,7 +38,7 @@
 4. 학습 기록은 브라우저 `localStorage`에 저장된다. (`progressStorageKey`는 `appState` 생성 **이전**에 선언해야 한다.)
 5. 콘텐츠 원본은 `data/*.json`이며 `python3 scripts/validate.py`로 검증한다.
 6. Active Speaking Set Starter(동사 8·표현 40)가 `learning-paths.json`에 고정되어 있고, `getUnlockedBank()`가 퀴즈·데일리 퀘스트·복습·의미 선택지를 제한한다.
-7. **내 표현** = 연결도 3축 강함 **또는** (성공 ≥ masteryThreshold **그리고** output touch). 비율 70%면 다음 Unlock pack(`pack_1`–`pack_3`)이 해금된다. 홈/성장에 Active set 요약이 표시된다.
+7. **내 표현** = 연결도 3축 강함 **또는** (성공 ≥ masteryThreshold **그리고** output **strength**). 비율 70%면 다음 Unlock pack(`pack_1`–`pack_3`)이 해금된다. 홈/성장에 Active set 요약이 표시된다.
 8. 묻기·답하기·시제 매트릭스 모드(`matrix`)가 Active set 표현군에 대해 평서/의문/부정/짧은 답/과거/가까운 미래를 연습한다. 오늘의 퀘스트는 **의문 + (부정|짧은 답)** 두 형태를 넣고, enko MCQ는 1회로 줄인다.
 9. `gapNotes` 로컬 저장, 퀴즈 결과의 간극 기록 UI, Obsidian Markdown projection(`src/domain/markdown-projection.js`)과 내보내기가 동작한다. 열린 간극은 복습 우선순위에 +2 반영된다.
 10. Vault **Library 정원**: Gap → `expressionDrafts` → `Library/Drafts` export, 체크리스트 승격 시 `Library/Canon`. Canon이 곧장 퀴즈 은행에 들어가지는 않는다.
@@ -68,19 +68,19 @@
 2. Local REST·Bridge는 동작. **실 Mac Obsidian vault day loop 검증은 미완** → BACKLOG D1
 3. Progress.md / Explanations의 Vault→앱 완전 역동기화는 하지 않는다(앱 SoT). → P2b
 4. Conflict policy는 시각·필드 단위 테스트로 고정.
-5. 그래프 연습 바로가기: explain은 아직 맵에서 없음 → F5
+5. 그래프 연습 바로가기: listen/speak/koen/matrix/**explain** (v1.2.0)
 6. 동사 매트릭스 게이트 have→get→take→… 구현됨. 구동사 **4단계 순차 해금·입자 드릴** 구현됨(v1.1.9). 구동사 전용 매트릭스는 선택 잔여.
 7. Canon → JSON 후보/Unlock 대기열만. `expressions.json` 자동 병합 안 함 → P2a
 8. 로컬 학습자 프로필 + Learners 경로 동작.
 9. 열린 draft PR(#3, #8–#18) superseded 종료는 사람 작업 → O1
-10. ~~IA 2차(홈 더 단순화·레슨 복귀 동선)~~ v1.1.8. Gap→Draft 품질 → F4
+10. ~~IA 2차(홈 더 단순화·레슨 복귀 동선)~~ v1.1.8. ~~Gap→Draft 품질~~ v1.2.0
 
 ### 다음에 구현할 것 (우선순위)
 
 1. D1 — 실 Obsidian day loop 검증·보정 ([`DAY_LOOP.md`](./DAY_LOOP.md), [`BACKLOG.md`](./BACKLOG.md))
 2. F1 — ~~구동사 심화~~ **완료 v1.1.9**
 3. F2 — ~~IA 2차 정리~~ (v1.1.8)
-4. F3–F5 — 숙달 신호·Draft 품질·explain 바로가기
+4. F3–F5 — ~~숙달 신호·Draft 품질·explain 바로가기~~ **완료 v1.2.0**
 5. P2 정책 항목은 요청 없이 구현하지 않음
 
 ## 확정된 충돌·원본 정책
@@ -120,13 +120,13 @@
 - [x] `progressStorageKey`를 `appState` 생성 전에 선언해 새로고침 시 진행도 유실을 막는다.
 - [x] 홈에 `#questArea`를 연결해 데일리 퀘스트 시작/이어하기 UI가 실제로 보이게 한다.
 - [x] 홈 첫 구간: 히어로 + 오늘의 퀘스트만. Active set·더 연습은 `<details>`로 접음 (v1.1.8 IA F2).
-- [x] 데일리 카피를 실제 7스텝(daily v4: 듣기→말하기→조립→매트릭스2→장면→말하기)과 맞춘다. (구식 “장면×2” 문구는 폐기)
+- [x] 데일리 카피를 실제 7스텝(daily v5: 듣기→말하기→조립→매트릭스2→장면→약한연결 말하기)과 맞춘다. (구식 “장면×2” 문구는 폐기)
 - [x] 해금 카피: “레벨업 = 팩 해금(내 표현 %)”만. 동사 4형태·레벨테스트는 이후 게이트로만 문서화.
 - [x] 레슨 뒤로가기: 출처별 복귀(퀘스트/구동사/성장/맵/사전/게임모드) v1.1.8.
 
 ### Cleanup C3 — 내 표현·숙달 신호 통일
 
-- [x] `isMineExpression`: 연결도 3축 강함 **우선**, 없으면 성공 횟수 ≥ threshold **그리고** output 축 touch.
+- [x] `isMineExpression`: 연결도 3축 강함 **우선**, 없으면 성공 횟수 ≥ threshold **그리고** output **strength** (attempts만으로는 미인정).
 - [x] 헤더/성장의 주신호는 내 표현 수·해금 범위. XP/streak는 보조 유지.
 - [x] 성장 화면에서 내 표현·연결도 스트립을 주신호로, XP/streak·말하기 세션 카운트를 보조로 정렬.
 
@@ -216,7 +216,7 @@
 ## 이 문서를 이어받는 LLM에게 남기는 작업 메모
 
 - 사용자 목표는 “3~4세급 쉬운 말로 시작해, 제한된 만능동사·핵심명사로 실제 말이 되게 만들고, 그 기록이 Obsidian 영어뇌에 남아 다시 앱 학습 재료가 되는 구조”다.
-- Phase 0–5 + Feynman + Bridge/conflict + Drive webhook + Next Practice + Brain soft import + 그래프 바로가기 + watchlist + mapSets + verb have→get→take gate + daily v4 + **구동사 메뉴** + day-loop guide까지 구현됨 (tip **v1.1.7**).
+- Phase 0–5 + Feynman + Bridge/conflict + Drive webhook + Next Practice + Brain soft import + 그래프 바로가기(explain 포함) + watchlist + mapSets + verb have→get→take gate + daily v5 + 구동사 F1 + IA F2 + Draft 품질까지 구현됨 (tip **v1.2.0**).
 - **미구현·보류 SoT = [`BACKLOG.md`](./BACKLOG.md).** 새 작업 전 반드시 읽고 D1→F1→F2 순을 기본으로 한다.
 - 실제 Obsidian day loop 절차는 [`DAY_LOOP.md`](./DAY_LOOP.md). CI는 mock Local REST만 검증한다 — **실 vault 검증(D1)은 아직이다.**
 - 클라우드 에이전트는 사용자 Mac vault(`/Users/.../Project_English`)에 접근할 수 없다. D1은 사용자 협조 또는 사용자가 연 로컬 세션에서만 닫힌다.

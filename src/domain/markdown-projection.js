@@ -338,8 +338,13 @@ source: webapp
       hasPattern,
       literalNoted: literalOk,
     };
+    const missing = [];
+    if (!hasEnglish) missing.push('영어');
+    if (!hasKorean) missing.push('한글');
+    if (!hasVerb) missing.push('동사');
+    if (!hasPattern) missing.push('패턴');
     const ready = hasEnglish && hasKorean && hasVerb && hasPattern;
-    return { checks, ready, promoteReady: ready };
+    return { checks, ready, promoteReady: ready, missing };
   }
 
   function draftVaultPath(draft) {
