@@ -10,8 +10,8 @@
 
 1. **잠금 기본값:** Starter만 열린 동안 구동사 메뉴는 잠긴다.
 2. **해금:** 표현 Unlock pack 1개 이상(`unlockedPackCount >= 1`)이면 메뉴가 열린다.
-3. **출제 분리:** 해금 전·후에도 구동사는 기본 `getUnlockedBank()`에 자동 합류하지 않는다. **구동사 메뉴·구동사 연습**에서만 따로 구성한다.
-4. **매트릭스 분리:** 구동사 평서·의문·부정은 `data/phrasal-qa-matrices.json`만 사용. ASS `qa-matrices.json`·데일리 퀘스트·VerbMatrixGate에 섞지 않는다.
+3. **출제:** 기본은 구동사 메뉴 전용. **P2d ON**(`policyPhrasalInAssBank`)이면 해금된 구동사 ID가 `getUnlockedBank()`에 합류한다.
+4. **매트릭스 분리:** 구동사 평서·의문·부정은 `data/phrasal-qa-matrices.json`만 사용. ASS `qa-matrices.json`·VerbMatrixGate에는 쓰지 않는다.
 5. **단일동사 비중과 혼동하지 말 것:** Starter 목표 비중은 have 40% · get 25% · take 15% · 나머지 20% (단일동사 카드 기준).
 
 ## 그룹 (v0)

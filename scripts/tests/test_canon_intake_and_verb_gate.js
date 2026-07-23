@@ -23,6 +23,15 @@ assert.strictEqual(candidate.coreVerbId, 'v_give');
 assert.strictEqual(candidate.naturalKorean, '한번 시도해 봐요.');
 assert.ok(candidate._intake.reviewStatus === 'pending');
 
+const merged = intake.mergeCandidatesIntoExpressions(
+  [{ id: 'e001', english: 'I have a question.', naturalKorean: '질문이 있어요.' }],
+  [candidate],
+  { overwrite: false }
+);
+assert.ok(merged.added.includes('e091'));
+assert.strictEqual(merged.expressions.length, 2);
+assert.ok(!merged.expressions[1]._intake);
+
 const bundle = intake.buildCanonIntakeBundle({
   drafts: [{
     id: 'draft_1',

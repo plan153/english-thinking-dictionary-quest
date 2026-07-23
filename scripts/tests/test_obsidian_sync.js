@@ -265,6 +265,55 @@ const fakeFetch = async (url, options = {}) => {
   return { ok: false, status: 500, text: async () => 'no', headers: { get: () => '' } };
 };
 
+// P2b parsers / merges
+const progressMd = `---
+type: progress
+xp: 120
+streak: 4
+unlockedPackCount: 2
+updatedAt: 2026-07-23T00:00:00Z
+source: vault
+---
+
+# Progress
+`;
+const parsedProgress = sync.parseProgressMarkdown(progressMd);
+assert.strictEqual(parsedProgress.xp, 120);
+assert.strictEqual(parsedProgress.streak, 4);
+const progressMerge = sync.mergeProgressFromVault(
+  { xp: 50, streak: 2, curriculum: { unlockedPackCount: 1 } },
+  parsedProgress,
+  { enabled: true, mode: 'max' }
+);
+assert.strictEqual(progressMerge.progress.xp, 120);
+assert.strictEqual(progressMerge.progress.curriculum.unlockedPackCount, 2);
+
+const explanationMd = `---
+type: explanation
+id: exp_test_1
+expressionId: e001
+english: I have a question.
+updatedAt: 2026-07-23T12:00:00Z
+---
+
+I use have + question.
+`;
+const parsedExplanation = sync.parseExplanationMarkdown(explanationMd, 'Learners/me/Learning/Explanations/exp_test_1.md');
+assert.strictEqual(parsedExplanation.id, 'exp_test_1');
+assert.ok(parsedExplanation.explanation.includes('have + question'));
+const explanationMerge = sync.mergeExplanationsFromVault([], [parsedExplanation], { enabled: true });
+assert.strictEqual(explanationMerge.added, 1);
+
+// P2c drive-oauth settings (secrets stay in memory storage only)
+const oauthSettings = sync.saveSettings({
+  adapter: 'drive-oauth',
+  googleClientId: 'client.apps.googleusercontent.com',
+  googleAccessToken: 'ya29.test-token',
+  driveFolderId: 'folder123',
+}, memory);
+assert.strictEqual(oauthSettings.adapter, 'drive-oauth');
+assert.strictEqual(sync.loadSettings(memory).googleAccessToken, 'ya29.test-token');
+
 async function main() {
   const client = sync.createLocalRestClient(settings, fakeFetch);
   const ping = await client.ping();
