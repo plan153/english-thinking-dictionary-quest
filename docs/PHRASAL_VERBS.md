@@ -35,3 +35,11 @@
 4. keep in / find out / make sure
 
 같은 입자로 평서·의문·부정을 돌려 보고, 단일동사 have/get/take 코어와 섞어 하루 루프를 늘리지 않는다.
+
+## 아직 안 한 것 (BACKLOG F1)
+
+- [ ] 그룹 **순차** 해금 (지금은 Unlock pack≥1이면 전 그룹 동시 개방)
+- [ ] 구동사 전용 매트릭스 / 입자 드릴 모드
+- [ ] 상세 UX(잠금 사유·다음 그룹 힌트) 강화
+
+전체 목록: [`BACKLOG.md`](./BACKLOG.md) F1.

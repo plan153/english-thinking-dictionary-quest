@@ -8,6 +8,7 @@
 
 - [서비스 기획 및 마케팅 문서](docs/PRODUCT_STORY_AND_MARKETING.md)
 - [통합 개발 계획](docs/DEVELOPMENT_PLAN.md)
+- [미구현·보류 백로그](docs/BACKLOG.md) ← 나중에 이어서 할 일 SoT
 - [Active Speaking Set](docs/ACTIVE_SPEAKING_SET.md)
 - [Obsidian 영어뇌 동기화](docs/OBSIDIAN_ENGLISH_BRAIN_SYNC.md)
 - [Vault 자료 정원(Drafts/Canon) 진화](docs/OBSIDIAN_VAULT_EVOLUTION.md)
