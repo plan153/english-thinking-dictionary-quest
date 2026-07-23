@@ -24,13 +24,21 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
-      - name: Run unit tests
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run unit + domain tests
         run: |
           set -e
           for f in scripts/tests/*.js; do
-            echo "→ $f"
-            node "$f"
+            case "$f" in
+              *e2e_learner_profiles.js) continue ;;
+              *) echo "→ $f"; node "$f" ;;
+            esac
           done
+      - name: Run learner profile e2e
+        run: node scripts/tests/e2e_learner_profiles.js
+        env:
+          E2E_ARTIFACT_DIR: browser-smoke-artifacts/qa-learner-profiles
 
   browser-smoke:
     runs-on: ubuntu-latest
