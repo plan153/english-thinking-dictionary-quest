@@ -109,6 +109,7 @@
       curriculum: {
         unlockedPackCount: 0,
         unlockedVerbPackCount: 0,
+        unlockedPhrasalStageCount: 0,
         lastUnlockAt: null,
         lastVerbUnlockAt: null,
         verbGateSchemaVersion: 2,

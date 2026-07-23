@@ -83,6 +83,11 @@ def main() -> None:
         verb_id = group.get("coreVerbId")
         if verb_id and verb_id not in verb_ids:
             fail(f"phrasal-verbs.json references unknown coreVerbId: {verb_id}")
+    group_id_set = {group.get("id") for group in (phrasal_verbs.get("groups") or []) if group.get("id")}
+    for stage in phrasal_verbs.get("stages") or []:
+        for group_id in stage.get("groupIds") or []:
+            if group_id not in group_id_set:
+                fail(f"phrasal-verbs.json stage references unknown groupId: {group_id}")
 
     weights = active_set.get("verbCurriculumWeights") or {}
     if weights:

@@ -680,7 +680,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.1.8">v1.1.8</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.1.9">v1.1.9</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -1141,7 +1141,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.1.8';
+    const APP_CACHE_VERSION = 'etd-quest-v1.1.9';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const ProgressStoreApi = window.ProgressStore;
@@ -1322,6 +1322,9 @@
       history.reviewPriority = computeReviewPriority(itemId);
       p.historyByExpressionId[itemId] = history;
       syncCurriculumUnlock({ announce: true });
+      if (appState.lessonReturn?.screen === 'phrasal' || appState.selectedMode === 'particle') {
+        syncPhrasalCurriculum({ announce: true });
+      }
       saveProgress();
     }
 
@@ -1830,7 +1833,7 @@
     }
     function connectionTypeForMode(mode) {
       if (mode === 'listen' || mode === 'enko') return 'recognition';
-      if (mode === 'build' || mode === 'hint' || mode === 'matrix') return 'assembly';
+      if (mode === 'build' || mode === 'hint' || mode === 'matrix' || mode === 'particle' || mode === 'koen') return 'assembly';
       return 'output';
     }
     function strengthFromHints(hintLevel) {
@@ -1899,28 +1902,90 @@
       const raw = appState.dictionaryData.phrasalVerbs
         || appState.dictionaryData.learningPaths?.phrasalSpeakingSet
         || null;
-      return api ? api.normalizePhrasalConfig(raw) : (raw || { groups: [], unlockPackCountRequired: 1 });
+      return api ? api.normalizePhrasalConfig(raw) : (raw || { groups: [], unlockPackCountRequired: 1, stages: [] });
+    }
+    function syncPhrasalCurriculum(options = {}) {
+      const api = window.PhrasalSpeakingSet;
+      if (!api || !appState.progress.curriculum) return false;
+      const config = getPhrasalSpeakingSetConfig();
+      const result = api.syncPhrasalStages(appState.progress.curriculum, config, {
+        progress: appState.progress,
+        collectAnnounce: Boolean(options.announce),
+      });
+      appState.progress.curriculum = result.curriculum;
+      if (result.changed) {
+        saveProgress();
+        if (options.announce) {
+          result.announce.forEach(item => {
+            toast(`구동사 단계 해금: ${item.title || item.stageId}`);
+          });
+        }
+      }
+      return result.changed;
     }
     function isPhrasalMenuUnlocked() {
       const api = window.PhrasalSpeakingSet;
       if (!api) return getUnlockedPackCount() >= 1;
       return api.isMenuUnlocked(appState.progress.curriculum || {}, getPhrasalSpeakingSetConfig());
     }
+    function isPhrasalGroupUnlocked(groupId) {
+      const api = window.PhrasalSpeakingSet;
+      if (!api) return isPhrasalMenuUnlocked();
+      return api.isGroupUnlocked(appState.progress.curriculum || {}, getPhrasalSpeakingSetConfig(), groupId);
+    }
     function getPhrasalBank(groupId = null) {
       const api = window.PhrasalSpeakingSet;
       const config = getPhrasalSpeakingSetConfig();
-      const ids = api
-        ? (groupId ? api.listGroupExpressionIds(config, groupId) : api.listExpressionIds(config))
-        : [];
+      const curriculum = appState.progress.curriculum || {};
+      let ids = [];
+      if (api) {
+        if (groupId) {
+          if (!api.isGroupUnlocked(curriculum, config, groupId)) return [];
+          ids = api.listGroupExpressionIds(config, groupId);
+        } else {
+          ids = api.listUnlockedExpressionIds(curriculum, config);
+        }
+      }
       const idSet = new Set(ids);
       return getGameBank().filter(item => idSet.has(item.id));
+    }
+    function enrichPhrasalParticleItem(item, groupId = null) {
+      const api = window.PhrasalSpeakingSet;
+      const config = getPhrasalSpeakingSetConfig();
+      const group = (config.groups || []).find(g => g.id === groupId)
+        || (config.groups || []).find(g => (g.expressionIds || []).includes(item.id));
+      const particles = group?.particles || [];
+      const blank = api
+        ? api.blankParticleInEnglish(item.en || item.english || '', particles)
+        : { blanked: item.en, particle: '', matched: false };
+      const distractors = ['up', 'out', 'off', 'on', 'back', 'to', 'by', 'in', 'sure']
+        .filter(p => !particles.map(x => String(x).toLowerCase()).includes(String(p).toLowerCase()));
+      const choices = shuffled([
+        blank.particle,
+        ...(particles || []),
+        ...distractors,
+      ].filter(Boolean)).filter((p, index, arr) => (
+        arr.findIndex(x => String(x).toLowerCase() === String(p).toLowerCase()) === index
+      )).slice(0, 4);
+      if (blank.particle && !choices.some(p => String(p).toLowerCase() === String(blank.particle).toLowerCase())) {
+        choices[0] = blank.particle;
+      }
+      return {
+        ...item,
+        particleAnswer: blank.particle,
+        particleBlanked: blank.blanked,
+        particleChoices: choices,
+        particleMatched: blank.matched,
+        phrasalGroupId: group?.id || groupId || null,
+      };
     }
     function renderPhrasalScreen() {
       const api = window.PhrasalSpeakingSet;
       const config = getPhrasalSpeakingSetConfig();
+      syncPhrasalCurriculum({ announce: false });
       const snap = api
-        ? api.getSnapshot(appState.progress.curriculum || {}, config)
-        : { unlocked: isPhrasalMenuUnlocked(), groups: config.groups || [], unlockPackCountRequired: 1, unlockedPackCount: getUnlockedPackCount(), expressionCount: 0 };
+        ? api.getSnapshot(appState.progress.curriculum || {}, config, { progress: appState.progress })
+        : { unlocked: isPhrasalMenuUnlocked(), groups: config.groups || [], unlockPackCountRequired: 1, unlockedPackCount: getUnlockedPackCount(), expressionCount: 0, unlockedPhrasalStageCount: 0, totalStages: 0 };
       const title = document.getElementById('phrasalStatusTitle');
       const copy = document.getElementById('phrasalStatusCopy');
       const list = document.getElementById('phrasalGroupList');
@@ -1931,11 +1996,22 @@
         list.innerHTML = `<article class="card empty"><p>have → get → take 코어와 표현 팩을 먼저 익히세요. 구동사는 입자 연습용 별도 세트입니다.</p></article>`;
         return;
       }
+      const stageLine = snap.currentStage
+        ? `단계 ${snap.unlockedPhrasalStageCount}/${snap.totalStages} · ${snap.currentStage.title}${snap.nextStage ? ` · 다음: ${snap.nextStage.title}` : ' · 모두 열림'}`
+        : '';
       title.textContent = `${snap.title} · 열림`;
-      copy.textContent = `그룹 ${snap.groupCount} · 표현 ${snap.expressionCount}개. 여기서만 연습하며 Active Speaking Set 출제에는 섞이지 않습니다.`;
+      copy.textContent = `${stageLine} · 해금 표현 ${snap.unlockedExpressionCount}/${snap.expressionCount}. 기본 퀴즈 은행에는 섞이지 않습니다. 현재 단계 표현을 말하고 조립하면 다음 단계가 열려요.`;
       list.innerHTML = (snap.groups || []).map(group => {
         const particles = (group.particles || []).join(' · ') || '—';
         const count = (group.expressionIds || []).length;
+        if (group.locked) {
+          return `
+            <article class="card" style="margin-bottom:12px; opacity:.72" data-phrasal-group="${escapeHtml(group.id)}">
+              <h3>${escapeHtml(group.title)} · 잠금</h3>
+              <p class="small-note">${escapeHtml(group.lockReason || '이전 단계 숙달 후 해금')} · 입자 ${escapeHtml(particles)} · ${count}표현</p>
+            </article>
+          `;
+        }
         return `
           <article class="card" style="margin-bottom:12px" data-phrasal-group="${escapeHtml(group.id)}">
             <h3>${escapeHtml(group.title)}</h3>
@@ -1944,6 +2020,7 @@
               <button class="btn dark phrasal-start" type="button" data-mode="listen" data-group="${escapeHtml(group.id)}">듣기</button>
               <button class="btn soft phrasal-start" type="button" data-mode="speak" data-group="${escapeHtml(group.id)}">말하기</button>
               <button class="btn soft phrasal-start" type="button" data-mode="koen" data-group="${escapeHtml(group.id)}">한글→영어</button>
+              <button class="btn soft phrasal-start" type="button" data-mode="particle" data-group="${escapeHtml(group.id)}">입자 드릴</button>
               <button class="btn soft phrasal-start" type="button" data-mode="enko" data-group="${escapeHtml(group.id)}">장면 고르기</button>
             </div>
           </article>
@@ -1951,6 +2028,10 @@
       }).join('') || `<article class="card empty"><p>구동사 그룹 데이터가 없어요.</p></article>`;
       list.querySelectorAll('.phrasal-start').forEach(btn => {
         btn.addEventListener('click', () => {
+          if (!isPhrasalGroupUnlocked(btn.dataset.group)) {
+            toast('이전 구동사 단계를 먼저 숙달하세요.');
+            return;
+          }
           startMode(btn.dataset.mode, null, {
             bankSource: 'phrasal',
             phrasalGroupId: btn.dataset.group,
@@ -3953,7 +4034,7 @@
       return [...coreItems, ...tenseItems].slice(0, 6);
     }
     function supportsMode(item, mode) {
-      if (mode === 'matrix' || mode === 'explain') return true;
+      if (mode === 'matrix' || mode === 'explain' || mode === 'particle') return true;
       const quizType = modeQuizTypes[mode] || 'koToEn';
       return (item.quizTypes || []).includes(quizType);
     }
@@ -3974,7 +4055,9 @@
       const direct = expressionId
         ? (unlockedBank.find(item => item.id === expressionId) || fullBank.find(item => item.id === expressionId))
         : null;
-      if (direct) return [direct];
+      let lesson = null;
+      if (direct) lesson = [direct];
+      else {
       const bank = unlockedBank;
       const recent = new Set(appState.progress.recentExpressionIds || []);
       const eligible = bank.filter(item => supportsMode(item, mode));
@@ -3988,15 +4071,24 @@
         });
         const primary = topCandidates.filter(c => !c.recent).slice(0, 5).map(c => c.item);
         const secondary = topCandidates.filter(c => c.recent).slice(0, 5).map(c => c.item);
-        return shuffled([...primary, ...secondary]).slice(0, 7);
-      }
+        lesson = shuffled([...primary, ...secondary]).slice(0, 7);
+      } else {
       const lessRecent = basePool.filter(item => !recent.has(item.id));
       const pool = lessRecent.length >= 7 ? lessRecent : basePool;
       if (mode === 'build') {
         const buildPool = pool.filter(p => supportsMode(p, 'build'));
-        return shuffled(buildPool.length ? buildPool : pool).slice(0, 7);
+        lesson = shuffled(buildPool.length ? buildPool : pool).slice(0, 7);
+      } else {
+        lesson = shuffled(pool).slice(0, 7);
       }
-      return shuffled(pool).slice(0, 7);
+      }
+      }
+      if (mode === 'particle') {
+        return (lesson || [])
+          .map(item => enrichPhrasalParticleItem(item, options.phrasalGroupId))
+          .filter(item => item.particleMatched && item.particleAnswer);
+      }
+      return lesson || [];
     }
         function startMode(mode, expressionId = null, options = {}) {
           const isPhrasal = options.bankSource === 'phrasal';
@@ -4054,7 +4146,7 @@
           if (mode === 'listen') appState.listenSession = null;
           if (!appState.lessonItems.length) {
             toast(isPhrasal
-              ? '이 구동사 그룹에서 지금 연습할 표현이 없어요.'
+              ? (mode === 'particle' ? '이 그룹에서 입자 드릴로 쓸 표현이 없어요.' : '이 구동사 그룹에서 지금 연습할 표현이 없어요.')
               : (mode === 'matrix' ? '지금 연습할 묻기·답하기 매트릭스가 없어요.' : '지금 연습할 수 있는 Active Speaking Set 표현이 없어요.'));
             return;
           }
@@ -4087,6 +4179,7 @@
         : mode === 'listen' ? '듣고 따라 말하기'
         : mode === 'explain' ? '파인만 설명 챌린지'
         : mode === 'matrix' ? `묻기·답하기 · ${item.formLabel || item.frame}`
+        : mode === 'particle' ? `입자 드릴 · ${item.frame || 'phrasal'}`
         : `${modeTitle(mode)} · ${item.frame} · ${item.level || 1}단계`;
       const baseTop = `<div class="lesson-label">${stageLabel}</div>`;
       const connectionSummary = `<div class="connection-strip-summary">${getConnectionGraph({ id: item.progressId || item.baseExpressionId || item.id, ...item }, stageToConnectionKey(questStep?.questStage))}</div>`;
@@ -4096,6 +4189,7 @@
       else if (mode === 'matrix') body = renderMatrix(item);
       else if (mode === 'koen') body = renderKoEn(item);
       else if (mode === 'enko') body = renderEnKo(item);
+      else if (mode === 'particle') body = renderParticle(item);
       else if (mode === 'hint') body = renderHint(item);
       else if (mode === 'build') body = renderBuild(item);
       else if (mode === 'speak') body = renderSpeak(item);
@@ -4308,6 +4402,16 @@
         ${renderQuizNav('문장 완성')}
         <div class="question-actions"><button class="btn soft next-hint">힌트 1/3</button></div>
         <div class="hint-box hidden" id="hintBox"></div><div class="feedback hidden" id="feedback"></div>`;
+    }
+    function renderParticle(item) {
+      const choices = (item.particleChoices || []).map(particle => `
+        <button class="choice" data-value="${escapeHtml(particle)}">${escapeHtml(particle)}</button>
+      `).join('');
+      return `
+        <h2>${escapeHtml(item.particleBlanked || item.en)}</h2>
+        <p class="korean">${escapeHtml(item.ko)} · 빈칸에 들어갈 <b>입자</b>를 고르세요.</p>
+        <div class="choices">${choices}</div>
+        <div class="feedback hidden" id="feedback"></div>`;
     }
     function renderReview(item) {
       return `
@@ -4767,7 +4871,9 @@
       if (appState.questionAnswered) { nextQuestion(); return; }
       document.querySelectorAll('.choice').forEach(c => c.classList.remove('selected'));
       button.classList.add('selected');
-      const correct = normalize(button.dataset.value) === normalize(item.ko);
+      const correct = mode === 'particle'
+        ? normalize(button.dataset.value) === normalize(item.particleAnswer)
+        : normalize(button.dataset.value) === normalize(item.ko);
       const isQuestMeaningStage = appState.questContext
         && appState.questContext.source === 'dailyQuestV1'
         && appState.questContext.expressionId === item.id
@@ -4776,7 +4882,9 @@
       if (correct) {
         markStudy(mode, progressItemId(item), 'correct', { signature: `choice-${item.id}-${button.dataset.value}`, baseExpressionId: item.baseExpressionId, matrixId: item.matrixId, progressId: item.progressId });
         button.style.borderColor = 'var(--good)';
-        if (isQuestMeaningStage) {
+        if (mode === 'particle') {
+          showFeedback('good', `입자 <b>${escapeHtml(item.particleAnswer)}</b> · <b>${escapeHtml(item.en)}</b>`);
+        } else if (isQuestMeaningStage) {
           showFeedback('good', `정답이에요! <b>${item.en}</b><br><span class="answer-key">자연스러운 한국어 뜻: ${item.ko}</span>`);
         } else {
           showFeedback('good', `맞았어요! <b>${item.en}</b> = ${item.ko}`);
@@ -4785,14 +4893,18 @@
       } else {
         markStudy(mode, progressItemId(item), 'retry', { signature: `choice-${item.id}-${button.dataset.value}`, baseExpressionId: item.baseExpressionId, matrixId: item.matrixId, progressId: item.progressId });
         button.style.borderColor = 'var(--bad)';
-        if (isQuestMeaningStage) {
+        if (mode === 'particle') {
+          showFeedback('bad', `정답 입자는 <b>${escapeHtml(item.particleAnswer)}</b>예요. 문장: <b>${escapeHtml(item.en)}</b>`);
+        } else if (isQuestMeaningStage) {
           showFeedback('bad', `다시 생각해 보세요.<div class="question-actions" style="margin-top:10px"><button class="btn soft open-gap-form" type="button">🧠 간극 기록 만들기</button></div><div id="gapFormMount"></div>`);
         } else {
           showFeedback('bad', `이 문장은 <b>${item.ko}</b>라는 뜻이에요. 소리도 다시 들어 보세요.<div class="question-actions" style="margin-top:10px"><button class="btn soft open-gap-form" type="button">🧠 간극 기록 만들기</button></div><div id="gapFormMount"></div>`);
         }
-        document.querySelectorAll('.open-gap-form').forEach(btn => btn.addEventListener('click', () => {
-          openGapNoteForm(item, button.dataset.value || '', mode);
-        }));
+        if (mode !== 'particle') {
+          document.querySelectorAll('.open-gap-form').forEach(btn => btn.addEventListener('click', () => {
+            openGapNoteForm(item, button.dataset.value || '', mode);
+          }));
+        }
       }
     }
     function showNextHint(item) {
