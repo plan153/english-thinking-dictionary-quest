@@ -337,19 +337,17 @@ async function main() {
       throw new Error('sync did not write Learners/me Brain State');
     }
 
-    // Graph shortcut smoke on thinking map
+    // Graph shortcut smoke on thinking map — pick an ASS-unlocked example (map frames vary).
     await page.click('nav button[data-screen="map"]');
     await page.waitForSelector('#thinkingMap', { timeout: 10000 });
-    await page.waitForTimeout(500);
-    const example = page.locator('#thinkingMap [data-map-example-en]').first();
-    if (!(await example.count())) throw new Error('no thinking-map examples found');
-    await example.click();
-    await page.waitForTimeout(300);
-    const listenBtn = page.locator('#thinkingMap [data-map-example-practice][data-mode="listen"]').first();
-    if (!(await listenBtn.count())) throw new Error('graph practice listen button missing');
-    await listenBtn.click();
+    await page.waitForSelector('#mapFilters [data-map="have"]', { timeout: 10000 });
+    await page.click('#mapFilters [data-map="have"]');
+    await page.waitForSelector('#thinkingMap [data-map-example-en="I have a question."]', { timeout: 10000 });
+    await page.click('#thinkingMap [data-map-example-en="I have a question."]');
+    await page.waitForSelector('#thinkingMap [data-map-example-practice="I have a question."][data-mode="listen"]', { timeout: 10000 });
+    await page.click('#thinkingMap [data-map-example-practice="I have a question."][data-mode="listen"]');
     await page.waitForFunction(() => document.getElementById('lesson')?.classList.contains('active'), { timeout: 10000 });
-    note('graph shortcut listen started');
+    note('graph shortcut listen started (have · I have a question.)');
     await page.screenshot({ path: path.join(ARTIFACT_DIR, '07-graph-shortcut-lesson.png'), fullPage: true });
 
     fs.writeFileSync(path.join(ARTIFACT_DIR, 'smoke-log.txt'), `${log.join('\n')}\n`, 'utf8');

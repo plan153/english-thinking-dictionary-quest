@@ -5113,9 +5113,9 @@
       if (!map?.frames?.length) return 0;
       const current = appState.currentMapFrameIndexByVerb?.[verbId];
       if (Number.isInteger(current) && current >= 0 && current < map.frames.length) return current;
-      const nextIndex = Math.floor(Math.random() * map.frames.length);
-      appState.currentMapFrameIndexByVerb[verbId] = nextIndex;
-      return nextIndex;
+      // Deterministic default: first thinking frame (avoid random CI/UX drift).
+      appState.currentMapFrameIndexByVerb[verbId] = 0;
+      return 0;
     }
     function updateMapConnectionText(verbId) {
       const target = document.getElementById('connectionText');
