@@ -75,7 +75,12 @@
     "exampleExpressionIds": [
       "e001",
       "e021",
-      "e065"
+      "e065",
+      "e093",
+      "e094",
+      "e095",
+      "e096",
+      "e097"
     ],
     "level": 1
   },
@@ -91,7 +96,9 @@
     ],
     "exampleExpressionIds": [
       "e022",
-      "e062"
+      "e062",
+      "e091",
+      "e092"
     ],
     "level": 1
   },
@@ -156,7 +163,9 @@
     ],
     "exampleExpressionIds": [
       "e027",
-      "e028"
+      "e028",
+      "e098",
+      "e099"
     ],
     "level": 1
   },

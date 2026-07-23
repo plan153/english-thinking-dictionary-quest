@@ -1,0 +1,103 @@
+{
+  "version": 1,
+  "sourceDoc": "docs/PHRASAL_VERBS.md",
+  "unlockRule": "unlock_pack_count",
+  "unlockPackCountRequired": 1,
+  "groups": [
+    {
+      "id": "pv_get_place",
+      "title": "get + 장소",
+      "coreVerbId": "v_get",
+      "particles": [
+        "to",
+        "home"
+      ],
+      "expressionIds": [
+        "e081",
+        "e085",
+        "e086",
+        "e087"
+      ],
+      "note": "도착·이동 get"
+    },
+    {
+      "id": "pv_come_particles",
+      "title": "come back / come up",
+      "coreVerbId": "v_come",
+      "particles": [
+        "back",
+        "up"
+      ],
+      "expressionIds": [
+        "e048",
+        "e061"
+      ],
+      "note": "돌아옴 · 일이 생김"
+    },
+    {
+      "id": "pv_go_on",
+      "title": "go on / go by",
+      "coreVerbId": "v_go",
+      "particles": [
+        "on",
+        "by"
+      ],
+      "expressionIds": [
+        "e047",
+        "e079"
+      ],
+      "note": "진행·수단"
+    },
+    {
+      "id": "pv_put_on_off",
+      "title": "put on / put off",
+      "coreVerbId": "v_put",
+      "particles": [
+        "on",
+        "off"
+      ],
+      "expressionIds": [
+        "e052",
+        "e053",
+        "e078"
+      ],
+      "note": "입히기·미루기"
+    },
+    {
+      "id": "pv_keep_in",
+      "title": "keep in touch",
+      "coreVerbId": "v_keep",
+      "particles": [
+        "in"
+      ],
+      "expressionIds": [
+        "e056"
+      ],
+      "note": "연락 유지"
+    },
+    {
+      "id": "pv_find_out",
+      "title": "find out",
+      "coreVerbId": "v_find",
+      "particles": [
+        "out"
+      ],
+      "expressionIds": [
+        "e063"
+      ],
+      "note": "알아내다"
+    },
+    {
+      "id": "pv_make_sure",
+      "title": "make sure",
+      "coreVerbId": "v_make",
+      "particles": [
+        "sure"
+      ],
+      "expressionIds": [
+        "e034"
+      ],
+      "note": "확인하다"
+    }
+  ]
+}

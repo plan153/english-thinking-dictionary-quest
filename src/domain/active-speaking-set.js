@@ -10,31 +10,201 @@
   root.ActiveSpeakingSet = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   const DEFAULT_ACTIVE_SPEAKING_SET = {
-    id: 'ass_starter_v0',
-    title: 'Active Speaking Set Starter',
-    verbIds: ['v_have', 'v_get', 'v_want', 'v_need', 'v_go', 'v_come', 'v_make', 'v_take'],
-    expressionIds: [
-      'e001', 'e003', 'e068', 'e002', 'e044', 'e009', 'e005', 'e006',
-      'e018', 'e026', 'e069', 'e015', 'e047', 'e048', 'e035', 'e038',
-      'e021', 'e030', 'e083', 'e074', 'e045', 'e061', 'e020', 'e039',
-      'e022', 'e004', 'e014', 'e090', 'e046', 'e033', 'e036', 'e024',
-      'e019', 'e070', 'e075', 'e079', 'e031', 'e037', 'e025', 'e029',
+    "id": "ass_starter_v0",
+    "title": "Active Speaking Set Starter",
+    "verbIds": [
+      "v_have",
+      "v_get",
+      "v_want",
+      "v_need",
+      "v_go",
+      "v_come",
+      "v_make",
+      "v_take"
     ],
-    unlockPacks: [
-      { id: 'pack_1', title: 'Unlock pack 1', expressionIds: ['e023', 'e032', 'e062', 'e071', 'e072', 'e027', 'e028', 'e034', 'e080', 'e082'] },
-      { id: 'pack_2', title: 'Unlock pack 2', expressionIds: ['e065', 'e073', 'e084', 'e088', 'e089', 'e081', 'e085', 'e086', 'e087'] },
-      { id: 'pack_3', title: 'Unlock pack 3', expressionIds: ['e011', 'e054', 'e055', 'e056', 'e077', 'e013', 'e064', 'e066', 'e067'] },
+    "expressionIds": [
+      "e001",
+      "e018",
+      "e021",
+      "e022",
+      "e023",
+      "e024",
+      "e025",
+      "e062",
+      "e065",
+      "e091",
+      "e092",
+      "e093",
+      "e094",
+      "e095",
+      "e096",
+      "e097",
+      "e003",
+      "e004",
+      "e019",
+      "e026",
+      "e027",
+      "e028",
+      "e029",
+      "e030",
+      "e098",
+      "e099",
+      "e006",
+      "e036",
+      "e037",
+      "e038",
+      "e039",
+      "e080",
+      "e002",
+      "e015",
+      "e014",
+      "e069",
+      "e044",
+      "e045",
+      "e009",
+      "e020"
     ],
-    verbUnlockPacks: [
-      { id: 'verb_pack_give', title: '동사 해금 · give', verbIds: ['v_give'], expressionIds: ['e007', 'e040', 'e042', 'e043', 'e041'] },
-      { id: 'verb_pack_be', title: '동사 해금 · be', verbIds: ['v_be'], expressionIds: ['e008', 'e016', 'e059', 'e060'] },
-      { id: 'verb_pack_do', title: '동사 해금 · do', verbIds: ['v_do'], expressionIds: ['e017', 'e049', 'e050'] },
-      { id: 'verb_pack_put', title: '동사 해금 · put', verbIds: ['v_put'], expressionIds: ['e010', 'e051', 'e052', 'e076'] },
-      { id: 'verb_pack_keep', title: '동사 해금 · keep', verbIds: ['v_keep'], expressionIds: ['e011', 'e054', 'e055', 'e056', 'e077'] },
-      { id: 'verb_pack_find', title: '동사 해금 · find', verbIds: ['v_find'], expressionIds: ['e012', 'e057', 'e058', 'e063'] },
+    "unlockPacks": [
+      {
+        "id": "pack_1",
+        "title": "Unlock pack 1",
+        "expressionIds": [
+          "e005",
+          "e031",
+          "e033",
+          "e035",
+          "e068",
+          "e070",
+          "e074",
+          "e083",
+          "e090",
+          "e082"
+        ]
+      },
+      {
+        "id": "pack_2",
+        "title": "Unlock pack 2",
+        "expressionIds": [
+          "e032",
+          "e046",
+          "e071",
+          "e072",
+          "e073",
+          "e075",
+          "e084",
+          "e088",
+          "e089"
+        ]
+      },
+      {
+        "id": "pack_3",
+        "title": "Unlock pack 3",
+        "expressionIds": [
+          "e011",
+          "e054",
+          "e055",
+          "e056",
+          "e077",
+          "e013",
+          "e064",
+          "e066",
+          "e067"
+        ]
+      }
     ],
-    unlockThreshold: 0.7,
-    masteryThreshold: 3,
+    "verbUnlockPacks": [
+      {
+        "id": "verb_pack_give",
+        "title": "동사 해금 · give",
+        "verbIds": [
+          "v_give"
+        ],
+        "expressionIds": [
+          "e007",
+          "e040",
+          "e042",
+          "e043",
+          "e041"
+        ]
+      },
+      {
+        "id": "verb_pack_be",
+        "title": "동사 해금 · be",
+        "verbIds": [
+          "v_be"
+        ],
+        "expressionIds": [
+          "e008",
+          "e016",
+          "e059",
+          "e060"
+        ]
+      },
+      {
+        "id": "verb_pack_do",
+        "title": "동사 해금 · do",
+        "verbIds": [
+          "v_do"
+        ],
+        "expressionIds": [
+          "e017",
+          "e049",
+          "e050"
+        ]
+      },
+      {
+        "id": "verb_pack_put",
+        "title": "동사 해금 · put",
+        "verbIds": [
+          "v_put"
+        ],
+        "expressionIds": [
+          "e010",
+          "e051",
+          "e052",
+          "e076"
+        ]
+      },
+      {
+        "id": "verb_pack_keep",
+        "title": "동사 해금 · keep",
+        "verbIds": [
+          "v_keep"
+        ],
+        "expressionIds": [
+          "e011",
+          "e054",
+          "e055",
+          "e056",
+          "e077"
+        ]
+      },
+      {
+        "id": "verb_pack_find",
+        "title": "동사 해금 · find",
+        "verbIds": [
+          "v_find"
+        ],
+        "expressionIds": [
+          "e012",
+          "e057",
+          "e058",
+          "e063"
+        ]
+      }
+    ],
+    "verbCurriculumWeights": {
+      "v_have": 0.4,
+      "v_get": 0.25,
+      "v_take": 0.15,
+      "v_need": 0.05,
+      "v_want": 0.05,
+      "v_go": 0.04,
+      "v_come": 0.03,
+      "v_make": 0.03
+    },
+    "unlockThreshold": 0.7,
+    "masteryThreshold": 3
   };
 
   function normalizeAssConfig(raw) {
@@ -69,6 +239,9 @@
         })),
       unlockThreshold: Number.isFinite(base.unlockThreshold) ? base.unlockThreshold : DEFAULT_ACTIVE_SPEAKING_SET.unlockThreshold,
       masteryThreshold: Number.isFinite(base.masteryThreshold) ? base.masteryThreshold : DEFAULT_ACTIVE_SPEAKING_SET.masteryThreshold,
+      verbCurriculumWeights: base.verbCurriculumWeights && typeof base.verbCurriculumWeights === 'object'
+        ? { ...base.verbCurriculumWeights }
+        : { ...(DEFAULT_ACTIVE_SPEAKING_SET.verbCurriculumWeights || {}) },
     };
   }
 

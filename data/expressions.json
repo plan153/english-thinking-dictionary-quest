@@ -3784,5 +3784,355 @@
     ],
     "mapCombination": "need to sleep",
     "mapOrder": 6
+  },
+  {
+    "id": "e091",
+    "english": "Do you have a minute?",
+    "naturalKorean": "잠깐 시간 있어요?",
+    "literalMeaning": "당신은 1분이 있어요?",
+    "coreVerbId": "v_have",
+    "patternId": "p_have_time",
+    "nounIds": [
+      "n_minute"
+    ],
+    "situationTags": [
+      "request",
+      "conversation"
+    ],
+    "level": 1,
+    "chunks": [
+      "Do you",
+      "have",
+      "a minute"
+    ],
+    "hints": [
+      "시간을 가지고 있는지 물어요.",
+      "Do you have + a minute",
+      "___ you ____ a ______?"
+    ],
+    "quizTypes": [
+      "listening",
+      "speaking",
+      "koToEn",
+      "enToKo",
+      "blank",
+      "hint"
+    ],
+    "audioText": "Do you have a minute?",
+    "relatedExpressionIds": [
+      "e022",
+      "e062"
+    ]
+  },
+  {
+    "id": "e092",
+    "english": "I don't have time.",
+    "naturalKorean": "시간이 없어요.",
+    "literalMeaning": "나는 시간을 가지고 있지 않아요.",
+    "coreVerbId": "v_have",
+    "patternId": "p_have_time",
+    "nounIds": [
+      "n_time"
+    ],
+    "situationTags": [
+      "schedule",
+      "conversation"
+    ],
+    "level": 1,
+    "chunks": [
+      "I",
+      "don't have",
+      "time"
+    ],
+    "hints": [
+      "없다 = have의 부정.",
+      "don't have + time",
+      "I _____ ____ time."
+    ],
+    "quizTypes": [
+      "listening",
+      "speaking",
+      "koToEn",
+      "enToKo",
+      "blank",
+      "hint"
+    ],
+    "audioText": "I don't have time.",
+    "relatedExpressionIds": [
+      "e022",
+      "e062"
+    ]
+  },
+  {
+    "id": "e093",
+    "english": "We have a meeting.",
+    "naturalKorean": "회의가 있어요.",
+    "literalMeaning": "우리는 회의 하나를 가지고 있어요.",
+    "coreVerbId": "v_have",
+    "patternId": "p_have_thing",
+    "nounIds": [
+      "n_meeting"
+    ],
+    "situationTags": [
+      "work",
+      "schedule"
+    ],
+    "level": 1,
+    "chunks": [
+      "We",
+      "have",
+      "a meeting"
+    ],
+    "hints": [
+      "일정·이벤트를 have로 말해요.",
+      "have + a meeting",
+      "We ____ a _______."
+    ],
+    "quizTypes": [
+      "listening",
+      "speaking",
+      "koToEn",
+      "enToKo",
+      "blank",
+      "hint"
+    ],
+    "audioText": "We have a meeting.",
+    "relatedExpressionIds": [
+      "e023",
+      "e021"
+    ]
+  },
+  {
+    "id": "e094",
+    "english": "I have a plan.",
+    "naturalKorean": "계획이 있어요.",
+    "literalMeaning": "나는 계획 하나를 가지고 있어요.",
+    "coreVerbId": "v_have",
+    "patternId": "p_have_thing",
+    "nounIds": [
+      "n_plan"
+    ],
+    "situationTags": [
+      "work",
+      "conversation"
+    ],
+    "level": 1,
+    "chunks": [
+      "I",
+      "have",
+      "a plan"
+    ],
+    "hints": [
+      "생각·계획을 내 쪽에 두고 말해요.",
+      "have + a plan",
+      "I ____ a ____."
+    ],
+    "quizTypes": [
+      "listening",
+      "speaking",
+      "koToEn",
+      "enToKo",
+      "blank",
+      "hint"
+    ],
+    "audioText": "I have a plan.",
+    "relatedExpressionIds": [
+      "e021",
+      "e020"
+    ]
+  },
+  {
+    "id": "e095",
+    "english": "Have fun.",
+    "naturalKorean": "재미있게 보내요.",
+    "literalMeaning": "재미를 가지세요.",
+    "coreVerbId": "v_have",
+    "patternId": "p_have_thing",
+    "nounIds": [
+      "n_it"
+    ],
+    "situationTags": [
+      "farewell",
+      "daily"
+    ],
+    "level": 1,
+    "chunks": [
+      "Have",
+      "fun"
+    ],
+    "hints": [
+      "인사·응원에서 쓰는 have예요.",
+      "Have + fun",
+      "____ fun."
+    ],
+    "quizTypes": [
+      "listening",
+      "speaking",
+      "koToEn",
+      "enToKo",
+      "blank",
+      "hint"
+    ],
+    "audioText": "Have fun.",
+    "relatedExpressionIds": [
+      "e018",
+      "e039"
+    ]
+  },
+  {
+    "id": "e096",
+    "english": "I have to go.",
+    "naturalKorean": "가야 해요.",
+    "literalMeaning": "나는 가야 해요.",
+    "coreVerbId": "v_have",
+    "patternId": "p_have_thing",
+    "nounIds": [
+      "n_way"
+    ],
+    "situationTags": [
+      "daily",
+      "schedule"
+    ],
+    "level": 1,
+    "chunks": [
+      "I",
+      "have to",
+      "go"
+    ],
+    "hints": [
+      "have to = 해야 한다.",
+      "have to + go",
+      "I ____ __ go."
+    ],
+    "quizTypes": [
+      "listening",
+      "speaking",
+      "koToEn",
+      "enToKo",
+      "blank",
+      "hint"
+    ],
+    "audioText": "I have to go.",
+    "relatedExpressionIds": [
+      "e044",
+      "e073"
+    ]
+  },
+  {
+    "id": "e097",
+    "english": "Do you have any ideas?",
+    "naturalKorean": "아이디어 있어요?",
+    "literalMeaning": "당신은 아이디어가 있어요?",
+    "coreVerbId": "v_have",
+    "patternId": "p_have_thing",
+    "nounIds": [
+      "n_idea"
+    ],
+    "situationTags": [
+      "conversation",
+      "work"
+    ],
+    "level": 1,
+    "chunks": [
+      "Do you",
+      "have",
+      "any ideas"
+    ],
+    "hints": [
+      "아이디어를 가지고 있는지 물어요.",
+      "Do you have + any ideas",
+      "___ you ____ any _____?"
+    ],
+    "quizTypes": [
+      "listening",
+      "speaking",
+      "koToEn",
+      "enToKo",
+      "blank",
+      "hint"
+    ],
+    "audioText": "Do you have any ideas?",
+    "relatedExpressionIds": [
+      "e021",
+      "e001"
+    ]
+  },
+  {
+    "id": "e098",
+    "english": "Can I get coffee?",
+    "naturalKorean": "커피 받을 수 있어요?",
+    "literalMeaning": "나는 커피를 얻을 수 있어요?",
+    "coreVerbId": "v_get",
+    "patternId": "p_get_thing",
+    "nounIds": [
+      "n_coffee"
+    ],
+    "situationTags": [
+      "cafe",
+      "request"
+    ],
+    "level": 1,
+    "chunks": [
+      "Can I",
+      "get",
+      "coffee"
+    ],
+    "hints": [
+      "주문·요청에서 get을 써요.",
+      "get + coffee",
+      "Can I ___ ______?"
+    ],
+    "quizTypes": [
+      "listening",
+      "speaking",
+      "koToEn",
+      "enToKo",
+      "blank",
+      "hint"
+    ],
+    "audioText": "Can I get coffee?",
+    "relatedExpressionIds": [
+      "e019",
+      "e027"
+    ]
+  },
+  {
+    "id": "e099",
+    "english": "I got a call.",
+    "naturalKorean": "전화 받았어요.",
+    "literalMeaning": "나는 전화를 받았어요.",
+    "coreVerbId": "v_get",
+    "patternId": "p_get_thing",
+    "nounIds": [
+      "n_call"
+    ],
+    "situationTags": [
+      "phone",
+      "daily"
+    ],
+    "level": 1,
+    "chunks": [
+      "I",
+      "got",
+      "a call"
+    ],
+    "hints": [
+      "받다 = get의 과거 got.",
+      "got + a call",
+      "I ___ a ____."
+    ],
+    "quizTypes": [
+      "listening",
+      "speaking",
+      "koToEn",
+      "enToKo",
+      "blank",
+      "hint"
+    ],
+    "audioText": "I got a call.",
+    "relatedExpressionIds": [
+      "e027",
+      "e028"
+    ]
   }
 ]
