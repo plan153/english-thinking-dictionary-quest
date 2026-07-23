@@ -224,6 +224,38 @@
         { "id": "past", "label": "과거", "en": "I was ready.", "ko": "준비돼 있었어요.", "cue": "과거로 바꿔 보세요", "baseFormId": "statement", "level": 2 },
         { "id": "future", "label": "가까운 미래", "en": "I'm going to be ready.", "ko": "곧 준비될 거예요.", "cue": "가까운 미래로 바꿔 보세요", "baseFormId": "statement", "level": 2, "acceptedAnswers": ["I am going to be ready."] }
       ]
+    },
+    {
+      "id": "m_do_it_now",
+      "baseExpressionId": "e017",
+      "coreVerbId": "v_do",
+      "label": "do + it + now",
+      "thinkingFrame": "지금 하라고 말하기·묻기",
+      "forms": [
+        { "id": "statement", "label": "평서", "en": "Do it now.", "ko": "지금 하세요.", "cue": "평서문으로 말해 보세요", "acceptedAnswers": ["Do it right now."] },
+        { "id": "question", "label": "의문", "en": "Can you do it now?", "ko": "지금 할 수 있어요?", "cue": "의문문으로 바꿔 보세요", "baseFormId": "statement", "acceptedAnswers": ["Will you do it now?", "Could you do it now?"] },
+        { "id": "negative", "label": "부정", "en": "I can't do it now.", "ko": "지금은 못 해요.", "cue": "부정문으로 바꿔 보세요", "baseFormId": "statement", "acceptedAnswers": ["I cannot do it now.", "I won't do it now.", "I will not do it now."] },
+        { "id": "shortYes", "label": "짧은 답", "en": "Yes, I can.", "ko": "네, 할게요.", "cue": "짧게 긍정으로 답해 보세요", "baseFormId": "question", "acceptedAnswers": ["Yes, I will."] },
+        { "id": "shortNo", "label": "짧은 답", "en": "No, I can't.", "ko": "아니요, 지금은 안 돼요.", "cue": "짧게 부정으로 답해 보세요", "baseFormId": "question", "acceptedAnswers": ["No, I cannot.", "No, I won't.", "No, I will not."] },
+        { "id": "past", "label": "과거", "en": "I did it.", "ko": "했어요.", "cue": "과거로 바꿔 보세요", "baseFormId": "statement", "level": 2, "acceptedAnswers": ["I did it now."] },
+        { "id": "future", "label": "가까운 미래", "en": "I'm going to do it now.", "ko": "지금 할 거예요.", "cue": "가까운 미래로 바꿔 보세요", "baseFormId": "statement", "level": 2, "acceptedAnswers": ["I am going to do it now."] }
+      ]
+    },
+    {
+      "id": "m_put_it_here",
+      "baseExpressionId": "e010",
+      "coreVerbId": "v_put",
+      "label": "put + it + here",
+      "thinkingFrame": "여기에 놓으라고 말하기·묻기",
+      "forms": [
+        { "id": "statement", "label": "평서", "en": "Put it here.", "ko": "여기에 놓으세요.", "cue": "평서문으로 말해 보세요" },
+        { "id": "question", "label": "의문", "en": "Can you put it here?", "ko": "여기에 놓을 수 있어요?", "cue": "의문문으로 바꿔 보세요", "baseFormId": "statement", "acceptedAnswers": ["Will you put it here?", "Could you put it here?"] },
+        { "id": "negative", "label": "부정", "en": "I can't put it here.", "ko": "여기엔 못 놔요.", "cue": "부정문으로 바꿔 보세요", "baseFormId": "statement", "acceptedAnswers": ["I cannot put it here.", "I won't put it here.", "I will not put it here."] },
+        { "id": "shortYes", "label": "짧은 답", "en": "Yes, I can.", "ko": "네, 놓을게요.", "cue": "짧게 긍정으로 답해 보세요", "baseFormId": "question", "acceptedAnswers": ["Yes, I will."] },
+        { "id": "shortNo", "label": "짧은 답", "en": "No, I can't.", "ko": "아니요, 안 돼요.", "cue": "짧게 부정으로 답해 보세요", "baseFormId": "question", "acceptedAnswers": ["No, I cannot.", "No, I won't.", "No, I will not."] },
+        { "id": "past", "label": "과거", "en": "I put it here.", "ko": "여기에 놨어요.", "cue": "과거로 바꿔 보세요", "baseFormId": "statement", "level": 2 },
+        { "id": "future", "label": "가까운 미래", "en": "I'm going to put it here.", "ko": "여기에 놓을 거예요.", "cue": "가까운 미래로 바꿔 보세요", "baseFormId": "statement", "level": 2, "acceptedAnswers": ["I am going to put it here."] }
+      ]
     }
   ]
 }

@@ -23,10 +23,13 @@
     unlockPacks: [
       { id: 'pack_1', title: 'Unlock pack 1', expressionIds: ['e023', 'e032', 'e062', 'e071', 'e072', 'e027', 'e028', 'e034', 'e080', 'e082'] },
       { id: 'pack_2', title: 'Unlock pack 2', expressionIds: ['e065', 'e073', 'e084', 'e088', 'e089', 'e081', 'e085', 'e086', 'e087'] },
+      { id: 'pack_3', title: 'Unlock pack 3', expressionIds: ['e011', 'e054', 'e055', 'e056', 'e077', 'e013', 'e064', 'e066', 'e067'] },
     ],
     verbUnlockPacks: [
       { id: 'verb_pack_give', title: '동사 해금 · give', verbIds: ['v_give'], expressionIds: ['e007', 'e040', 'e042', 'e043', 'e041'] },
       { id: 'verb_pack_be', title: '동사 해금 · be', verbIds: ['v_be'], expressionIds: ['e008', 'e016', 'e059', 'e060'] },
+      { id: 'verb_pack_do', title: '동사 해금 · do', verbIds: ['v_do'], expressionIds: ['e017', 'e049', 'e050'] },
+      { id: 'verb_pack_put', title: '동사 해금 · put', verbIds: ['v_put'], expressionIds: ['e010', 'e051', 'e052', 'e076'] },
     ],
     unlockThreshold: 0.7,
     masteryThreshold: 3,
