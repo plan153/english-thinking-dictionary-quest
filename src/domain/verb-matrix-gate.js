@@ -10,6 +10,9 @@
   root.VerbMatrixGate = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   const CORE_FORMS = ['statement', 'question', 'negative', 'shortAnswer'];
+  // v2: starter = have only; packs prepend get → take → core_rest before give…
+  const VERB_GATE_SCHEMA_VERSION = 2;
+  const LEGACY_PREPEND_PACK_COUNT = 3;
 
   function normalizeFormKey(formId) {
     const id = String(formId || '');
@@ -18,16 +21,40 @@
     return '';
   }
 
-  function ensureMatrixFormSuccess(curriculum = {}) {
+  function migrateVerbGateCurriculum(curriculum = {}) {
     const base = curriculum && typeof curriculum === 'object' ? curriculum : {};
+    const version = Number(base.verbGateSchemaVersion || 1);
+    if (version >= VERB_GATE_SCHEMA_VERSION) {
+      return {
+        ...base,
+        verbGateSchemaVersion: VERB_GATE_SCHEMA_VERSION,
+      };
+    }
+    const oldCount = Math.max(0, Number(base.unlockedVerbPackCount || 0));
+    const matrixFormSuccess = base.matrixFormSuccess && typeof base.matrixFormSuccess === 'object'
+      ? base.matrixFormSuccess
+      : {};
+    const hasLegacyProgress = oldCount > 0
+      || Boolean(base.lastVerbUnlockAt)
+      || Object.keys(matrixFormSuccess).length > 0;
     return {
       ...base,
-      unlockedPackCount: Number.isFinite(base.unlockedPackCount) ? base.unlockedPackCount : 0,
-      unlockedVerbPackCount: Number.isFinite(base.unlockedVerbPackCount) ? base.unlockedVerbPackCount : 0,
-      lastUnlockAt: base.lastUnlockAt || null,
-      lastVerbUnlockAt: base.lastVerbUnlockAt || null,
-      matrixFormSuccess: base.matrixFormSuccess && typeof base.matrixFormSuccess === 'object'
-        ? { ...base.matrixFormSuccess }
+      unlockedVerbPackCount: hasLegacyProgress ? oldCount + LEGACY_PREPEND_PACK_COUNT : oldCount,
+      verbGateSchemaVersion: VERB_GATE_SCHEMA_VERSION,
+    };
+  }
+
+  function ensureMatrixFormSuccess(curriculum = {}) {
+    const migrated = migrateVerbGateCurriculum(curriculum);
+    return {
+      ...migrated,
+      unlockedPackCount: Number.isFinite(migrated.unlockedPackCount) ? migrated.unlockedPackCount : 0,
+      unlockedVerbPackCount: Number.isFinite(migrated.unlockedVerbPackCount) ? migrated.unlockedVerbPackCount : 0,
+      lastUnlockAt: migrated.lastUnlockAt || null,
+      lastVerbUnlockAt: migrated.lastVerbUnlockAt || null,
+      verbGateSchemaVersion: VERB_GATE_SCHEMA_VERSION,
+      matrixFormSuccess: migrated.matrixFormSuccess && typeof migrated.matrixFormSuccess === 'object'
+        ? { ...migrated.matrixFormSuccess }
         : {},
     };
   }
@@ -133,7 +160,10 @@
 
   return {
     CORE_FORMS,
+    VERB_GATE_SCHEMA_VERSION,
+    LEGACY_PREPEND_PACK_COUNT,
     normalizeFormKey,
+    migrateVerbGateCurriculum,
     ensureMatrixFormSuccess,
     recordMatrixFormSuccess,
     isVerbMatrixGatePassed,

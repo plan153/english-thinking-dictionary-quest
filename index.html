@@ -652,7 +652,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.1.5">v1.1.5</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.1.6">v1.1.6</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -677,8 +677,8 @@
     <section id="home" class="screen active">
       <div class="hero">
         <div class="eyebrow">English Thinking Dictionary</div>
-        <h2>작은 세트만,<br>입으로 조립하세요.</h2>
-        <p>지금은 만능동사 8개 Active Speaking Set만 연습합니다. 단일동사는 have·get·take 비중을 크게 두고 연습합니다. 듣고 → 따라 말하고 → 조립하면, 내 표현이 쌓일수록 다음 묶음이 열립니다.</p>
+        <h2>오늘 7분,<br>입으로 조립하세요.</h2>
+        <p>하루 루프는 듣고 → 말하고 → 조립 → 묻기·답하기입니다. 숙달 해금은 have → get → take 순으로 열립니다. Starter 표현 40개는 그 비중으로 섞여 있습니다.</p>
         <div class="hero-actions">
           <button class="btn primary" id="startDaily">오늘의 7분 퀘스트 시작</button>
         </div>
@@ -689,7 +689,7 @@
           <div class="ring" id="dailyRing" style="--p: 0"><strong id="dailyPercent">0%</strong></div>
           <div>
             <h3>오늘의 7분 루프</h3>
-            <p id="dailyCopy">듣고 따라 말하기 → 장면 고르기 → 한글→영어 조립 → 묻기 맛보기 → 약한 연결 복습</p>
+            <p id="dailyCopy">듣고 따라 말하기 → 한글→영어 조립 → 묻기·답하기(2형태) → 장면 고르기 → 입으로 다시 꺼내기</p>
             <div class="mini-progress"><div class="progress-track"><span id="dailyBar" style="width:0%"></span></div><strong id="dailyCount">0 / 7</strong></div>
           </div>
         </article>
@@ -810,7 +810,10 @@
 
     <section id="progress" class="screen">
       <div class="section-head">
-        <div><h2>내 성장</h2><p>많이 푸는 것보다, 약한 연결을 다시 만나는 것이 중요합니다.</p></div>
+        <div><h2>내 성장</h2><p>학습 기록과 다음 연습은 여기. 동기화 설정은 아래쪽입니다.</p></div>
+      </div>
+      <div class="section-head" style="margin-top:0; margin-bottom:8px">
+        <div><h3 style="margin:0;font-size:15px;letter-spacing:-0.2px;color:var(--muted,#64748b)">학습 기록</h3></div>
       </div>
       <div class="grid cols-3">
         <article class="card"><h3>내 표현</h3><div style="font-size:34px;font-weight:900;letter-spacing:-1.5px" id="masteredBig">0</div><p>주신호: 연결도 ●—●—●. Active set 안에서 “내 말”이 된 표현입니다.</p></article>
@@ -869,6 +872,9 @@
         <div id="explanationsList" style="margin-top:14px"></div>
       </article>
       <article class="card" style="margin-top:16px" id="obsidianSyncCard">
+        <div class="section-head" style="margin:0 0 8px">
+          <div><h3 style="margin:0">동기화 설정</h3><p class="small-note" style="margin:6px 0 0">학습 기록과 분리된 앱↔Vault 연결입니다. 키는 이 브라우저에만 저장됩니다.</p></div>
+        </div>
         <h3>Obsidian Local REST 동기화</h3>
         <p class="small-note">Obsidian Local REST API(권장 HTTP <code>127.0.0.1:27123</code>)로 Gaps·Brain State·Next Practice를 upsert합니다. 가져오기는 Gaps · Next Practice · Brain State 약한 슬롯 힌트(진행 숫자는 앱 우선)입니다. API 키는 이 브라우저에만 저장됩니다.</p>
         <div class="gap-form" style="margin-top:12px">
@@ -914,7 +920,7 @@
       </article>
       <article class="card" style="margin-top:16px">
         <h3>동사 매트릭스 4형태 게이트</h3>
-        <p class="small-note">지금 해금된 동사의 평서·의문·부정·짧은 답을 모두 통과하면 다음 동사 팩(give → be → do → put → keep → find)이 순서대로 열립니다. 표현 Unlock pack과는 별 게이트입니다.</p>
+        <p class="small-note">지금 해금된 동사의 평서·의문·부정·짧은 답을 모두 통과하면 다음 동사 팩이 <b>have → get → take → 나머지 → give → be → do → put → keep → find</b> 순으로 열립니다. 표현 Unlock pack과는 별 게이트입니다.</p>
         <div id="verbGatePanel" style="margin-top:12px"></div>
       </article>
       <article class="card" style="margin-top:16px">
@@ -1091,7 +1097,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.1.5';
+    const APP_CACHE_VERSION = 'etd-quest-v1.1.6';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const ProgressStoreApi = window.ProgressStore;
@@ -1368,14 +1374,20 @@
         || matrixBases[0]
         || fifth
         || first;
+      const matrixSeed2 = matrixBases.find(id => id !== matrixSeed)
+        || matrixSeed;
+      // Alternate second matrix form by Seoul day: negative ↔ shortYes
+      const dayNum = Number(String(questDate || '').replace(/\D/g, '').slice(-2)) || 0;
+      const altFormId = dayNum % 2 === 0 ? 'negative' : 'shortYes';
+      const altFormLabel = altFormId === 'negative' ? '부정 변형' : '짧은 답 변형';
       return [
         { key: 'step-1', label: '듣고 따라 말하기', mode: 'listen', expressionId: first, questStage: 'meaning' },
         { key: 'step-2', label: '듣고 따라 말하기', mode: 'speak', expressionId: first, questStage: 'output' },
-        { key: 'step-3', label: '영어 장면 고르기', mode: 'enko', expressionId: third || second || first, questStage: 'meaning' },
-        { key: 'step-4', label: '영어 장면 고르기', mode: 'enko', expressionId: fourth || third || second || first, questStage: 'meaning' },
-        { key: 'step-5', label: '한글→영어 조립', mode: 'koen', expressionId: fifth || fourth || third || second || first, questStage: 'assembly' },
-        { key: 'step-6', label: '묻기·답하기 변형', mode: 'matrix', expressionId: matrixSeed, questStage: 'assembly', matrixFormId: 'question' },
-        { key: 'step-7', label: '약한 연결 복습', mode: 'review', expressionId: seventh || sixth || fifth || fourth || third || second || first, questStage: 'output' },
+        { key: 'step-3', label: '한글→영어 조립', mode: 'koen', expressionId: fifth || fourth || third || second || first, questStage: 'assembly' },
+        { key: 'step-4', label: '묻기 변형', mode: 'matrix', expressionId: matrixSeed, questStage: 'assembly', matrixFormId: 'question' },
+        { key: 'step-5', label: altFormLabel, mode: 'matrix', expressionId: matrixSeed2, questStage: 'assembly', matrixFormId: altFormId },
+        { key: 'step-6', label: '영어 장면 고르기', mode: 'enko', expressionId: third || second || first, questStage: 'meaning' },
+        { key: 'step-7', label: '입으로 다시 꺼내기', mode: 'speak', expressionId: seventh || sixth || fifth || fourth || third || second || first, questStage: 'output' },
       ].filter(step => step.expressionId);
     }
     function getQuestStepTitle(step) {
@@ -1431,7 +1443,7 @@
       const validPlan = Array.isArray(quest.stepPlan)
         && quest.stepPlan.length === 7
         && quest.stepPlan.every(step => step && step.key && step.mode && step.expressionId && bank.some(item => item.id === step.expressionId));
-      if (quest.version === 3 && quest.date === seoulToday && validPlan) {
+      if (quest.version === 4 && quest.date === seoulToday && validPlan) {
         quest.currentIndex = clampValue(Number.isFinite(quest.currentIndex) ? quest.currentIndex : 0, 0, quest.stepPlan.length);
         quest.completedStepKeys = Array.isArray(quest.completedStepKeys) ? quest.completedStepKeys.filter(key => quest.stepPlan.some(step => step.key === key)) : [];
         return;
@@ -1439,7 +1451,7 @@
       const stepPlan = buildDailyQuestStepPlan(bank, seoulToday);
       appState.progress.dailyQuestV1 = {
         ...defaultDailyQuestV1(),
-        version: 3,
+        version: 4,
         date: seoulToday,
         stepPlan,
         currentIndex: 0,
@@ -1489,7 +1501,7 @@
         questArea.innerHTML = `
           <div class="card">
             <h3>오늘의 퀘스트 · ${completed}/${total} 완료</h3>
-            <p>듣고 따라 말하기 → 장면 고르기 → 조립 → 묻기 맛보기 → 약한 연결 복습, 7단계로 이어집니다.</p>
+            <p>듣고 따라 말하기 → 조립 → 묻기·답하기(2형태) → 장면 고르기 → 입으로 다시 꺼내기, 7단계로 이어집니다.</p>
             <ul style="margin:10px 0; padding-left:20px; line-height:1.7;">${stepSummary}</ul>
             <button class="btn dark" id="startQuestBtn">퀘스트 시작하기</button>
           </div>
@@ -1633,9 +1645,9 @@
       document.getElementById('lessonProgress').style.width = '100%';
       document.getElementById('lessonProgressText').textContent = '7 / 7';
       document.getElementById('questionCard').innerHTML = `
-        <div class="lesson-label">오늘의 퀘스트 v2 완료</div>
+        <div class="lesson-label">오늘의 퀘스트 완료</div>
         <h2>오늘의 퀘스트를 완료했어요.</h2>
-        <p class="korean">듣고 따라 말하기 1세트 → 영어 장면 고르기 2회 → 한글→영어 조립 1회 → 묻기·답하기 변형 1회 → 약한 연결 복습 1회까지 모두 마쳤습니다. 내일 새로운 표현들이 열립니다.</p>
+        <p class="korean">듣고 따라 말하기 → 한글→영어 조립 → 묻기·답하기 2형태 → 장면 고르기 → 입으로 다시 꺼내기까지 모두 마쳤습니다. 내일 새로운 표현들이 열립니다.</p>
         <div class="question-actions"><button class="btn accent" id="questDoneHome">홈으로</button><button class="btn dark" id="questDoneProgress">내 성장 보기</button></div>`;
       document.getElementById('questDoneHome')?.addEventListener('click', () => showScreen('home'));
       document.getElementById('questDoneProgress')?.addEventListener('click', () => showScreen('progress'));
@@ -1875,6 +1887,7 @@
           unlockedVerbPackCount: 0,
           lastUnlockAt: null,
           lastVerbUnlockAt: null,
+          verbGateSchemaVersion: 2,
           matrixFormSuccess: {},
         };
       }
@@ -1936,7 +1949,7 @@
         ? gate.getUnlockedVerbIds(config, appState.progress.curriculum || {})
         : config.verbIds.slice();
       const verbGate = gate
-        ? gate.getVerbGateSnapshot(appState.progress.curriculum || {}, config.verbIds || [], getQaMatrices())
+        ? gate.getVerbGateSnapshot(appState.progress.curriculum || {}, unlockedVerbIds, getQaMatrices())
         : null;
       const nextVerbPack = (config.verbUnlockPacks || [])[Number(appState.progress.curriculum?.unlockedVerbPackCount || 0)] || null;
       return {
@@ -3659,8 +3672,11 @@
     }
     function getUnlockedMatrices() {
       const unlockedIds = new Set(getUnlockedExpressionIds());
-      const matrices = getQaMatrices().filter(matrix => unlockedIds.has(matrix.baseExpressionId));
-      return matrices.length ? matrices : getQaMatrices().filter(matrix => isVerbInActiveSet(matrix.coreVerbId));
+      const matrices = getQaMatrices().filter(matrix => (
+        unlockedIds.has(matrix.baseExpressionId) && isVerbInActiveSet(matrix.coreVerbId)
+      ));
+      if (matrices.length) return matrices;
+      return getQaMatrices().filter(matrix => isVerbInActiveSet(matrix.coreVerbId));
     }
     function findMatrixForm(matrix, formId) {
       return (matrix?.forms || []).find(form => form.id === formId) || null;

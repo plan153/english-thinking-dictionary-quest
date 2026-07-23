@@ -13,14 +13,7 @@
     "id": "ass_starter_v0",
     "title": "Active Speaking Set Starter",
     "verbIds": [
-      "v_have",
-      "v_get",
-      "v_want",
-      "v_need",
-      "v_go",
-      "v_come",
-      "v_make",
-      "v_take"
+      "v_have"
     ],
     "expressionIds": [
       "e001",
@@ -113,6 +106,34 @@
       }
     ],
     "verbUnlockPacks": [
+      {
+        "id": "verb_pack_get",
+        "title": "동사 해금 · get",
+        "verbIds": [
+          "v_get"
+        ],
+        "expressionIds": []
+      },
+      {
+        "id": "verb_pack_take",
+        "title": "동사 해금 · take",
+        "verbIds": [
+          "v_take"
+        ],
+        "expressionIds": []
+      },
+      {
+        "id": "verb_pack_core_rest",
+        "title": "동사 해금 · want·need·go·come·make",
+        "verbIds": [
+          "v_want",
+          "v_need",
+          "v_go",
+          "v_come",
+          "v_make"
+        ],
+        "expressionIds": []
+      },
       {
         "id": "verb_pack_give",
         "title": "동사 해금 · give",
