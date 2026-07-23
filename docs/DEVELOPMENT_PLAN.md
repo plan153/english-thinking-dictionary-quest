@@ -69,7 +69,7 @@
 3. Progress.md / Explanations의 Vault→앱 완전 역동기화는 하지 않는다(앱 SoT). → P2b
 4. Conflict policy는 시각·필드 단위 테스트로 고정.
 5. 그래프 연습 바로가기: explain은 아직 맵에서 없음 → F5
-6. 동사 매트릭스 게이트 have→get→take→… 구현됨. 구동사 **그룹 순차 해금·입자 드릴**은 얕음 → F1
+6. 동사 매트릭스 게이트 have→get→take→… 구현됨. 구동사 **4단계 순차 해금·입자 드릴** 구현됨(v1.1.9). 구동사 전용 매트릭스는 선택 잔여.
 7. Canon → JSON 후보/Unlock 대기열만. `expressions.json` 자동 병합 안 함 → P2a
 8. 로컬 학습자 프로필 + Learners 경로 동작.
 9. 열린 draft PR(#3, #8–#18) superseded 종료는 사람 작업 → O1
@@ -78,7 +78,7 @@
 ### 다음에 구현할 것 (우선순위)
 
 1. D1 — 실 Obsidian day loop 검증·보정 ([`DAY_LOOP.md`](./DAY_LOOP.md), [`BACKLOG.md`](./BACKLOG.md))
-2. F1 — 구동사 심화 (그룹 순차 해금, 선택적 입자/매트릭스)
+2. F1 — ~~구동사 심화~~ **완료 v1.1.9**
 3. F2 — ~~IA 2차 정리~~ (v1.1.8)
 4. F3–F5 — 숙달 신호·Draft 품질·explain 바로가기
 5. P2 정책 항목은 요청 없이 구현하지 않음
