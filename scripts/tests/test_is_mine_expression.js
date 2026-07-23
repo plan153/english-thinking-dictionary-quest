@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * Unit test: isMineExpression pedagogy — prefer 3-axis strong; fallback needs output.
+ * Unit test: isMineExpression pedagogy — prefer 3-axis strong;
+ * fallback needs output strength (attempts alone do not count).
  */
 const assert = require('assert');
 
@@ -8,15 +9,10 @@ function allStrongHistory(history) {
   return ['recognition', 'assembly', 'output'].every(key => (history.connections?.[key]?.strength || 0) === 1);
 }
 
-function outputTouched(history) {
-  return (history.connections?.output?.strength || 0) > 0
-    || (history.connections?.output?.attempts || 0) > 0;
-}
-
 function isMineExpression(history, successes, threshold = 3) {
   if (allStrongHistory(history)) return true;
   if ((successes || 0) < threshold) return false;
-  return outputTouched(history);
+  return (history.connections?.output?.strength || 0) > 0;
 }
 
 assert.strictEqual(isMineExpression({
@@ -41,7 +37,7 @@ assert.strictEqual(isMineExpression({
     assembly: { strength: 1 },
     output: { strength: 0, attempts: 1 },
   },
-}, 3), true, 'threshold + output attempt counts');
+}, 3), false, 'threshold + output attempts alone is not mine');
 
 assert.strictEqual(isMineExpression({
   connections: {
@@ -53,4 +49,4 @@ assert.strictEqual(isMineExpression({
 
 assert.strictEqual(isMineExpression({ connections: {} }, 2), false);
 
-console.log('✅ isMineExpression output-gate tests passed');
+console.log('✅ isMineExpression output-strength gate tests passed');

@@ -107,6 +107,15 @@ const draftEval = api.evaluatePromoteChecklist({
   literalMeaning: '',
 });
 assert.strictEqual(draftEval.ready, true);
+assert.deepStrictEqual(draftEval.missing, []);
+const incompleteEval = api.evaluatePromoteChecklist({
+  english: 'I need some time.',
+  naturalKorean: '',
+  coreVerb: 'need',
+  pattern: '',
+});
+assert.strictEqual(incompleteEval.ready, false);
+assert.deepStrictEqual(incompleteEval.missing, ['한글', '패턴']);
 
 const weakDraft = api.projectExpressionDraft({
   id: 'draft_test_1',
