@@ -46,7 +46,19 @@ OBSIDIAN_API_KEY='(Local REST key)' node scripts/verify_local_vault.js
 스크립트는 pathPrefix 후보(`빈 값` ↔ `Project_English`)를 시도하고, 통과한 prefix를 알려 줍니다.  
 부족하면 Obsidian에서 폴더를 만든 뒤 다시 검사합니다.
 
-### 3) 하루 루프 한 바퀴 (D1)
+### 3) 하루 루프 한 바퀴 (D1) — 한 명령
+
+Obsidian + Local REST가 켜진 **같은 Mac**에서:
+
+```bash
+OBSIDIAN_API_KEY='(Local REST key)' node scripts/run_day_loop_pc.js
+# 필요 시: OBSIDIAN_PATH_PREFIX=Project_English
+```
+
+이 스크립트가 D2(폴더 계약) → 연결 → 간극 → 실 Vault sync → 가져오기 → Next Practice까지 자동으로 돌립니다.  
+PASS면 artifacts에 `D1_PASS.json`이 생기고, BACKLOG D1·D2를 완료로 표시하면 됩니다.
+
+수동으로 하려면:
 
 1. **연습** — 오늘의 퀘스트 또는 게임 모드
 2. **틀림 → 간극** — “간극 기록 만들기” 저장
@@ -55,7 +67,7 @@ OBSIDIAN_API_KEY='(Local REST key)' node scripts/verify_local_vault.js
 5. **가져오기** — 앱 “Obsidian에서 가져오기”
 6. **Next Practice** — 성장 화면에서 시작
 
-모두 통과하면 BACKLOG D1·D2를 완료로 표시한다.
+> 클라우드 에이전트는 `127.0.0.1:27123`에 연결할 수 없어 D1을 대신 닫지 못합니다. **반드시 PC/Mac에서** 위 명령을 실행하세요.
 
 ## 불변 규칙
 
@@ -69,12 +81,13 @@ OBSIDIAN_API_KEY='(Local REST key)' node scripts/verify_local_vault.js
 node scripts/smoke_day_loop.js
 # artifacts: /opt/cursor/artifacts/day-loop-smoke (or SMOKE_ARTIFACT_DIR)
 
-# PC only (needs real Local REST):
+# PC only (needs real Local REST) — closes D1+D2:
+OBSIDIAN_API_KEY='...' node scripts/run_day_loop_pc.js
 OBSIDIAN_API_KEY='...' node scripts/verify_local_vault.js
 ```
 
 CI: `.github/workflows/validate.yml` → `browser-smoke` job에서 day-loop smoke도 실행합니다.  
-`verify_local_vault.js`는 API key가 없으면 exit 2로 skip 합니다(CI 필수 아님).
+`verify_local_vault.js` / `run_day_loop_pc.js`는 API key가 없거나 Local REST가 없으면 exit 2로 skip 합니다(CI 필수 아님).
 
 ## O3 — 배포 후 옛 UI / 캐시
 

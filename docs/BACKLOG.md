@@ -8,8 +8,8 @@
 
 | ID | 항목 | 현재 상태 | 나중에 할 일 | 의존 |
 | --- | --- | --- | --- | --- |
-| D1 | **실제 Obsidian day loop** | 앱·mock smoke·**Vault 폴더 검사 버튼**·`scripts/verify_local_vault.js` 준비됨 (v1.2.1). 실 vault 한 바퀴는 미실행 | PC에서 Local REST + API key로 [`DAY_LOOP.md`](./DAY_LOOP.md) 체크리스트 통과 후 이 행을 완료로 표시 | Obsidian + Local REST, vault 접근 |
-| D2 | **Vault pathPrefix / 폴더 실측** | 계약 SoT + 검사 API/스크립트가 empty↔`Project_English` 후보 시도 | PC에서 검사 PASS한 pathPrefix를 앱에 저장. 어긋나면 폴더 생성 또는 문서 수정 | D1과 같은 세션 |
+| D1 | **실제 Obsidian day loop** | mock smoke + **`scripts/run_day_loop_pc.js`** 준비됨. 실 vault PASS는 PC에서만 | Mac에서 `OBSIDIAN_API_KEY=... node scripts/run_day_loop_pc.js` → PASS 후 이 행 완료 | Obsidian + Local REST |
+| D2 | **Vault pathPrefix / 폴더 실측** | 검사 API·스크립트·PC 러너가 empty↔`Project_English` 시도·시드 | D1 러너 PASS 시 함께 닫힘. 앱 Path prefix에 통과한 값 저장 | D1과 같은 세션 |
 
 > 클라우드 에이전트는 `127.0.0.1:27123` / 사용자 Mac vault에 **접근 불가**. D1·D2는 PC 실행 전까지 “도구 준비됨 / 실측 미완”으로 둔다.
 
@@ -50,7 +50,7 @@
 
 ## 다음 작업 추천 순서
 
-1. **D1 → D2** — 사용자 PC에서 [`DAY_LOOP.md`](./DAY_LOOP.md) 순서대로 (연결 테스트 → Vault 폴더 검사 → 하루 루프)
+1. **D1 → D2** — Mac에서 `OBSIDIAN_API_KEY=... node scripts/run_day_loop_pc.js` ([`DAY_LOOP.md`](./DAY_LOOP.md)). 클라우드에서는 실행 불가.
 2. P2 항목은 요청 없이 구현하지 않음
 
 변경할 때마다 이 표의 해당 행 Status를 갱신한다.
