@@ -262,8 +262,36 @@
     .home-quest-primary { margin-top: 8px; }
     .home-quest-primary #questArea { margin-top: 14px; }
     .home-quest-primary #questArea > .card { margin: 0; }
-    .home-secondary { margin-top: 28px; }
-    .home-explore { margin-top: 28px; }
+    .home-more {
+      margin-top: 28px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255,255,255,.55);
+      padding: 4px 16px 16px;
+    }
+    .home-more > summary {
+      cursor: pointer;
+      list-style: none;
+      padding: 14px 4px;
+      font-weight: 850;
+      letter-spacing: -0.2px;
+    }
+    .home-more > summary::-webkit-details-marker { display: none; }
+    .home-more > summary::after {
+      content: '펼치기';
+      float: right;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+    .home-more[open] > summary::after { content: '접기'; }
+    .home-more .active-set-card { margin-top: 4px; }
+    .home-more .home-more-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
     .top-stats .stat-pill.aux {
       opacity: .72;
       font-weight: 700;
@@ -652,7 +680,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.1.7">v1.1.7</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.1.8">v1.1.8</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -678,7 +706,7 @@
       <div class="hero">
         <div class="eyebrow">English Thinking Dictionary</div>
         <h2>오늘 7분,<br>입으로 조립하세요.</h2>
-        <p>하루 루프는 듣고 → 말하고 → 조립 → 묻기·답하기입니다. 숙달 해금은 have → get → take 순으로 열립니다. Starter 표현 40개는 그 비중으로 섞여 있습니다.</p>
+        <p>듣고 → 말하고 → 조립 → 묻기·답하기. have → get → take 순으로 숙달합니다.</p>
         <div class="hero-actions">
           <button class="btn primary" id="startDaily">오늘의 7분 퀘스트 시작</button>
         </div>
@@ -696,7 +724,8 @@
         <div id="questArea" aria-live="polite"></div>
       </div>
 
-      <div class="home-secondary">
+      <details class="home-more" id="homeMorePanel">
+        <summary>범위 · 더 연습하기</summary>
         <article class="card active-set-card">
           <h3>지금 연습 중인 영어뇌</h3>
           <p id="activeSetCopy">제한된 만능동사·표현만 출제합니다. Vault·Library에 자료가 더 있어도 퀴즈 범위는 여기서만 넓어집니다.</p>
@@ -704,24 +733,13 @@
           <div class="mini-progress" style="margin-top:14px"><div class="progress-track"><span id="activeSetBar" style="width:0%"></span></div><strong id="activeSetPercent">0%</strong></div>
           <p class="small-note" id="activeSetUnlockHint" style="margin-top:10px">레벨업: 내 표현 비율이 임계값에 도달하면 Unlock pack이 열립니다.</p>
         </article>
-      </div>
-
-      <div class="home-explore">
-        <div class="section-head">
-          <div><h2>더 연습하기</h2><p>퀘스트 외에 모드를 고르거나, 동사 엔진 연결을 살펴봅니다.</p></div>
+        <div class="home-more-actions">
+          <button class="btn dark" type="button" id="jumpPlayFromHome">게임 모드</button>
+          <button class="btn soft" type="button" id="jumpDictionary">동사 카드</button>
+          <button class="btn soft" type="button" id="jumpPhrasalFromHome">구동사</button>
         </div>
-        <div class="grid cols-3" id="homeModes"></div>
-        <article class="card" style="margin-top:16px">
-          <h3>기본 엔진 연결</h3>
-          <p>한 동사가 여러 표현의 출발점입니다.</p>
-          <div id="homeConnectionChips" style="margin-top:14px; display:flex; flex-wrap:wrap; gap:8px;"></div>
-          <p class="small-note" id="connectionText" style="margin-top:12px">기본 엔진 get · 얻다 · 받다 · 도착하다 · 이해하다 · 상태가 되다</p>
-          <div class="hero-actions" style="margin-top:14px; justify-content:flex-start">
-            <button class="btn ghost" id="jumpDictionary" type="button">동사 카드 보기</button>
-          </div>
-        </article>
-        <p class="small-note" style="margin-top:12px">힌트 사다리는 한글 → 영어 조립 안의 보조 풀이로, 문장빌드맵은 동사 카드 안의 코너로 들어가 있어요.</p>
-      </div>
+        <p class="small-note" style="margin-top:12px">모드 카드·엔진 연결은 게임 모드와 동사 카드에 있습니다. 홈은 하루 루프만 붙잡습니다.</p>
+      </details>
     </section>
 
     <section id="play" class="screen">
@@ -1123,7 +1141,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.1.7';
+    const APP_CACHE_VERSION = 'etd-quest-v1.1.8';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const ProgressStoreApi = window.ProgressStore;
@@ -1197,6 +1215,7 @@
       audioSupported: true,
       naturalEnglishVoice: null,
       questContext: null,
+      lessonReturn: { screen: 'play', label: '← 게임 모드로', options: {} },
       questRestartConfirmOpen: false,
       listenSession: null,
     };
@@ -2381,9 +2400,57 @@
       }).join('');
       target.querySelectorAll('.next-practice-one').forEach(button => {
         button.addEventListener('click', () => {
-          startMode(button.dataset.mode || 'review', button.dataset.expressionId);
+          startMode(button.dataset.mode || 'review', button.dataset.expressionId, {
+            bankSource: 'next-practice',
+          });
         });
       });
+    }
+    function resolveLessonReturn(options = {}) {
+      if (options.returnScreen) {
+        return {
+          screen: options.returnScreen,
+          label: options.returnLabel || '← 뒤로',
+          options: options.returnOptions || {},
+        };
+      }
+      if (options.questContext?.source === 'dailyQuestV1' || options.bankSource === 'daily') {
+        return { screen: 'home', label: '← 오늘의 퀘스트로', options: {} };
+      }
+      if (options.bankSource === 'phrasal') {
+        return { screen: 'phrasal', label: '← 구동사로', options: {} };
+      }
+      if (options.bankSource === 'next-practice') {
+        return { screen: 'progress', label: '← 내 성장으로', options: {} };
+      }
+      if (options.bankSource === 'map') {
+        return { screen: 'map', label: '← 문장빌드맵으로', options: {} };
+      }
+      if (options.bankSource === 'dictionary') {
+        return {
+          screen: 'dictionary',
+          label: '← 동사 카드로',
+          options: { keepExplorerView: true },
+        };
+      }
+      return { screen: 'play', label: '← 게임 모드로', options: {} };
+    }
+    function applyLessonReturn(ret = appState.lessonReturn) {
+      const next = ret && ret.screen
+        ? {
+          screen: ret.screen,
+          label: ret.label || '← 뒤로',
+          options: ret.options || {},
+          phrasalGroupId: ret.phrasalGroupId || null,
+        }
+        : { screen: 'play', label: '← 게임 모드로', options: {}, phrasalGroupId: null };
+      appState.lessonReturn = next;
+      const btn = document.getElementById('exitLesson');
+      if (btn) btn.textContent = next.label || '← 뒤로';
+    }
+    function exitLessonToSource() {
+      const ret = appState.lessonReturn || { screen: 'play', options: {} };
+      showScreen(ret.screen || 'play', ret.options || {});
     }
     function startNextPracticeSession() {
       const queue = buildNextPracticeQueue();
@@ -2398,7 +2465,10 @@
       // One mode per lesson session — start the first queue item with its own mode.
       const first = queue[0];
       const mode = first.mode === 'matrix' ? 'matrix' : (first.mode || 'review');
-      startMode(mode, first.expressionId, mode === 'matrix' ? { matrixFormId: 'question' } : {});
+      startMode(mode, first.expressionId, {
+        bankSource: 'next-practice',
+        ...(mode === 'matrix' ? { matrixFormId: 'question' } : {}),
+      });
       toast(`Next Practice 시작 · ${queue.length}개 중 1번 (${nextPracticeReasonLabel(first.reason)})`);
     }
     function buildBrainExportPayload() {
@@ -2775,7 +2845,7 @@
       target.querySelectorAll('.practice-gap').forEach(button => button.addEventListener('click', () => {
         const expressionId = button.dataset.expressionId;
         if (!expressionId) return;
-        startMode('review', expressionId);
+        startMode('review', expressionId, { bankSource: 'next-practice' });
       }));
     }
     function renderExplanationsList() {
@@ -3531,7 +3601,10 @@
       }
       appState.dictionaryData.selectedExpressionId = expressionId;
       setDictionaryExplorerView('expressions');
-      startMode(mode || 'listen', expressionId);
+      const onMap = document.getElementById('map')?.classList.contains('active');
+      startMode(mode || 'listen', expressionId, {
+        bankSource: onMap ? 'map' : 'dictionary',
+      });
     }
     function startMapExamplePractice(english, mode = 'listen') {
       const normalized = normalize(english || '');
@@ -3546,7 +3619,10 @@
         return;
       }
       appState.dictionaryData.selectedExpressionId = item.id;
-      startMode(mode || 'listen', item.id);
+      const onMap = document.getElementById('map')?.classList.contains('active');
+      startMode(mode || 'listen', item.id, {
+        bankSource: onMap ? 'map' : 'dictionary',
+      });
     }
     function startMapExampleListen(english) {
       startMapExamplePractice(english, 'listen');
@@ -3947,6 +4023,17 @@
           }
           appState.selectedMode = mode;
           appState.questContext = Object.prototype.hasOwnProperty.call(options, 'questContext') ? options.questContext : null;
+          const bankSource = options.bankSource
+            || (appState.questContext?.source === 'dailyQuestV1' ? 'daily' : null)
+            || 'ass';
+          applyLessonReturn({
+            ...resolveLessonReturn({
+              ...options,
+              bankSource,
+              questContext: appState.questContext || options.questContext,
+            }),
+            phrasalGroupId: options.phrasalGroupId || null,
+          });
           const matrixOptions = mode === 'matrix'
             ? {
               formId: options.matrixFormId || appState.questContext?.matrixFormId || null,
@@ -3956,7 +4043,7 @@
             : {};
           const lessonOptions = {
             ...matrixOptions,
-            bankSource: isPhrasal ? 'phrasal' : 'ass',
+            bankSource: isPhrasal ? 'phrasal' : bankSource,
             phrasalGroupId: options.phrasalGroupId || null,
             bank: isPhrasal ? getPhrasalBank(options.phrasalGroupId || null) : null,
           };
@@ -4878,15 +4965,34 @@
         advanceQuestStep();
         return;
       }
+      const ret = appState.lessonReturn || { screen: 'play', label: '← 게임 모드로' };
       document.getElementById('lessonProgress').style.width = '100%';
       document.getElementById('questionCard').innerHTML = `
-        <div class="lesson-label">퀘스트 완료</div>
+        <div class="lesson-label">연습 완료</div>
         <h2>좋아요! 연결 하나를 더 만들었어요.</h2>
         <p class="korean">오늘 푼 문장을 소리 내어 한 번 더 읽으면 더 오래 남습니다. 내일은 약한 연결부터 다시 꺼내 드릴게요.</p>
-        <div class="question-actions"><button class="btn accent" id="againLesson">다른 퀘스트 계속하기</button><button class="btn dark" id="goProgress">내 성장 보기</button></div>`;
-      document.getElementById('againLesson').addEventListener('click', () => startMode(appState.selectedMode));
+        <div class="question-actions">
+          <button class="btn accent" id="againLesson" type="button">같은 모드 더하기</button>
+          <button class="btn soft" id="backFromLessonDone" type="button">${escapeHtml(ret.label || '← 돌아가기')}</button>
+          <button class="btn dark" id="goProgress" type="button">내 성장 보기</button>
+        </div>`;
+      document.getElementById('againLesson').addEventListener('click', () => {
+        startMode(appState.selectedMode, null, {
+          bankSource: ret.screen === 'phrasal' ? 'phrasal'
+            : ret.screen === 'progress' ? 'next-practice'
+            : ret.screen === 'map' ? 'map'
+            : ret.screen === 'dictionary' ? 'dictionary'
+            : ret.screen === 'home' ? 'daily'
+            : 'ass',
+          returnScreen: ret.screen,
+          returnLabel: ret.label,
+          returnOptions: ret.options,
+          phrasalGroupId: appState.lessonReturn?.phrasalGroupId,
+        });
+      });
+      document.getElementById('backFromLessonDone')?.addEventListener('click', () => exitLessonToSource());
       document.getElementById('goProgress').addEventListener('click', () => showScreen('progress'));
-      toast('퀘스트 완료! +연결 경험치');
+      toast('연습 완료! +연결 경험치');
     }
 
     function renderWords() {
@@ -5246,7 +5352,9 @@
             toast('아직 해금되지 않은 표현이에요.');
             return;
           }
-          startMode(button.dataset.mode || 'listen', button.dataset.expressionId);
+          startMode(button.dataset.mode || 'listen', button.dataset.expressionId, {
+            bankSource: 'dictionary',
+          });
         }));
         detail.querySelectorAll('.related-expression').forEach(button => button.addEventListener('click', () => {
           const related = data.expressions.find(expression => expression.id === button.dataset.expressionId);
@@ -5447,7 +5555,7 @@
       target.querySelectorAll('.review-one').forEach(btn => btn.addEventListener('click', () => {
         const item = getUnlockedBank().find(p => p.id === btn.dataset.id);
         if (!item) return;
-        appState.selectedMode = 'review'; appState.lessonItems=[item]; appState.currentIndex=0; showScreen('lesson'); renderQuestion();
+        startMode('review', item.id, { bankSource: 'next-practice' });
       }));
     }
     function naturalVoiceScore(voice) {
@@ -5584,7 +5692,9 @@
         document.querySelectorAll('.nav button').forEach(btn => btn.addEventListener('click', () => showScreen(btn.dataset.screen)));
     document.getElementById('startDaily').addEventListener('click', () => startQuest());
     document.getElementById('jumpDictionary').addEventListener('click', () => showScreen('dictionary'));
-    document.getElementById('exitLesson').addEventListener('click', () => showScreen('play'));
+    document.getElementById('jumpPlayFromHome')?.addEventListener('click', () => showScreen('play'));
+    document.getElementById('jumpPhrasalFromHome')?.addEventListener('click', () => showScreen('phrasal'));
+    document.getElementById('exitLesson').addEventListener('click', () => exitLessonToSource());
     document.getElementById('mapBackToDictionary')?.addEventListener('click', () => {
       appState.dictionaryData.selectedExplorerView = 'build';
       showScreen('dictionary', { keepExplorerView: true });
@@ -5638,7 +5748,6 @@
     initSoundEngine();
     prepareSpeechVoices();
     updateSoundToggle();
-    renderModeCards('homeModes', 4);
     renderModeCards('gameModes', modeCards.length);
     renderWords(); renderMap(); updateDashboard(); loadDictionaryExplorer();
     if (!window.location.hash) updateRouteForScreen('home', true);
