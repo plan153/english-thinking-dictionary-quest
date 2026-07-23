@@ -4,45 +4,70 @@
  */
 const { chromium } = require('playwright');
 const http = require('http');
-const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const PORT = 8767;
+const ROOT = path.join(__dirname, '../..');
+const PORT = Number(process.env.E2E_PORT || 8767);
 const BASE = `http://127.0.0.1:${PORT}`;
-const ARTIFACTS = '/opt/cursor/artifacts/qa-learner-profiles';
+const ARTIFACTS = process.env.E2E_ARTIFACT_DIR
+  || (fs.existsSync('/opt/cursor/artifacts')
+    ? '/opt/cursor/artifacts/qa-learner-profiles'
+    : path.join(ROOT, 'browser-smoke-artifacts/qa-learner-profiles'));
 
-async function waitForServer(url, tries = 40) {
-  for (let i = 0; i < tries; i += 1) {
+const MIME = {
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.webmanifest': 'application/manifest+json',
+};
+
+function createStaticServer(root, port) {
+  const server = http.createServer((req, res) => {
     try {
-      await new Promise((resolve, reject) => {
-        const req = http.get(url, res => {
-          res.resume();
-          if (res.statusCode && res.statusCode < 500) resolve();
-          else reject(new Error(`status ${res.statusCode}`));
-        });
-        req.on('error', reject);
-      });
-      return;
-    } catch {
-      await new Promise(r => setTimeout(r, 250));
+      const url = new URL(req.url || '/', `http://127.0.0.1:${port}`);
+      let rel = decodeURIComponent(url.pathname);
+      if (rel === '/') rel = '/index.html';
+      const filePath = path.join(root, rel.replace(/^\/+/, ''));
+      if (!filePath.startsWith(root) || !fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
+        res.writeHead(404);
+        res.end('not found');
+        return;
+      }
+      const ext = path.extname(filePath);
+      res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' });
+      fs.createReadStream(filePath).pipe(res);
+    } catch (error) {
+      res.writeHead(500);
+      res.end(String(error));
     }
-  }
-  throw new Error(`Server not ready: ${url}`);
+  });
+  return new Promise(resolve => {
+    server.listen(port, '127.0.0.1', () => resolve(server));
+  });
 }
 
 (async () => {
   fs.mkdirSync(ARTIFACTS, { recursive: true });
-  const server = spawn('python3', ['-m', 'http.server', String(PORT)], { cwd: '/workspace', stdio: 'ignore' });
-  await waitForServer(`${BASE}/index.html`);
-  const browser = await chromium.launch({ headless: true });
+  const server = await createStaticServer(ROOT, PORT);
+  const browser = await chromium.launch({ headless: true, args: ['--disable-dev-shm-usage'] });
   const context = await browser.newContext({ acceptDownloads: true });
+  await context.addInitScript(() => {
+    const sw = {
+      register: async () => ({ unregister: async () => true }),
+      getRegistrations: async () => [],
+      ready: Promise.resolve({ unregister: async () => true }),
+    };
+    Object.defineProperty(navigator, 'serviceWorker', { configurable: true, get: () => sw });
+  });
   const page = await context.newPage();
   const failures = [];
 
   try {
-    await page.goto(`${BASE}/index.html`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE}/index.html`, { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('#learnerPillName');
+    await page.waitForFunction(() => Number(document.getElementById('totalWords')?.textContent || 0) >= 40, null, { timeout: 20000 }).catch(() => {});
 
     const boot = await page.evaluate(() => ({
       pill: document.getElementById('learnerPillName')?.textContent,
@@ -61,7 +86,7 @@ async function waitForServer(url, tries = 40) {
       raw.successes = { e001: 3 };
       localStorage.setItem('etdQuestProgress:me', JSON.stringify(raw));
     });
-    await page.reload({ waitUntil: 'networkidle' });
+    await page.reload({ waitUntil: 'domcontentloaded' });
     await page.waitForSelector('#xp');
     const xpMe = await page.locator('#xp').innerText();
     if (xpMe.trim() !== '42') failures.push(`expected xp 42 got ${xpMe}`);
@@ -128,8 +153,8 @@ async function waitForServer(url, tries = 40) {
     failures.push(error.stack || String(error));
     try { await page.screenshot({ path: path.join(ARTIFACTS, 'error.png'), fullPage: true }); } catch {}
   } finally {
-    await browser.close();
-    server.kill('SIGTERM');
+    await browser.close().catch(() => {});
+    await new Promise(resolve => server.close(resolve));
   }
 
   if (failures.length) {

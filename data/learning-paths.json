@@ -22,6 +22,11 @@
         "id": "pack_2",
         "title": "Unlock pack 2",
         "expressionIds": ["e065", "e073", "e084", "e088", "e089", "e081", "e085", "e086", "e087"]
+      },
+      {
+        "id": "pack_3",
+        "title": "Unlock pack 3",
+        "expressionIds": ["e011", "e054", "e055", "e056", "e077", "e013", "e064", "e066", "e067"]
       }
     ],
     "verbUnlockPacks": [
@@ -40,6 +45,22 @@
         "expressionIds": ["e008", "e016", "e059", "e060"],
         "requiresMatrixGate": true,
         "note": "give 해금 후, give 매트릭스 4형태 통과 시 해금"
+      },
+      {
+        "id": "verb_pack_do",
+        "title": "동사 해금 · do",
+        "verbIds": ["v_do"],
+        "expressionIds": ["e017", "e049", "e050"],
+        "requiresMatrixGate": true,
+        "note": "be 해금 후, be 매트릭스 4형태 통과 시 해금"
+      },
+      {
+        "id": "verb_pack_put",
+        "title": "동사 해금 · put",
+        "verbIds": ["v_put"],
+        "expressionIds": ["e010", "e051", "e052", "e076"],
+        "requiresMatrixGate": true,
+        "note": "do 해금 후, do 매트릭스 4형태 통과 시 해금"
       }
     ],
     "unlockThreshold": 0.7,
