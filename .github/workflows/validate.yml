@@ -59,10 +59,16 @@ jobs:
         run: node scripts/smoke_browser_sync_next_practice.js
         env:
           SMOKE_ARTIFACT_DIR: browser-smoke-artifacts
+      - name: Day-loop smoke (lesson → gap → auto-sync → import → Next Practice)
+        run: node scripts/smoke_day_loop.js
+        env:
+          SMOKE_ARTIFACT_DIR: day-loop-smoke-artifacts
       - name: Upload smoke artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: browser-smoke
-          path: browser-smoke-artifacts/
+          path: |
+            browser-smoke-artifacts/
+            day-loop-smoke-artifacts/
           if-no-files-found: ignore

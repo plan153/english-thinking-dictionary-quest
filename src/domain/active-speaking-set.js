@@ -30,6 +30,8 @@
       { id: 'verb_pack_be', title: '동사 해금 · be', verbIds: ['v_be'], expressionIds: ['e008', 'e016', 'e059', 'e060'] },
       { id: 'verb_pack_do', title: '동사 해금 · do', verbIds: ['v_do'], expressionIds: ['e017', 'e049', 'e050'] },
       { id: 'verb_pack_put', title: '동사 해금 · put', verbIds: ['v_put'], expressionIds: ['e010', 'e051', 'e052', 'e076'] },
+      { id: 'verb_pack_keep', title: '동사 해금 · keep', verbIds: ['v_keep'], expressionIds: ['e011', 'e054', 'e055', 'e056', 'e077'] },
+      { id: 'verb_pack_find', title: '동사 해금 · find', verbIds: ['v_find'], expressionIds: ['e012', 'e057', 'e058', 'e063'] },
     ],
     unlockThreshold: 0.7,
     masteryThreshold: 3,
