@@ -33,3 +33,11 @@ node scripts/smoke_day_loop.js
 ```
 
 CI: `.github/workflows/validate.yml` → `browser-smoke` job에서 day-loop smoke도 실행합니다.
+
+## 아직 안 한 것 (BACKLOG D1)
+
+- [ ] **실기기** Obsidian Local REST + 실제 Vault로 위 체크리스트 한 바퀴 통과 확인
+- [ ] `pathPrefix`(예: `Project_English`)가 사용자 vault와 일치하는지 확인
+- [ ] 실패 시 앱 토스트·실패 큐·Gaps 경로 로그를 보고 보정
+
+클라우드/CI는 mock만 검증한다. 미완 항목 SoT: [`BACKLOG.md`](./BACKLOG.md) D1·D2.

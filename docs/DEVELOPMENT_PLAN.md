@@ -62,15 +62,26 @@
 
 ### 아직 없거나 불완전한 것
 
-1. Drive webhook은 백업 POST만. Google OAuth를 정적 앱에 넣지 않는다.
-2. Local REST·Bridge upsert/import/실패 큐가 동작한다. Brain State import는 weakSlots 소프트 힌트만(진행 숫자 불변).
-3. Progress.md / Explanations의 Vault→앱 완전 역동기화는 하지 않는다(앱 SoT).
+> **전체 보류·미구현 목록은 [`BACKLOG.md`](./BACKLOG.md)가 SoT다.** 아래는 요약.
+
+1. Drive webhook은 백업 POST만. Google OAuth를 정적 앱에 넣지 않는다. → BACKLOG P2c
+2. Local REST·Bridge는 동작. **실 Mac Obsidian vault day loop 검증은 미완** → BACKLOG D1
+3. Progress.md / Explanations의 Vault→앱 완전 역동기화는 하지 않는다(앱 SoT). → P2b
 4. Conflict policy는 시각·필드 단위 테스트로 고정.
-5. 그래프 연습 바로가기는 듣기/말하기/koen/matrix까지 동작. explain은 모드 카드에서.
-6. 동사 매트릭스 4형태 게이트로 `verbUnlockPacks`가 have→get→take→나머지→give→be→do→put→keep→find 순차 해금된다. 표현 Unlock pack(`pack_1`–`pack_3`)과 별개.
-7. Canon → JSON 후보 번들/Unlock 대기열은 동작한다. `data/expressions.json` 자동 병합은 하지 않는다(리뷰 후 수동).
-8. 로컬 학습자 프로필: `etdQuestProgress:<learnerId>` + Vault `Learners/<id>/Learning|Gaps`. Library는 공유.
-9. 열린 draft PR(#3, #8–#18)은 tip(#19 등)에 흡수됨. 사람이 GitHub에서 superseded로 닫으면 C0 완료.
+5. 그래프 연습 바로가기: explain은 아직 맵에서 없음 → F5
+6. 동사 매트릭스 게이트 have→get→take→… 구현됨. 구동사 **그룹 순차 해금·입자 드릴**은 얕음 → F1
+7. Canon → JSON 후보/Unlock 대기열만. `expressions.json` 자동 병합 안 함 → P2a
+8. 로컬 학습자 프로필 + Learners 경로 동작.
+9. 열린 draft PR(#3, #8–#18) superseded 종료는 사람 작업 → O1
+10. IA 2차(홈 더 단순화·레슨 복귀 동선), Gap→Draft 품질 → F2·F4
+
+### 다음에 구현할 것 (우선순위)
+
+1. D1 — 실 Obsidian day loop 검증·보정 ([`DAY_LOOP.md`](./DAY_LOOP.md), [`BACKLOG.md`](./BACKLOG.md))
+2. F1 — 구동사 심화 (그룹 순차 해금, 선택적 입자/매트릭스)
+3. F2 — IA 2차 정리
+4. F3–F5 — 숙달 신호·Draft 품질·explain 바로가기
+5. P2 정책 항목은 요청 없이 구현하지 않음
 
 ## 확정된 충돌·원본 정책
 
@@ -109,7 +120,7 @@
 - [x] `progressStorageKey`를 `appState` 생성 전에 선언해 새로고침 시 진행도 유실을 막는다.
 - [x] 홈에 `#questArea`를 연결해 데일리 퀘스트 시작/이어하기 UI가 실제로 보이게 한다.
 - [x] 홈 첫 구간: 히어로(한 줄 목표) + 오늘의 퀘스트만. Active set·연결·모드 그리드는 아래 구간.
-- [x] 데일리 카피를 실제 7스텝(듣기→말하기→장면×2→조립→매트릭스 맛보기→복습)과 맞춘다.
+- [x] 데일리 카피를 실제 7스텝(daily v4: 듣기→말하기→조립→매트릭스2→장면→말하기)과 맞춘다. (구식 “장면×2” 문구는 폐기)
 - [x] 해금 카피: “레벨업 = 팩 해금(내 표현 %)”만. 동사 4형태·레벨테스트는 이후 게이트로만 문서화.
 
 ### Cleanup C3 — 내 표현·숙달 신호 통일
@@ -195,7 +206,7 @@
 
 ## 다른 LLM을 위한 확인 순서
 
-1. 이 문서(Cleanup + Phase) → `ACTIVE_SPEAKING_SET.md` → `OBSIDIAN_VAULT_EVOLUTION.md`(폴더 SoT) → `OBSIDIAN_ENGLISH_BRAIN_SYNC.md`(동기화 규칙) → `OBSIDIAN_VAULT_WORD_LINKING_PLAN.md`.
+1. 이 문서(Cleanup + Phase) → **`BACKLOG.md`(미구현 SoT)** → `ACTIVE_SPEAKING_SET.md` → `OBSIDIAN_VAULT_EVOLUTION.md`(폴더 SoT) → `OBSIDIAN_ENGLISH_BRAIN_SYNC.md`(동기화 규칙) → `OBSIDIAN_VAULT_WORD_LINKING_PLAN.md`.
 2. `DATA_MODEL.md`와 `CHAPTER_1_SPEC.md`에서 진행·복습 규칙을 확인한다.
 3. `index.html`의 `defaultProgress`, `markStudy`, daily quest 루프, `isMineExpression`, `getUnlockedBank`를 확인한다.
 4. Obsidian 관련 코드가 추가되면 `obsidian-sync.js`, Markdown projection, 브리지/REST adapter 스키마를 유지한다.
@@ -204,5 +215,7 @@
 ## 이 문서를 이어받는 LLM에게 남기는 작업 메모
 
 - 사용자 목표는 “3~4세급 쉬운 말로 시작해, 제한된 만능동사·핵심명사로 실제 말이 되게 만들고, 그 기록이 Obsidian 영어뇌에 남아 다시 앱 학습 재료가 되는 구조”다.
-- Phase 0–5 + Feynman + Bridge/conflict + Drive webhook + Next Practice + Brain soft import + 그래프 바로가기 + watchlist + mapSets + verb have→get→take gate + daily v4 + **구동사 메뉴** + day-loop guide까지 구현됨.
-- 실제 Obsidian day loop는 [`DAY_LOOP.md`](./DAY_LOOP.md). 성장 화면에 체크리스트 UI. CI는 mock Local REST로 동일 경로를 검증한다.
+- Phase 0–5 + Feynman + Bridge/conflict + Drive webhook + Next Practice + Brain soft import + 그래프 바로가기 + watchlist + mapSets + verb have→get→take gate + daily v4 + **구동사 메뉴** + day-loop guide까지 구현됨 (tip **v1.1.7**).
+- **미구현·보류 SoT = [`BACKLOG.md`](./BACKLOG.md).** 새 작업 전 반드시 읽고 D1→F1→F2 순을 기본으로 한다.
+- 실제 Obsidian day loop 절차는 [`DAY_LOOP.md`](./DAY_LOOP.md). CI는 mock Local REST만 검증한다 — **실 vault 검증(D1)은 아직이다.**
+- 클라우드 에이전트는 사용자 Mac vault(`/Users/.../Project_English`)에 접근할 수 없다. D1은 사용자 협조 또는 사용자가 연 로컬 세션에서만 닫힌다.
