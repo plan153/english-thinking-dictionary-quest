@@ -20,7 +20,7 @@ assert.deepStrictEqual(config.unlockPacks.map(p => p.id), ['pack_1', 'pack_2', '
 assert.strictEqual(config.unlockPacks[2].expressionIds.length, 9);
 assert.deepStrictEqual(
   config.verbUnlockPacks.map(p => p.id),
-  ['verb_pack_give', 'verb_pack_be', 'verb_pack_do', 'verb_pack_put']
+  ['verb_pack_give', 'verb_pack_be', 'verb_pack_do', 'verb_pack_put', 'verb_pack_keep', 'verb_pack_find']
 );
 
 const expressionIds = new Set(expressions.map(item => item.id));
@@ -39,7 +39,7 @@ assert.ok(withPack3.includes('e011'));
 assert.ok(withPack3.includes('e067'));
 
 const matrices = qaMatrices.matrices || [];
-for (const id of ['m_give_a_second', 'm_be_ready', 'm_do_it_now', 'm_put_it_here']) {
+for (const id of ['m_give_a_second', 'm_be_ready', 'm_do_it_now', 'm_put_it_here', 'm_keep_going', 'm_find_it']) {
   assert.ok(matrices.some(m => m.id === id), `missing matrix ${id}`);
 }
 
@@ -77,6 +77,21 @@ assert.deepStrictEqual(synced.announce.map(a => a.packId), ['verb_pack_put']);
 assert.ok(gate.getUnlockedVerbIds(config, synced.curriculum).includes('v_put'));
 assert.ok(gate.getUnlockedVerbExpressionIds(config, synced.curriculum).includes('e010'));
 
+curriculum = passVerb(synced.curriculum, 'v_put');
+synced = gate.syncVerbUnlock(curriculum, config, matrices, { collectAnnounce: true });
+assert.strictEqual(synced.unlockedVerbPackCount, 5, 'put → keep');
+assert.deepStrictEqual(synced.announce.map(a => a.packId), ['verb_pack_keep']);
+assert.ok(gate.getUnlockedVerbIds(config, synced.curriculum).includes('v_keep'));
+assert.ok(gate.getUnlockedVerbExpressionIds(config, synced.curriculum).includes('e054'));
+assert.strictEqual(gate.getUnlockedVerbExpressionIds(config, synced.curriculum).includes('e057'), false, 'find still locked');
+
+curriculum = passVerb(synced.curriculum, 'v_keep');
+synced = gate.syncVerbUnlock(curriculum, config, matrices, { collectAnnounce: true });
+assert.strictEqual(synced.unlockedVerbPackCount, 6, 'keep → find');
+assert.deepStrictEqual(synced.announce.map(a => a.packId), ['verb_pack_find']);
+assert.ok(gate.getUnlockedVerbIds(config, synced.curriculum).includes('v_find'));
+assert.ok(gate.getUnlockedVerbExpressionIds(config, synced.curriculum).includes('e057'));
+
 const unlockedBank = withPack3.map(id => {
   const row = expressions.find(item => item.id === id);
   return { id, coreVerbId: row.coreVerbId, nounIds: row.nounIds || [], en: row.english, english: row.english };
@@ -96,4 +111,4 @@ const queue = next.buildQueue({
 assert.strictEqual(queue.length, 1);
 assert.strictEqual(queue[0].expressionId, 'e011');
 
-console.log('✅ unlock packs + verb do/put + Next Practice smoke passed');
+console.log('✅ unlock packs + verb keep/find + Next Practice smoke passed');

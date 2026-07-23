@@ -256,6 +256,38 @@
         { "id": "past", "label": "과거", "en": "I put it here.", "ko": "여기에 놨어요.", "cue": "과거로 바꿔 보세요", "baseFormId": "statement", "level": 2 },
         { "id": "future", "label": "가까운 미래", "en": "I'm going to put it here.", "ko": "여기에 놓을 거예요.", "cue": "가까운 미래로 바꿔 보세요", "baseFormId": "statement", "level": 2, "acceptedAnswers": ["I am going to put it here."] }
       ]
+    },
+    {
+      "id": "m_keep_going",
+      "baseExpressionId": "e011",
+      "coreVerbId": "v_keep",
+      "label": "keep + going",
+      "thinkingFrame": "계속하라고 말하기·묻기",
+      "forms": [
+        { "id": "statement", "label": "평서", "en": "Keep going.", "ko": "계속 하세요.", "cue": "평서문으로 말해 보세요", "acceptedAnswers": ["Keep going on."] },
+        { "id": "question", "label": "의문", "en": "Can you keep going?", "ko": "계속할 수 있어요?", "cue": "의문문으로 바꿔 보세요", "baseFormId": "statement", "acceptedAnswers": ["Will you keep going?"] },
+        { "id": "negative", "label": "부정", "en": "I can't keep going.", "ko": "더는 못 하겠어요.", "cue": "부정문으로 바꿔 보세요", "baseFormId": "statement", "acceptedAnswers": ["I cannot keep going.", "I won't keep going."] },
+        { "id": "shortYes", "label": "짧은 답", "en": "Yes, I can.", "ko": "네, 계속할게요.", "cue": "짧게 긍정으로 답해 보세요", "baseFormId": "question", "acceptedAnswers": ["Yes, I will."] },
+        { "id": "shortNo", "label": "짧은 답", "en": "No, I can't.", "ko": "아니요, 힘들어요.", "cue": "짧게 부정으로 답해 보세요", "baseFormId": "question", "acceptedAnswers": ["No, I cannot.", "No, I won't."] },
+        { "id": "past", "label": "과거", "en": "I kept going.", "ko": "계속했어요.", "cue": "과거로 바꿔 보세요", "baseFormId": "statement", "level": 2 },
+        { "id": "future", "label": "가까운 미래", "en": "I'm going to keep going.", "ko": "계속할 거예요.", "cue": "가까운 미래로 바꿔 보세요", "baseFormId": "statement", "level": 2, "acceptedAnswers": ["I am going to keep going."] }
+      ]
+    },
+    {
+      "id": "m_find_it",
+      "baseExpressionId": "e012",
+      "coreVerbId": "v_find",
+      "label": "find + it",
+      "thinkingFrame": "찾았다고 말하기·묻기",
+      "forms": [
+        { "id": "statement", "label": "평서", "en": "I found it.", "ko": "찾았어요.", "cue": "평서문으로 말해 보세요", "acceptedAnswers": ["I find it."] },
+        { "id": "question", "label": "의문", "en": "Did you find it?", "ko": "찾았어요?", "cue": "의문문으로 바꿔 보세요", "baseFormId": "statement", "acceptedAnswers": ["Have you found it?", "Can you find it?"] },
+        { "id": "negative", "label": "부정", "en": "I didn't find it.", "ko": "못 찾았어요.", "cue": "부정문으로 바꿔 보세요", "baseFormId": "statement", "acceptedAnswers": ["I did not find it.", "I can't find it.", "I cannot find it."] },
+        { "id": "shortYes", "label": "짧은 답", "en": "Yes, I did.", "ko": "네, 찾았어요.", "cue": "짧게 긍정으로 답해 보세요", "baseFormId": "question", "acceptedAnswers": ["Yes, I have.", "Yes, I can."] },
+        { "id": "shortNo", "label": "짧은 답", "en": "No, I didn't.", "ko": "아니요, 못 찾았어요.", "cue": "짧게 부정으로 답해 보세요", "baseFormId": "question", "acceptedAnswers": ["No, I did not.", "No, I haven't.", "No, I can't."] },
+        { "id": "past", "label": "과거", "en": "I found it yesterday.", "ko": "어제 찾았어요.", "cue": "과거로 바꿔 보세요", "baseFormId": "statement", "level": 2 },
+        { "id": "future", "label": "가까운 미래", "en": "I'm going to find it.", "ko": "찾을 거예요.", "cue": "가까운 미래로 바꿔 보세요", "baseFormId": "statement", "level": 2, "acceptedAnswers": ["I am going to find it."] }
+      ]
     }
   ]
 }

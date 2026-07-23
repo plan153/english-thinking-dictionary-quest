@@ -5,6 +5,7 @@
 관련 문서:
 
 - [`ACTIVE_SPEAKING_SET.md`](./ACTIVE_SPEAKING_SET.md) — 3~4세급 Active Speaking Set(ASS)과 해금 규칙
+- [`DAY_LOOP.md`](./DAY_LOOP.md) — 앱↔Obsidian 하루 루프 체크리스트 (간극→sync→Next Practice)
 - [`OBSIDIAN_ENGLISH_BRAIN_SYNC.md`](./OBSIDIAN_ENGLISH_BRAIN_SYNC.md) — Obsidian 영어뇌 양방향 동기화(규칙·adapter)
 - [`OBSIDIAN_VAULT_EVOLUTION.md`](./OBSIDIAN_VAULT_EVOLUTION.md) — Vault 폴더 계약 SoT (Library 정원 + Learners)
 - [`OBSIDIAN_VAULT_WORD_LINKING_PLAN.md`](./OBSIDIAN_VAULT_WORD_LINKING_PLAN.md) — Vault 단어 overlay와 연결 정책
@@ -44,7 +45,7 @@
 11. **Phase 3 Local REST**: `src/domain/obsidian-sync.js`로 upsert·import·실패 큐·설정 UI.
 12. **Learners 경로**: 로그인 없이 공책 전환, export/sync 개인 루트 `Learners/<id>/…`, Library 공유 유지.
 13. **Canon 편입 도구**: 승인 Draft → JSON 후보 번들 / Unlock 대기열(자동 출제 없음).
-14. **동사 매트릭스 4형태 게이트**: 현재 해금 동사 4형태 통과 시 다음 동사 팩 순차 해금 (give → be → do → put).
+14. **동사 매트릭스 4형태 게이트**: 현재 해금 동사 4형태 통과 시 다음 동사 팩 순차 해금 (give → be → do → put → keep → find).
 15. **Phase 4 Vault overlay**: `vault-overlay.js` + 동사 카드 `Vault 연결` 탭. Local REST로 Library/legacy 노트 매칭 → 확정/watchlist/숨기기. 퀴즈 은행 불변.
 16. **파인만 설명 챌린지**: 모드 `explain` — Active set 제한 어휘로 설명, `explanations` + `Learning/Explanations/*.md`.
 17. **Conflict 시각 병합 + Bridge adapter**: Gap 본문은 `updatedAt` 비교(동률·없음은 Vault 우선). `bridge`(:8787)는 Local REST와 동일 `/vault` 계약.
@@ -66,7 +67,7 @@
 3. Progress.md / Explanations의 Vault→앱 완전 역동기화는 하지 않는다(앱 SoT).
 4. Conflict policy는 시각·필드 단위 테스트로 고정.
 5. 그래프 연습 바로가기는 듣기/말하기/koen/matrix까지 동작. explain은 모드 카드에서.
-6. 동사 매트릭스 4형태 게이트로 `verbUnlockPacks`가 give→be→do→put 순차 해금된다. 표현 Unlock pack(`pack_1`–`pack_3`)과 별개.
+6. 동사 매트릭스 4형태 게이트로 `verbUnlockPacks`가 give→be→do→put→keep→find 순차 해금된다. 표현 Unlock pack(`pack_1`–`pack_3`)과 별개.
 7. Canon → JSON 후보 번들/Unlock 대기열은 동작한다. `data/expressions.json` 자동 병합은 하지 않는다(리뷰 후 수동).
 8. 로컬 학습자 프로필: `etdQuestProgress:<learnerId>` + Vault `Learners/<id>/Learning|Gaps`. Library는 공유.
 9. 열린 draft PR(#3, #8–#18)은 tip(#19 등)에 흡수됨. 사람이 GitHub에서 superseded로 닫으면 C0 완료.
@@ -121,7 +122,7 @@
 
 - [x] 학습자 프로필 머지 시 export 루트를 `Learners/<id>/Learning|Gaps`로 이전.
 - [x] Canon → Unlock 후보/JSON 편입 도구(수동 리뷰 후, 자동 출제 없음).
-- [x] 동사 매트릭스 4형태 통과 시 새 동사 순차 해금 (give → be → do → put).
+- [x] 동사 매트릭스 4형태 통과 시 새 동사 순차 해금 (give → be → do → put → keep → find).
 - [x] conflict 시각·필드 단위 테스트 보강 · Bridge adapter.
 - [x] `index.html`에서 progress/ASS/export 모듈 분리(동작 동일 유지).
 
@@ -198,10 +199,10 @@
 2. `DATA_MODEL.md`와 `CHAPTER_1_SPEC.md`에서 진행·복습 규칙을 확인한다.
 3. `index.html`의 `defaultProgress`, `markStudy`, daily quest 루프, `isMineExpression`, `getUnlockedBank`를 확인한다.
 4. Obsidian 관련 코드가 추가되면 `obsidian-sync.js`, Markdown projection, 브리지/REST adapter 스키마를 유지한다.
-5. 변경 후 `python3 scripts/validate.py`와 브라우저 smoke를 실행한다.
+5. 변경 후 `python3 scripts/validate.py`, unit tests, `scripts/smoke_browser_sync_next_practice.js`, `scripts/smoke_day_loop.js`를 실행한다.
 
 ## 이 문서를 이어받는 LLM에게 남기는 작업 메모
 
 - 사용자 목표는 “3~4세급 쉬운 말로 시작해, 제한된 만능동사·핵심명사로 실제 말이 되게 만들고, 그 기록이 Obsidian 영어뇌에 남아 다시 앱 학습 재료가 되는 구조”다.
-- Phase 0–5 + Feynman + Bridge/conflict + Drive webhook + Next Practice 세션 + Brain soft import + 그래프 바로가기 + watchlist 연동 + mapSets 분리까지 구현됨.
-- tip(#19)은 main에 있음. 하위 draft(#3,#8–#18)는 superseded로 닫아 C0를 마무리하면 된다.
+- Phase 0–5 + Feynman + Bridge/conflict + Drive webhook + Next Practice + Brain soft import + 그래프 바로가기 + watchlist + mapSets + verb keep/find + day-loop smoke까지 구현됨.
+- 실제 Obsidian day loop는 [`DAY_LOOP.md`](./DAY_LOOP.md). CI는 mock Local REST로 동일 경로를 검증한다.
