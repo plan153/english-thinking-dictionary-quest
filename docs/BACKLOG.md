@@ -7,12 +7,20 @@
 ## P0 — 사용자 기기(PC/Mac) · **나중에 진행 (보류)**
 
 > **보류 확정:** 2026-07-23 사용자가 두 차례 지시 — D1·D2는 **지금 하지 않고 나중에**.  
-> 클라우드에서는 `127.0.0.1:27123` 미접속. 도구(`run_day_loop_pc.js`)만 준비됨.
+> 클라우드에서는 `127.0.0.1:27123` 미접속. 도구(`run_day_loop_pc.js`)만 준비됨.  
+> **Vault 경로 확정 (사용자):** Mac Mini `~/Obsidian Vault/Project_English`  
+> (`mini`는 컴퓨터 이름 — 폴더 경로에 넣지 않음.)
 
 | ID | 항목 | 현재 상태 | 나중에 할 일 |
 | --- | --- | --- | --- |
-| D1 | **실제 Obsidian day loop** | **보류·나중에** · 러너 준비됨 | Mac에서 `OBSIDIAN_API_KEY=... node scripts/run_day_loop_pc.js` |
-| D2 | **Vault pathPrefix / 폴더 실측** | **보류·나중에** (D1과 함께) | 위 러너 PASS 시 함께 닫힘 |
+| D1 | **실제 Obsidian day loop** | **보류·나중에** · 러너 준비됨 | Mac에서 Local REST 켠 뒤 `OBSIDIAN_API_KEY=... node scripts/run_day_loop_pc.js` |
+| D2 | **Vault pathPrefix / 폴더 실측** | **보류·나중에** (D1과 함께) | pathPrefix **비움** 확인(성장→동기화) + 폴더 계약 검사 PASS |
+
+### D1/D2 나중에 체크리스트 (Mac Mini)
+
+1. Obsidian에서 `~/Obsidian Vault/Project_English` vault 열기 + Local REST API 플러그인 ON (HTTP `27123`)
+2. 앱 성장 → 동기화: adapter=`local-rest`, Base URL=`http://127.0.0.1:27123`, API Key 붙여넣기, **Path prefix 비움** → 저장 → 연결 테스트
+3. `OBSIDIAN_API_KEY='...' node scripts/run_day_loop_pc.js` (pathPrefix 비움이 맞으면 그대로)
 
 ## P1 — 제품 기능 (앱 코드)
 
@@ -49,7 +57,7 @@
 
 ## 다음 작업 추천 순서
 
-1. **D1 → D2** — 보류·다음에 (PC)
+1. **D1 → D2** — 보류·다음에 (Mac Mini · vault=`~/Obsidian Vault/Project_English` · pathPrefix 비움)
 2. P2 토글을 끄고 쓰려면 성장 화면 정책 체크박스
 
 변경할 때마다 이 표의 Status를 갱신한다.
