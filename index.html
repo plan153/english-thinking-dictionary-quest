@@ -652,7 +652,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.1.4">v1.1.4</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.1.5">v1.1.5</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -678,7 +678,7 @@
       <div class="hero">
         <div class="eyebrow">English Thinking Dictionary</div>
         <h2>작은 세트만,<br>입으로 조립하세요.</h2>
-        <p>지금은 만능동사 8개 Active Speaking Set만 연습합니다. 듣고 → 따라 말하고 → 조립하면, 내 표현이 쌓일수록 다음 묶음이 열립니다.</p>
+        <p>지금은 만능동사 8개 Active Speaking Set만 연습합니다. 단일동사는 have·get·take 비중을 크게 두고 연습합니다. 듣고 → 따라 말하고 → 조립하면, 내 표현이 쌓일수록 다음 묶음이 열립니다.</p>
         <div class="hero-actions">
           <button class="btn primary" id="startDaily">오늘의 7분 퀘스트 시작</button>
         </div>
@@ -1091,7 +1091,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.1.4';
+    const APP_CACHE_VERSION = 'etd-quest-v1.1.5';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const ProgressStoreApi = window.ProgressStore;
@@ -1311,6 +1311,11 @@
     function getDailyQuestStepToken(step) {
       return `quest:${step.key}`;
     }
+    function getVerbCurriculumWeight(verbId) {
+      const weights = getActiveSpeakingSetConfig()?.verbCurriculumWeights || {};
+      const value = Number(weights[verbId]);
+      return Number.isFinite(value) ? value : 0.02;
+    }
     function scoreDailyQuestCandidate(item, recent, seenToday, previousDayIds) {
       const history = getHistory(item.id);
       const emptyPieces = ['recognition', 'assembly', 'output'].filter(key => (history.connections?.[key]?.strength || 0) === 0).length;
@@ -1323,6 +1328,8 @@
       else if (priority > 5) score += 8;
       else if (weakSuccess || hintHeavy) score += 5;
       else if (!allStrong) score += 3;
+      // Single-verb curriculum mix: have 40% · get 25% · take 15% · rest 20%.
+      score += getVerbCurriculumWeight(item.coreVerbId) * 20;
       if (recent.has(item.id)) score -= 2;
       if (seenToday.has(item.id)) score = -1000;
       if (previousDayIds.has(item.id)) score -= 1;
@@ -1700,7 +1707,7 @@
                   appState.dictionaryData.selectedExplorerView = 'expressions';
                 }
               }
-              if (route.view && ['legacy', 'verbs', 'expressions', 'build'].includes(route.view)) {
+              if (route.view && ['legacy', 'verbs', 'expressions', 'build', 'vault'].includes(route.view)) {
                 appState.dictionaryData.selectedExplorerView = route.view;
               } else if (!route.id && !appState.dictionaryData.selectedExplorerView) {
                 appState.dictionaryData.selectedExplorerView = 'legacy';

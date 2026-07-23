@@ -72,6 +72,16 @@ def main() -> None:
             if expression_id not in expression_ids:
                 fail(f"activeSpeakingSet verbUnlockPack references unknown expressionId: {expression_id}")
 
+    weights = active_set.get("verbCurriculumWeights") or {}
+    if weights:
+        for verb_id in weights:
+            if verb_id not in verb_ids:
+                fail(f"verbCurriculumWeights references unknown verbId: {verb_id}")
+        weight_sum = sum(float(v) for v in weights.values())
+        if abs(weight_sum - 1.0) > 0.05:
+            fail(f"verbCurriculumWeights should sum near 1.0 (got {weight_sum})")
+
+
     qa_matrices_path = ROOT / "data" / "qa-matrices.json"
     if not qa_matrices_path.exists():
         fail("Required file is missing: data/qa-matrices.json")
