@@ -24,7 +24,10 @@ const loaded = progress.loadProgress('me', { storage: memory });
 assert.strictEqual(loaded.xp, 12);
 
 const cfg = ass.normalizeAssConfig(null);
-assert.strictEqual(cfg.verbIds.length, 8);
+assert.strictEqual(cfg.verbIds.length, 1);
+assert.strictEqual(cfg.verbIds[0], 'v_have');
+assert.ok(cfg.verbUnlockPacks.map(p => p.id).includes('verb_pack_get'));
+assert.ok(cfg.verbUnlockPacks.map(p => p.id).includes('verb_pack_take'));
 const unlocked = ass.listUnlockedExpressionIds(cfg, { unlockedPackCount: 0 }, { includeVerbPacks: false });
 assert.strictEqual(unlocked.length, 40);
 assert.ok(ass.isExpressionInUnlockedSet('e001', cfg, { unlockedPackCount: 0 }));

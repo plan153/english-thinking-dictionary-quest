@@ -111,6 +111,7 @@
         unlockedVerbPackCount: 0,
         lastUnlockAt: null,
         lastVerbUnlockAt: null,
+        verbGateSchemaVersion: 2,
         matrixFormSuccess: {},
       },
       gapNotes: [],

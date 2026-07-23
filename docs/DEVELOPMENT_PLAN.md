@@ -39,13 +39,13 @@
 5. 콘텐츠 원본은 `data/*.json`이며 `python3 scripts/validate.py`로 검증한다.
 6. Active Speaking Set Starter(동사 8·표현 40)가 `learning-paths.json`에 고정되어 있고, `getUnlockedBank()`가 퀴즈·데일리 퀘스트·복습·의미 선택지를 제한한다.
 7. **내 표현** = 연결도 3축 강함 **또는** 성공 ≥ masteryThreshold. 비율 70%면 다음 Unlock pack(`pack_1`–`pack_3`)이 해금된다. 홈/성장에 Active set 요약이 표시된다.
-8. 묻기·답하기·시제 매트릭스 모드(`matrix`)가 Active set 표현군 12개에 대해 평서/의문/부정/짧은 답/과거/가까운 미래를 연습한다. 오늘의 퀘스트 6번째 스텝은 **의문 형태 맛보기**다.
+8. 묻기·답하기·시제 매트릭스 모드(`matrix`)가 Active set 표현군에 대해 평서/의문/부정/짧은 답/과거/가까운 미래를 연습한다. 오늘의 퀘스트는 **의문 + (부정|짧은 답)** 두 형태를 넣고, enko MCQ는 1회로 줄인다.
 9. `gapNotes` 로컬 저장, 퀴즈 결과의 간극 기록 UI, Obsidian Markdown projection(`src/domain/markdown-projection.js`)과 내보내기가 동작한다. 열린 간극은 복습 우선순위에 +2 반영된다.
 10. Vault **Library 정원**: Gap → `expressionDrafts` → `Library/Drafts` export, 체크리스트 승격 시 `Library/Canon`. Canon이 곧장 퀴즈 은행에 들어가지는 않는다.
 11. **Phase 3 Local REST**: `src/domain/obsidian-sync.js`로 upsert·import·실패 큐·설정 UI.
 12. **Learners 경로**: 로그인 없이 공책 전환, export/sync 개인 루트 `Learners/<id>/…`, Library 공유 유지.
 13. **Canon 편입 도구**: 승인 Draft → JSON 후보 번들 / Unlock 대기열(자동 출제 없음).
-14. **동사 매트릭스 4형태 게이트**: 현재 해금 동사 4형태 통과 시 다음 동사 팩 순차 해금 (give → be → do → put → keep → find).
+14. **동사 매트릭스 4형태 게이트**: 현재 해금 동사 4형태 통과 시 다음 동사 팩 순차 해금 (have → get → take → 나머지 → give → be → do → put → keep → find).
 15. **Phase 4 Vault overlay**: `vault-overlay.js` + 동사 카드 `Vault 연결` 탭. Local REST로 Library/legacy 노트 매칭 → 확정/watchlist/숨기기. 퀴즈 은행 불변.
 16. **파인만 설명 챌린지**: 모드 `explain` — Active set 제한 어휘로 설명, `explanations` + `Learning/Explanations/*.md`.
 17. **Conflict 시각 병합 + Bridge adapter**: Gap 본문은 `updatedAt` 비교(동률·없음은 Vault 우선). `bridge`(:8787)는 Local REST와 동일 `/vault` 계약.
@@ -67,7 +67,7 @@
 3. Progress.md / Explanations의 Vault→앱 완전 역동기화는 하지 않는다(앱 SoT).
 4. Conflict policy는 시각·필드 단위 테스트로 고정.
 5. 그래프 연습 바로가기는 듣기/말하기/koen/matrix까지 동작. explain은 모드 카드에서.
-6. 동사 매트릭스 4형태 게이트로 `verbUnlockPacks`가 give→be→do→put→keep→find 순차 해금된다. 표현 Unlock pack(`pack_1`–`pack_3`)과 별개.
+6. 동사 매트릭스 4형태 게이트로 `verbUnlockPacks`가 have→get→take→나머지→give→be→do→put→keep→find 순차 해금된다. 표현 Unlock pack(`pack_1`–`pack_3`)과 별개.
 7. Canon → JSON 후보 번들/Unlock 대기열은 동작한다. `data/expressions.json` 자동 병합은 하지 않는다(리뷰 후 수동).
 8. 로컬 학습자 프로필: `etdQuestProgress:<learnerId>` + Vault `Learners/<id>/Learning|Gaps`. Library는 공유.
 9. 열린 draft PR(#3, #8–#18)은 tip(#19 등)에 흡수됨. 사람이 GitHub에서 superseded로 닫으면 C0 완료.
@@ -122,7 +122,7 @@
 
 - [x] 학습자 프로필 머지 시 export 루트를 `Learners/<id>/Learning|Gaps`로 이전.
 - [x] Canon → Unlock 후보/JSON 편입 도구(수동 리뷰 후, 자동 출제 없음).
-- [x] 동사 매트릭스 4형태 통과 시 새 동사 순차 해금 (give → be → do → put → keep → find).
+- [x] 동사 매트릭스 4형태 통과 시 새 동사 순차 해금 (have → get → take → 나머지 → give → be → do → put → keep → find).
 - [x] conflict 시각·필드 단위 테스트 보강 · Bridge adapter.
 - [x] `index.html`에서 progress/ASS/export 모듈 분리(동작 동일 유지).
 

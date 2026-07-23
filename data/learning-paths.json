@@ -3,16 +3,9 @@
   "activeSpeakingSet": {
     "id": "ass_starter_v0",
     "title": "Active Speaking Set Starter",
-    "description": "3~4세급 구어체를 위한 만능동사 8개와 Starter 표현 40개. Vault나 전체 JSON에 더 있어도 연습은 이 범위만 사용한다.",
+    "description": "3~4세급 구어체를 위한 만능동사 커리큘럼(have→get→take 숙달 순)과 Starter 표현 40개. Vault나 전체 JSON에 더 있어도 연습은 이 범위만 사용한다. 매트릭스 해금 스타터는 have만 열고, get·take·나머지는 동사 팩으로 순차 해금한다.",
     "verbIds": [
-      "v_have",
-      "v_get",
-      "v_want",
-      "v_need",
-      "v_go",
-      "v_come",
-      "v_make",
-      "v_take"
+      "v_have"
     ],
     "expressionIds": [
       "e001",
@@ -106,6 +99,40 @@
     ],
     "verbUnlockPacks": [
       {
+        "id": "verb_pack_get",
+        "title": "동사 해금 · get",
+        "verbIds": [
+          "v_get"
+        ],
+        "expressionIds": [],
+        "requiresMatrixGate": true,
+        "note": "have 매트릭스 4형태 통과 후 해금 (비중 2순위)"
+      },
+      {
+        "id": "verb_pack_take",
+        "title": "동사 해금 · take",
+        "verbIds": [
+          "v_take"
+        ],
+        "expressionIds": [],
+        "requiresMatrixGate": true,
+        "note": "get 매트릭스 4형태 통과 후 해금 (비중 3순위)"
+      },
+      {
+        "id": "verb_pack_core_rest",
+        "title": "동사 해금 · want·need·go·come·make",
+        "verbIds": [
+          "v_want",
+          "v_need",
+          "v_go",
+          "v_come",
+          "v_make"
+        ],
+        "expressionIds": [],
+        "requiresMatrixGate": true,
+        "note": "take 매트릭스 4형태 통과 후 나머지 스타터 동사 해금"
+      },
+      {
         "id": "verb_pack_give",
         "title": "동사 해금 · give",
         "verbIds": [
@@ -119,7 +146,7 @@
           "e041"
         ],
         "requiresMatrixGate": true,
-        "note": "Starter 동사들의 매트릭스 4형태(평서·의문·부정·짧은 답) 통과 후 해금"
+        "note": "core_rest 동사들의 매트릭스 4형태 통과 후 해금"
       },
       {
         "id": "verb_pack_be",
@@ -209,7 +236,7 @@
       "v_come": 0.03,
       "v_make": 0.03
     },
-    "verbCurriculumNote": "단일동사 커리큘럼 목표 비중: have 40% · get 25% · take 15% · 나머지 20%. Starter 구성과 데일리 출제 가중치에 반영. 구동사는 추후."
+    "verbCurriculumNote": "단일동사 커리큘럼 목표 비중: have 40% · get 25% · take 15% · 나머지 20%. 숙달 해금 순서도 동일(have→get→take→나머지→give…). Starter 표현 구성·데일리 가중치·매트릭스 게이트에 반영. 구동사는 추후."
   },
   "paths": [
     {

@@ -25,8 +25,11 @@ assert.strictEqual(starterCounts.v_have, 16, 'have ~40% of 40');
 assert.strictEqual(starterCounts.v_get, 10, 'get ~25% of 40');
 assert.strictEqual(starterCounts.v_take, 6, 'take ~15% of 40');
 assert.strictEqual(config.expressionIds.length, 40);
+assert.ok(config.verbUnlockPacks.map(p => p.id).includes('verb_pack_get'));
+assert.ok(config.verbUnlockPacks.map(p => p.id).includes('verb_pack_take'));
 assert.ok(config.verbUnlockPacks.map(p => p.id).includes('verb_pack_keep'));
 assert.ok(config.verbUnlockPacks.map(p => p.id).includes('verb_pack_find'));
+assert.deepStrictEqual(config.verbIds, ['v_have']);
 ['e081', 'e085', 'e086', 'e087'].forEach(id => {
   assert.strictEqual(config.expressionIds.includes(id), false, `${id} should stay out of starter`);
 });
