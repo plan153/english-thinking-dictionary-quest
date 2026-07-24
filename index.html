@@ -6167,10 +6167,11 @@
     function showNextHint(item) {
       const box = document.getElementById('hintBox');
       if (!box) return;
-      const totalHints = Math.min(3, item.hint.length || 3);
+      const hints = itemHintList(item);
+      const totalHints = Math.min(3, hints.length || 3);
       const step = Math.min(appState.hintStep, totalHints - 1);
       const names = ['상황 힌트', '표현 틀/덩어리', '일부 공개'];
-      const hint = item.hint[step] || '더 이상 열 힌트가 없어요.';
+      const hint = hints[step] || '더 이상 열 힌트가 없어요.';
       box.classList.remove('hidden');
       box.innerHTML = `<div class="hint-title">현재 힌트 단계: ${step+1}/${totalHints} — ${names[step] || '정답'}</div><b>힌트 문장:</b> ${escapeHtml(hint)}`;
       appState.hintStep++;
