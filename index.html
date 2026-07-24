@@ -951,7 +951,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.7">v1.3.7</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.8">v1.3.8</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -1468,7 +1468,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.3.7';
+    const APP_CACHE_VERSION = 'etd-quest-v1.3.8';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const ProgressStoreApi = window.ProgressStore;
@@ -1676,14 +1676,15 @@
       if (questCtx.expandChoiceId) {
         if (questCtx.mode === 'listen' && !details.questStepComplete) return;
         ensureToday();
-        quest.expandCount = Number(quest.expandCount || 0) + 1;
+        const token = `quest:expand:${questCtx.expandChoiceId}:${questCtx.expressionId}`;
+        const already = appState.progress.daily.done.includes(token);
+        if (!already) {
+          appState.progress.daily.done.push(token);
+          quest.expandCount = Number(quest.expandCount || 0) + 1;
+        }
         quest.lastExpandChoiceId = questCtx.expandChoiceId;
         quest.lastExpressionId = questCtx.expressionId;
         quest.startedAt = quest.startedAt || new Date().toISOString();
-        const token = `quest:expand:${questCtx.expandChoiceId}:${questCtx.expressionId}`;
-        if (!appState.progress.daily.done.includes(token)) {
-          appState.progress.daily.done.push(token);
-        }
         if (!Array.isArray(quest.completedStepKeys)) quest.completedStepKeys = [];
         if (!quest.completedStepKeys.includes(token)) quest.completedStepKeys.push(token);
         saveProgress();
@@ -1819,8 +1820,8 @@
     }
     function getConversationExpandChoices() {
       return [
-        { id: 'listen', label: '듣기', desc: '한/영으로 들어보기', mode: 'listen', questStage: 'meaning' },
-        { id: 'shadow', label: '따라하기', desc: '영어로 말하기 · 타이핑 선택', mode: 'speak', questStage: 'output' },
+        { id: 'listen', label: '듣기', desc: '한/영으로 듣고 따라 말하기 · 누적', mode: 'listen', questStage: 'meaning' },
+        { id: 'shadow', label: '따라하기', desc: '영어로 말하기 · 누적 학습', mode: 'speak', questStage: 'output' },
         { id: 'ask', label: '이어묻기', desc: '같은 말로 질문 확장', mode: 'matrix', matrixFormId: 'question', questStage: 'assembly' },
         { id: 'answer', label: '이어답하기', desc: '짧은 답으로 이어가기', mode: 'matrix', matrixFormId: 'shortYes', questStage: 'assembly' },
         { id: 'continue', label: '이어말하기', desc: '한 문장 더 붙여 말하기', mode: 'koen', questStage: 'assembly' },
@@ -2256,6 +2257,25 @@
     function progressItemId(itemOrId) {
       if (itemOrId && typeof itemOrId === 'object') return itemOrId.progressId || itemOrId.baseExpressionId || itemOrId.id;
       return itemOrId;
+    }
+    function getExpressionPracticeCount(itemOrId) {
+      const id = progressItemId(itemOrId);
+      if (!id) return 0;
+      const successes = Number(appState.progress.successes?.[id] || 0);
+      const timesCorrect = Number(appState.progress.historyByExpressionId?.[id]?.timesCorrect || 0);
+      return Math.max(successes, timesCorrect);
+    }
+    function renderPracticeCountBadge(itemOrId, options = {}) {
+      const count = getExpressionPracticeCount(itemOrId);
+      const idAttr = options.elementId ? ` id="${escapeHtml(options.elementId)}"` : '';
+      const label = count > 0 ? `누적 학습 ${count}회` : '누적 학습 0회 · 이번에 쌓여요';
+      return `<div class="listen-count practice-count"${idAttr}>${escapeHtml(label)}</div>`;
+    }
+    function updatePracticeCountDisplay(itemOrId, elementId = 'practiceCount') {
+      const box = document.getElementById(elementId) || document.getElementById('listenCount');
+      if (!box) return;
+      const count = getExpressionPracticeCount(itemOrId);
+      box.textContent = count > 0 ? `누적 학습 ${count}회` : '누적 학습 0회 · 이번에 쌓여요';
     }
     function verbWordFromId(id, verbs = appState.dictionaryData.verbs) {
       return verbs.find(v => v.id === id)?.word || String(id || '').replace(/^v_/, '');
@@ -5106,8 +5126,10 @@
           : { status: 'retry', feedbackClass: 'bad', title: 'Active set 밖으로 새었어요.', message: `${blocked}. 위 칩에 있는 단어만 다시 써 보세요.`, countsAsSuccess: false };
       showAnswerSummary(result.feedbackClass, item, result, rawGuess, `설명 노트 ${note.id} 저장${speechNote} · 퀴즈 은행은 그대로`, { allowAdvance: evaluation.passed || evaluation.softPass });
     }
-    function renderVoiceFirstTypedBlock({ checkLabel, placeholder, showHint = true }) {
+    function renderVoiceFirstTypedBlock({ checkLabel, placeholder, showHint = true, item = null }) {
+      const countMarkup = item ? renderPracticeCountBadge(item, { elementId: 'practiceCount' }) : '';
       return `
+        ${countMarkup}
         <div class="question-actions" style="margin-bottom:10px">
           <button class="btn accent mic-start" type="button">🎤 말하고 확인하기</button>
         </div>
@@ -5125,14 +5147,13 @@
         <div class="feedback hidden" id="feedback"></div>`;
     }
     function renderListen(item) {
-      const session = getListenSession(item.id);
       return `
         <h2>${item.en}</h2>
         <p class="korean">${item.ko}</p>
         <button class="sound-btn speak" data-text="${escapeHtml(item.audioText || item.en)}" title="문장 듣기">🔊</button>
-        <p class="sound-help">버튼을 눌러 3번 듣고, 문장 전체를 따라 말해 보세요.</p>
-        <div class="repeat-panel"><strong>🎤 따라 말하기 미션</strong>마이크 버튼을 눌러 문장을 3번 말해 보세요.</div>
-        <div class="listen-count" id="listenCount">${session.successCount || 0} / 3 완료</div>
+        <p class="sound-help">문장을 듣고 따라 말해 보세요. 클리어가 아니라, 말할수록 누적됩니다.</p>
+        <div class="repeat-panel"><strong>🎤 따라 말하기</strong>마이크로 말하면 누적 학습 횟수가 쌓입니다. 더 말해도 되고, 다음으로 넘어가도 됩니다.</div>
+        ${renderPracticeCountBadge(item, { elementId: 'listenCount' })}
         <div class="question-actions"><button class="btn accent mic-start" type="button">🎤 마이크로 말하기</button><button class="btn soft show-answer">정답 보기</button></div>
         <div class="hint-box hidden" id="listenResultBox"></div>
         <div class="feedback hidden" id="feedback"></div>`;
@@ -5141,17 +5162,18 @@
       return `
         <h2>${item.ko}</h2>
         <p class="korean">말하듯이 영어로 조립해 보세요. 대소문자와 마침표는 크게 신경 쓰지 않아도 됩니다.</p>
-        ${renderVoiceFirstTypedBlock({ checkLabel: '정답 확인', placeholder: 'Type your English sentence' })}`;
+        ${renderVoiceFirstTypedBlock({ checkLabel: '정답 확인', placeholder: 'Type your English sentence', item })}`;
     }
     function renderSpeak(item) {
       return `
         <h2>${item.en}</h2>
-        <p class="korean">문장을 마이크로 말해 보세요.</p>
+        <p class="korean">문장을 마이크로 말해 보세요. 말할수록 누적 학습이 쌓입니다.</p>
+        ${renderPracticeCountBadge(item, { elementId: 'practiceCount' })}
         <div class="question-actions" style="margin-bottom:10px"><button class="btn accent mic-start" type="button">🎤 말하고 확인하기</button></div>
         <div class="hint-box hidden" id="speechResultBox"></div>
         <div class="hint-box hidden" id="textPracticeBox">
           <div class="hint-title">타이핑으로 답하기</div>
-          <p class="small-note" style="margin:0 0 10px">타이핑 연습은 피드백만 제공하고 직접 말하기 완료로 체크하지 않아요.</p>
+          <p class="small-note" style="margin:0 0 10px">타이핑 연습은 피드백만 제공하고 말하기 누적에는 반영하지 않아요.</p>
           <input class="answer-input" id="textPracticeAnswerInput" placeholder="Type your English sentence" autocomplete="off" />
           <div class="question-actions"><button class="btn soft text-practice-check" type="button">연습 답안 확인</button></div>
         </div>
@@ -5167,7 +5189,7 @@
         <h2>${escapeHtml(item.ko)}</h2>
         <p class="korean">${escapeHtml(item.matrixCue || '같은 표현을 다른 형태로 말해 보세요.')}</p>
         ${baseBox}
-        ${renderVoiceFirstTypedBlock({ checkLabel: '변형 확인', placeholder: 'Type the transformed sentence' })}`;
+        ${renderVoiceFirstTypedBlock({ checkLabel: '변형 확인', placeholder: 'Type the transformed sentence', item })}`;
     }
     function buildMeaningChoices(item) {
       const bank = getUnlockedBank();
@@ -5193,7 +5215,7 @@
       return `
         <h2>${item.ko}</h2>
         <p class="korean">답을 바로 보지 말고, 힌트 한 단계씩만 열어 보세요.</p>
-        ${renderVoiceFirstTypedBlock({ checkLabel: '정답 확인', placeholder: 'Type your English sentence' })}`;
+        ${renderVoiceFirstTypedBlock({ checkLabel: '정답 확인', placeholder: 'Type your English sentence', item })}`;
     }
     function renderBuild(item) {
       const verbs = shuffled(['get','make','take','give','have','keep', item.verb]).slice(0,5);
@@ -5205,7 +5227,7 @@
         <p class="small-note" style="margin:6px 0 10px">문장 뼈대를 만드는 동사를 먼저 찾습니다.</p>
         <div class="choices" id="choices">${shuffled([item.verb, ...verbs.filter(v=>v!==item.verb)]).slice(0,4).map(c => `<button class="choice build-verb" data-value="${c}">${c}</button>`).join('')}</div>
         <div class="hint-box hidden" id="buildVerbReason" style="margin-top:10px"></div>
-        ${renderVoiceFirstTypedBlock({ checkLabel: '문장 완성', placeholder: 'Type the whole sentence' })}`;
+        ${renderVoiceFirstTypedBlock({ checkLabel: '문장 완성', placeholder: 'Type the whole sentence', item })}`;
     }
     function renderParticle(item) {
       const choices = (item.particleChoices || []).map(particle => `
@@ -5322,12 +5344,8 @@
       appState.listenSession = null;
     }
 
-    function updateListenCountDisplay() {
-      const session = appState.listenSession;
-      const box = document.getElementById('listenCount');
-      if (!box) return;
-      const count = session?.successCount || 0;
-      box.textContent = `${count} / 3 완료`;
+    function updateListenCountDisplay(itemOrId) {
+      updatePracticeCountDisplay(itemOrId, 'listenCount');
     }
 
     function renderListenResult(transcript, item, result, options = {}) {
@@ -5335,24 +5353,27 @@
       if (!box) return;
       box.classList.remove('hidden');
       const session = getListenSession(item.id);
-      const successCount = session.successCount || 0;
+      const sessionCount = session.successCount || 0;
+      const total = getExpressionPracticeCount(item);
       const statusClass = result.status === 'correct' || result.status === 'almost' ? 'good' : result.status === 'meaning' ? 'meaning' : 'bad';
       const statusMessage = result.status === 'correct' || result.status === 'almost'
-        ? `${successCount} / 3 성공했어요.${successCount >= 3 ? ' 다음 문제로 이동할게요.' : ' 같은 문장을 2번 더 말해 주세요.'}`
+        ? `잘했어요. 누적 학습 ${total}회예요${sessionCount > 1 ? ` · 이번 ${sessionCount}회` : ''}. 더 말해도 되고, 다음으로 넘어가도 됩니다.`
         : result.status === 'meaning'
           ? '뜻은 비슷하지만 따라 말하기에는 아직 조금 달라요.'
           : '다시 말해 주세요.';
-      const retryButton = successCount >= 3 ? '' : '<button class="btn dark mic-retry" type="button">다시 말하기</button>';
+      const advanceReady = result.status === 'correct' || result.status === 'almost';
       box.innerHTML = `
-        <div class="hint-title">${result.status === 'correct' || result.status === 'almost' ? '성공!' : '인식 결과'}</div>
+        <div class="hint-title">${advanceReady ? '성공!' : '인식 결과'}</div>
         <div class="answer-key">인식된 텍스트</div>
         <div><b>${escapeHtml(transcript)}</b></div>
         <div class="feedback ${statusClass}" style="margin:10px 0 0; max-width:none; padding:10px 12px;">${escapeHtml(statusMessage)}</div>
         <div class="question-actions" style="margin-top:10px">
-          ${retryButton}
+          <button class="btn soft mic-retry" type="button">한 번 더 말하기</button>
+          ${advanceReady ? '<button class="btn dark listen-next" type="button">다음으로</button>' : ''}
         </div>
       `;
       box.querySelector('.mic-retry')?.addEventListener('click', () => startSpeechCapture(item, 'listen'));
+      box.querySelector('.listen-next')?.addEventListener('click', () => nextQuestion());
     }
 
     function focusVisibleAnswerInput() {
@@ -5475,16 +5496,21 @@
           const result = classifyAnswer(item, transcript);
           if (result.status === 'correct' || result.status === 'almost') {
             const signature = `listen-${item.id}-${captureId}`;
-            markStudy(mode, progressItemId(item), result.status, { signature, hintLevel: 0, questStepComplete: listenSession.successCount + 1 >= 3, baseExpressionId: item.baseExpressionId, matrixId: item.matrixId, progressId: item.progressId });
-            listenSession.successCount = Math.min(3, (listenSession.successCount || 0) + 1);
-            updateListenCountDisplay();
+            const firstCredit = (listenSession.successCount || 0) === 0;
+            // First success completes the daily expand credit; more speaks only accumulate counts.
+            markStudy(mode, progressItemId(item), result.status, {
+              signature,
+              hintLevel: 0,
+              questStepComplete: firstCredit,
+              baseExpressionId: item.baseExpressionId,
+              matrixId: item.matrixId,
+              progressId: item.progressId,
+            });
+            listenSession.successCount = (listenSession.successCount || 0) + 1;
+            updateListenCountDisplay(item);
+            appState.questionAnswered = true;
             renderListenResult(transcript, item, result, { boxId });
-            if (listenSession.successCount >= 3) {
-              appState.questionAnswered = true;
-              document.getElementById('questionCard')?.querySelectorAll('.mic-start').forEach(btn => { btn.disabled = true; });
-              toast('3번 성공했어요. 다음 문제로 이동할게요.');
-              setTimeout(nextQuestion, 900);
-            }
+            toast(`누적 학습 ${getExpressionPracticeCount(item)}회`);
           } else {
             renderListenResult(transcript, item, result, { boxId });
           }
@@ -5736,10 +5762,14 @@
     function showAnswerSummary(type, item, result, rawGuess, connectionNote = '', options = {}) {
       const canAdvance = options.allowAdvance !== false && (result.status === 'correct' || result.status === 'almost');
       appState.questionAnswered = canAdvance;
+      if (canAdvance) updatePracticeCountDisplay(item);
       pulseQuestion(type);
       const totalHints = Math.min(3, item.hint.length || 3);
       const usedHints = Math.min(appState.hintStep, totalHints);
       const nuance = result.nuance ? `<div class="answer-key">뉘앙스</div><div>${escapeHtml(result.nuance)}</div>` : '';
+      const practiceLine = canAdvance
+        ? `<div class="answer-key">누적 학습</div><div>이 표현 ${getExpressionPracticeCount(item)}회</div>`
+        : '';
       const buttonText = canAdvance ? (appState.currentIndex + 1 >= appState.lessonItems.length ? '마무리하기' : '다음 문제') : '같은 문제 다시 풀기';
       const suggestGap = result.status === 'retry' || result.status === 'almost' || result.status === 'meaning' || type === 'bad' || type === 'almost';
       const gapActions = suggestGap
@@ -5750,6 +5780,7 @@
           <b>${escapeHtml(result.title)}</b>
           <div style="margin-top:6px">${escapeHtml(result.message || '')}</div>
           ${connectionNote ? `<div class="answer-key">이번 문장 연결 상태</div><div>${connectionNote}</div>` : ''}
+          ${practiceLine}
           <div class="answer-key">내 답</div>
           <div>${escapeHtml(rawGuess)}</div>
           <div class="answer-key">정답 영어 문장</div>
