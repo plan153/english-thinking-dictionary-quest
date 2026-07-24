@@ -200,6 +200,33 @@
     .question-card .korean { color:var(--muted); font-size: 17px; line-height:1.55; margin: 0 auto 18px; max-width:650px; }
     .sound-btn { width:62px; height:62px; border:0; border-radius:50%; align-self:center; color:#fff; background:var(--accent); font-size:25px; box-shadow:0 8px 18px rgba(40,111,108,.28); }
     .sound-help { font-size:12px; color:var(--muted); margin:8px 0 14px; }
+    .simple-prompt { text-align:center; margin: 4px 0 8px; }
+    .simple-prompt h2 { margin:0; font-size: clamp(28px, 7vw, 40px); letter-spacing:-1px; line-height:1.25; }
+    .simple-prompt .prompt-lang {
+      display:inline-block;
+      margin-top:8px;
+      font-size:11px;
+      font-weight:850;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+      color:var(--muted);
+    }
+    .simple-actions {
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      width: min(100%, 420px);
+      align-self:center;
+      margin-top:18px;
+    }
+    .simple-actions .btn {
+      width:100%;
+      min-height:48px;
+      margin:0;
+      font-size:15px;
+      font-weight:800;
+    }
+    .simple-actions .btn.accent { grid-column: 1 / -1; }
 
     .answer-input { width:min(620px,100%); align-self:center; border:2px solid var(--line); border-radius:16px; padding: 15px 16px; background:#fff; color:var(--ink); font-size:18px; outline:none; }
     .answer-input:focus { border-color: var(--accent); box-shadow:0 0 0 4px rgba(40,111,108,.12); }
@@ -951,7 +978,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.8">v1.3.8</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.9">v1.3.9</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -1468,7 +1495,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.3.8';
+    const APP_CACHE_VERSION = 'etd-quest-v1.3.9';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const ProgressStoreApi = window.ProgressStore;
@@ -1550,6 +1577,7 @@
       lessonReturn: { screen: 'play', label: '← 게임 모드로', options: {} },
       questRestartConfirmOpen: false,
       listenSession: null,
+      promptLangByItem: {},
     };
 
     function defaultHistoryEntry() { return ProgressStoreApi.defaultHistoryEntry(); }
@@ -5000,7 +5028,7 @@
         ? `확장 · ${questStep.label}`
         : questStep
           ? `${(questStep.stepIndex >= 0 ? questStep.stepIndex + 1 : '·')} · ${questStep.label}`
-        : mode === 'listen' ? '듣고 따라 말하기'
+        : mode === 'listen' ? '듣기 · 말하기'
         : mode === 'explain' ? '파인만 설명 챌린지'
         : mode === 'matrix' ? `묻기·답하기 · ${item.formLabel || item.frame}`
         : mode === 'particle' ? `입자 드릴 · ${item.frame || 'phrasal'}`
@@ -5146,39 +5174,61 @@
         <div class="hint-box hidden" id="hintBox"></div>
         <div class="feedback hidden" id="feedback"></div>`;
     }
-    function renderListen(item) {
+    function getPromptLang(itemId, fallback = 'en') {
+      if (!appState.promptLangByItem) appState.promptLangByItem = {};
+      const key = String(itemId || '');
+      const value = appState.promptLangByItem[key];
+      return value === 'ko' ? 'ko' : value === 'en' ? 'en' : fallback;
+    }
+    function setPromptLang(itemId, lang) {
+      if (!appState.promptLangByItem) appState.promptLangByItem = {};
+      appState.promptLangByItem[String(itemId || '')] = lang === 'ko' ? 'ko' : 'en';
+    }
+    function togglePromptLang(item) {
+      const id = progressItemId(item) || item?.id;
+      const current = getPromptLang(id, 'en');
+      const next = current === 'en' ? 'ko' : 'en';
+      setPromptLang(id, next);
+      const text = document.getElementById('simplePromptText');
+      const langLabel = document.getElementById('simplePromptLang');
+      const en = item?.en || item?.english || '';
+      const ko = item?.ko || item?.naturalKorean || '';
+      if (text) text.textContent = next === 'en' ? en : ko;
+      if (langLabel) langLabel.textContent = next === 'en' ? 'English' : '한국어';
+      return next;
+    }
+    function renderSimpleSpeakPractice(item, options = {}) {
+      const mode = options.mode || 'listen';
+      const lang = getPromptLang(item.id, 'en');
+      const prompt = lang === 'en' ? (item.en || '') : (item.ko || '');
+      const resultId = mode === 'listen' ? 'listenResultBox' : 'speechResultBox';
+      const countId = mode === 'listen' ? 'listenCount' : 'practiceCount';
       return `
-        <h2>${item.en}</h2>
-        <p class="korean">${item.ko}</p>
-        <button class="sound-btn speak" data-text="${escapeHtml(item.audioText || item.en)}" title="문장 듣기">🔊</button>
-        <p class="sound-help">문장을 듣고 따라 말해 보세요. 클리어가 아니라, 말할수록 누적됩니다.</p>
-        <div class="repeat-panel"><strong>🎤 따라 말하기</strong>마이크로 말하면 누적 학습 횟수가 쌓입니다. 더 말해도 되고, 다음으로 넘어가도 됩니다.</div>
-        ${renderPracticeCountBadge(item, { elementId: 'listenCount' })}
-        <div class="question-actions"><button class="btn accent mic-start" type="button">🎤 마이크로 말하기</button><button class="btn soft show-answer">정답 보기</button></div>
-        <div class="hint-box hidden" id="listenResultBox"></div>
+        <div class="simple-prompt">
+          <h2 id="simplePromptText">${escapeHtml(prompt)}</h2>
+          <div class="prompt-lang" id="simplePromptLang">${lang === 'en' ? 'English' : '한국어'}</div>
+        </div>
+        ${renderPracticeCountBadge(item, { elementId: countId })}
+        <div class="simple-actions">
+          <button class="btn soft lang-toggle" type="button">한영전환</button>
+          <button class="btn soft speak" type="button" data-text="${escapeHtml(item.audioText || item.en || '')}">듣기</button>
+          <button class="btn accent mic-start" type="button">말하기</button>
+          <button class="btn soft show-answer" type="button">정답보기</button>
+        </div>
+        <div class="hint-box hidden" id="${resultId}"></div>
         <div class="feedback hidden" id="feedback"></div>`;
+    }
+    function renderListen(item) {
+      return renderSimpleSpeakPractice(item, { mode: 'listen' });
+    }
+    function renderSpeak(item) {
+      return renderSimpleSpeakPractice(item, { mode: 'speak' });
     }
     function renderKoEn(item) {
       return `
         <h2>${item.ko}</h2>
         <p class="korean">말하듯이 영어로 조립해 보세요. 대소문자와 마침표는 크게 신경 쓰지 않아도 됩니다.</p>
         ${renderVoiceFirstTypedBlock({ checkLabel: '정답 확인', placeholder: 'Type your English sentence', item })}`;
-    }
-    function renderSpeak(item) {
-      return `
-        <h2>${item.en}</h2>
-        <p class="korean">문장을 마이크로 말해 보세요. 말할수록 누적 학습이 쌓입니다.</p>
-        ${renderPracticeCountBadge(item, { elementId: 'practiceCount' })}
-        <div class="question-actions" style="margin-bottom:10px"><button class="btn accent mic-start" type="button">🎤 말하고 확인하기</button></div>
-        <div class="hint-box hidden" id="speechResultBox"></div>
-        <div class="hint-box hidden" id="textPracticeBox">
-          <div class="hint-title">타이핑으로 답하기</div>
-          <p class="small-note" style="margin:0 0 10px">타이핑 연습은 피드백만 제공하고 말하기 누적에는 반영하지 않아요.</p>
-          <input class="answer-input" id="textPracticeAnswerInput" placeholder="Type your English sentence" autocomplete="off" />
-          <div class="question-actions"><button class="btn soft text-practice-check" type="button">연습 답안 확인</button></div>
-        </div>
-        <div class="question-actions"><button class="btn soft text-practice-toggle" type="button">타이핑으로 답하기</button></div>
-        <div class="feedback hidden" id="feedback"></div>`;
     }
     function renderMatrix(item) {
       const baseBox = item.matrixBaseEn
@@ -5357,19 +5407,18 @@
       const total = getExpressionPracticeCount(item);
       const statusClass = result.status === 'correct' || result.status === 'almost' ? 'good' : result.status === 'meaning' ? 'meaning' : 'bad';
       const statusMessage = result.status === 'correct' || result.status === 'almost'
-        ? `잘했어요. 누적 학습 ${total}회예요${sessionCount > 1 ? ` · 이번 ${sessionCount}회` : ''}. 더 말해도 되고, 다음으로 넘어가도 됩니다.`
+        ? `누적 ${total}회${sessionCount > 1 ? ` · 이번 ${sessionCount}회` : ''}`
         : result.status === 'meaning'
-          ? '뜻은 비슷하지만 따라 말하기에는 아직 조금 달라요.'
+          ? '비슷해요. 다시 말해 보세요.'
           : '다시 말해 주세요.';
       const advanceReady = result.status === 'correct' || result.status === 'almost';
       box.innerHTML = `
-        <div class="hint-title">${advanceReady ? '성공!' : '인식 결과'}</div>
-        <div class="answer-key">인식된 텍스트</div>
+        <div class="hint-title">${advanceReady ? '성공' : '인식'}</div>
         <div><b>${escapeHtml(transcript)}</b></div>
         <div class="feedback ${statusClass}" style="margin:10px 0 0; max-width:none; padding:10px 12px;">${escapeHtml(statusMessage)}</div>
         <div class="question-actions" style="margin-top:10px">
-          <button class="btn soft mic-retry" type="button">한 번 더 말하기</button>
-          ${advanceReady ? '<button class="btn dark listen-next" type="button">다음으로</button>' : ''}
+          <button class="btn soft mic-retry" type="button">다시 말하기</button>
+          ${advanceReady ? '<button class="btn dark listen-next" type="button">다음</button>' : ''}
         </div>
       `;
       box.querySelector('.mic-retry')?.addEventListener('click', () => startSpeechCapture(item, 'listen'));
@@ -5552,8 +5601,18 @@
     }
 
     function attachQuestionHandlers(item, mode) {
+      document.querySelectorAll('.lang-toggle').forEach(btn => btn.addEventListener('click', () => togglePromptLang(item)));
       document.querySelectorAll('.speak').forEach(btn => btn.addEventListener('click', () => speak(btn.dataset.text)));
-      document.querySelectorAll('.show-answer').forEach(btn => btn.addEventListener('click', () => showFeedback('good', `<b>${item.en}</b><br><span class="answer-key">${item.ko} · ${item.frame}<br>직역 이미지: ${escapeHtml(item.literalMeaning || item.ko)}</span>`)));
+      document.querySelectorAll('.show-answer').forEach(btn => btn.addEventListener('click', () => {
+        showFeedback('good', `
+          <div class="answer-summary">
+            <div class="answer-key">영어</div>
+            <div><b>${escapeHtml(item.en)}</b></div>
+            <div class="answer-key">한국어</div>
+            <div>${escapeHtml(item.ko)}</div>
+          </div>
+        `);
+      }));
       document.querySelectorAll('.check-answer').forEach(btn => btn.addEventListener('click', () => checkTextAnswer(item, mode)));
       document.querySelectorAll('.next-hint').forEach(btn => btn.addEventListener('click', () => showNextHint(item)));
       document.querySelectorAll('.build-verb').forEach(btn => btn.addEventListener('click', () => {
