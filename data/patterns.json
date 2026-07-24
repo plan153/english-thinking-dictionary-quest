@@ -32,6 +32,26 @@
     "level": 1
   },
   {
+    "id": "p_be_ing_future",
+    "label": "be + -ing (near future)",
+    "coreVerbId": "v_be",
+    "structure": "subject + be + -ing (+ time)",
+    "thinkingFrame": "이미 정해진 가까운 미래를 말한다",
+    "slotTypes": [
+      "subject",
+      "action",
+      "time"
+    ],
+    "exampleExpressionIds": [
+      "e100",
+      "e101",
+      "e102",
+      "e103",
+      "e104"
+    ],
+    "level": 1
+  },
+  {
     "id": "p_do_action",
     "label": "do + action",
     "coreVerbId": "v_do",

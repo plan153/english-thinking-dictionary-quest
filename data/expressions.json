@@ -4134,5 +4134,208 @@
       "e027",
       "e028"
     ]
+  },
+  {
+    "id": "e100",
+    "english": "I’m leaving tomorrow.",
+    "naturalKorean": "내일 떠나요.",
+    "literalMeaning": "나는 내일 떠나는 중이에요.",
+    "coreVerbId": "v_be",
+    "patternId": "p_be_ing_future",
+    "nounIds": [
+      "n_tomorrow"
+    ],
+    "situationTags": [
+      "schedule",
+      "travel",
+      "daily"
+    ],
+    "level": 1,
+    "chunks": [
+      "I’m",
+      "leaving",
+      "tomorrow"
+    ],
+    "hints": [
+      "이미 정한 가까운 미래는 be + -ing로 말해요.",
+      "be + leaving + tomorrow",
+      "I’m _____ tomorrow."
+    ],
+    "quizTypes": [
+      "listening",
+      "speaking",
+      "koToEn",
+      "enToKo",
+      "blank",
+      "hint"
+    ],
+    "audioText": "I'm leaving tomorrow.",
+    "relatedExpressionIds": [
+      "e101",
+      "e102"
+    ]
+  },
+  {
+    "id": "e101",
+    "english": "I’m coming.",
+    "naturalKorean": "지금 가요.",
+    "literalMeaning": "나는 오는 중이에요.",
+    "coreVerbId": "v_be",
+    "patternId": "p_be_ing_future",
+    "nounIds": [
+      "n_me"
+    ],
+    "situationTags": [
+      "message",
+      "daily",
+      "travel"
+    ],
+    "level": 1,
+    "chunks": [
+      "I’m",
+      "coming"
+    ],
+    "hints": [
+      "곧 도착·합류할 때도 be + -ing를 써요.",
+      "be + coming",
+      "I’m _______."
+    ],
+    "quizTypes": [
+      "listening",
+      "speaking",
+      "koToEn",
+      "enToKo",
+      "blank",
+      "hint"
+    ],
+    "audioText": "I'm coming.",
+    "relatedExpressionIds": [
+      "e008",
+      "e100"
+    ]
+  },
+  {
+    "id": "e102",
+    "english": "I’m going home.",
+    "naturalKorean": "집에 갈게요.",
+    "literalMeaning": "나는 집으로 가는 중이에요.",
+    "coreVerbId": "v_be",
+    "patternId": "p_be_ing_future",
+    "nounIds": [
+      "n_home"
+    ],
+    "situationTags": [
+      "home",
+      "daily",
+      "travel"
+    ],
+    "level": 1,
+    "chunks": [
+      "I’m",
+      "going",
+      "home"
+    ],
+    "hints": [
+      "곧 집으로 가는 확정 계획이에요.",
+      "be + going + home",
+      "I’m going _____."
+    ],
+    "quizTypes": [
+      "listening",
+      "speaking",
+      "koToEn",
+      "enToKo",
+      "blank",
+      "hint"
+    ],
+    "audioText": "I'm going home.",
+    "relatedExpressionIds": [
+      "e069",
+      "e100"
+    ]
+  },
+  {
+    "id": "e103",
+    "english": "I’m meeting a friend tomorrow.",
+    "naturalKorean": "내일 친구 만나요.",
+    "literalMeaning": "나는 내일 친구를 만나는 중이에요.",
+    "coreVerbId": "v_be",
+    "patternId": "p_be_ing_future",
+    "nounIds": [
+      "n_friend",
+      "n_tomorrow"
+    ],
+    "situationTags": [
+      "schedule",
+      "social",
+      "daily"
+    ],
+    "level": 1,
+    "chunks": [
+      "I’m",
+      "meeting",
+      "a friend",
+      "tomorrow"
+    ],
+    "hints": [
+      "약속으로 정해진 만남은 be + meeting이에요.",
+      "be + meeting + a friend + tomorrow",
+      "I’m ______ a friend tomorrow."
+    ],
+    "quizTypes": [
+      "listening",
+      "speaking",
+      "koToEn",
+      "enToKo",
+      "blank",
+      "hint"
+    ],
+    "audioText": "I'm meeting a friend tomorrow.",
+    "relatedExpressionIds": [
+      "e100",
+      "e104"
+    ]
+  },
+  {
+    "id": "e104",
+    "english": "We’re having lunch tomorrow.",
+    "naturalKorean": "내일 점심 먹어요.",
+    "literalMeaning": "우리는 내일 점심을 먹는 중이에요.",
+    "coreVerbId": "v_be",
+    "patternId": "p_be_ing_future",
+    "nounIds": [
+      "n_lunch",
+      "n_tomorrow"
+    ],
+    "situationTags": [
+      "schedule",
+      "meal",
+      "social"
+    ],
+    "level": 1,
+    "chunks": [
+      "We’re",
+      "having",
+      "lunch",
+      "tomorrow"
+    ],
+    "hints": [
+      "이미 잡은 식사 약속도 be + having이에요.",
+      "be + having + lunch + tomorrow",
+      "We’re ______ lunch tomorrow."
+    ],
+    "quizTypes": [
+      "listening",
+      "speaking",
+      "koToEn",
+      "enToKo",
+      "blank",
+      "hint"
+    ],
+    "audioText": "We're having lunch tomorrow.",
+    "relatedExpressionIds": [
+      "e103",
+      "e024"
+    ]
   }
 ]

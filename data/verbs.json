@@ -3,9 +3,9 @@
     "id": "v_be",
     "word": "be",
     "coreImage": "상태나 정체성을 그대로 놓아두기",
-    "easyKorean": "~이다, ~에 있다, ~한 상태다",
-    "representativeSituations": ["소개", "상태 설명", "위치"],
-    "patternIds": ["p_be_state", "p_be_on_way"],
+    "easyKorean": "~이다, ~에 있다, ~한 상태다, (be+-ing로) 정해진 가까운 미래",
+    "representativeSituations": ["소개", "상태 설명", "위치", "약속", "계획"],
+    "patternIds": ["p_be_state", "p_be_on_way", "p_be_ing_future"],
     "connectedVerbIds": ["v_feel", "v_get"],
     "level": 1
   },
