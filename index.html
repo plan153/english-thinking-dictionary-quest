@@ -1081,7 +1081,7 @@
         <div><h3 style="margin:0;font-size:15px;letter-spacing:-0.2px;color:var(--muted,#64748b)">학습 기록</h3></div>
       </div>
       <div class="grid cols-3">
-        <article class="card"><h3>내 표현</h3><div style="font-size:34px;font-weight:900;letter-spacing:-1.5px" id="masteredBig">0</div><p>주신호: 연결도 ●—●—●. Active set 안에서 “내 말”이 된 표현입니다.</p></article>
+        <article class="card"><h3>내 표현</h3><div style="font-size:34px;font-weight:900;letter-spacing:-1.5px" id="masteredBig">0</div><p>Active set 안에서 충분히 익혀 “내 말”이 된 표현입니다.</p></article>
         <article class="card"><h3>연속 학습</h3><div style="font-size:28px;font-weight:800;letter-spacing:-1px;color:#64748b" id="streakBig">0일</div><p class="success-count-aux">보조 지표 · 오늘 한 문제라도 풀면 이어집니다.</p></article>
         <article class="card"><h3>총 경험치</h3><div style="font-size:28px;font-weight:800;letter-spacing:-1px;color:#64748b" id="xpBig">0 XP</div><p class="success-count-aux">보조 지표 · 정답·따라 말하기·복습으로 쌓입니다.</p></article>
       </div>
@@ -1089,7 +1089,7 @@
         <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap">
           <div>
             <h3>Next Practice</h3>
-            <p class="small-note" id="nextPracticeSource">간극 · watchlist · Vault Brain State 힌트 · 약한 연결 순으로 제안합니다.</p>
+            <p class="small-note" id="nextPracticeSource">간극 · watchlist · Vault Brain State 힌트 · 복습 후보 순으로 제안합니다.</p>
           </div>
           <button class="btn dark" id="startNextPractice" type="button">Next Practice 시작</button>
         </div>
@@ -1119,7 +1119,7 @@
       </article>
       <article class="card" style="margin-top:16px">
         <h3>약한 연결 복습</h3>
-        <p class="small-note">연결도 스트립이 약한 표현입니다. Next Practice와 겹치면 Next Practice를 우선하세요.</p>
+        <p class="small-note">아직 덜 익은 표현입니다. Next Practice와 겹치면 Next Practice를 우선하세요.</p>
         <div id="reviewList" style="margin-top:12px"></div>
       </article>
       <article class="card" style="margin-top:16px">
@@ -2477,7 +2477,7 @@
         ${snapshot.verbGate ? `<span>4형태 ${snapshot.verbGate.passedCount}/${snapshot.verbGate.requiredCount}</span>` : ''}
       `;
       const unlockHint = snapshot.nextPackCount
-        ? `레벨업: 내 표현 ${snapshot.unlockThresholdPercent}%면 다음 Unlock pack ${snapshot.nextPackCount}개가 열립니다. (연결도 ●—●—● 또는 충분히 맞히면 “내 표현”)`
+        ? `레벨업: 내 표현 ${snapshot.unlockThresholdPercent}%면 다음 Unlock pack ${snapshot.nextPackCount}개가 열립니다.`
         : (snapshot.nextVerbPackTitle
           ? `표현 팩 완료. 다음 동사 게이트: ${snapshot.nextVerbPackTitle} (Starter 동사 매트릭스 4형태 통과 필요 · ${snapshot.verbGate ? `${snapshot.verbGate.passedCount}/${snapshot.verbGate.requiredCount}` : ''})`
           : 'Starter·Unlock pack·동사 해금을 모두 열었거나 대기 중입니다. Canon JSON은 리뷰 후 편입하세요.');
@@ -2764,7 +2764,7 @@
         if (watchCount) bits.push(`watchlist ${watchCount}`);
         sourceEl.textContent = bits.length
           ? `${bits.join(' · ')}. 해금된 표현만 연습합니다.`
-          : '간극 · watchlist · Brain State 힌트 · 약한 연결 순으로 제안합니다.';
+          : '간극 · watchlist · Brain State 힌트 · 복습 후보 순으로 제안합니다.';
       }
       if (!queue.length) {
         target.innerHTML = '<p class="small-note">지금은 제안할 Next Practice가 없어요. 퀴즈를 풀거나 Vault에서 가져오면 채워집니다.</p>';
@@ -2779,7 +2779,6 @@
           <div>
             <b>${escapeHtml(label)}</b>
             <div class="small-note" style="margin-top:4px">${escapeHtml(ko)} · ${escapeHtml(entry.mode)} · ${escapeHtml(nextPracticeReasonLabel(entry.reason))}</div>
-            <div class="connection-strip-summary is-primary-signal" style="margin-top:8px">${item ? getConnectionGraph(item) : ''}</div>
           </div>
           <button class="btn soft next-practice-one" type="button" data-expression-id="${escapeHtml(entry.expressionId)}" data-mode="${escapeHtml(entry.mode)}">연습</button>
         </div>`;
@@ -6245,8 +6244,6 @@
             <div><b>${escapeHtml(p.en)}</b><div class="small-note" style="margin:4px 0 0">${escapeHtml(p.ko)} · ${escapeHtml(p.frame)}</div></div>
             <span class="small-note">${escapeHtml(label)}</span>
           </div>
-          <div class="connection-strip-summary is-primary-signal">${getConnectionGraph(p)}</div>
-          <div class="small-note">약한 연결은 뜻 이해 · 문장 만들기 · 직접 말하기에서 다시 만나게 됩니다.</div>
           <div style="display:flex;justify-content:flex-end;">
             <button class="btn soft review-one" data-id="${p.id}">다시 연결하기</button>
           </div>
