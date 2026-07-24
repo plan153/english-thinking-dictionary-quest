@@ -1012,7 +1012,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.11">v1.3.11</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.12">v1.3.12</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -1530,7 +1530,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.3.11';
+    const APP_CACHE_VERSION = 'etd-quest-v1.3.12';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const ProgressStoreApi = window.ProgressStore;
@@ -1737,7 +1737,8 @@
 
       // v6+: choice-based expand (not forced step order)
       if (questCtx.expandChoiceId) {
-        if (questCtx.mode === 'listen' && !details.questStepComplete) return;
+        // 듣기·따라하기·이어묻기/답하기 단순 캡처는 첫 성공만 확장 크레딧
+        if (isSimpleSpeakCapture(questCtx.mode, questCtx) && !details.questStepComplete) return;
         ensureToday();
         const token = `quest:expand:${questCtx.expandChoiceId}:${questCtx.expressionId}`;
         const already = appState.progress.daily.done.includes(token);
@@ -1893,6 +1894,12 @@
     }
     function isExpandQaPractice(ctx = appState.questContext) {
       return Boolean(ctx?.expandQa || ctx?.expandChoiceId === 'ask' || ctx?.expandChoiceId === 'answer');
+    }
+    function isSimpleSpeakCapture(mode, ctx = appState.questContext) {
+      // 4버튼 단순 UI(듣기/따라하기/이어묻기·답하기)는 모두 즉시 채점 캡처를 쓴다.
+      return mode === 'listen'
+        || mode === 'speak'
+        || (mode === 'matrix' && isExpandQaPractice(ctx));
     }
     function findMatrixForExpression(expressionId) {
       if (!expressionId) return null;
@@ -5060,7 +5067,7 @@
           appState.currentIndex = 0;
           appState.hintStep = 0;
           appState.questionAnswered = false;
-          if (mode === 'listen' || (mode === 'matrix' && isExpandQaPractice(appState.questContext))) {
+          if (mode === 'listen' || mode === 'speak' || (mode === 'matrix' && isExpandQaPractice(appState.questContext))) {
             appState.listenSession = null;
           }
           if (!appState.lessonItems.length) {
@@ -5271,9 +5278,11 @@
     function renderSimpleSpeakPractice(item, options = {}) {
       const mode = options.mode || 'listen';
       const lang = getPromptLang(item.id, 'en');
-      const prompt = lang === 'en' ? (item.en || '') : (item.ko || '');
-      const resultId = mode === 'listen' ? 'listenResultBox' : 'speechResultBox';
-      const countId = mode === 'listen' ? 'listenCount' : 'practiceCount';
+      const prompt = lang === 'en' ? (item.en || item.english || '') : (item.ko || item.naturalKorean || '');
+      const audioText = item.audioText || item.en || item.english || '';
+      // 단순 4버튼 UI는 듣기/말하기 모두 같은 결과 박스를 써서 캡처·피드백이 깨지지 않게 한다.
+      const resultId = 'listenResultBox';
+      const countId = mode === 'speak' ? 'practiceCount' : 'listenCount';
       return `
         <div class="simple-prompt">
           <h2 id="simplePromptText">${escapeHtml(prompt)}</h2>
@@ -5282,7 +5291,7 @@
         ${renderPracticeCountBadge(item, { elementId: countId })}
         <div class="simple-actions">
           <button class="btn soft lang-toggle" type="button">한영전환</button>
-          <button class="btn soft speak" type="button" data-text="${escapeHtml(item.audioText || item.en || '')}">듣기</button>
+          <button class="btn soft tts-play" type="button" data-text="${escapeHtml(audioText)}">듣기</button>
           <button class="btn accent mic-start" type="button">말하기</button>
           <button class="btn soft show-answer" type="button">정답보기</button>
         </div>
@@ -5497,6 +5506,7 @@
           ? '비슷해요. 다시 말해 보세요.'
           : '다시 말해 주세요.';
       const advanceReady = result.status === 'correct' || result.status === 'almost';
+      const captureMode = options.captureMode || 'listen';
       box.innerHTML = `
         <div class="hint-title">${advanceReady ? '성공' : '인식'}</div>
         <div><b>${escapeHtml(transcript)}</b></div>
@@ -5506,7 +5516,7 @@
           ${advanceReady ? '<button class="btn dark listen-next" type="button">다음</button>' : ''}
         </div>
       `;
-      box.querySelector('.mic-retry')?.addEventListener('click', () => startSpeechCapture(item, 'listen'));
+      box.querySelector('.mic-retry')?.addEventListener('click', () => startSpeechCapture(item, captureMode));
       box.querySelector('.listen-next')?.addEventListener('click', () => nextQuestion());
     }
 
@@ -5576,8 +5586,21 @@
       }
     }
 
-    async function startSpeechCapture(item, mode) {
-      const listenMode = mode === 'listen' || (mode === 'matrix' && isExpandQaPractice());
+    function stopSpeechPlayback() {
+      if (!('speechSynthesis' in window)) return;
+      try {
+        window.speechSynthesis.cancel();
+        if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+      } catch (_) {
+        /* ignore */
+      }
+    }
+
+    function startSpeechCapture(item, mode) {
+      const listenMode = isSimpleSpeakCapture(mode);
+      // TTS가 켜져 있으면 인식이 먹통이 되는 브라우저가 있어 먼저 끊는다.
+      stopSpeechPlayback();
+
       if (!supportsSpeechRecognition()) {
         if (listenMode) {
           speechStatus('이 브라우저에서는 음성 인식을 사용할 수 없어요.', 'error', { boxId: 'listenResultBox', title: '음성 인식 안내' });
@@ -5587,24 +5610,18 @@
         }
         return;
       }
+
       const boxId = listenMode ? 'listenResultBox' : 'speechResultBox';
-      speechStatus('마이크를 여는 중이에요…', 'info', { boxId, title: listenMode ? '마이크 상태' : '마이크 상태' });
-      const mic = await warmUpMicrophone();
-      if (!mic.ok) {
-        if (mic.name === 'NotAllowedError' || mic.name === 'SecurityError') {
-          speechRetryStatus('마이크 권한이 필요해요. Chrome 주소창의 마이크 권한을 허용한 뒤 다시 말해 주세요.', item, mode, 'error', { boxId, allowTextPractice: !listenMode });
-        } else if (mic.name === 'NotFoundError' || mic.name === 'DevicesNotFoundError') {
-          speechRetryStatus('사용할 수 있는 마이크를 찾지 못했어요. 입력 장치를 확인해 주세요.', item, mode, 'error', { boxId, allowTextPractice: !listenMode });
-        } else {
-          speechRetryStatus('마이크를 열지 못했어요. Chrome 마이크 설정을 확인한 뒤 다시 시도해 주세요.', item, mode, 'error', { boxId, allowTextPractice: !listenMode });
-        }
-        if (!listenMode) showTextPractice();
+      if (!document.getElementById(boxId)) {
+        toast('말하기 준비 영역을 찾지 못했어요. 화면을 새로고침해 주세요.');
         return;
       }
-      if (listenMode) {
-        getListenSession(item.id);
-      }
-      speechStatus('듣고 있어요… 지금 영어 문장을 말해 주세요.', 'info', { boxId, title: listenMode ? '마이크 상태' : '마이크 상태' });
+
+      // 중요: Safari/iOS는 클릭 제스처 안에서 recognition.start()가 동기적으로 호출돼야 한다.
+      // await getUserMedia() 뒤에 start 하면 제스처가 끊겨 인식이 안 열린다.
+      if (listenMode) getListenSession(item.id);
+      speechStatus('듣고 있어요… 지금 영어 문장을 말해 주세요.', 'info', { boxId, title: '마이크 상태' });
+
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognition = new SpeechRecognition();
       let receivedResult = false;
@@ -5612,12 +5629,16 @@
       const listenSession = listenMode ? getListenSession(item.id) : null;
       const captureId = listenMode ? ++listenSession.captureSerial : Date.now();
       if (listenMode) listenSession.activeCaptureId = captureId;
+
       recognition.lang = 'en-US';
       recognition.interimResults = false;
       recognition.maxAlternatives = 1;
+      recognition.continuous = false;
+
       recognition.onstart = () => {
         speechStatus('듣고 있어요… 지금 영어 문장을 말해 주세요.', 'info', { boxId, title: '마이크 상태' });
       };
+
       recognition.onresult = event => {
         if (listenMode && appState.listenSession?.activeCaptureId !== captureId) return;
         receivedResult = true;
@@ -5631,7 +5652,6 @@
           if (result.status === 'correct' || result.status === 'almost') {
             const signature = `listen-${item.id}-${captureId}`;
             const firstCredit = (listenSession.successCount || 0) === 0;
-            // First success completes the daily expand credit; more speaks only accumulate counts.
             markStudy(mode, progressItemId(item), result.status, {
               signature,
               hintLevel: 0,
@@ -5644,11 +5664,12 @@
             });
             listenSession.successCount = (listenSession.successCount || 0) + 1;
             updateListenCountDisplay(item);
+            updatePracticeCountDisplay(item);
             appState.questionAnswered = true;
-            renderListenResult(transcript, item, result, { boxId });
+            renderListenResult(transcript, item, result, { boxId, captureMode: mode });
             toast(`누적 학습 ${getExpressionPracticeCount(item)}회`);
           } else {
-            renderListenResult(transcript, item, result, { boxId });
+            renderListenResult(transcript, item, result, { boxId, captureMode: mode });
           }
           return;
         }
@@ -5661,27 +5682,43 @@
         }
         renderSpeechResult(transcript, item, mode);
       };
+
       recognition.onerror = event => {
         receivedError = true;
         const error = event?.error || '';
+        if (error === 'aborted') return;
         if (error === 'not-allowed' || error === 'service-not-allowed') {
-          speechRetryStatus('마이크 권한이 필요해요. Chrome 주소창의 마이크 권한을 허용한 뒤 다시 말해 주세요.', item, mode, 'error', { boxId, allowTextPractice: !listenMode });
+          // 권한 거부 시에만 안내 + (가능하면) getUserMedia로 한 번 더 확인
+          warmUpMicrophone().then(mic => {
+            if (!mic.ok && (mic.name === 'NotAllowedError' || mic.name === 'SecurityError')) {
+              speechRetryStatus('마이크 권한이 필요해요. 주소창의 마이크 권한을 허용한 뒤 다시 말해 주세요.', item, mode, 'error', { boxId, allowTextPractice: !listenMode });
+            } else {
+              speechRetryStatus('마이크 권한이 필요해요. 브라우저 설정에서 마이크를 허용해 주세요.', item, mode, 'error', { boxId, allowTextPractice: !listenMode });
+            }
+          });
+          if (!listenMode) showTextPractice();
         } else if (error === 'no-speech') {
           speechRetryStatus('말소리가 들리지 않았어요. 마이크 입력 장치를 확인하고 다시 말해 주세요.', item, mode, 'error', { boxId, allowTextPractice: !listenMode });
+          if (!listenMode) showTextPractice();
+        } else if (error === 'audio-capture') {
+          speechRetryStatus('마이크를 열지 못했어요. 다른 앱이 마이크를 쓰는지 확인해 주세요.', item, mode, 'error', { boxId, allowTextPractice: !listenMode });
+          if (!listenMode) showTextPractice();
         } else {
           speechRetryStatus('음성 인식에 실패했어요. 다시 말하거나 텍스트로 연습해 주세요.', item, mode, 'error', { boxId, allowTextPractice: !listenMode });
+          if (!listenMode) showTextPractice();
         }
-        if (!listenMode) showTextPractice();
       };
+
       recognition.onend = () => {
         if (!receivedResult && !receivedError) {
           speechRetryStatus('인식이 끝났지만 문장이 잡히지 않았어요. 다시 말해 주세요.', item, mode, 'error', { boxId, allowTextPractice: !listenMode });
           if (!listenMode) showTextPractice();
         }
       };
+
       try {
         recognition.start();
-      } catch {
+      } catch (error) {
         speechRetryStatus('음성 인식을 시작하지 못했어요. 다시 시도해 주세요.', item, mode, 'error', { boxId, allowTextPractice: !listenMode });
         if (!listenMode) showTextPractice();
       }
@@ -5689,14 +5726,17 @@
 
     function attachQuestionHandlers(item, mode) {
       document.querySelectorAll('.lang-toggle').forEach(btn => btn.addEventListener('click', () => togglePromptLang(item)));
-      document.querySelectorAll('.speak').forEach(btn => btn.addEventListener('click', () => speak(btn.dataset.text)));
+      document.querySelectorAll('.tts-play, .speak').forEach(btn => btn.addEventListener('click', () => {
+        const text = btn.dataset.text || item.audioText || item.en || item.english || '';
+        speak(text);
+      }));
       document.querySelectorAll('.show-answer').forEach(btn => btn.addEventListener('click', () => {
         showFeedback('good', `
           <div class="answer-summary">
             <div class="answer-key">영어</div>
-            <div><b>${escapeHtml(item.en)}</b></div>
+            <div><b>${escapeHtml(item.en || item.english || '')}</b></div>
             <div class="answer-key">한국어</div>
-            <div>${escapeHtml(item.ko)}</div>
+            <div>${escapeHtml(item.ko || item.naturalKorean || '')}</div>
           </div>
         `);
       }));
@@ -5724,7 +5764,7 @@
         });
       });
       focusVisibleAnswerInput();
-      if (mode === 'speak') {
+      if (mode === 'speak' || mode === 'explain') {
         const speechInput = document.getElementById('speechAnswerInput');
         if (speechInput) {
           speechInput.addEventListener('keydown', e => {
@@ -6718,9 +6758,23 @@
     }
 
     function speak(text) {
-      if (!('speechSynthesis' in window)) { toast('이 브라우저에서는 음성 재생을 지원하지 않아요.'); return; }
-      window.speechSynthesis.cancel();
-      const utter = new SpeechSynthesisUtterance(text);
+      const value = String(text || '')
+        .replace(/&quot;/g, '"')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .trim();
+      if (!value) {
+        toast('재생할 문장이 없어요.');
+        return;
+      }
+      if (!('speechSynthesis' in window)) {
+        toast('이 브라우저에서는 음성 재생을 지원하지 않아요.');
+        return;
+      }
+      // Safari/iOS: cancel() 직후 speak()가 무시되는 경우가 많아 짧게 끊고 다시 재생한다.
+      stopSpeechPlayback();
+      const utter = new SpeechSynthesisUtterance(value);
       const voice = appState.naturalEnglishVoice || selectNaturalEnglishVoice();
       if (voice) {
         appState.naturalEnglishVoice = voice;
@@ -6732,7 +6786,19 @@
       utter.rate = 0.78;
       utter.pitch = 1.02;
       utter.volume = 1;
-      window.speechSynthesis.speak(utter);
+      const play = () => {
+        try {
+          if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+          window.speechSynthesis.speak(utter);
+        } catch (_) {
+          toast('음성을 재생하지 못했어요. 다시 눌러 주세요.');
+        }
+      };
+      // 같은 클릭 제스처 안에서 첫 호출 + Safari용 짧은 재시도
+      play();
+      setTimeout(() => {
+        if (!window.speechSynthesis.speaking && !window.speechSynthesis.pending) play();
+      }, 60);
     }
     function initSoundEngine() {
       if (!window.AudioContext && !window.webkitAudioContext) {
