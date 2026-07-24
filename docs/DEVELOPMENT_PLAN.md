@@ -45,7 +45,7 @@
 11. **Phase 3 Local REST**: `src/domain/obsidian-sync.js`로 upsert·import·실패 큐·설정 UI.
 12. **Learners 경로**: 로그인 없이 공책 전환, export/sync 개인 루트 `Learners/<id>/…`, Library 공유 유지.
 13. **Canon 편입 도구**: 승인 Draft → JSON 후보 번들 / Unlock 대기열(자동 출제 없음).
-14. **동사 매트릭스 4형태 게이트**: 현재 해금 동사 4형태 통과 시 다음 동사 팩 순차 해금 (have → get → take → 나머지 → give → be → do → put → keep → find).
+14. **동사 매트릭스 4형태 게이트**: 현재 해금 동사 4형태 통과 시 다음 동사 팩 순차 해금 (스타터 have·get·take·want·need·be·do·feel → go/come/make → give → put → keep → find).
 15. **Phase 4 Vault overlay**: `vault-overlay.js` + 동사 카드 `Vault 연결` 탭. Local REST로 Library/legacy 노트 매칭 → 확정/watchlist/숨기기. 퀴즈 은행 불변.
 16. **파인만 설명 챌린지**: 모드 `explain` — Active set 제한 어휘로 설명, `explanations` + `Learning/Explanations/*.md`.
 17. **Conflict 시각 병합 + Bridge adapter**: Gap 본문은 `updatedAt` 비교(동률·없음은 Vault 우선). `bridge`(:8787)는 Local REST와 동일 `/vault` 계약.
@@ -132,7 +132,7 @@
 
 - [x] 학습자 프로필 머지 시 export 루트를 `Learners/<id>/Learning|Gaps`로 이전.
 - [x] Canon → Unlock 후보/JSON 편입 도구(수동 리뷰 후, 자동 출제 없음).
-- [x] 동사 매트릭스 4형태 통과 시 새 동사 순차 해금 (have → get → take → 나머지 → give → be → do → put → keep → find).
+- [x] 동사 매트릭스 4형태 통과 시 새 동사 순차 해금 (스타터 have·get·take·want·need·be·do·feel → go/come/make → give → put → keep → find).
 - [x] conflict 시각·필드 단위 테스트 보강 · Bridge adapter.
 - [x] `index.html`에서 progress/ASS/export 모듈 분리(동작 동일 유지).
 
