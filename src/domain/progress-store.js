@@ -128,6 +128,7 @@
         matrixFormSuccess: {},
       },
       gapNotes: [],
+      practiceEvents: [],
       expressionDrafts: [],
       canonUnlockQueue: [],
       canonExpressions: [],
@@ -362,6 +363,7 @@
           },
         },
         gapNotes: Array.isArray(saved.gapNotes) ? saved.gapNotes.map(item => normalizeGapNote(item, markdownApi)) : [],
+        practiceEvents: Array.isArray(saved.practiceEvents) ? saved.practiceEvents.slice(0, 40) : [],
         expressionDrafts: Array.isArray(saved.expressionDrafts)
           ? saved.expressionDrafts.map(item => normalizeExpressionDraft(item, markdownApi))
           : [],
