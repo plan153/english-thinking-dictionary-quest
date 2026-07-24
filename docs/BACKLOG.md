@@ -7,12 +7,14 @@
 
 ## P0 — 사용자 기기(PC/Mac) · **다음에 진행 (보류)**
 
-> **2026-07-23 사용자 지시:** D1·D2는 지금은 건너뛰고 **나중에** 진행.
+> **2026-07-23 사용자 지시:** D1·D2는 지금은 건너뛰고 **나중에** 진행.  
+> **Vault 확정 (Mac Mini):** `~/Obsidian Vault/Project_English` · 앱 Path prefix **비움**  
+> (`mini`는 컴퓨터 이름 — 폴더 경로에 넣지 않음.) · 절차 SoT: [`DAY_LOOP.md`](./DAY_LOOP.md)
 
 | ID | 항목 | 현재 상태 | 나중에 할 일 |
 | --- | --- | --- | --- |
-| D1 | **실제 Obsidian day loop** | **보류·다음에** · 러너 준비됨 | Mac에서 `run_day_loop_pc.js` |
-| D2 | **Vault pathPrefix / 폴더 실측** | **보류·다음에** | D1과 함께 |
+| D1 | **실제 Obsidian day loop** | **보류·다음에** · 러너 준비됨 | Mac에서 Local REST 켠 뒤 `OBSIDIAN_API_KEY=… node scripts/run_day_loop_pc.js` |
+| D2 | **Vault pathPrefix / 폴더 실측** | **보류·다음에** (D1과 함께) | pathPrefix **비움** 확인 + 폴더 계약 검사 PASS |
 
 ## P1 — 제품 기능 (앱 코드)
 
@@ -57,7 +59,7 @@
 
 ## 다음 작업 추천 순서
 
-1. **D1 → D2** — 보류·다음에 (PC)
+1. **D1 → D2** — 보류·다음에 (Mac Mini · vault=`~/Obsidian Vault/Project_English` · pathPrefix 비움)
 2. P2 토글을 끄고 쓰려면 성장 화면 정책 체크박스
 
 변경할 때마다 이 표의 Status를 갱신한다.

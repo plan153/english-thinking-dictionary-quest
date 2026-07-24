@@ -31,7 +31,8 @@
 2. Canon 파일 SoT는 `merge_canon_intake.js` + validate 후 커밋
 3. 구동사 매트릭스 ≠ VerbMatrixGate
 4. Cloud 에이전트는 Obsidian Local REST(Mac)에 도달 불가
-5. **D1·D2(실제 day loop / vault path 실측) = 보류** — 사용자 지시 전까지 열지 않음
+5. **D1·D2(실제 day loop / vault path 실측) = 보류** — 사용자 지시 전까지 열지 않음  
+   - Mac Mini vault: `~/Obsidian Vault/Project_English` · pathPrefix **비움** · 절차: `DAY_LOOP.md`
 6. 브랜치: `cursor/<name>-80e0` · base=`main` · PR는 ManagePullRequest
 
 ## 주요 파일
