@@ -288,6 +288,11 @@ source: webapp
 - Active set 내 표현: ${Number(state.mineCount || 0)} / ${Number(state.activeExpressionCount || 0)}
 - Unlock packs: ${Number(state.unlockedPackCount || 0)}
 - 열린 간극: ${Number(state.openGapCount || 0)}
+
+## 최근 영작 연습
+${(state.recentPracticeEvents || []).length
+    ? (state.recentPracticeEvents || []).map(event => `- ${event.at || ''} · ${event.resultType || ''} · \`${event.expressionId || ''}\` · ${event.guess || '(무응답)'} → ${event.en || ''}`).join('\n')
+    : '- (아직 없음)'}
 `;
     return { path, markdown };
   }
