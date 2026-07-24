@@ -1,7 +1,7 @@
 # Agent Memory (압축 스냅샷)
 
 > 세션 간 이어갈 때 **이 문서 + [`BACKLOG.md`](./BACKLOG.md)** 먼저 읽기.  
-> 기준 tip: **v1.3.11** · 갱신: 2026-07-24
+> 기준 tip: **v1.3.12** · 갱신: 2026-07-24
 
 ## 제품 한 줄
 한국어 학습자용 **ASS + Obsidian 제2영어뇌** 웹앱. 퀴즈 SoT=`expressions.json`. 비밀값은 localStorage only.
@@ -30,6 +30,7 @@
 | 1.3.9 | 듣기·말하기 UI = **한영전환 / 듣기 / 말하기 / 정답보기** 만 |
 | 1.3.10 | 이어묻기·이어답하기 = 연결 Q/A 문장 생성 + 듣기·말하기 |
 | 1.3.11 | 매트릭스 없는 표현 → 상황 맞는 Q/A 자동 생성 + 55개 backfill |
+| 1.3.12 | 듣기·말하기 회귀 수정 (Safari 제스처·TTS·따라하기 즉시채점) |
 
 ## 불변 규칙
 1. 퀴즈 은행 = ASS + (정책 ON) Canon 런타임 + (정책 ON) 해금 구동사
@@ -51,3 +52,4 @@
 1. `BACKLOG.md` P0(D1/D2) 건드리지 말 것 (명시 요청 전)
 2. 듣기 UI 옛 스크린샷(`0/3`) = 캐시 → `fresh.html`
 3. 버전 올릴 때 `index.html` + VERSION + fresh + SW + package + version.json **함께**
+4. **듣기/말하기 수정 시:** `recognition.start()`는 클릭 핸들러에서 동기 호출 (await getUserMedia 금지). TTS는 cancel 후 짧은 재시도.
