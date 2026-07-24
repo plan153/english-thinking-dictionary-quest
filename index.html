@@ -4753,9 +4753,6 @@
         : mode === 'particle' ? `입자 드릴 · ${item.frame || 'phrasal'}`
         : `${modeTitle(mode)} · ${item.frame} · ${item.level || 1}단계`;
       const baseTop = `<div class="lesson-label">${stageLabel}</div>`;
-      const historyId = item.progressId || item.baseExpressionId || item.id;
-      const activeConnectionKey = resolveActiveConnectionKey(item, mode, questStep);
-      const connectionSummary = `<div class="connection-strip-summary is-primary-signal">${getConnectionGraph({ id: historyId, ...item }, activeConnectionKey)}</div>`;
       let body = '';
       if (mode === 'listen') body = renderListen(item);
       else if (mode === 'explain') body = renderExplain(item);
@@ -4767,7 +4764,8 @@
       else if (mode === 'build') body = renderBuild(item);
       else if (mode === 'speak') body = renderSpeak(item);
       else body = renderReview(item);
-      card.innerHTML = baseTop + connectionSummary + body;
+      // 표현 연결도 스트립은 퀴즈/레슨 카드에서 제거 (음성 답변이 본선).
+      card.innerHTML = baseTop + body;
       attachQuestionHandlers(item, mode);
     }
 
@@ -4875,6 +4873,24 @@
           : { status: 'retry', feedbackClass: 'bad', title: 'Active set 밖으로 새었어요.', message: `${blocked}. 위 칩에 있는 단어만 다시 써 보세요.`, countsAsSuccess: false };
       showAnswerSummary(result.feedbackClass, item, result, rawGuess, `설명 노트 ${note.id} 저장${speechNote} · 퀴즈 은행은 그대로`, { allowAdvance: evaluation.passed || evaluation.softPass });
     }
+    function renderVoiceFirstTypedBlock({ checkLabel, placeholder, showHint = true }) {
+      return `
+        <div class="question-actions" style="margin-bottom:10px">
+          <button class="btn accent mic-start" type="button">🎤 말하고 확인하기</button>
+        </div>
+        <div class="hint-box hidden" id="speechResultBox"></div>
+        <div class="hidden" id="textAnswerBox">
+          <div class="hint-title">타이핑으로 답하기</div>
+          <input class="answer-input" id="answerInput" placeholder="${escapeHtml(placeholder)}" autocomplete="off" />
+          ${renderQuizNav(checkLabel)}
+        </div>
+        <div class="question-actions">
+          <button class="btn soft text-answer-toggle" type="button">타이핑으로 답하기</button>
+          ${showHint ? '<button class="btn soft next-hint" type="button">힌트 1/3</button>' : ''}
+        </div>
+        <div class="hint-box hidden" id="hintBox"></div>
+        <div class="feedback hidden" id="feedback"></div>`;
+    }
     function renderListen(item) {
       const session = getListenSession(item.id);
       return `
@@ -4882,9 +4898,9 @@
         <p class="korean">${item.ko}</p>
         <button class="sound-btn speak" data-text="${escapeHtml(item.audioText || item.en)}" title="문장 듣기">🔊</button>
         <p class="sound-help">버튼을 눌러 3번 듣고, 문장 전체를 따라 말해 보세요.</p>
-        <div class="repeat-panel"><strong>🎤 따라 말하기 미션</strong>마이크 버튼을 눌러 문장을 3번 말해 보세요. 세션 카운트일 뿐이고, 숙달 신호는 아래 연결도입니다.</div>
+        <div class="repeat-panel"><strong>🎤 따라 말하기 미션</strong>마이크 버튼을 눌러 문장을 3번 말해 보세요.</div>
         <div class="listen-count" id="listenCount">${session.successCount || 0} / 3 완료</div>
-        <div class="question-actions"><button class="btn accent mic-start" type="button">🎤 마이크로 말하기</button><button class="btn soft show-answer">표현 연결 보기</button></div>
+        <div class="question-actions"><button class="btn accent mic-start" type="button">🎤 마이크로 말하기</button><button class="btn soft show-answer">정답 보기</button></div>
         <div class="hint-box hidden" id="listenResultBox"></div>
         <div class="feedback hidden" id="feedback"></div>`;
     }
@@ -4892,12 +4908,7 @@
       return `
         <h2>${item.ko}</h2>
         <p class="korean">말하듯이 영어로 조립해 보세요. 대소문자와 마침표는 크게 신경 쓰지 않아도 됩니다.</p>
-        <div class="question-actions" style="margin-bottom:10px"><button class="btn soft mic-start" type="button">🎤 말하고 확인하기</button></div>
-        <div class="hint-box hidden" id="speechResultBox"></div>
-        <input class="answer-input" id="answerInput" placeholder="Type your English sentence" autocomplete="off" />
-        ${renderQuizNav('정답 확인')}
-        <div class="question-actions"><button class="btn soft next-hint">힌트 1/3</button></div>
-        <div class="hint-box hidden" id="hintBox"></div><div class="feedback hidden" id="feedback"></div>`;
+        ${renderVoiceFirstTypedBlock({ checkLabel: '정답 확인', placeholder: 'Type your English sentence' })}`;
     }
     function renderSpeak(item) {
       return `
@@ -4906,12 +4917,12 @@
         <div class="question-actions" style="margin-bottom:10px"><button class="btn accent mic-start" type="button">🎤 말하고 확인하기</button></div>
         <div class="hint-box hidden" id="speechResultBox"></div>
         <div class="hint-box hidden" id="textPracticeBox">
-          <div class="hint-title">텍스트로 연습하기</div>
-          <p class="small-note" style="margin:0 0 10px">텍스트 연습은 피드백만 제공하고 직접 말하기 완료로 체크하지 않아요.</p>
+          <div class="hint-title">타이핑으로 답하기</div>
+          <p class="small-note" style="margin:0 0 10px">타이핑 연습은 피드백만 제공하고 직접 말하기 완료로 체크하지 않아요.</p>
           <input class="answer-input" id="textPracticeAnswerInput" placeholder="Type your English sentence" autocomplete="off" />
           <div class="question-actions"><button class="btn soft text-practice-check" type="button">연습 답안 확인</button></div>
         </div>
-        <div class="question-actions"><button class="btn soft text-practice-toggle" type="button">텍스트로 연습하기</button></div>
+        <div class="question-actions"><button class="btn soft text-practice-toggle" type="button">타이핑으로 답하기</button></div>
         <div class="feedback hidden" id="feedback"></div>`;
     }
     function renderMatrix(item) {
@@ -4923,13 +4934,7 @@
         <h2>${escapeHtml(item.ko)}</h2>
         <p class="korean">${escapeHtml(item.matrixCue || '같은 표현을 다른 형태로 말해 보세요.')}</p>
         ${baseBox}
-        <div class="question-actions" style="margin-bottom:10px"><button class="btn soft mic-start" type="button">🎤 말하고 확인하기</button></div>
-        <div class="hint-box hidden" id="speechResultBox"></div>
-        <input class="answer-input" id="answerInput" placeholder="Type the transformed sentence" autocomplete="off" />
-        ${renderQuizNav('변형 확인')}
-        <div class="question-actions"><button class="btn soft next-hint">힌트 1/3</button></div>
-        <div class="hint-box hidden" id="hintBox"></div>
-        <div class="feedback hidden" id="feedback"></div>`;
+        ${renderVoiceFirstTypedBlock({ checkLabel: '변형 확인', placeholder: 'Type the transformed sentence' })}`;
     }
     function buildMeaningChoices(item) {
       const bank = getUnlockedBank();
@@ -4955,11 +4960,7 @@
       return `
         <h2>${item.ko}</h2>
         <p class="korean">답을 바로 보지 말고, 힌트 한 단계씩만 열어 보세요.</p>
-        <div class="hint-box" id="hintBox"><div class="hint-title">힌트 0 — 아직 안 열었어요</div>막히면 “다음 힌트”를 눌러 보세요.</div>
-        <input class="answer-input" id="answerInput" placeholder="Type your English sentence" autocomplete="off" />
-        ${renderQuizNav('정답 확인')}
-        <div class="question-actions"><button class="btn soft next-hint">힌트 1/3</button></div>
-        <div class="feedback hidden" id="feedback"></div>`;
+        ${renderVoiceFirstTypedBlock({ checkLabel: '정답 확인', placeholder: 'Type your English sentence' })}`;
     }
     function renderBuild(item) {
       const verbs = shuffled(['get','make','take','give','have','keep', item.verb]).slice(0,5);
@@ -4971,10 +4972,7 @@
         <p class="small-note" style="margin:6px 0 10px">문장 뼈대를 만드는 동사를 먼저 찾습니다.</p>
         <div class="choices" id="choices">${shuffled([item.verb, ...verbs.filter(v=>v!==item.verb)]).slice(0,4).map(c => `<button class="choice build-verb" data-value="${c}">${c}</button>`).join('')}</div>
         <div class="hint-box hidden" id="buildVerbReason" style="margin-top:10px"></div>
-        <input class="answer-input" id="answerInput" placeholder="Type the whole sentence" autocomplete="off" style="margin-top:14px" />
-        ${renderQuizNav('문장 완성')}
-        <div class="question-actions"><button class="btn soft next-hint">힌트 1/3</button></div>
-        <div class="hint-box hidden" id="hintBox"></div><div class="feedback hidden" id="feedback"></div>`;
+        ${renderVoiceFirstTypedBlock({ checkLabel: '문장 완성', placeholder: 'Type the whole sentence' })}`;
     }
     function renderParticle(item) {
       const choices = (item.particleChoices || []).map(particle => `
@@ -4989,11 +4987,8 @@
     function renderReview(item) {
       return `
         <h2>${item.ko}</h2>
-        <p class="korean">이 표현의 연결 상태를 다시 확인하고, 약한 연결을 더 단단하게 만들어 보세요.</p>
-        <input class="answer-input" id="answerInput" placeholder="Type your English sentence" autocomplete="off" />
-        ${renderQuizNav('다시 연결하기')}
-        <div class="question-actions"><button class="btn soft next-hint">힌트 1/3</button></div>
-        <div class="hint-box hidden" id="hintBox"></div><div class="feedback hidden" id="feedback"></div>`;
+        <p class="korean">약한 연결을 다시 확인해 보세요. 먼저 말로 답하고, 필요하면 타이핑을 고르세요.</p>
+        ${renderVoiceFirstTypedBlock({ checkLabel: '다시 연결하기', placeholder: 'Type your English sentence' })}`;
     }
     function renderQuizNav(label) {
       const isSingle = appState.lessonItems.length <= 1;
@@ -5047,7 +5042,7 @@
       const title = options.title || (type === 'error' ? '음성 인식 안내' : '마이크 상태');
       const allowTextPractice = options.allowTextPractice !== false;
       const practiceButton = allowTextPractice ? `
-        <button class="btn soft text-practice-toggle" type="button">텍스트로 연습하기</button>
+        <button class="btn soft text-practice-toggle" type="button">타이핑으로 답하기</button>
       ` : '';
       box.innerHTML = `
         <div class="hint-title">${title}</div>
@@ -5063,11 +5058,19 @@
     }
 
     function showTextPractice() {
-      const box = document.getElementById('textPracticeBox');
-      const input = document.getElementById('textPracticeAnswerInput');
-      if (!box) return;
-      box.classList.remove('hidden');
-      if (input) requestAnimationFrame(() => input.focus());
+      const practiceBox = document.getElementById('textPracticeBox');
+      const answerBox = document.getElementById('textAnswerBox');
+      if (practiceBox) {
+        practiceBox.classList.remove('hidden');
+        const input = document.getElementById('textPracticeAnswerInput');
+        if (input) requestAnimationFrame(() => input.focus());
+        return;
+      }
+      if (answerBox) {
+        answerBox.classList.remove('hidden');
+        const input = document.getElementById('answerInput');
+        if (input) requestAnimationFrame(() => input.focus());
+      }
     }
 
     function getListenSession(itemId) {
@@ -5301,7 +5304,7 @@
         reason.innerHTML = `<b>선택 이유</b><br>${escapeHtml(buildVerbHintText(item, btn.dataset.value || ''))}`;
       }));
       document.querySelectorAll('.mic-start').forEach(btn => btn.addEventListener('click', () => startSpeechCapture(item, mode)));
-      document.querySelectorAll('.text-practice-toggle').forEach(btn => btn.addEventListener('click', () => showTextPractice()));
+      document.querySelectorAll('.text-practice-toggle, .text-answer-toggle').forEach(btn => btn.addEventListener('click', () => showTextPractice()));
       document.querySelectorAll('.text-practice-check').forEach(btn => btn.addEventListener('click', () => checkTextAnswer(item, mode, { practiceOnly: true, inputId: 'textPracticeAnswerInput' })));
       document.querySelectorAll('.choice').forEach(btn => btn.addEventListener('click', () => chooseAnswer(item, mode, btn)));
       document.querySelectorAll('.prev-question').forEach(btn => btn.addEventListener('click', () => previousQuestion()));
