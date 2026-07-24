@@ -23,6 +23,9 @@ const ids = new Set([...(ass.expressionIds || [])]);
 (ass.unlockPacks || []).forEach(pack => {
   (pack.expressionIds || []).forEach(id => ids.add(id));
 });
+(ass.verbUnlockPacks || []).forEach(pack => {
+  (pack.expressionIds || []).forEach(id => ids.add(id));
+});
 
 const existingBases = new Set(
   (qa.matrices || [])

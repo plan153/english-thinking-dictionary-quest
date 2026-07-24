@@ -1,7 +1,7 @@
 # Agent Memory (압축 스냅샷)
 
 > 세션 간 이어갈 때 **이 문서 + [`BACKLOG.md`](./BACKLOG.md)** 먼저 읽기.  
-> 기준 tip: **v1.3.16** · 갱신: 2026-07-24
+> 기준 tip: **v1.3.17** · 갱신: 2026-07-24
 
 ## 제품 한 줄
 한국어 학습자용 **ASS + Obsidian 제2영어뇌** 웹앱. 퀴즈 SoT=`expressions.json`. 비밀값은 localStorage only.
@@ -28,6 +28,7 @@
 | 1.3.14 | be 동사 `be + -ing` 가까운·확정 미래 패턴 + 구어 예문 5 |
 | 1.3.15 | be 생활 구어 표현 50 + place/phrase 패턴 |
 | 1.3.16 | be 표현 직역·실제의미·사용시점(usage/nuance) + 상세 UI |
+| 1.3.17 | verb_pack_be에 be 표현 59개 ASS 합류 |
 
 ## 불변 규칙
 1. 퀴즈 은행 = ASS + (정책 ON) Canon 런타임 + (정책 ON) 해금 구동사
