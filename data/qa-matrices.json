@@ -1651,7 +1651,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you on my way?",
+          "en": "Are you on your way?",
           "ko": "가는 중이에요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -1659,18 +1659,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't I'm on my way.",
+          "en": "I'm not on my way.",
           "ko": "가는 중이에요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not I'm on my way."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, I am.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -1679,13 +1677,11 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, I'm not.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
-          "acceptedAnswers": [
-            "No, I do not."
-          ]
+          "acceptedAnswers": []
         }
       ]
     },
@@ -3256,7 +3252,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you I'll do it?",
+          "en": "Will you do it?",
           "ko": "제가 할게요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -3264,18 +3260,18 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't I'll do it.",
+          "en": "I won't do it.",
           "ko": "제가 할게요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
           "acceptedAnswers": [
-            "I do not I'll do it."
+            "I will not do it."
           ]
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, I will.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -3284,12 +3280,12 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, I won't.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
           "acceptedAnswers": [
-            "No, I do not."
+            "No, I wo not."
           ]
         }
       ]
@@ -3644,7 +3640,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you We'll find a way?",
+          "en": "Will you find a way?",
           "ko": "방법을 찾을 거예요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -3652,18 +3648,18 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't We'll find a way.",
+          "en": "We won't find a way.",
           "ko": "방법을 찾을 거예요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
           "acceptedAnswers": [
-            "I do not We'll find a way."
+            "We will not find a way."
           ]
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, I will.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -3672,12 +3668,12 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, I won't.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
           "acceptedAnswers": [
-            "No, I do not."
+            "No, I wo not."
           ]
         }
       ]
@@ -3700,7 +3696,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you happy?",
+          "en": "Are you happy?",
           "ko": "기뻐요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -3708,18 +3704,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't I'm happy.",
+          "en": "I'm not happy.",
           "ko": "기뻐요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not I'm happy."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, I am.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -3728,13 +3722,11 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, I'm not.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
-          "acceptedAnswers": [
-            "No, I do not."
-          ]
+          "acceptedAnswers": []
         }
       ]
     },
@@ -3756,7 +3748,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you You're almost there?",
+          "en": "Are you almost there?",
           "ko": "거의 다 왔어요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -3764,18 +3756,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't You're almost there.",
+          "en": "You're not almost there.",
           "ko": "거의 다 왔어요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not You're almost there."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, I am.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -3784,13 +3774,11 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, I'm not.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
-          "acceptedAnswers": [
-            "No, I do not."
-          ]
+          "acceptedAnswers": []
         }
       ]
     },
@@ -5579,7 +5567,7 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I'm not having lunch tomorrow.",
+          "en": "We're not having lunch tomorrow.",
           "ko": "내일 점심 먹어요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
@@ -5623,7 +5611,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you fine?",
+          "en": "Are you fine?",
           "ko": "괜찮아요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -5631,18 +5619,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't I'm fine.",
+          "en": "I'm not fine.",
           "ko": "괜찮아요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not I'm fine."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, I am.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -5651,13 +5637,11 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, I'm not.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
-          "acceptedAnswers": [
-            "No, I do not."
-          ]
+          "acceptedAnswers": []
         }
       ]
     },
@@ -5679,7 +5663,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you okay?",
+          "en": "Are you okay?",
           "ko": "괜찮아요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -5687,18 +5671,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't I'm okay.",
+          "en": "I'm not okay.",
           "ko": "괜찮아요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not I'm okay."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, I am.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -5707,13 +5689,11 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, I'm not.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
-          "acceptedAnswers": [
-            "No, I do not."
-          ]
+          "acceptedAnswers": []
         }
       ]
     },
@@ -5735,7 +5715,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you good?",
+          "en": "Are you good?",
           "ko": "좋아요. / 괜찮아요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -5743,18 +5723,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't I'm good.",
+          "en": "I'm not good.",
           "ko": "좋아요. / 괜찮아요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not I'm good."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, I am.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -5763,13 +5741,11 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, I'm not.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
-          "acceptedAnswers": [
-            "No, I do not."
-          ]
+          "acceptedAnswers": []
         }
       ]
     },
@@ -5791,7 +5767,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you tired?",
+          "en": "Are you tired?",
           "ko": "피곤해요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -5799,18 +5775,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't I'm tired.",
+          "en": "I'm not tired.",
           "ko": "피곤해요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not I'm tired."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, I am.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -5819,13 +5793,11 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, I'm not.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
-          "acceptedAnswers": [
-            "No, I do not."
-          ]
+          "acceptedAnswers": []
         }
       ]
     },
@@ -5847,7 +5819,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you busy?",
+          "en": "Are you busy?",
           "ko": "바빠요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -5855,18 +5827,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't I'm busy.",
+          "en": "I'm not busy.",
           "ko": "바빠요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not I'm busy."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, I am.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -5875,13 +5845,11 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, I'm not.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
-          "acceptedAnswers": [
-            "No, I do not."
-          ]
+          "acceptedAnswers": []
         }
       ]
     },
@@ -5903,7 +5871,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you late?",
+          "en": "Are you late?",
           "ko": "늦었어요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -5911,18 +5879,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't I'm late.",
+          "en": "I'm not late.",
           "ko": "늦었어요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not I'm late."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, I am.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -5931,13 +5897,11 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, I'm not.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
-          "acceptedAnswers": [
-            "No, I do not."
-          ]
+          "acceptedAnswers": []
         }
       ]
     },
@@ -5959,7 +5923,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you sorry?",
+          "en": "Are you sorry?",
           "ko": "미안해요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -5967,18 +5931,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't I'm sorry.",
+          "en": "I'm not sorry.",
           "ko": "미안해요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not I'm sorry."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, I am.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -5987,13 +5949,11 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, I'm not.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
-          "acceptedAnswers": [
-            "No, I do not."
-          ]
+          "acceptedAnswers": []
         }
       ]
     },
@@ -6015,7 +5975,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you sure?",
+          "en": "Are you sure?",
           "ko": "확실해요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -6023,18 +5983,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't I'm sure.",
+          "en": "I'm not sure.",
           "ko": "확실해요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not I'm sure."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, I am.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -6043,13 +6001,11 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, I'm not.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
-          "acceptedAnswers": [
-            "No, I do not."
-          ]
+          "acceptedAnswers": []
         }
       ]
     },
@@ -6071,7 +6027,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you free?",
+          "en": "Are you free?",
           "ko": "한가해요. / 시간 있어요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -6079,18 +6035,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't I'm free.",
+          "en": "I'm not free.",
           "ko": "한가해요. / 시간 있어요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not I'm free."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, I am.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -6099,13 +6053,11 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, I'm not.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
-          "acceptedAnswers": [
-            "No, I do not."
-          ]
+          "acceptedAnswers": []
         }
       ]
     },
@@ -6127,7 +6079,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you hungry?",
+          "en": "Are you hungry?",
           "ko": "배고파요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -6135,18 +6087,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't I'm hungry.",
+          "en": "I'm not hungry.",
           "ko": "배고파요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not I'm hungry."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, I am.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -6155,13 +6105,11 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, I'm not.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
-          "acceptedAnswers": [
-            "No, I do not."
-          ]
+          "acceptedAnswers": []
         }
       ]
     },
@@ -6183,7 +6131,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you done?",
+          "en": "Are you done?",
           "ko": "다 했어요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -6191,18 +6139,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't I'm done.",
+          "en": "I'm not done.",
           "ko": "다 했어요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not I'm done."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, I am.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -6211,13 +6157,11 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, I'm not.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
-          "acceptedAnswers": [
-            "No, I do not."
-          ]
+          "acceptedAnswers": []
         }
       ]
     },
@@ -6239,7 +6183,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you back?",
+          "en": "Are you back?",
           "ko": "돌아왔어요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -6247,18 +6191,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't I'm back.",
+          "en": "I'm not back.",
           "ko": "돌아왔어요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not I'm back."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, I am.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -6267,13 +6209,11 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, I'm not.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
-          "acceptedAnswers": [
-            "No, I do not."
-          ]
+          "acceptedAnswers": []
         }
       ]
     },
@@ -6295,7 +6235,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you not sure?",
+          "en": "Are you sure?",
           "ko": "잘 모르겠어요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -6303,18 +6243,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't I'm not sure.",
+          "en": "I'm not sure.",
           "ko": "잘 모르겠어요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not I'm not sure."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, I am.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -6323,13 +6261,11 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, I'm not.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
-          "acceptedAnswers": [
-            "No, I do not."
-          ]
+          "acceptedAnswers": []
         }
       ]
     },
@@ -6351,7 +6287,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you not ready?",
+          "en": "Are you ready?",
           "ko": "아직 준비 안 됐어요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -6359,18 +6295,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't I'm not ready.",
+          "en": "I'm not ready.",
           "ko": "아직 준비 안 됐어요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not I'm not ready."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, I am.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -6379,13 +6313,11 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, I'm not.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
-          "acceptedAnswers": [
-            "No, I do not."
-          ]
+          "acceptedAnswers": []
         }
       ]
     },
@@ -6407,7 +6339,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you It's hard?",
+          "en": "Is it hard?",
           "ko": "어려워요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -6415,18 +6347,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't It's hard.",
+          "en": "It isn't hard.",
           "ko": "어려워요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not It's hard."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, it is.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -6435,12 +6365,12 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, it isn't.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
           "acceptedAnswers": [
-            "No, I do not."
+            "No, it is not."
           ]
         }
       ]
@@ -6463,7 +6393,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you It's easy?",
+          "en": "Is it easy?",
           "ko": "쉬워요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -6471,18 +6401,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't It's easy.",
+          "en": "It isn't easy.",
           "ko": "쉬워요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not It's easy."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, it is.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -6491,12 +6419,12 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, it isn't.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
           "acceptedAnswers": [
-            "No, I do not."
+            "No, it is not."
           ]
         }
       ]
@@ -6519,7 +6447,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you It's true?",
+          "en": "Is it true?",
           "ko": "진짜예요. / 맞아요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -6527,18 +6455,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't It's true.",
+          "en": "It isn't true.",
           "ko": "진짜예요. / 맞아요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not It's true."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, it is.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -6547,12 +6473,12 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, it isn't.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
           "acceptedAnswers": [
-            "No, I do not."
+            "No, it is not."
           ]
         }
       ]
@@ -6575,7 +6501,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you It's late?",
+          "en": "Is it late?",
           "ko": "늦었어요. / 시간이 늦어요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -6583,18 +6509,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't It's late.",
+          "en": "It isn't late.",
           "ko": "늦었어요. / 시간이 늦어요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not It's late."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, it is.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -6603,12 +6527,12 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, it isn't.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
           "acceptedAnswers": [
-            "No, I do not."
+            "No, it is not."
           ]
         }
       ]
@@ -6631,7 +6555,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you here?",
+          "en": "Are you here?",
           "ko": "여기 있어요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -6639,18 +6563,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't I'm here.",
+          "en": "I'm not here.",
           "ko": "여기 있어요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not I'm here."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, I am.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -6659,13 +6581,11 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, I'm not.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
-          "acceptedAnswers": [
-            "No, I do not."
-          ]
+          "acceptedAnswers": []
         }
       ]
     },
@@ -6687,7 +6607,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you home?",
+          "en": "Are you home?",
           "ko": "집이에요. / 집에 왔어요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -6695,18 +6615,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't I'm home.",
+          "en": "I'm not home.",
           "ko": "집이에요. / 집에 왔어요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not I'm home."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, I am.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -6715,13 +6633,11 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, I'm not.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
-          "acceptedAnswers": [
-            "No, I do not."
-          ]
+          "acceptedAnswers": []
         }
       ]
     },
@@ -6743,7 +6659,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you at work?",
+          "en": "Are you at work?",
           "ko": "회사예요. / 일하는 중이에요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -6751,18 +6667,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't I'm at work.",
+          "en": "I'm not at work.",
           "ko": "회사예요. / 일하는 중이에요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not I'm at work."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, I am.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -6771,13 +6685,11 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, I'm not.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
-          "acceptedAnswers": [
-            "No, I do not."
-          ]
+          "acceptedAnswers": []
         }
       ]
     },
@@ -6799,7 +6711,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you at school?",
+          "en": "Are you at school?",
           "ko": "학교예요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -6807,18 +6719,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't I'm at school.",
+          "en": "I'm not at school.",
           "ko": "학교예요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not I'm at school."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, I am.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -6827,13 +6737,11 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, I'm not.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
-          "acceptedAnswers": [
-            "No, I do not."
-          ]
+          "acceptedAnswers": []
         }
       ]
     },
@@ -6907,7 +6815,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you on the phone?",
+          "en": "Are you on the phone?",
           "ko": "통화 중이에요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -6915,18 +6823,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't I'm on the phone.",
+          "en": "I'm not on the phone.",
           "ko": "통화 중이에요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not I'm on the phone."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, I am.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -6935,13 +6841,11 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, I'm not.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
-          "acceptedAnswers": [
-            "No, I do not."
-          ]
+          "acceptedAnswers": []
         }
       ]
     },
@@ -6963,7 +6867,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you It's here?",
+          "en": "Is it here?",
           "ko": "여기 있어요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -6971,18 +6875,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't It's here.",
+          "en": "It isn't here.",
           "ko": "여기 있어요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not It's here."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, it is.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -6991,12 +6893,12 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, it isn't.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
           "acceptedAnswers": [
-            "No, I do not."
+            "No, it is not."
           ]
         }
       ]
@@ -7019,7 +6921,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you It's there?",
+          "en": "Is it there?",
           "ko": "거기 있어요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -7027,18 +6929,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't It's there.",
+          "en": "It isn't there.",
           "ko": "거기 있어요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not It's there."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, it is.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -7047,12 +6947,12 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, it isn't.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
           "acceptedAnswers": [
-            "No, I do not."
+            "No, it is not."
           ]
         }
       ]
@@ -7075,7 +6975,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you Here it is?",
+          "en": "Is it here?",
           "ko": "여기 있어요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -7083,18 +6983,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't Here it is.",
+          "en": "It isn't here.",
           "ko": "여기 있어요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not Here it is."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, it is.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -7103,12 +7001,12 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, it isn't.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
           "acceptedAnswers": [
-            "No, I do not."
+            "No, it is not."
           ]
         }
       ]
@@ -7131,7 +7029,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you There it is?",
+          "en": "Is it there?",
           "ko": "저기 있네요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -7139,18 +7037,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't There it is.",
+          "en": "It isn't there.",
           "ko": "저기 있네요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not There it is."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, it is.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -7159,12 +7055,12 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, it isn't.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
           "acceptedAnswers": [
-            "No, I do not."
+            "No, it is not."
           ]
         }
       ]
@@ -7187,7 +7083,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you with you?",
+          "en": "Are you with me?",
           "ko": "같이 있어요. / 당신 편이에요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -7195,18 +7091,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't I'm with you.",
+          "en": "I'm not with you.",
           "ko": "같이 있어요. / 당신 편이에요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not I'm with you."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, I am.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -7215,13 +7109,11 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, I'm not.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
-          "acceptedAnswers": [
-            "No, I do not."
-          ]
+          "acceptedAnswers": []
         }
       ]
     },
@@ -7236,8 +7128,8 @@
         {
           "id": "statement",
           "label": "평서",
-          "en": "I Where are you.",
-          "ko": "어디예요",
+          "en": "I'm here.",
+          "ko": "여기 있어요.",
           "cue": "평서문으로 말해 보세요"
         },
         {
@@ -7251,19 +7143,17 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't Where are you.",
-          "ko": "어디예요 (아니에요)",
+          "en": "I'm not there.",
+          "ko": "거기 없어요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not Where are you."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
-          "ko": "네.",
+          "en": "I'm here.",
+          "ko": "여기 있어요.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
           "acceptedAnswers": []
@@ -7271,13 +7161,11 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
-          "ko": "아니요.",
+          "en": "I'm not there.",
+          "ko": "거기 없어요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
-          "acceptedAnswers": [
-            "No, I do not."
-          ]
+          "acceptedAnswers": []
         }
       ]
     },
@@ -7292,8 +7180,8 @@
         {
           "id": "statement",
           "label": "평서",
-          "en": "I'm there.",
-          "ko": "거기 있어요",
+          "en": "I'm here.",
+          "ko": "여기 있어요.",
           "cue": "평서문으로 말해 보세요"
         },
         {
@@ -7307,19 +7195,17 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't I'm there.",
-          "ko": "거기 있어요 (아니에요)",
+          "en": "I'm not there.",
+          "ko": "거기 없어요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not I'm there."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
           "en": "Yes, I am.",
-          "ko": "네.",
+          "ko": "네, 있어요.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
           "acceptedAnswers": []
@@ -7353,7 +7239,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you next?",
+          "en": "Are you next?",
           "ko": "제 차례예요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -7361,18 +7247,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't I'm next.",
+          "en": "I'm not next.",
           "ko": "제 차례예요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not I'm next."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, I am.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -7381,13 +7265,11 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, I'm not.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
-          "acceptedAnswers": [
-            "No, I do not."
-          ]
+          "acceptedAnswers": []
         }
       ]
     },
@@ -7409,27 +7291,25 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Does it is what it is?",
-          "ko": "어쩔 수 없지. / 이미 이렇게 된걸 어떡해?",
+          "en": "Is that just how it is?",
+          "ko": "그냥 그런 건가요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
         },
         {
           "id": "negative",
           "label": "부정",
-          "en": "It doesn't is what it is.",
-          "ko": "어쩔 수 없지. / 이미 이렇게 된걸 어떡해 아니에요.",
+          "en": "That's not how it is.",
+          "ko": "그건 그렇지 않아요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "It does not is what it is."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, it does.",
-          "ko": "네.",
+          "en": "Yes, it is.",
+          "ko": "네, 그래요.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
           "acceptedAnswers": []
@@ -7437,12 +7317,12 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, it doesn't.",
+          "en": "No, it isn't.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
           "acceptedAnswers": [
-            "No, it does not."
+            "No, it is not."
           ]
         }
       ]
@@ -7465,7 +7345,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you That's it?",
+          "en": "Is that it?",
           "ko": "그게 다예요. / 됐어?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -7473,18 +7353,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't That's it.",
+          "en": "That isn't it.",
           "ko": "그게 다예요. / 됐어 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not That's it."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, it is.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -7493,12 +7371,12 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, it isn't.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
           "acceptedAnswers": [
-            "No, I do not."
+            "No, it is not."
           ]
         }
       ]
@@ -7521,7 +7399,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you That's fine?",
+          "en": "Is that fine?",
           "ko": "괜찮아요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -7529,18 +7407,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't That's fine.",
+          "en": "That isn't fine.",
           "ko": "괜찮아요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not That's fine."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, it is.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -7549,12 +7425,12 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, it isn't.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
           "acceptedAnswers": [
-            "No, I do not."
+            "No, it is not."
           ]
         }
       ]
@@ -7577,7 +7453,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you It's okay?",
+          "en": "Is it okay?",
           "ko": "괜찮아요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -7585,18 +7461,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't It's okay.",
+          "en": "It isn't okay.",
           "ko": "괜찮아요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not It's okay."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, it is.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -7605,12 +7479,12 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, it isn't.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
           "acceptedAnswers": [
-            "No, I do not."
+            "No, it is not."
           ]
         }
       ]
@@ -7633,7 +7507,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you You're right?",
+          "en": "Are you right?",
           "ko": "맞아요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -7641,18 +7515,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't You're right.",
+          "en": "You're not right.",
           "ko": "맞아요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not You're right."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, I am.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -7661,13 +7533,11 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, I'm not.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
-          "acceptedAnswers": [
-            "No, I do not."
-          ]
+          "acceptedAnswers": []
         }
       ]
     },
@@ -7689,7 +7559,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you You're welcome?",
+          "en": "Are you welcome?",
           "ko": "천만에요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -7697,18 +7567,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't You're welcome.",
+          "en": "You're not welcome.",
           "ko": "천만에요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not You're welcome."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, I am.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -7717,13 +7585,11 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, I'm not.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
-          "acceptedAnswers": [
-            "No, I do not."
-          ]
+          "acceptedAnswers": []
         }
       ]
     },
@@ -7745,7 +7611,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you That's right?",
+          "en": "Is that right?",
           "ko": "맞아요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -7753,18 +7619,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't That's right.",
+          "en": "That isn't right.",
           "ko": "맞아요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not That's right."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, it is.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -7773,12 +7637,12 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, it isn't.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
           "acceptedAnswers": [
-            "No, I do not."
+            "No, it is not."
           ]
         }
       ]
@@ -7801,7 +7665,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you That's all?",
+          "en": "Is that all?",
           "ko": "그게 다예요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -7809,18 +7673,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't That's all.",
+          "en": "That isn't all.",
           "ko": "그게 다예요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not That's all."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, it is.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -7829,12 +7691,12 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, it isn't.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
           "acceptedAnswers": [
-            "No, I do not."
+            "No, it is not."
           ]
         }
       ]
@@ -7857,7 +7719,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you That's enough?",
+          "en": "Is that enough?",
           "ko": "그거면 충분해요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -7865,18 +7727,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't That's enough.",
+          "en": "That isn't enough.",
           "ko": "그거면 충분해요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not That's enough."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, it is.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -7885,12 +7745,12 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, it isn't.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
           "acceptedAnswers": [
-            "No, I do not."
+            "No, it is not."
           ]
         }
       ]
@@ -7913,7 +7773,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you It's up to you?",
+          "en": "Is it up to you?",
           "ko": "너한테 달렸어?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -7921,18 +7781,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't It's up to you.",
+          "en": "It isn't up to you.",
           "ko": "너한테 달렸어 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not It's up to you."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, it is.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -7941,12 +7799,12 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, it isn't.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
           "acceptedAnswers": [
-            "No, I do not."
+            "No, it is not."
           ]
         }
       ]
@@ -8023,7 +7881,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you That's better?",
+          "en": "Is that better?",
           "ko": "그게 낫네요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -8031,18 +7889,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't That's better.",
+          "en": "That isn't better.",
           "ko": "그게 낫네요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not That's better."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, it is.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -8051,12 +7907,12 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, it isn't.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
           "acceptedAnswers": [
-            "No, I do not."
+            "No, it is not."
           ]
         }
       ]
@@ -8079,7 +7935,7 @@
         {
           "id": "question",
           "label": "의문",
-          "en": "Do you It's me?",
+          "en": "Is it me?",
           "ko": "저예요?",
           "cue": "의문문으로 바꿔 보세요",
           "baseFormId": "statement"
@@ -8087,18 +7943,16 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't It's me.",
+          "en": "It isn't me.",
           "ko": "저예요 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not It's me."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
+          "en": "Yes, it is.",
           "ko": "네.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
@@ -8107,12 +7961,12 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
+          "en": "No, it isn't.",
           "ko": "아니요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
           "acceptedAnswers": [
-            "No, I do not."
+            "No, it is not."
           ]
         }
       ]
@@ -8128,8 +7982,8 @@
         {
           "id": "statement",
           "label": "평서",
-          "en": "I Who is it.",
-          "ko": "누구세요",
+          "en": "It's me.",
+          "ko": "저예요.",
           "cue": "평서문으로 말해 보세요"
         },
         {
@@ -8143,19 +7997,17 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't Who is it.",
-          "ko": "누구세요 (아니에요)",
+          "en": "It isn't me.",
+          "ko": "저 아니에요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not Who is it."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
-          "ko": "네.",
+          "en": "It's me.",
+          "ko": "저예요.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
           "acceptedAnswers": []
@@ -8163,12 +8015,12 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
-          "ko": "아니요.",
+          "en": "It isn't me.",
+          "ko": "저 아니에요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
           "acceptedAnswers": [
-            "No, I do not."
+            "It is not me."
           ]
         }
       ]
@@ -8184,8 +8036,8 @@
         {
           "id": "statement",
           "label": "평서",
-          "en": "I What's wrong.",
-          "ko": "뭐가 문제예요",
+          "en": "Nothing's wrong.",
+          "ko": "아무 문제 없어요.",
           "cue": "평서문으로 말해 보세요"
         },
         {
@@ -8199,19 +8051,17 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't What's wrong.",
-          "ko": "뭐가 문제예요 (아니에요)",
+          "en": "Something's wrong.",
+          "ko": "뭔가 이상해요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not What's wrong."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
-          "ko": "네.",
+          "en": "Nothing's wrong.",
+          "ko": "괜찮아요.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
           "acceptedAnswers": []
@@ -8219,13 +8069,11 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
-          "ko": "아니요.",
+          "en": "Something's wrong.",
+          "ko": "문제 있어요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
-          "acceptedAnswers": [
-            "No, I do not."
-          ]
+          "acceptedAnswers": []
         }
       ]
     },
@@ -8240,8 +8088,8 @@
         {
           "id": "statement",
           "label": "평서",
-          "en": "I What's up.",
-          "ko": "뭐야? / 어떻게 지내",
+          "en": "Not much.",
+          "ko": "별일 없어요.",
           "cue": "평서문으로 말해 보세요"
         },
         {
@@ -8255,19 +8103,17 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't What's up.",
-          "ko": "뭐야? / 어떻게 지내 (아니에요)",
+          "en": "Something's up.",
+          "ko": "뭔가 있어요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not What's up."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
-          "ko": "네.",
+          "en": "Not much.",
+          "ko": "별일 없어요.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
           "acceptedAnswers": []
@@ -8275,13 +8121,11 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
-          "ko": "아니요.",
+          "en": "Something's up.",
+          "ko": "뭔가 있어요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
-          "acceptedAnswers": [
-            "No, I do not."
-          ]
+          "acceptedAnswers": []
         }
       ]
     },
@@ -8296,8 +8140,8 @@
         {
           "id": "statement",
           "label": "평서",
-          "en": "I How are you.",
-          "ko": "어떻게 지내세요",
+          "en": "I'm fine.",
+          "ko": "괜찮아요.",
           "cue": "평서문으로 말해 보세요"
         },
         {
@@ -8311,19 +8155,17 @@
         {
           "id": "negative",
           "label": "부정",
-          "en": "I don't How are you.",
-          "ko": "어떻게 지내세요 (아니에요)",
+          "en": "I'm not fine.",
+          "ko": "괜찮지 않아요.",
           "cue": "부정문으로 바꿔 보세요",
           "baseFormId": "statement",
-          "acceptedAnswers": [
-            "I do not How are you."
-          ]
+          "acceptedAnswers": []
         },
         {
           "id": "shortYes",
           "label": "짧은 답",
-          "en": "Yes, I do.",
-          "ko": "네.",
+          "en": "I'm fine.",
+          "ko": "괜찮아요.",
           "cue": "짧게 긍정으로 답해 보세요",
           "baseFormId": "question",
           "acceptedAnswers": []
@@ -8331,13 +8173,11 @@
         {
           "id": "shortNo",
           "label": "짧은 답",
-          "en": "No, I don't.",
-          "ko": "아니요.",
+          "en": "I'm not fine.",
+          "ko": "괜찮지 않아요.",
           "cue": "짧게 부정으로 답해 보세요",
           "baseFormId": "question",
-          "acceptedAnswers": [
-            "No, I do not."
-          ]
+          "acceptedAnswers": []
         }
       ]
     },

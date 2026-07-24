@@ -80,6 +80,71 @@ const coffee = QaMatrixGenerate.fromExpression({
 assert.strictEqual(coffee.forms.find(f => f.id === 'statement').en, 'I can get coffee.');
 assert.ok(/can't/i.test(coffee.forms.find(f => f.id === 'negative').en));
 
+const whatItIs = QaMatrixGenerate.fromExpression({
+  id: 'e137',
+  english: 'It is what it is.',
+  naturalKorean: '어쩔 수 없지. / 이미 이렇게 된걸 어떡해.',
+  coreVerbId: 'v_be',
+});
+assert.strictEqual(whatItIs.forms.find(f => f.id === 'question').en, 'Is that just how it is?');
+assert.ok(!/Does it is/i.test(whatItIs.forms.find(f => f.id === 'question').en));
+assert.ok(!/doesn't is/i.test(whatItIs.forms.find(f => f.id === 'negative').en));
+
+const imFine = QaMatrixGenerate.fromExpression({
+  id: 'e105',
+  english: "I'm fine.",
+  naturalKorean: '괜찮아요.',
+  coreVerbId: 'v_be',
+});
+assert.strictEqual(imFine.forms.find(f => f.id === 'question').en, 'Are you fine?');
+assert.strictEqual(imFine.forms.find(f => f.id === 'negative').en, "I'm not fine.");
+assert.strictEqual(imFine.forms.find(f => f.id === 'shortYes').en, 'Yes, I am.');
+
+const itsOkay = QaMatrixGenerate.fromExpression({
+  id: 'e140',
+  english: "It's okay.",
+  naturalKorean: '괜찮아요.',
+  coreVerbId: 'v_be',
+});
+assert.strictEqual(itsOkay.forms.find(f => f.id === 'question').en, 'Is it okay?');
+assert.strictEqual(itsOkay.forms.find(f => f.id === 'negative').en, "It isn't okay.");
+
+const thatsFine = QaMatrixGenerate.fromExpression({
+  id: 'e139',
+  english: "That's fine.",
+  naturalKorean: '괜찮아요.',
+  coreVerbId: 'v_be',
+});
+assert.strictEqual(thatsFine.forms.find(f => f.id === 'question').en, 'Is that fine?');
+
+const onWay = QaMatrixGenerate.fromExpression({
+  id: 'e008',
+  english: "I'm on my way.",
+  naturalKorean: '가는 중이에요.',
+  coreVerbId: 'v_be',
+});
+assert.strictEqual(onWay.forms.find(f => f.id === 'question').en, 'Are you on your way?');
+assert.strictEqual(onWay.forms.find(f => f.id === 'negative').en, "I'm not on my way.");
+
+const howAreYou = QaMatrixGenerate.fromExpression({
+  id: 'e153',
+  english: 'How are you?',
+  naturalKorean: '어떻게 지내세요?',
+  coreVerbId: 'v_be',
+});
+assert.strictEqual(howAreYou.forms.find(f => f.id === 'question').en, 'How are you?');
+assert.ok(!/^I don't How/i.test(howAreYou.forms.find(f => f.id === 'negative').en));
+assert.strictEqual(howAreYou.forms.find(f => f.id === 'statement').en, "I'm fine.");
+
+const illDo = QaMatrixGenerate.fromExpression({
+  id: 'e050',
+  english: "I'll do it.",
+  naturalKorean: '제가 할게요.',
+  coreVerbId: 'v_do',
+});
+assert.strictEqual(illDo.forms.find(f => f.id === 'question').en, 'Will you do it?');
+assert.strictEqual(illDo.forms.find(f => f.id === 'negative').en, "I won't do it.");
+
 const ensured = QaMatrixGenerate.ensureMatrix(
   { id: 'e021', english: 'I have an idea.', naturalKorean: '생각이 있어요.', coreVerbId: 'v_have' },
   [{ id: 'm_have_idea', baseExpressionId: 'e021', forms: [] }]

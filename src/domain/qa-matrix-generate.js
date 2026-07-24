@@ -9,7 +9,10 @@
   root.QaMatrixGenerate = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   function stripEnd(text) {
-    return String(text || '').replace(/[.?!…]+$/u, '').trim();
+    return String(text || '')
+      .replace(/[’‘ʻʼ]/g, "'")
+      .replace(/[.?!…]+$/u, '')
+      .trim();
   }
 
   function ensurePeriod(text) {
@@ -78,8 +81,193 @@
       && /\b\w+ing\b/i.test(en);
   }
 
+  function isWhQuestionEn(en) {
+    return /^(who|what|when|where|why|how|which)\b/i.test(stripEnd(en));
+  }
+
+  function isBeCopulaEn(en) {
+    const text = stripEnd(en);
+    if (/^(here|there)\s+it\s+is\b/i.test(text)) return true;
+    return /^(i'm|i am|you're|you are|we're|we are|they're|they are|he's|he is|she's|she is|it's|it is|that's|that is|this is|there's|there is)\b/i.test(text);
+  }
+
+  function bePhraseSpecialParts(en, ko) {
+    const key = stripEnd(en).toLowerCase();
+    const map = {
+      'it is what it is': {
+        statement: 'It is what it is.',
+        statementKo: ko || '어쩔 수 없어요.',
+        question: 'Is that just how it is?',
+        questionKo: '그냥 그런 건가요?',
+        negative: "That's not how it is.",
+        negativeKo: '그건 그렇지 않아요.',
+        shortYes: { en: 'Yes, it is.', ko: '네, 그래요.' },
+        shortNo: { en: "No, it isn't.", ko: '아니요.' },
+      },
+    };
+    return map[key] || null;
+  }
+
+  function whMatrixParts(en, ko) {
+    const text = stripEnd(en);
+    const lower = text.toLowerCase();
+    const presets = {
+      'how are you': {
+        statement: "I'm fine.",
+        statementKo: '괜찮아요.',
+        negative: "I'm not fine.",
+        negativeKo: '괜찮지 않아요.',
+        shortYes: { en: "I'm fine.", ko: '괜찮아요.' },
+        shortNo: { en: "I'm not fine.", ko: '괜찮지 않아요.' },
+      },
+      'where are you': {
+        statement: "I'm here.",
+        statementKo: '여기 있어요.',
+        negative: "I'm not there.",
+        negativeKo: '거기 없어요.',
+        shortYes: { en: "I'm here.", ko: '여기 있어요.' },
+        shortNo: { en: "I'm not there.", ko: '거기 없어요.' },
+      },
+      'who is it': {
+        statement: "It's me.",
+        statementKo: '저예요.',
+        negative: "It isn't me.",
+        negativeKo: '저 아니에요.',
+        shortYes: { en: "It's me.", ko: '저예요.' },
+        shortNo: { en: "It isn't me.", ko: '저 아니에요.' },
+      },
+      "what's wrong": {
+        statement: "Nothing's wrong.",
+        statementKo: '아무 문제 없어요.',
+        negative: "Something's wrong.",
+        negativeKo: '뭔가 이상해요.',
+        shortYes: { en: "Nothing's wrong.", ko: '괜찮아요.' },
+        shortNo: { en: "Something's wrong.", ko: '문제 있어요.' },
+      },
+      "what's up": {
+        statement: 'Not much.',
+        statementKo: '별일 없어요.',
+        negative: "Something's up.",
+        negativeKo: '뭔가 있어요.',
+        shortYes: { en: 'Not much.', ko: '별일 없어요.' },
+        shortNo: { en: "Something's up.", ko: '뭔가 있어요.' },
+      },
+      'are you there': {
+        statement: "I'm here.",
+        statementKo: '여기 있어요.',
+        negative: "I'm not there.",
+        negativeKo: '거기 없어요.',
+        shortYes: { en: 'Yes, I am.', ko: '네, 있어요.' },
+        shortNo: { en: "No, I'm not.", ko: '아니요.' },
+      },
+    };
+    const preset = presets[lower] || presets[lower.replace(/'/g, '')];
+    if (preset) {
+      return {
+        statement: preset.statement,
+        statementKo: preset.statementKo,
+        question: ensureQuestion(text),
+        questionKo: ko.includes('?') ? ko : ensureQuestion(ko),
+        negative: preset.negative,
+        negativeKo: preset.negativeKo,
+        shortYes: preset.shortYes,
+        shortNo: preset.shortNo,
+      };
+    }
+    return {
+      statement: ensurePeriod("I don't know"),
+      statementKo: '모르겠어요.',
+      question: ensureQuestion(text),
+      questionKo: ko.includes('?') ? ko : ensureQuestion(ko),
+      negative: ensurePeriod("I don't know"),
+      negativeKo: '모르겠어요.',
+      shortYes: { en: 'Yes.', ko: '네.' },
+      shortNo: { en: 'No.', ko: '아니요.' },
+    };
+  }
+
+  function transformBeCopulaQuestion(statementEn) {
+    const text = stripEnd(statementEn);
+    if (/^here\s+it\s+is\b/i.test(text)) return ensureQuestion('Is it here');
+    if (/^there\s+it\s+is\b/i.test(text)) return ensureQuestion('Is it there');
+    if (/^(i'm not|i am not)\s+/i.test(text)) {
+      let rest = text.replace(/^(i'm not|i am not)\s+/i, '');
+      rest = rest.replace(/\bmy\b/gi, 'your').replace(/\bmyself\b/gi, 'yourself').replace(/\bwith you\b/gi, 'with me');
+      return ensureQuestion(`Are you ${rest}`);
+    }
+    if (/^(i'm|i am)\s+/i.test(text)) {
+      let rest = text.replace(/^(i'm|i am)\s+/i, '');
+      rest = rest.replace(/\bmy\b/gi, 'your').replace(/\bmyself\b/gi, 'yourself').replace(/\bwith you\b/gi, 'with me');
+      return ensureQuestion(`Are you ${rest}`);
+    }
+    if (/^(you're not|you are not)\s+/i.test(text)) {
+      return ensureQuestion(`Are you ${text.replace(/^(you're not|you are not)\s+/i, '')}`);
+    }
+    if (/^(you're|you are)\s+/i.test(text)) {
+      return ensureQuestion(`Are you ${text.replace(/^(you're|you are)\s+/i, '')}`);
+    }
+    if (/^(we're not|we are not)\s+/i.test(text)) {
+      return ensureQuestion(`Are you ${text.replace(/^(we're not|we are not)\s+/i, '')}`);
+    }
+    if (/^(we're|we are)\s+/i.test(text)) {
+      return ensureQuestion(`Are you ${text.replace(/^(we're|we are)\s+/i, '')}`);
+    }
+    if (/^(they're|they are)\s+/i.test(text)) {
+      return ensureQuestion(`Are they ${text.replace(/^(they're|they are)\s+/i, '')}`);
+    }
+    if (/^(it's|it is)\s+/i.test(text)) {
+      return ensureQuestion(`Is it ${text.replace(/^(it's|it is)\s+/i, '')}`);
+    }
+    if (/^(that's|that is)\s+/i.test(text)) {
+      return ensureQuestion(`Is that ${text.replace(/^(that's|that is)\s+/i, '')}`);
+    }
+    if (/^this is\s+/i.test(text)) {
+      return ensureQuestion(`Is this ${text.replace(/^this is\s+/i, '')}`);
+    }
+    if (/^(there's|there is)\s+/i.test(text)) {
+      return ensureQuestion(`Is there ${text.replace(/^(there's|there is)\s+/i, '')}`);
+    }
+    if (/^(he's|he is|she's|she is)\s+/i.test(text)) {
+      const rest = text.replace(/^(he's|he is|she's|she is)\s+/i, '');
+      return ensureQuestion(`Is he ${rest}`);
+    }
+    return null;
+  }
+
+  function transformBeCopulaNegative(statementEn) {
+    const text = stripEnd(statementEn);
+    if (/^here\s+it\s+is\b/i.test(text)) return ensurePeriod("It isn't here");
+    if (/^there\s+it\s+is\b/i.test(text)) return ensurePeriod("It isn't there");
+    if (/^(i'm not|i am not|you're not|you are not|we're not|we are not|it's not|it isn't|it is not|that's not|that isn't|that is not)\b/i.test(text)) {
+      return ensurePeriod(text);
+    }
+    if (/^(i'm|i am)\b/i.test(text)) return ensurePeriod(text.replace(/^(i'm|i am)\b/i, "I'm not"));
+    if (/^(you're|you are)\b/i.test(text)) return ensurePeriod(text.replace(/^(you're|you are)\b/i, "You're not"));
+    if (/^(we're|we are)\b/i.test(text)) return ensurePeriod(text.replace(/^(we're|we are)\b/i, "We're not"));
+    if (/^(they're|they are)\b/i.test(text)) return ensurePeriod(text.replace(/^(they're|they are)\b/i, "They're not"));
+    if (/^(it's|it is)\b/i.test(text)) return ensurePeriod(text.replace(/^(it's|it is)\b/i, "It isn't"));
+    if (/^(that's|that is)\b/i.test(text)) return ensurePeriod(text.replace(/^(that's|that is)\b/i, "That isn't"));
+    if (/^this is\b/i.test(text)) return ensurePeriod(text.replace(/^this is\b/i, "This isn't"));
+    if (/^(there's|there is)\b/i.test(text)) return ensurePeriod(text.replace(/^(there's|there is)\b/i, "There isn't"));
+    if (/^(he's|he is)\b/i.test(text)) return ensurePeriod(text.replace(/^(he's|he is)\b/i, "He isn't"));
+    if (/^(she's|she is)\b/i.test(text)) return ensurePeriod(text.replace(/^(she's|she is)\b/i, "She isn't"));
+    return null;
+  }
+
   function subjectAuxFromQuestion(questionEn) {
     const text = stripEnd(questionEn);
+    if (isWhQuestionEn(text)) {
+      if (/^how are you$/i.test(text)) {
+        return { aux: 'are', subject: 'you', shortYes: "I'm fine.", shortNo: "I'm not fine.", statementSubject: "I'm" };
+      }
+      if (/^where are you$/i.test(text)) {
+        return { aux: 'are', subject: 'you', shortYes: "I'm here.", shortNo: "I'm not there.", statementSubject: "I'm" };
+      }
+      if (/^who is it$/i.test(text)) {
+        return { aux: 'is', subject: 'it', shortYes: "It's me.", shortNo: "It isn't me.", statementSubject: 'It' };
+      }
+      return { aux: 'do', subject: 'you', shortYes: 'Yes.', shortNo: 'No.', statementSubject: 'I' };
+    }
     const match = text.match(/^(do|does|did|are|is|am|was|were|can|could|will|would|have|has|had)\s+(\w+)\b/i);
     if (!match) {
       return { aux: 'do', subject: 'you', shortYes: 'Yes, I do.', shortNo: "No, I don't." };
@@ -91,6 +279,10 @@
     if (aux === 'do' && subject === 'we') return { aux, subject, shortYes: 'Yes, we do.', shortNo: "No, we don't.", statementSubject: 'We' };
     if (aux === 'did') return { aux, subject, shortYes: 'Yes, I did.', shortNo: "No, I didn't.", statementSubject: 'I' };
     if (aux === 'are' && subject === 'you') return { aux, subject, shortYes: 'Yes, I am.', shortNo: "No, I'm not.", statementSubject: "I'm" };
+    if (aux === 'are' && subject === 'they') return { aux, subject, shortYes: 'Yes, they are.', shortNo: "No, they aren't.", statementSubject: 'They' };
+    if (aux === 'is' && subject === 'that') return { aux, subject, shortYes: 'Yes, it is.', shortNo: "No, it isn't.", statementSubject: 'That' };
+    if (aux === 'is' && subject === 'this') return { aux, subject, shortYes: 'Yes, it is.', shortNo: "No, it isn't.", statementSubject: 'This' };
+    if (aux === 'is' && subject === 'there') return { aux, subject, shortYes: 'Yes, there is.', shortNo: "No, there isn't.", statementSubject: 'There' };
     if (aux === 'is') return { aux, subject, shortYes: 'Yes, it is.', shortNo: "No, it isn't.", statementSubject: 'It' };
     if (aux === 'can' && subject === 'i') return { aux, subject, shortYes: 'Yes, you can.', shortNo: "No, you can't.", statementSubject: 'I' };
     if (aux === 'can') return { aux, subject, shortYes: 'Yes, I can.', shortNo: "No, I can't.", statementSubject: 'I' };
@@ -102,11 +294,30 @@
 
   function questionToStatement(questionEn) {
     const text = stripEnd(questionEn);
+    if (isWhQuestionEn(text)) {
+      return whMatrixParts(text, '').statement;
+    }
     const info = subjectAuxFromQuestion(text);
     // Do you have time? -> I have time.
     let rest = text.replace(/^(do|does|did|are|is|am|was|were|can|could|will|would|have|has|had)\s+\w+\s+/i, '');
     if (/^(are|is|am)\b/i.test(text)) {
-      // Are you getting tired? -> I'm getting tired.
+      // Are you getting tired? -> I'm getting tired. / Is it okay? -> It's okay.
+      if (/^is\s+it\s+/i.test(text)) {
+        rest = text.replace(/^is\s+it\s+/i, '');
+        return ensurePeriod(`It's ${rest}`);
+      }
+      if (/^is\s+that\s+/i.test(text)) {
+        rest = text.replace(/^is\s+that\s+/i, '');
+        return ensurePeriod(`That's ${rest}`);
+      }
+      if (/^is\s+this\s+/i.test(text)) {
+        rest = text.replace(/^is\s+this\s+/i, '');
+        return ensurePeriod(`This is ${rest}`);
+      }
+      if (/^is\s+there\s+/i.test(text)) {
+        rest = text.replace(/^is\s+there\s+/i, '');
+        return ensurePeriod(`There's ${rest}`);
+      }
       rest = text.replace(/^are\s+you\s+/i, '').replace(/^is\s+\w+\s+/i, '');
       return ensurePeriod(`I'm ${rest}`);
     }
@@ -135,6 +346,10 @@
       const rest = text.replace(/^let'?s\s+/i, '');
       return ensureQuestion(`Should we ${rest}`);
     }
+    if (isBeCopulaEn(text)) {
+      const beQuestion = transformBeCopulaQuestion(text);
+      if (beQuestion) return beQuestion;
+    }
     if (isAlreadyNegativeEn(text)) {
       if (/\bhave no\b/i.test(text)) {
         const rest = text.replace(/^(i|we|you|they)\s+have no\s+/i, 'have ');
@@ -149,25 +364,21 @@
       }
       return ensureQuestion(`Do you ${rest}`.replace(/\s+/g, ' ').trim());
     }
-    if (isProgressiveEn(text)) {
-      if (/^(it's|it is)\b/i.test(text)) {
-        const rest = text.replace(/^(it's|it is)\s+/i, '');
-        return ensureQuestion(`Is it ${rest}`);
-      }
-      const rest = text
-        .replace(/^(i'm|i am)\s+/i, '')
-        .replace(/^(you're|you are)\s+/i, '')
-        .replace(/^(we're|we are)\s+/i, '')
-        .replace(/^(they're|they are)\s+/i, '');
-      return ensureQuestion(`Are you ${rest}`);
+    if (/^(i'll|i will)\s+/i.test(text)) {
+      return ensureQuestion(`Will you ${text.replace(/^(i'll|i will)\s+/i, '')}`);
     }
-    if (/^that\s+/i.test(text)) {
+    if (/^(we'll|we will)\s+/i.test(text)) {
+      return ensureQuestion(`Will you ${text.replace(/^(we'll|we will)\s+/i, '')}`);
+    }
+    // Lexical "That makes..." — not be-copula "That's..."
+    if (/^that\s+(?!is\b)/i.test(text)) {
       const rest = text.replace(/^that\s+/i, '')
         .replace(/\bmakes\b/i, 'make')
         .replace(/\bmade\b/i, 'make');
       return ensureQuestion(`Does that ${rest}`);
     }
-    if (/^it\s+/i.test(text)) {
+    // Lexical "It takes/needs/has..." — not be-copula "It is..."
+    if (/^it\s+(?!is\b)/i.test(text)) {
       if (isPastEn(text)) {
         const rest = text.replace(/^it\s+/i, '')
           .replace(/\bwent\b/i, 'go')
@@ -211,7 +422,7 @@
       return ensureQuestion(`Do you ${rest}`);
     }
     // I have / I need / I want / I get ...
-    const rest = text.replace(/^(i|i'm|i am)\s+/i, '');
+    const rest = text.replace(/^i\s+/i, '');
     return ensureQuestion(`Do you ${rest}`);
   }
 
@@ -222,25 +433,23 @@
       const rest = text.replace(/^let'?s\s+/i, '');
       return ensurePeriod(`Let's not ${rest}`);
     }
-    if (isProgressiveEn(text)) {
-      if (/^(it's|it is)\b/i.test(text)) {
-        return ensurePeriod(text.replace(/^(it's|it is)\b/i, "It isn't"));
-      }
-      if (/^(i'm|i am)\b/i.test(text)) {
-        return ensurePeriod(text.replace(/^(i'm|i am)\b/i, "I'm not"));
-      }
-      if (/^(you're|you are)\b/i.test(text)) {
-        return ensurePeriod(text.replace(/^(you're|you are)\b/i, "You're not"));
-      }
-      return ensurePeriod(`I'm not ${text.replace(/^(we're|we are|they're|they are)\s+/i, '')}`);
+    if (isBeCopulaEn(text)) {
+      const beNegative = transformBeCopulaNegative(text);
+      if (beNegative) return beNegative;
     }
-    if (/^that\s+/i.test(text)) {
+    if (/^(i'll|i will)\s+/i.test(text)) {
+      return ensurePeriod(`I won't ${text.replace(/^(i'll|i will)\s+/i, '')}`);
+    }
+    if (/^(we'll|we will)\s+/i.test(text)) {
+      return ensurePeriod(`We won't ${text.replace(/^(we'll|we will)\s+/i, '')}`);
+    }
+    if (/^that\s+(?!is\b)/i.test(text)) {
       const rest = text.replace(/^that\s+/i, '')
         .replace(/\bmakes\b/i, 'make')
         .replace(/\bmade\b/i, 'make');
       return ensurePeriod(`That doesn't ${rest}`);
     }
-    if (/^it\s+/i.test(text)) {
+    if (/^it\s+(?!is\b)/i.test(text)) {
       if (isPastEn(text)) {
         const rest = text.replace(/^it\s+/i, '')
           .replace(/\bwent\b/i, 'go')
@@ -593,7 +802,12 @@
     const verb = verbWord(expression, options.verbs || []);
     let parts;
 
-    if (isQuestionEn(en)) {
+    const beSpecial = bePhraseSpecialParts(en, ko);
+    if (beSpecial) {
+      parts = beSpecial;
+    } else if (isWhQuestionEn(en) || (/^are you there$/i.test(stripEnd(en)))) {
+      parts = whMatrixParts(en, ko);
+    } else if (isQuestionEn(en)) {
       const statement = questionToStatement(en);
       const shorts = shortAnswersFor(en);
       parts = {
