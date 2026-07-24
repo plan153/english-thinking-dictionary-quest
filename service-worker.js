@@ -1,7 +1,9 @@
-const CACHE = 'etd-quest-v1.3.3';
+const CACHE = 'etd-quest-v1.3.4';
 // Do NOT precache HTML. Stale index.html in Cache Storage is the main Safari stuck-UI cause.
 const ASSETS = [
   './manifest.webmanifest',
+  './src/data/thinking-map-sets.js',
+  './src/domain/next-practice.js',
   './src/domain/markdown-projection.js',
   './src/domain/obsidian-sync.js',
   './src/domain/canon-intake.js',
