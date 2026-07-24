@@ -91,12 +91,16 @@ CI: `.github/workflows/validate.yml` → `browser-smoke` job에서 day-loop smok
 
 ## O3 — 배포 후 옛 UI / 캐시
 
-GitHub Pages 또는 로컬에서 **버전이 올랐는데 옛 화면**이 보이면:
+GitHub Pages에서 **옛 화면**이 보이면, 사이트 데이터 삭제 대신 이 주소를 엽니다:
 
-1. 주소창 강력 새로고침 (Mac Chrome: `Cmd+Shift+R`)
-2. 사이트 데이터 삭제: Chrome → 사이트 설정 → 데이터 삭제 / Safari → 고급 → 웹사이트 데이터
-3. 서비스워커: DevTools → Application → Service Workers → Unregister 후 새로고침
-4. 앱은 `APP_CACHE_VERSION`이 바뀌면 오래된 Cache Storage를 자동 삭제합니다
+```text
+https://plan153.github.io/english-thinking-dictionary-quest/fresh.html
+```
+
+`fresh.html`이 서비스워커를 해제하고 Cache Storage를 지운 뒤 새 `index.html`로 보냅니다.  
+앱 성장 화면의 **새 버전으로 새로고침** 버튼도 같은 경로입니다.
+
+서비스워커는 HTML(navigate)을 더 이상 Cache Storage에 넣지 않습니다.
 
 ## 상태
 
@@ -104,6 +108,6 @@ GitHub Pages 또는 로컬에서 **버전이 올랐는데 옛 화면**이 보이
 | --- | --- | --- | --- |
 | D1 | 실 day loop 한 바퀴 | mock smoke만 | **사용자 실행 필요** |
 | D2 | pathPrefix·폴더 실측 | 검사 API·스크립트 준비됨 | **사용자 실행 필요** |
-| O3 | Pages 캐시 안내 | 문서·성장 화면 안내 | 사용자가 캐시 지우면 즉시 해소 |
+| O3 | Pages 캐시 안내 | `fresh.html` + HTML no-cache SW | 위 URL로 즉시 해소 |
 
 미완 SoT: [`BACKLOG.md`](./BACKLOG.md)

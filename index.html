@@ -914,7 +914,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.1">v1.3.1</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.2">v1.3.2</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -1232,7 +1232,10 @@
       <article class="card" style="margin-top:16px">
         <button class="btn warn" id="resetProgress">학습 기록 초기화</button>
         <p class="small-note">이 기기 브라우저에만 저장된 XP, 정답 기록, 연속 학습일, 간극·Draft 기록을 지웁니다.</p>
-        <p class="small-note" style="margin-top:8px"><b>배포 후 옛 UI가 보이면</b> (GitHub Pages 캐시): Safari/Chrome에서 사이트 데이터·캐시를 지우거나, 주소창에 강력 새로고침하세요. 앱은 버전 바뀌면 서비스워커 캐시를 자동 정리합니다. 자세한 절차는 <code>docs/DAY_LOOP.md</code> O3 절.</p>
+        <p class="small-note" style="margin-top:8px"><b>배포 후 옛 UI가 보이면</b> 아래 버튼을 누르세요. 서비스워커·Cache Storage를 지우고 새 버전으로 다시 엽니다.</p>
+        <div class="question-actions" style="justify-content:flex-start; margin-top:10px">
+          <a class="btn soft" id="openFreshApp" href="./fresh.html">새 버전으로 새로고침</a>
+        </div>
       </article>
     </section>
 
@@ -1405,7 +1408,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.3.1';
+    const APP_CACHE_VERSION = 'etd-quest-v1.3.2';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const ProgressStoreApi = window.ProgressStore;
@@ -1444,8 +1447,9 @@
       const canUseServiceWorker = 'serviceWorker' in navigator;
       if (!canUseCaches && !canUseServiceWorker) return;
       try {
+        const forceFresh = new URLSearchParams(location.search).has('fresh');
         const storedVersion = localStorage.getItem(APP_CACHE_VERSION_KEY);
-        if (storedVersion === APP_CACHE_VERSION) return;
+        if (!forceFresh && storedVersion === APP_CACHE_VERSION) return;
         if (canUseServiceWorker) {
           const registrations = await navigator.serviceWorker.getRegistrations();
           await Promise.all(registrations.map(registration => registration.unregister()));
@@ -1455,6 +1459,10 @@
           await Promise.all(keys.map(key => caches.delete(key)));
         }
         localStorage.setItem(APP_CACHE_VERSION_KEY, APP_CACHE_VERSION);
+        if (forceFresh && 'serviceWorker' in navigator) {
+          // Re-register after forced clear so the new SW installs cleanly.
+          await navigator.serviceWorker.register(`./service-worker.js?v=${encodeURIComponent(APP_CACHE_VERSION)}`);
+        }
       } catch (error) {
         console.warn('Cache purge skipped:', error);
       }
