@@ -9,6 +9,8 @@
 ## 라이브
 - Pages: `https://plan153.github.io/english-thinking-dictionary-quest/`
 - 캐시 의심 시: **`fresh.html`** (버전 강제)
+- **사용자 요청:** 업데이트/배포 안내 때 항상 fresh URL을 함께 알린다  
+  → `https://plan153.github.io/english-thinking-dictionary-quest/fresh.html`
 
 ## IA (현재)
 메인 탭: **오늘 · 게임 · 그래프 · 동사 · 구동사 · 성장**
