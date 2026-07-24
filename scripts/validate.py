@@ -49,6 +49,10 @@ def main() -> None:
         fail("service-worker.js must bypass fresh.html and avoid caching HTML navigations")
     if "'./index.html'" in worker or '"./index.html"' in worker:
         fail("service-worker.js must not precache index.html")
+    if "./data/expressions.json" in worker or "./data/qa-matrices.json" in worker:
+        fail("service-worker.js must not precache dictionary JSON (mobile install/quota risk)")
+    if "isDataJson" not in worker:
+        fail("service-worker.js must network-only dictionary JSON fetches")
 
     patterns = json.loads((ROOT / "data" / "patterns.json").read_text(encoding="utf-8"))
     expressions = json.loads((ROOT / "data" / "expressions.json").read_text(encoding="utf-8"))
