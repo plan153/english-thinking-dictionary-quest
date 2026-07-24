@@ -11,7 +11,25 @@
     ],
     "exampleExpressionIds": [
       "e016",
-      "e059"
+      "e059",
+      "e105",
+      "e106",
+      "e107",
+      "e108",
+      "e109",
+      "e110",
+      "e111",
+      "e112",
+      "e113",
+      "e114",
+      "e115",
+      "e116",
+      "e117",
+      "e118",
+      "e119",
+      "e120",
+      "e121",
+      "e122"
     ],
     "level": 1
   },
@@ -48,6 +66,65 @@
       "e102",
       "e103",
       "e104"
+    ],
+    "level": 1
+  },
+  {
+    "id": "p_be_place",
+    "label": "be + place",
+    "coreVerbId": "v_be",
+    "structure": "subject + be + place/here/there",
+    "thinkingFrame": "어디에 있는지를 말한다",
+    "slotTypes": [
+      "subject",
+      "place"
+    ],
+    "exampleExpressionIds": [
+      "e123",
+      "e124",
+      "e125",
+      "e126",
+      "e127",
+      "e128",
+      "e129",
+      "e130",
+      "e131",
+      "e132",
+      "e133",
+      "e134",
+      "e135",
+      "e136"
+    ],
+    "level": 1
+  },
+  {
+    "id": "p_be_phrase",
+    "label": "be everyday phrase",
+    "coreVerbId": "v_be",
+    "structure": "fixed be phrase",
+    "thinkingFrame": "생활 속에서 굳어진 be 표현을 말한다",
+    "slotTypes": [
+      "phrase"
+    ],
+    "exampleExpressionIds": [
+      "e137",
+      "e138",
+      "e139",
+      "e140",
+      "e141",
+      "e142",
+      "e143",
+      "e144",
+      "e145",
+      "e146",
+      "e147",
+      "e148",
+      "e149",
+      "e150",
+      "e151",
+      "e152",
+      "e153",
+      "e154"
     ],
     "level": 1
   },
