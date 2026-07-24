@@ -1,7 +1,7 @@
 # Agent Memory (압축 스냅샷)
 
 > 세션 간 이어갈 때 **이 문서 + [`BACKLOG.md`](./BACKLOG.md)** 먼저 읽기.  
-> 기준 tip: **v1.3.21** · 갱신: 2026-07-24
+> 기준 tip: **v1.3.22** · 갱신: 2026-07-24
 
 ## 제품 한 줄
 한국어 학습자용 **ASS + Obsidian 제2영어뇌** 웹앱. 퀴즈 SoT=`expressions.json`. 비밀값은 localStorage only.
@@ -35,6 +35,7 @@
 | 1.3.19 | 사전 로딩 실패 수정(SW JSON precache 제거·cache-bust·에러 표시) |
 | 1.3.20 | 이어묻기 be/관용 매트릭스 생성 수정 (Does it is… 제거) |
 | 1.3.21 | 이어묻기: generated 매트릭스 런타임 재생성(캐시 잔존 방지) |
+| 1.3.22 | 힌트 N/3 박스·버튼 동기화 · 표현 연결도 UI 전면 제거(결과/맵/사전) |
 
 ## 불변 규칙
 1. 퀴즈 은행 = ASS + (정책 ON) Canon 런타임 + (정책 ON) 해금 구동사

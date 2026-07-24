@@ -1043,7 +1043,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.20">v1.3.20</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.22">v1.3.22</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -1561,7 +1561,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.3.20';
+    const APP_CACHE_VERSION = 'etd-quest-v1.3.22';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const ProgressStoreApi = window.ProgressStore;
@@ -4704,7 +4704,6 @@
               <h3 class="map-practice-title">${escapeHtml(expression.english)}</h3>
               <p><b>${escapeHtml(expression.naturalKorean || '')}</b></p>
               <div class="chunk-row">${chunks}</div>
-              <div class="connection-strip-summary is-primary-signal">${getConnectionGraph(expression)}</div>
               <ol class="hint-list">${hints}</ol>
               ${renderGraphPracticeButtons(expression.id, unlocked)}
               <div class="map-action-row" style="margin-top:8px">
@@ -5970,14 +5969,17 @@
       const box = document.getElementById('hintBox');
       if (!box) return;
       const total = Math.min(3, hints.length || 3);
-      const step = Math.min(appState.hintStep, total - 1);
+      if (appState.hintStep >= total) return;
+      // shown = 방금 연 힌트 번호. 박스·버튼이 같은 N/3를 쓰도록 먼저 올린다.
+      const shown = appState.hintStep + 1;
+      const idx = shown - 1;
       const names = ['상황 힌트', '표현 덩어리', '일부 공개'];
       box.classList.remove('hidden');
-      box.innerHTML = `<div class="hint-title">${names[step] || '힌트'} · ${step + 1}/${total}</div><b>${escapeHtml(hints[step] || '힌트가 없어요.')}</b>`;
-      appState.hintStep = Math.min(appState.hintStep + 1, total);
+      box.innerHTML = `<div class="hint-title">${names[idx] || '힌트'} · ${shown}/${total}</div><b>${escapeHtml(hints[idx] || '힌트가 없어요.')}</b>`;
+      appState.hintStep = shown;
       if (button) {
-        button.textContent = appState.hintStep >= total ? `힌트 ${total}/${total}` : `힌트 보기 ${appState.hintStep + 1}/${total}`;
-        if (appState.hintStep >= total) button.disabled = true;
+        button.textContent = shown >= total ? `힌트 ${total}/${total}` : `힌트 보기 ${shown}/${total}`;
+        if (shown >= total) button.disabled = true;
       }
     }
     function checkComposeAnswer(item, mode) {
@@ -6134,8 +6136,10 @@
           markStudy(mode, progressItemId(item), 'retry', { signature, hintLevel: appState.hintStep, baseExpressionId: item.baseExpressionId, matrixId: item.matrixId, progressId: item.progressId });
         }
       }
-      const afterGraph = renderConnectionStripFromHistory(getHistory(progressItemId(item)));
-      const connectionNote = practiceOnly ? '텍스트 연습 결과예요. 직접 말하기 완료에는 반영하지 않았어요.' : afterGraph;
+      // 표현 연결도 UI는 퀴즈/결과에서 제거. 텍스트 연습만 짧은 안내를 남긴다.
+      const connectionNote = practiceOnly
+        ? '텍스트 연습 결과예요. 직접 말하기 완료에는 반영하지 않았어요.'
+        : '';
       showAnswerSummary(result.feedbackClass, item, result, rawGuess, connectionNote, { allowAdvance: !practiceOnly });
     }
     function chooseAnswer(item, mode, button) {
@@ -6183,17 +6187,19 @@
       if (!box) return;
       const hints = itemHintList(item);
       const totalHints = Math.min(3, hints.length || 3);
-      const step = Math.min(appState.hintStep, totalHints - 1);
+      if (appState.hintStep >= totalHints) return;
+      // shown = 방금 연 힌트 번호. 박스·버튼이 같은 N/3를 쓰도록 먼저 올린다.
+      const shown = appState.hintStep + 1;
+      const idx = shown - 1;
       const names = ['상황 힌트', '표현 틀/덩어리', '일부 공개'];
-      const hint = hints[step] || '더 이상 열 힌트가 없어요.';
+      const hint = hints[idx] || '더 이상 열 힌트가 없어요.';
       box.classList.remove('hidden');
-      box.innerHTML = `<div class="hint-title">현재 힌트 단계: ${step+1}/${totalHints} — ${names[step] || '정답'}</div><b>힌트 문장:</b> ${escapeHtml(hint)}`;
-      appState.hintStep++;
+      box.innerHTML = `<div class="hint-title">현재 힌트 단계: ${shown}/${totalHints} — ${names[idx] || '정답'}</div><b>힌트 문장:</b> ${escapeHtml(hint)}`;
+      appState.hintStep = shown;
       const btn = document.querySelector('.next-hint');
       if (btn) {
-        const nextStep = Math.min(appState.hintStep + 1, totalHints);
-        btn.textContent = appState.hintStep >= totalHints ? `힌트 ${totalHints}/${totalHints} 열림` : `힌트 ${nextStep}/${totalHints}`;
-        btn.disabled = appState.hintStep >= totalHints;
+        btn.textContent = shown >= totalHints ? `힌트 ${totalHints}/${totalHints} 열림` : `힌트 ${shown}/${totalHints}`;
+        btn.disabled = shown >= totalHints;
       }
     }
     function showAnswerSummary(type, item, result, rawGuess, connectionNote = '', options = {}) {
@@ -6216,7 +6222,7 @@
         <div class="answer-summary">
           <b>${escapeHtml(result.title)}</b>
           <div style="margin-top:6px">${escapeHtml(result.message || '')}</div>
-          ${connectionNote ? `<div class="answer-key">이번 문장 연결 상태</div><div>${connectionNote}</div>` : ''}
+          ${connectionNote ? `<div class="small-note" style="margin-top:8px">${escapeHtml(connectionNote)}</div>` : ''}
           ${practiceLine}
           <div class="answer-key">내 답</div>
           <div>${escapeHtml(rawGuess)}</div>
@@ -6766,7 +6772,6 @@
           ${renderVaultLinksMarkup('expression', selectedExpression.id)}
           ${renderVaultLinksMarkup('verb', selectedExpression.coreVerbId)}
           ${(selectedExpression.nounIds || []).map(nounId => renderVaultLinksMarkup('noun', nounId)).join('')}
-          <div class="connection-strip-summary is-primary-signal" style="margin:12px 0">${getConnectionGraph(selectedExpression)}</div>
           <div class="question-actions" style="justify-content:flex-start;flex-wrap:wrap">
             <button class="btn dark quiz-expression" data-expression-id="${selectedExpression.id}" data-mode="listen" ${unlocked ? '' : 'disabled'}>${unlocked ? '듣기' : '잠긴 표현'}</button>
             <button class="btn soft quiz-expression" data-expression-id="${selectedExpression.id}" data-mode="speak" ${unlocked ? '' : 'disabled'}>말하기</button>
