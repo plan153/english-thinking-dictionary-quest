@@ -190,7 +190,8 @@
 - [x] `graph-style.js`: active / vault-linked / vault-only / locked 분류.
 - [x] 문장빌드맵 문장 카드 · 생각 맵 엔진/예문에 Vault·잠김 스타일 반영.
 - [x] 노드/예문에서 듣기 · 말하기 · 한글→영어 · 묻기/답하기 바로가기.
-- Obsidian 그래프는 문서 탐색용, 앱 그래프는 훈련용으로 역할을 분리한다.
+- Obsidian 그래프는 문서 탐색용, 앱 문장빌드맵은 훈련용으로 역할을 분리한다.
+- 메인 메뉴 `그래프`(v1.3.6)는 Obsidian Graph view를 Local REST `graph:open`으로 연다 (`#/vaultGraph`).
 
 ## 설계 원칙
 
