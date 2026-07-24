@@ -3863,6 +3863,39 @@
       if (stage === 'output') return 'output';
       return null;
     }
+    function modeToConnectionKey(mode) {
+      if (mode === 'enko' || mode === 'listen') return 'recognition';
+      if (mode === 'koen' || mode === 'hint' || mode === 'build' || mode === 'matrix' || mode === 'particle') return 'assembly';
+      if (mode === 'speak' || mode === 'explain') return 'output';
+      return null;
+    }
+    /** Prefer empty (0), then weak (0.5). All-strong → null. Ties keep recognition → assembly → output order. */
+    function weakestConnectionKey(history) {
+      const keys = ['recognition', 'assembly', 'output'];
+      let bestKey = null;
+      let bestStrength = Infinity;
+      for (const key of keys) {
+        const strength = Number(history?.connections?.[key]?.strength || 0);
+        if (strength < bestStrength) {
+          bestStrength = strength;
+          bestKey = key;
+        }
+      }
+      if (!(bestStrength < 1)) return null;
+      return bestKey;
+    }
+    function resolveActiveConnectionKey(item, mode, questStep = null) {
+      const historyId = item?.progressId || item?.baseExpressionId || item?.id;
+      const fromQuest = stageToConnectionKey(questStep?.questStage);
+      if (fromQuest) return fromQuest;
+      if (mode === 'review') return weakestConnectionKey(getHistory(historyId));
+      const fromMode = modeToConnectionKey(mode);
+      if (fromMode) {
+        const strength = Number(getHistory(historyId).connections?.[fromMode]?.strength || 0);
+        if (strength < 1) return fromMode;
+      }
+      return weakestConnectionKey(getHistory(historyId));
+    }
     function getConnectionGraph(item, activeStageKey = null) {
       return renderConnectionStripFromHistory(getHistory(item.id), activeStageKey);
     }
@@ -4720,7 +4753,9 @@
         : mode === 'particle' ? `입자 드릴 · ${item.frame || 'phrasal'}`
         : `${modeTitle(mode)} · ${item.frame} · ${item.level || 1}단계`;
       const baseTop = `<div class="lesson-label">${stageLabel}</div>`;
-      const connectionSummary = `<div class="connection-strip-summary">${getConnectionGraph({ id: item.progressId || item.baseExpressionId || item.id, ...item }, stageToConnectionKey(questStep?.questStage))}</div>`;
+      const historyId = item.progressId || item.baseExpressionId || item.id;
+      const activeConnectionKey = resolveActiveConnectionKey(item, mode, questStep);
+      const connectionSummary = `<div class="connection-strip-summary is-primary-signal">${getConnectionGraph({ id: historyId, ...item }, activeConnectionKey)}</div>`;
       let body = '';
       if (mode === 'listen') body = renderListen(item);
       else if (mode === 'explain') body = renderExplain(item);
