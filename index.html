@@ -227,6 +227,40 @@
       font-weight:800;
     }
     .simple-actions .btn.accent { grid-column: 1 / -1; }
+    .expand-link-context {
+      width: min(100%, 420px);
+      align-self: center;
+      margin: 0 0 14px;
+      text-align: left;
+    }
+    .expand-link-context .expand-link-label {
+      font-size: 11px;
+      font-weight: 850;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .expand-link-context .expand-link-en {
+      font-size: 15px;
+      font-weight: 750;
+      line-height: 1.4;
+      color: var(--ink);
+    }
+    .expand-link-context .expand-link-ko {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 2px;
+      line-height: 1.4;
+    }
+    .expand-link-arrow {
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      margin: 0 0 8px;
+      letter-spacing: .02em;
+    }
 
     .answer-input { width:min(620px,100%); align-self:center; border:2px solid var(--line); border-radius:16px; padding: 15px 16px; background:#fff; color:var(--ink); font-size:18px; outline:none; }
     .answer-input:focus { border-color: var(--accent); box-shadow:0 0 0 4px rgba(40,111,108,.12); }
@@ -978,7 +1012,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.9">v1.3.9</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.10">v1.3.10</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -1495,7 +1529,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.3.9';
+    const APP_CACHE_VERSION = 'etd-quest-v1.3.10';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const ProgressStoreApi = window.ProgressStore;
@@ -1850,11 +1884,30 @@
       return [
         { id: 'listen', label: '듣기', desc: '한/영으로 듣고 따라 말하기 · 누적', mode: 'listen', questStage: 'meaning' },
         { id: 'shadow', label: '따라하기', desc: '영어로 말하기 · 누적 학습', mode: 'speak', questStage: 'output' },
-        { id: 'ask', label: '이어묻기', desc: '같은 말로 질문 확장', mode: 'matrix', matrixFormId: 'question', questStage: 'assembly' },
-        { id: 'answer', label: '이어답하기', desc: '짧은 답으로 이어가기', mode: 'matrix', matrixFormId: 'shortYes', questStage: 'assembly' },
+        { id: 'ask', label: '이어묻기', desc: '연결된 질문 만들고 듣기·말하기', mode: 'matrix', matrixFormId: 'question', questStage: 'assembly', expandQa: true },
+        { id: 'answer', label: '이어답하기', desc: '질문에 이은 답 만들고 듣기·말하기', mode: 'matrix', matrixFormId: 'shortYes', questStage: 'assembly', expandQa: true },
         { id: 'continue', label: '이어말하기', desc: '한 문장 더 붙여 말하기', mode: 'koen', questStage: 'assembly' },
         { id: 'topic', label: '화제전환', desc: '가까운 다른 표현으로 넘어가기', mode: 'speak', questStage: 'output', topicShift: true },
       ];
+    }
+    function isExpandQaPractice(ctx = appState.questContext) {
+      return Boolean(ctx?.expandQa || ctx?.expandChoiceId === 'ask' || ctx?.expandChoiceId === 'answer');
+    }
+    function findMatrixForExpression(expressionId) {
+      if (!expressionId) return null;
+      return getUnlockedMatrices().find(matrix => matrix.baseExpressionId === expressionId || matrix.id === expressionId) || null;
+    }
+    function enrichExpandQaItem(item, matrix) {
+      if (!item || !matrix) return item;
+      // 이어답하기: Yes/No 짧은 답 모두 허용
+      if (item.formId === 'shortYes' || item.formId === 'shortNo') {
+        const otherId = item.formId === 'shortYes' ? 'shortNo' : 'shortYes';
+        const other = findMatrixForm(matrix, otherId);
+        if (other?.en) {
+          item.acceptedAnswers = [...new Set([...(item.acceptedAnswers || []), other.en, ...(other.acceptedAnswers || [])])];
+        }
+      }
+      return item;
     }
     function countTodayExpandMomentum(progress = appState.progress) {
       const quest = progress?.dailyQuestV1;
@@ -2024,7 +2077,7 @@
         return;
       }
       if (choice.mode === 'matrix') {
-        const hasMatrix = getUnlockedMatrices().some(matrix => matrix.baseExpressionId === targetId || matrix.id === targetId);
+        const hasMatrix = Boolean(findMatrixForExpression(targetId));
         if (!hasMatrix) {
           // Fall back to koen keep conversation going if matrix missing.
           return startExpandChoice('continue', targetId);
@@ -2038,6 +2091,7 @@
       const questContext = {
         source: 'dailyQuestV1',
         expandChoiceId: choice.id,
+        expandQa: Boolean(choice.expandQa),
         stepKey: `expand-${choice.id}-${targetId}`,
         stepIndex: -1,
         expressionId: targetId,
@@ -4831,7 +4885,9 @@
       const formId = options.formId || null;
       if (formId) {
         const single = matrixFormToItem(matrix, formId);
-        return single ? [single] : [];
+        if (!single) return [];
+        if (options.expandQa) enrichExpandQaItem(single, matrix);
+        return [single];
       }
       if (options.singleForm) {
         const single = matrixFormToItem(matrix, 'question') || matrixFormToItem(matrix, 'statement');
@@ -4980,6 +5036,7 @@
               formId: options.matrixFormId || appState.questContext?.matrixFormId || null,
               singleForm: Boolean(appState.questContext),
               includeTense: !appState.questContext,
+              expandQa: isExpandQaPractice(appState.questContext || options.questContext),
             }
             : {};
           const lessonOptions = {
@@ -4992,7 +5049,9 @@
           appState.currentIndex = 0;
           appState.hintStep = 0;
           appState.questionAnswered = false;
-          if (mode === 'listen') appState.listenSession = null;
+          if (mode === 'listen' || (mode === 'matrix' && isExpandQaPractice(appState.questContext))) {
+            appState.listenSession = null;
+          }
           if (!appState.lessonItems.length) {
             clearQuestContext();
             toast(isPhrasal
@@ -5037,6 +5096,7 @@
       let body = '';
       if (mode === 'listen') body = renderListen(item);
       else if (mode === 'explain') body = renderExplain(item);
+      else if (mode === 'matrix' && isExpandQaPractice(questStep || appState.questContext)) body = renderExpandQaPractice(item, questStep || appState.questContext);
       else if (mode === 'matrix') body = renderMatrix(item);
       else if (mode === 'koen') body = renderKoEn(item);
       else if (mode === 'enko') body = renderEnKo(item);
@@ -5223,6 +5283,20 @@
     }
     function renderSpeak(item) {
       return renderSimpleSpeakPractice(item, { mode: 'speak' });
+    }
+    function renderExpandQaPractice(item, questCtx = appState.questContext) {
+      const choiceId = questCtx?.expandChoiceId || '';
+      const linkLabel = choiceId === 'answer' ? '질문' : '오늘의 말';
+      const arrowLabel = choiceId === 'answer' ? '↓ 이어서 답하기' : '↓ 이어서 묻기';
+      const context = (item.matrixBaseEn || item.matrixBaseKo)
+        ? `<div class="expand-link-context">
+            <div class="expand-link-label">${escapeHtml(linkLabel)}</div>
+            ${item.matrixBaseEn ? `<div class="expand-link-en">${escapeHtml(item.matrixBaseEn)}</div>` : ''}
+            ${item.matrixBaseKo ? `<div class="expand-link-ko">${escapeHtml(item.matrixBaseKo)}</div>` : ''}
+          </div>
+          <div class="expand-link-arrow">${escapeHtml(arrowLabel)}</div>`
+        : '';
+      return `${context}${renderSimpleSpeakPractice(item, { mode: 'listen' })}`;
     }
     function renderKoEn(item) {
       return `
@@ -5492,8 +5566,9 @@
     }
 
     async function startSpeechCapture(item, mode) {
+      const listenMode = mode === 'listen' || (mode === 'matrix' && isExpandQaPractice());
       if (!supportsSpeechRecognition()) {
-        if (mode === 'listen') {
+        if (listenMode) {
           speechStatus('이 브라우저에서는 음성 인식을 사용할 수 없어요.', 'error', { boxId: 'listenResultBox', title: '음성 인식 안내' });
         } else {
           speechStatus('이 브라우저에서는 음성 인식을 사용할 수 없어요.', 'error');
@@ -5501,7 +5576,6 @@
         }
         return;
       }
-      const listenMode = mode === 'listen';
       const boxId = listenMode ? 'listenResultBox' : 'speechResultBox';
       speechStatus('마이크를 여는 중이에요…', 'info', { boxId, title: listenMode ? '마이크 상태' : '마이크 상태' });
       const mic = await warmUpMicrophone();
@@ -5554,6 +5628,8 @@
               baseExpressionId: item.baseExpressionId,
               matrixId: item.matrixId,
               progressId: item.progressId,
+              formId: item.formId || null,
+              coreVerbId: item.coreVerbId || null,
             });
             listenSession.successCount = (listenSession.successCount || 0) + 1;
             updateListenCountDisplay(item);
