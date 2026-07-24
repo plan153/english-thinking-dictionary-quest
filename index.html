@@ -1043,7 +1043,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.15">v1.3.15</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.16">v1.3.16</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -1561,7 +1561,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.3.15';
+    const APP_CACHE_VERSION = 'etd-quest-v1.3.16';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const ProgressStoreApi = window.ProgressStore;
@@ -4682,6 +4682,9 @@
             <div class="map-inline-panel">
               <h6>뜻</h6>
               <p>${escapeHtml(expression.naturalKorean || '')}</p>
+              ${expression.literalMeaning ? `<p class="small-note">직역: ${escapeHtml(expression.literalMeaning)}</p>` : ''}
+              ${expression.usageNotes ? `<p><span class="small-note">언제:</span> ${escapeHtml(expression.usageNotes)}</p>` : ''}
+              ${expression.nuanceNotes ? `<p><span class="small-note">실제 의미:</span> ${escapeHtml(expression.nuanceNotes)}</p>` : ''}
               <h6 style="margin-top:10px">덩어리</h6>
               <div class="chunk-row">${chunks}</div>
               <h6 style="margin-top:10px">연결</h6>
@@ -6730,7 +6733,9 @@
           ${guideBanner}
           <h3>${escapeHtml(selectedExpression.english)}</h3>
           <p><b>${escapeHtml(selectedExpression.naturalKorean)}</b></p>
-          <p class="small-note">직역 이미지: ${escapeHtml(selectedExpression.literalMeaning)}</p>
+          <p class="small-note">직역: ${escapeHtml(selectedExpression.literalMeaning || '')}</p>
+          ${selectedExpression.usageNotes ? `<p><span class="small-note">언제:</span> ${escapeHtml(selectedExpression.usageNotes)}</p>` : ''}
+          ${selectedExpression.nuanceNotes ? `<p><span class="small-note">실제 의미:</span> ${escapeHtml(selectedExpression.nuanceNotes)}</p>` : ''}
           <div class="chunk-row">${selectedExpression.chunks.map(chunk => `<span class="chunk">${escapeHtml(chunk)}</span>`).join('')}</div>
           <p class="explorer-guide">${unlocked ? '덩어리를 보고 바로 퀴즈로 넘어가세요.' : '이 표현은 아직 잠겨 있어요. Active Speaking Set을 익히면 해금됩니다.'}</p>
           <p class="small-note">표현 틀: ${escapeHtml(pattern?.label || selectedExpression.patternId)} · 핵심 명사: ${nouns.map(escapeHtml).join(' · ') || '없음'}</p>
