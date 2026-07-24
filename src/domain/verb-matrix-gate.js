@@ -11,7 +11,8 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   const CORE_FORMS = ['statement', 'question', 'negative', 'shortAnswer'];
   // v2: starter = have only; packs prepend get → take → core_rest before give…
-  const VERB_GATE_SCHEMA_VERSION = 2;
+  // v3: starter = have·get·take·want·need·be·do·feel; packs = go/come/make → give → put → keep → find
+  const VERB_GATE_SCHEMA_VERSION = 3;
   const LEGACY_PREPEND_PACK_COUNT = 3;
 
   function normalizeFormKey(formId) {
@@ -19,6 +20,17 @@
     if (id === 'shortYes' || id === 'shortNo') return 'shortAnswer';
     if (CORE_FORMS.includes(id)) return id;
     return '';
+  }
+
+  /** Map v2 pack count (9 packs) onto v3 pack count (5 packs). */
+  function mapV2VerbPackCountToV3(oldCount) {
+    const n = Math.max(0, Number(oldCount || 0));
+    if (n <= 2) return 0; // get/take absorbed into starter
+    if (n === 3) return 1; // core_rest → go/come/make
+    if (n <= 6) return 2; // give (+ be/do absorbed into starter)
+    if (n === 7) return 3; // put
+    if (n === 8) return 4; // keep
+    return 5; // find
   }
 
   function migrateVerbGateCurriculum(curriculum = {}) {
@@ -30,16 +42,23 @@
         verbGateSchemaVersion: VERB_GATE_SCHEMA_VERSION,
       };
     }
-    const oldCount = Math.max(0, Number(base.unlockedVerbPackCount || 0));
     const matrixFormSuccess = base.matrixFormSuccess && typeof base.matrixFormSuccess === 'object'
       ? base.matrixFormSuccess
       : {};
-    const hasLegacyProgress = oldCount > 0
-      || Boolean(base.lastVerbUnlockAt)
-      || Object.keys(matrixFormSuccess).length > 0;
+    let count = Math.max(0, Number(base.unlockedVerbPackCount || 0));
+    if (version < 2) {
+      const hasLegacyProgress = count > 0
+        || Boolean(base.lastVerbUnlockAt)
+        || Object.keys(matrixFormSuccess).length > 0;
+      if (hasLegacyProgress) count += LEGACY_PREPEND_PACK_COUNT;
+      // now treat as v2 count, then map to v3 below
+    }
+    if (version < 3) {
+      count = mapV2VerbPackCountToV3(count);
+    }
     return {
       ...base,
-      unlockedVerbPackCount: hasLegacyProgress ? oldCount + LEGACY_PREPEND_PACK_COUNT : oldCount,
+      unlockedVerbPackCount: count,
       verbGateSchemaVersion: VERB_GATE_SCHEMA_VERSION,
     };
   }
@@ -162,6 +181,7 @@
     CORE_FORMS,
     VERB_GATE_SCHEMA_VERSION,
     LEGACY_PREPEND_PACK_COUNT,
+    mapV2VerbPackCountToV3,
     normalizeFormKey,
     migrateVerbGateCurriculum,
     ensureMatrixFormSuccess,

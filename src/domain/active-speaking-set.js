@@ -10,278 +10,256 @@
   root.ActiveSpeakingSet = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   const DEFAULT_ACTIVE_SPEAKING_SET = {
-    "id": "ass_starter_v0",
-    "title": "Active Speaking Set Starter",
-    "verbIds": [
-      "v_have"
-    ],
-    "expressionIds": [
-      "e001",
-      "e018",
-      "e021",
-      "e022",
-      "e023",
-      "e024",
-      "e025",
-      "e062",
-      "e065",
-      "e091",
-      "e092",
-      "e093",
-      "e094",
-      "e095",
-      "e096",
-      "e097",
-      "e003",
-      "e004",
-      "e019",
-      "e026",
-      "e027",
-      "e028",
-      "e029",
-      "e030",
-      "e098",
-      "e099",
-      "e006",
-      "e036",
-      "e037",
-      "e038",
-      "e039",
-      "e080",
-      "e002",
-      "e015",
-      "e014",
-      "e069",
-      "e044",
-      "e045",
-      "e009",
-      "e020"
-    ],
-    "unlockPacks": [
-      {
-        "id": "pack_1",
-        "title": "Unlock pack 1",
-        "expressionIds": [
-          "e005",
-          "e031",
-          "e033",
-          "e035",
-          "e068",
-          "e070",
-          "e074",
-          "e083",
-          "e090",
-          "e082"
-        ]
-      },
-      {
-        "id": "pack_2",
-        "title": "Unlock pack 2",
-        "expressionIds": [
-          "e032",
-          "e046",
-          "e071",
-          "e072",
-          "e073",
-          "e075",
-          "e084",
-          "e088",
-          "e089"
-        ]
-      },
-      {
-        "id": "pack_3",
-        "title": "Unlock pack 3",
-        "expressionIds": [
-          "e011",
-          "e054",
-          "e055",
-          "e056",
-          "e077",
-          "e013",
-          "e064",
-          "e066",
-          "e067"
-        ]
-      }
-    ],
-    "verbUnlockPacks": [
-      {
-        "id": "verb_pack_get",
-        "title": "동사 해금 · get",
-        "verbIds": [
-          "v_get"
-        ],
-        "expressionIds": []
-      },
-      {
-        "id": "verb_pack_take",
-        "title": "동사 해금 · take",
-        "verbIds": [
-          "v_take"
-        ],
-        "expressionIds": []
-      },
-      {
-        "id": "verb_pack_core_rest",
-        "title": "동사 해금 · want·need·go·come·make",
-        "verbIds": [
-          "v_want",
-          "v_need",
-          "v_go",
-          "v_come",
-          "v_make"
-        ],
-        "expressionIds": []
-      },
-      {
-        "id": "verb_pack_give",
-        "title": "동사 해금 · give",
-        "verbIds": [
-          "v_give"
-        ],
-        "expressionIds": [
-          "e007",
-          "e040",
-          "e042",
-          "e043",
-          "e041"
-        ]
-      },
-      {
-        "id": "verb_pack_be",
-        "title": "동사 해금 · be",
-        "verbIds": [
-          "v_be"
-        ],
-        "expressionIds": [
-          "e008",
-          "e016",
-          "e059",
-          "e060",
-          "e100",
-          "e101",
-          "e102",
-          "e103",
-          "e104",
-          "e105",
-          "e106",
-          "e107",
-          "e108",
-          "e109",
-          "e110",
-          "e111",
-          "e112",
-          "e113",
-          "e114",
-          "e115",
-          "e116",
-          "e117",
-          "e118",
-          "e119",
-          "e120",
-          "e121",
-          "e122",
-          "e123",
-          "e124",
-          "e125",
-          "e126",
-          "e127",
-          "e128",
-          "e129",
-          "e130",
-          "e131",
-          "e132",
-          "e133",
-          "e134",
-          "e135",
-          "e136",
-          "e137",
-          "e138",
-          "e139",
-          "e140",
-          "e141",
-          "e142",
-          "e143",
-          "e144",
-          "e145",
-          "e146",
-          "e147",
-          "e148",
-          "e149",
-          "e150",
-          "e151",
-          "e152",
-          "e153",
-          "e154"
-        ]
-      },
-      {
-        "id": "verb_pack_do",
-        "title": "동사 해금 · do",
-        "verbIds": [
-          "v_do"
-        ],
-        "expressionIds": [
-          "e017",
-          "e049",
-          "e050"
-        ]
-      },
-      {
-        "id": "verb_pack_put",
-        "title": "동사 해금 · put",
-        "verbIds": [
-          "v_put"
-        ],
-        "expressionIds": [
-          "e010",
-          "e051",
-          "e052",
-          "e076"
-        ]
-      },
-      {
-        "id": "verb_pack_keep",
-        "title": "동사 해금 · keep",
-        "verbIds": [
-          "v_keep"
-        ],
-        "expressionIds": [
-          "e011",
-          "e054",
-          "e055",
-          "e056",
-          "e077"
-        ]
-      },
-      {
-        "id": "verb_pack_find",
-        "title": "동사 해금 · find",
-        "verbIds": [
-          "v_find"
-        ],
-        "expressionIds": [
-          "e012",
-          "e057",
-          "e058",
-          "e063"
-        ]
-      }
-    ],
-    "verbCurriculumWeights": {
-      "v_have": 0.4,
-      "v_get": 0.25,
-      "v_take": 0.15,
-      "v_need": 0.05,
-      "v_want": 0.05,
-      "v_go": 0.04,
-      "v_come": 0.03,
-      "v_make": 0.03
+  "id": "ass_starter_v0",
+  "title": "Active Speaking Set Starter",
+  "verbIds": [
+    "v_have",
+    "v_get",
+    "v_take",
+    "v_want",
+    "v_need",
+    "v_be",
+    "v_do",
+    "v_feel"
+  ],
+  "expressionIds": [
+    "e001",
+    "e018",
+    "e021",
+    "e022",
+    "e023",
+    "e024",
+    "e025",
+    "e062",
+    "e065",
+    "e091",
+    "e092",
+    "e093",
+    "e094",
+    "e095",
+    "e096",
+    "e097",
+    "e003",
+    "e004",
+    "e019",
+    "e026",
+    "e027",
+    "e028",
+    "e029",
+    "e030",
+    "e098",
+    "e099",
+    "e006",
+    "e036",
+    "e037",
+    "e038",
+    "e039",
+    "e080",
+    "e002",
+    "e015",
+    "e014",
+    "e069",
+    "e044",
+    "e045",
+    "e009",
+    "e020",
+    "e008",
+    "e016",
+    "e059",
+    "e060",
+    "e100",
+    "e101",
+    "e102",
+    "e103",
+    "e104",
+    "e105",
+    "e106",
+    "e107",
+    "e108",
+    "e109",
+    "e110",
+    "e111",
+    "e112",
+    "e113",
+    "e114",
+    "e115",
+    "e116",
+    "e117",
+    "e118",
+    "e119",
+    "e120",
+    "e121",
+    "e122",
+    "e123",
+    "e124",
+    "e125",
+    "e126",
+    "e127",
+    "e128",
+    "e129",
+    "e130",
+    "e131",
+    "e132",
+    "e133",
+    "e134",
+    "e135",
+    "e136",
+    "e137",
+    "e138",
+    "e139",
+    "e140",
+    "e141",
+    "e142",
+    "e143",
+    "e144",
+    "e145",
+    "e146",
+    "e147",
+    "e148",
+    "e149",
+    "e150",
+    "e151",
+    "e152",
+    "e153",
+    "e154",
+    "e017",
+    "e049",
+    "e050",
+    "e013",
+    "e064",
+    "e066",
+    "e067"
+  ],
+  "unlockPacks": [
+    {
+      "id": "pack_1",
+      "title": "Unlock pack 1",
+      "expressionIds": [
+        "e005",
+        "e031",
+        "e033",
+        "e035",
+        "e068",
+        "e070",
+        "e074",
+        "e083",
+        "e090",
+        "e082"
+      ]
     },
-    "unlockThreshold": 0.7,
-    "masteryThreshold": 3
-  };
+    {
+      "id": "pack_2",
+      "title": "Unlock pack 2",
+      "expressionIds": [
+        "e032",
+        "e046",
+        "e071",
+        "e072",
+        "e073",
+        "e075",
+        "e084",
+        "e088",
+        "e089"
+      ]
+    },
+    {
+      "id": "pack_3",
+      "title": "Unlock pack 3",
+      "expressionIds": [
+        "e011",
+        "e054",
+        "e055",
+        "e056",
+        "e077",
+        "e013",
+        "e064",
+        "e066",
+        "e067"
+      ]
+    }
+  ],
+  "verbUnlockPacks": [
+    {
+      "id": "verb_pack_go_come_make",
+      "title": "동사 해금 · go·come·make",
+      "verbIds": [
+        "v_go",
+        "v_come",
+        "v_make"
+      ],
+      "expressionIds": []
+    },
+    {
+      "id": "verb_pack_give",
+      "title": "동사 해금 · give",
+      "verbIds": [
+        "v_give"
+      ],
+      "expressionIds": [
+        "e007",
+        "e040",
+        "e042",
+        "e043",
+        "e041"
+      ]
+    },
+    {
+      "id": "verb_pack_put",
+      "title": "동사 해금 · put",
+      "verbIds": [
+        "v_put"
+      ],
+      "expressionIds": [
+        "e010",
+        "e051",
+        "e052",
+        "e076"
+      ]
+    },
+    {
+      "id": "verb_pack_keep",
+      "title": "동사 해금 · keep",
+      "verbIds": [
+        "v_keep"
+      ],
+      "expressionIds": [
+        "e011",
+        "e054",
+        "e055",
+        "e056",
+        "e077"
+      ]
+    },
+    {
+      "id": "verb_pack_find",
+      "title": "동사 해금 · find",
+      "verbIds": [
+        "v_find"
+      ],
+      "expressionIds": [
+        "e012",
+        "e057",
+        "e058",
+        "e063"
+      ]
+    }
+  ],
+  "verbCurriculumWeights": {
+    "v_have": 0.28,
+    "v_get": 0.18,
+    "v_take": 0.12,
+    "v_be": 0.12,
+    "v_want": 0.07,
+    "v_need": 0.07,
+    "v_do": 0.06,
+    "v_feel": 0.05,
+    "v_go": 0.02,
+    "v_come": 0.015,
+    "v_make": 0.015
+  },
+  "unlockThreshold": 0.7,
+  "masteryThreshold": 3
+};
 
   function normalizeAssConfig(raw) {
     const base = raw && typeof raw === 'object' ? raw : {};

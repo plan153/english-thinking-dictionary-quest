@@ -124,7 +124,7 @@
         unlockedPhrasalStageCount: 0,
         lastUnlockAt: null,
         lastVerbUnlockAt: null,
-        verbGateSchemaVersion: 2,
+        verbGateSchemaVersion: 3,
         matrixFormSuccess: {},
       },
       gapNotes: [],

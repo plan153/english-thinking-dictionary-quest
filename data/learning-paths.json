@@ -3,9 +3,16 @@
   "activeSpeakingSet": {
     "id": "ass_starter_v0",
     "title": "Active Speaking Set Starter",
-    "description": "3~4세급 구어체를 위한 만능동사 커리큘럼(have→get→take 숙달 순)과 Starter 표현 40개. Vault나 전체 JSON에 더 있어도 연습은 이 범위만 사용한다. 매트릭스 해금 스타터는 have만 열고, get·take·나머지는 동사 팩으로 순차 해금한다.",
+    "description": "3~4세급 구어체. 스타터 동사: have·get·take·want·need·be·do·feel. 이후 매트릭스 해금: go/come/make → give → put → keep → find. Vault나 전체 JSON에 더 있어도 연습은 이 범위(+해금 팩)만 사용한다.",
     "verbIds": [
-      "v_have"
+      "v_have",
+      "v_get",
+      "v_take",
+      "v_want",
+      "v_need",
+      "v_be",
+      "v_do",
+      "v_feel"
     ],
     "expressionIds": [
       "e001",
@@ -47,7 +54,73 @@
       "e044",
       "e045",
       "e009",
-      "e020"
+      "e020",
+      "e008",
+      "e016",
+      "e059",
+      "e060",
+      "e100",
+      "e101",
+      "e102",
+      "e103",
+      "e104",
+      "e105",
+      "e106",
+      "e107",
+      "e108",
+      "e109",
+      "e110",
+      "e111",
+      "e112",
+      "e113",
+      "e114",
+      "e115",
+      "e116",
+      "e117",
+      "e118",
+      "e119",
+      "e120",
+      "e121",
+      "e122",
+      "e123",
+      "e124",
+      "e125",
+      "e126",
+      "e127",
+      "e128",
+      "e129",
+      "e130",
+      "e131",
+      "e132",
+      "e133",
+      "e134",
+      "e135",
+      "e136",
+      "e137",
+      "e138",
+      "e139",
+      "e140",
+      "e141",
+      "e142",
+      "e143",
+      "e144",
+      "e145",
+      "e146",
+      "e147",
+      "e148",
+      "e149",
+      "e150",
+      "e151",
+      "e152",
+      "e153",
+      "e154",
+      "e017",
+      "e049",
+      "e050",
+      "e013",
+      "e064",
+      "e066",
+      "e067"
     ],
     "unlockPacks": [
       {
@@ -99,38 +172,16 @@
     ],
     "verbUnlockPacks": [
       {
-        "id": "verb_pack_get",
-        "title": "동사 해금 · get",
+        "id": "verb_pack_go_come_make",
+        "title": "동사 해금 · go·come·make",
         "verbIds": [
-          "v_get"
-        ],
-        "expressionIds": [],
-        "requiresMatrixGate": true,
-        "note": "have 매트릭스 4형태 통과 후 해금 (비중 2순위)"
-      },
-      {
-        "id": "verb_pack_take",
-        "title": "동사 해금 · take",
-        "verbIds": [
-          "v_take"
-        ],
-        "expressionIds": [],
-        "requiresMatrixGate": true,
-        "note": "get 매트릭스 4형태 통과 후 해금 (비중 3순위)"
-      },
-      {
-        "id": "verb_pack_core_rest",
-        "title": "동사 해금 · want·need·go·come·make",
-        "verbIds": [
-          "v_want",
-          "v_need",
           "v_go",
           "v_come",
           "v_make"
         ],
         "expressionIds": [],
         "requiresMatrixGate": true,
-        "note": "take 매트릭스 4형태 통과 후 나머지 스타터 동사 해금"
+        "note": "스타터 동사(have·get·take·want·need·be·do·feel) 매트릭스 4형태 통과 후 해금"
       },
       {
         "id": "verb_pack_give",
@@ -146,91 +197,7 @@
           "e041"
         ],
         "requiresMatrixGate": true,
-        "note": "core_rest 동사들의 매트릭스 4형태 통과 후 해금"
-      },
-      {
-        "id": "verb_pack_be",
-        "title": "동사 해금 · be",
-        "verbIds": [
-          "v_be"
-        ],
-        "expressionIds": [
-          "e008",
-          "e016",
-          "e059",
-          "e060",
-          "e100",
-          "e101",
-          "e102",
-          "e103",
-          "e104",
-          "e105",
-          "e106",
-          "e107",
-          "e108",
-          "e109",
-          "e110",
-          "e111",
-          "e112",
-          "e113",
-          "e114",
-          "e115",
-          "e116",
-          "e117",
-          "e118",
-          "e119",
-          "e120",
-          "e121",
-          "e122",
-          "e123",
-          "e124",
-          "e125",
-          "e126",
-          "e127",
-          "e128",
-          "e129",
-          "e130",
-          "e131",
-          "e132",
-          "e133",
-          "e134",
-          "e135",
-          "e136",
-          "e137",
-          "e138",
-          "e139",
-          "e140",
-          "e141",
-          "e142",
-          "e143",
-          "e144",
-          "e145",
-          "e146",
-          "e147",
-          "e148",
-          "e149",
-          "e150",
-          "e151",
-          "e152",
-          "e153",
-          "e154"
-        ],
-        "requiresMatrixGate": true,
-        "note": "give 해금 후, give 매트릭스 4형태 통과 시 해금. be 생활·가까운 미래 표현 포함."
-      },
-      {
-        "id": "verb_pack_do",
-        "title": "동사 해금 · do",
-        "verbIds": [
-          "v_do"
-        ],
-        "expressionIds": [
-          "e017",
-          "e049",
-          "e050"
-        ],
-        "requiresMatrixGate": true,
-        "note": "be 해금 후, be 매트릭스 4형태 통과 시 해금"
+        "note": "go·come·make 매트릭스 4형태 통과 후 해금"
       },
       {
         "id": "verb_pack_put",
@@ -245,7 +212,7 @@
           "e076"
         ],
         "requiresMatrixGate": true,
-        "note": "do 해금 후, do 매트릭스 4형태 통과 시 해금"
+        "note": "give 매트릭스 4형태 통과 후 해금"
       },
       {
         "id": "verb_pack_keep",
@@ -261,7 +228,7 @@
           "e077"
         ],
         "requiresMatrixGate": true,
-        "note": "put 해금 후, put 매트릭스 4형태 통과 시 해금 (표현은 pack_3과 공유 가능)"
+        "note": "put 매트릭스 4형태 통과 후 해금"
       },
       {
         "id": "verb_pack_find",
@@ -276,22 +243,25 @@
           "e063"
         ],
         "requiresMatrixGate": true,
-        "note": "keep 해금 후, keep 매트릭스 4형태 통과 시 해금"
+        "note": "keep 매트릭스 4형태 통과 후 해금"
       }
     ],
     "unlockThreshold": 0.7,
     "masteryThreshold": 3,
     "verbCurriculumWeights": {
-      "v_have": 0.4,
-      "v_get": 0.25,
-      "v_take": 0.15,
-      "v_need": 0.05,
-      "v_want": 0.05,
-      "v_go": 0.04,
-      "v_come": 0.03,
-      "v_make": 0.03
+      "v_have": 0.28,
+      "v_get": 0.18,
+      "v_take": 0.12,
+      "v_be": 0.12,
+      "v_want": 0.07,
+      "v_need": 0.07,
+      "v_do": 0.06,
+      "v_feel": 0.05,
+      "v_go": 0.02,
+      "v_come": 0.015,
+      "v_make": 0.015
     },
-    "verbCurriculumNote": "단일동사 커리큘럼 목표 비중: have 40% · get 25% · take 15% · 나머지 20%. 숙달 해금 순서도 동일(have→get→take→나머지→give…). Starter 표현 구성·데일리 가중치·매트릭스 게이트에 반영. 구동사는 data/phrasal-verbs.json · 앱 구동사 메뉴(Unlock pack≥1)."
+    "verbCurriculumNote": "스타터 동사 have·get·take·want·need·be·do·feel 우선. 동사 팩: go/come/make → give → put → keep → find."
   },
   "paths": [
     {
