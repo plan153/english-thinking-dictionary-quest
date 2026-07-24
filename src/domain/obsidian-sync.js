@@ -205,7 +205,66 @@
         }
         return true;
       },
+      async listCommands() {
+        const url = `${cfg.baseUrl}/commands/`;
+        const response = await fetchFn(url, {
+          method: 'GET',
+          headers: { Authorization: `Bearer ${cfg.apiKey}` },
+        });
+        if (!response.ok) {
+          const text = await response.text().catch(() => '');
+          throw new Error(`LIST commands failed (${response.status}): ${text.slice(0, 200)}`);
+        }
+        const data = await response.json().catch(() => ({}));
+        return Array.isArray(data.commands) ? data.commands : [];
+      },
+      async executeCommand(commandId) {
+        const id = String(commandId || '').trim();
+        if (!id) throw new Error('commandId가 비어 있어요.');
+        // Keep ":" unescaped — Local REST routes graph:open literally.
+        const url = `${cfg.baseUrl}/commands/${id.replace(/^\//, '').replace(/\/?$/, '')}/`;
+        const response = await fetchFn(url, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${cfg.apiKey}` },
+        });
+        if (response.status === 404) {
+          throw new Error(`Obsidian 명령을 찾지 못했어요: ${id}`);
+        }
+        if (!(response.status === 200 || response.status === 204)) {
+          const text = await response.text().catch(() => '');
+          throw new Error(`COMMAND ${id} failed (${response.status}): ${text.slice(0, 200)}`);
+        }
+        return true;
+      },
     };
+  }
+
+  /**
+   * Open Obsidian's vault Graph view via Local REST / bridge command execute.
+   * Requires Obsidian + Local REST on the same machine as the browser.
+   */
+  async function openObsidianVaultGraph(settings, fetchImpl, options = {}) {
+    const cfg = normalizeSettings(settings);
+    if (!['local-rest', 'bridge'].includes(cfg.adapter)) {
+      const err = new Error('Obsidian 그래프는 adapter를 local-rest 또는 bridge로 설정해야 합니다.');
+      err.code = 'ADAPTER_UNSUPPORTED';
+      throw err;
+    }
+    if (!cfg.apiKey) {
+      const err = new Error('Local REST API 키가 비어 있어요. 내 성장 → 동기화 설정에서 넣어 주세요.');
+      err.code = 'MISSING_API_KEY';
+      throw err;
+    }
+    const client = createSyncClient(cfg, fetchImpl);
+    if (typeof client.executeCommand !== 'function') {
+      const err = new Error('이 adapter는 Obsidian 명령 실행을 지원하지 않습니다.');
+      err.code = 'NO_EXECUTE';
+      throw err;
+    }
+    const commandId = String(options.commandId || 'graph:open').trim() || 'graph:open';
+    if (typeof client.ping === 'function') await client.ping();
+    await client.executeCommand(commandId);
+    return { ok: true, commandId, adapter: cfg.adapter, baseUrl: cfg.baseUrl };
   }
 
   function normalizeListingName(name) {
@@ -964,6 +1023,7 @@
     createDriveWebhookClient,
     createDriveOauthClient,
     createSyncClient,
+    openObsidianVaultGraph,
     evaluateVaultFolderContract,
     verifyVaultContract,
     parseFrontmatter,

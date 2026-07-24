@@ -356,6 +356,40 @@ async function main() {
   // Without matching fake routes this may be empty; ensure API accepts personalRoot
   assert.strictEqual(importedLearner.personalRoot, 'Learners/me');
 
+  const graphCalls = [];
+  const graphFetch = async (url, options = {}) => {
+    graphCalls.push({ url, method: options.method });
+    if (String(url).replace(/\/$/, '') === 'http://127.0.0.1:27123' && options.method === 'GET') {
+      return {
+        ok: true,
+        status: 200,
+        headers: { get: () => 'application/json' },
+        json: async () => ({ status: 'OK', authenticated: true }),
+        text: async () => '',
+      };
+    }
+    if (options.method === 'POST' && String(url).includes('/commands/graph:open')) {
+      return { ok: true, status: 204, text: async () => '', headers: { get: () => '' } };
+    }
+    return { ok: false, status: 500, text: async () => 'no', headers: { get: () => '' } };
+  };
+  const opened = await sync.openObsidianVaultGraph({
+    adapter: 'local-rest',
+    baseUrl: 'http://127.0.0.1:27123',
+    apiKey: 'test-key',
+  }, graphFetch);
+  assert.strictEqual(opened.ok, true);
+  assert.strictEqual(opened.commandId, 'graph:open');
+  assert.ok(graphCalls.some(call => call.method === 'POST' && String(call.url).includes('/commands/graph:open/')));
+
+  let unsupported = null;
+  try {
+    await sync.openObsidianVaultGraph({ adapter: 'download', apiKey: 'x' }, graphFetch);
+  } catch (error) {
+    unsupported = error;
+  }
+  assert.strictEqual(unsupported?.code, 'ADAPTER_UNSUPPORTED');
+
   console.log('✅ obsidian-sync tests passed');
 }
 
