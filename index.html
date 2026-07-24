@@ -1043,7 +1043,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.18">v1.3.18</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.19">v1.3.19</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -1561,7 +1561,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.3.18';
+    const APP_CACHE_VERSION = 'etd-quest-v1.3.19';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const ProgressStoreApi = window.ProgressStore;
@@ -6399,13 +6399,19 @@
 
     async function loadDictionaryExplorer() {
       const files = ['verbs', 'nouns', 'patterns', 'expressions', 'verb-maps', 'learning-paths', 'qa-matrices', 'phrasal-verbs', 'phrasal-qa-matrices'];
+      const cacheBust = encodeURIComponent(APP_CACHE_VERSION);
       try {
-        const [verbs, nouns, patterns, expressions, verbMaps, learningPaths, qaMatricesFile, phrasalVerbs, phrasalQaMatricesFile] = await Promise.all(files.map(name =>
-          fetch(`./data/${name}.json`).then(response => {
-            if (!response.ok) throw new Error(`${name}.json ${response.status}`);
-            return response.json();
+        const loaded = await Promise.all(files.map(name =>
+          fetch(`./data/${name}.json?v=${cacheBust}`, { cache: 'no-store' }).then(async response => {
+            if (!response.ok) throw new Error(`${name}.json HTTP ${response.status}`);
+            try {
+              return await response.json();
+            } catch (parseError) {
+              throw new Error(`${name}.json 파싱 실패`);
+            }
           })
         ));
+        const [verbs, nouns, patterns, expressions, verbMaps, learningPaths, qaMatricesFile, phrasalVerbs, phrasalQaMatricesFile] = loaded;
         const mapGameExpressions = buildMapGameExpressions();
         const qaMatrices = Array.isArray(qaMatricesFile?.matrices) ? qaMatricesFile.matrices : (Array.isArray(qaMatricesFile) ? qaMatricesFile : []);
         const phrasalQaMatrices = Array.isArray(phrasalQaMatricesFile?.matrices)
@@ -6448,25 +6454,31 @@
           isMapMeaningOpen: false,
           isMapPracticeOpen: false,
         };
-        syncCurriculumUnlock({ announce: false });
-        updateDashboard();
-        updateQuestUI();
+        try {
+          syncCurriculumUnlock({ announce: false });
+          updateDashboard();
+          updateQuestUI();
+        } catch (postError) {
+          console.warn('Dictionary loaded but post-process failed', postError);
+        }
       } catch (error) {
+        console.error('Dictionary load failed', error);
+        const detail = error && error.message ? String(error.message) : 'unknown';
         const fallbackGameExpressions = appState.dictionaryData.gameExpressions.length ? appState.dictionaryData.gameExpressions : buildMapGameExpressions();
         appState.dictionaryData = {
           ...appState.dictionaryData,
           isLoaded: false,
           gameExpressions: fallbackGameExpressions,
           dataSource: 'fallback',
-          error: '사전 데이터 파일을 불러오지 못했어요. 로컬에서 파일을 직접 열었다면 `python3 -m http.server 8080` 실행 후 `http://localhost:8080`으로 접속해 주세요.',
+          error: `사전 데이터를 불러오지 못했어요. (${detail}) fresh.html로 캐시를 지운 뒤 다시 열어 주세요.`,
           selectedExplorerView: appState.dictionaryData.selectedExplorerView || 'verbs',
         };
-        toast('사전 데이터를 불러오지 못해 기본 예비 표현을 사용해요.');
+        toast('사전 데이터를 불러오지 못했어요. fresh.html로 다시 열어 주세요.');
       }
-          updateDashboard();
-          renderDictionaryExplorer();
-          if (window.location.hash) applyRoute();
-        }
+      updateDashboard();
+      renderDictionaryExplorer();
+      if (window.location.hash) applyRoute();
+    }
 
     function renderDictionaryExplorer() {
       const data = appState.dictionaryData;

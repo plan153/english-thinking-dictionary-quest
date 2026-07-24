@@ -1,5 +1,6 @@
-const CACHE = 'etd-quest-v1.3.18';
+const CACHE = 'etd-quest-v1.3.19';
 // Do NOT precache HTML. Stale index.html in Cache Storage is the main Safari stuck-UI cause.
+// Do NOT precache data/*.json — large JSON + addAll can fail on mobile quotas and leave a broken SW.
 const ASSETS = [
   './manifest.webmanifest',
   './src/data/thinking-map-sets.js',
@@ -10,20 +11,12 @@ const ASSETS = [
   './src/domain/verb-matrix-gate.js',
   './src/domain/vault-overlay.js',
   './src/domain/feynman-challenge.js',
+  './src/domain/qa-matrix-generate.js',
   './src/domain/graph-style.js',
   './src/domain/progress-store.js',
   './src/domain/active-speaking-set.js',
   './src/domain/phrasal-speaking-set.js',
   './src/domain/english-brain-export.js',
-  './data/verbs.json',
-  './data/nouns.json',
-  './data/patterns.json',
-  './data/expressions.json',
-  './data/verb-maps.json',
-  './data/learning-paths.json',
-  './data/qa-matrices.json',
-  './data/phrasal-verbs.json',
-  './data/phrasal-qa-matrices.json',
 ];
 
 function sameOriginGet(request) {
@@ -38,6 +31,10 @@ function isHtmlNavigation(request, url) {
 
 function isBypassPath(url) {
   return url.pathname.endsWith('/fresh.html') || url.pathname.endsWith('fresh.html');
+}
+
+function isDataJson(url) {
+  return url.pathname.includes('/data/') && url.pathname.endsWith('.json');
 }
 
 async function networkOnly(request) {
@@ -82,6 +79,11 @@ self.addEventListener('fetch', event => {
   if (isBypassPath(url)) return;
   // Never serve HTML from Cache Storage — always hit the network.
   if (isHtmlNavigation(request, url)) {
+    event.respondWith(networkOnly(request));
+    return;
+  }
+  // Dictionary JSON must not depend on precache / stale SW bodies.
+  if (isDataJson(url)) {
     event.respondWith(networkOnly(request));
     return;
   }
