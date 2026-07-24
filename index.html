@@ -3969,7 +3969,7 @@
           button.classList.toggle('active', button.dataset.dictionaryView === appState.dictionaryData.selectedExplorerView);
         });
       }
-      // Keep hash ?view= in sync. Otherwise forcedView from stale hash snaps tabs back (e.g. legacy).
+      // Keep hash ?view= in sync so deep links and tabs stay aligned.
       if (!appState.isApplyingRoute) {
         updateRouteForScreen('dictionary', true);
       }
