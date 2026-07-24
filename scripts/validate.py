@@ -35,7 +35,7 @@ def main() -> None:
     if f"etd-quest-v{version}" not in worker:
         fail("service-worker cache version does not match VERSION")
 
-    for required in ["index.html", "fresh.html", "manifest.webmanifest", "service-worker.js", "README.md", "src/domain/markdown-projection.js", "src/domain/obsidian-sync.js", "src/domain/canon-intake.js", "src/domain/verb-matrix-gate.js", "src/domain/vault-overlay.js", "src/domain/feynman-challenge.js", "src/domain/graph-style.js", "src/domain/progress-store.js", "src/domain/active-speaking-set.js", "src/domain/phrasal-speaking-set.js", "src/domain/english-brain-export.js", "src/domain/next-practice.js", "src/data/thinking-map-sets.js"]:
+    for required in ["index.html", "fresh.html", "manifest.webmanifest", "service-worker.js", "README.md", "src/domain/markdown-projection.js", "src/domain/obsidian-sync.js", "src/domain/canon-intake.js", "src/domain/verb-matrix-gate.js", "src/domain/vault-overlay.js", "src/domain/feynman-challenge.js", "src/domain/qa-matrix-generate.js", "src/domain/graph-style.js", "src/domain/progress-store.js", "src/domain/active-speaking-set.js", "src/domain/phrasal-speaking-set.js", "src/domain/english-brain-export.js", "src/domain/next-practice.js", "src/data/thinking-map-sets.js"]:
         if not (ROOT / required).exists():
             fail(f"Required file is missing: {required}")
 
