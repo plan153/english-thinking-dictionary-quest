@@ -83,9 +83,8 @@
 **통과 조건**: ✅ / ❌
 
 ## 자동화 스모크 (선택)
-브라우저 콘솔에서:
+브라우저 콘솔에서 (함수는 모듈 스코프라 `appState`만 확인):
 ```js
-typeof getConversationExpandChoices === 'function'
-  && getConversationExpandChoices().length === 6
-  && appState.progress.dailyQuestV1.version >= 6
+appState.progress.dailyQuestV1.version >= 6
+  && document.querySelectorAll('[data-expand-choice]').length >= 6
 ```

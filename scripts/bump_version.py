@@ -79,6 +79,25 @@ def main() -> None:
         raise SystemExit("Could not find cache marker in service-worker.js")
     worker_path.write_text(worker, encoding="utf-8")
 
+    pkg_path = ROOT / "package.json"
+    if pkg_path.exists():
+        pkg = json.loads(pkg_path.read_text(encoding="utf-8"))
+        pkg["version"] = new
+        pkg_path.write_text(json.dumps(pkg, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+    fresh_path = ROOT / "fresh.html"
+    if fresh_path.exists():
+        fresh = fresh_path.read_text(encoding="utf-8")
+        fresh, count = re.subn(
+            r"const VERSION = '[^']+';",
+            f"const VERSION = '{new}';",
+            fresh,
+            count=1,
+        )
+        if count != 1:
+            raise SystemExit("Could not find VERSION marker in fresh.html")
+        fresh_path.write_text(fresh, encoding="utf-8")
+
     print(f"v{old} → v{new}")
 
 

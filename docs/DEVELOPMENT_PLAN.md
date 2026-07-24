@@ -118,7 +118,7 @@
 - [x] `progressStorageKey`를 `appState` 생성 전에 선언해 새로고침 시 진행도 유실을 막는다.
 - [x] 홈에 `#questArea`를 연결해 데일리 퀘스트 시작/이어하기 UI가 실제로 보이게 한다.
 - [x] 홈 첫 구간: 히어로 + 오늘의 퀘스트만. Active set·더 연습은 `<details>`로 접음 (v1.1.8 IA F2).
-- [x] 데일리 카피를 실제 7스텝(daily v5: 듣기→말하기→조립→매트릭스2→장면→약한연결 말하기)과 맞춘다. (구식 “장면×2” 문구는 폐기)
+- [x] 데일리 카피를 **확장 선택(v6)** 에 맞춘다: 순서 클리어가 아니라 듣기/따라하기/이어묻기·답하기/이어말하기/화제전환.
 - [x] 해금 카피: “레벨업 = 팩 해금(내 표현 %)”만. 동사 4형태·레벨테스트는 이후 게이트로만 문서화.
 - [x] 레슨 뒤로가기: 출처별 복귀(퀘스트/구동사/성장/맵/사전/게임모드) v1.1.8.
 
@@ -215,7 +215,7 @@
 ## 이 문서를 이어받는 LLM에게 남기는 작업 메모
 
 - 사용자 목표는 “3~4세급 쉬운 말로 시작해, 제한된 만능동사·핵심명사로 실제 말이 되게 만들고, 그 기록이 Obsidian 영어뇌에 남아 다시 앱 학습 재료가 되는 구조”다.
-- Phase 0–5 + Feynman + Bridge/conflict + Drive webhook + Next Practice + Brain soft import + 그래프 바로가기(explain 포함) + watchlist + mapSets + verb have→get→take gate + daily v5 + 구동사 F1·**F6 매트릭스** + IA F2 + Draft 품질 + PC Vault 검사 도구까지 구현됨 (tip **v1.2.2**).
-- **미구현·보류 SoT = [`BACKLOG.md`](./BACKLOG.md).** **D1·D2는 보류·다음에** (사용자 지시). P2는 요청 없이 구현하지 않음.
+- Phase 0–5 + Feynman + Bridge/conflict + Drive + Next Practice + Brain soft import + 문장빌드맵 바로가기 + Obsidian 볼트 그래프 메인 메뉴 + watchlist + mapSets + verb gate + daily expand v6 + 구동사 F1·F6 + IA F2 + P2a–P2d + Draft 품질까지 구현됨 (tip **v1.3.6+**).
+- **미구현·보류 SoT = [`BACKLOG.md`](./BACKLOG.md).** **D1·D2는 보류·다음에** (사용자 지시).
 - 실제 Obsidian day loop 절차는 [`DAY_LOOP.md`](./DAY_LOOP.md). CI는 mock Local REST만 검증한다 — **실 vault 검증(D1)은 PC에서만**, 지금은 보류.
 - 클라우드 에이전트는 사용자 Mac vault(`/Users/.../Project_English`)에 접근할 수 없다. D1·D2는 사용자가 연 로컬 세션(또는 동등한 PC)에서만 닫힌다.
