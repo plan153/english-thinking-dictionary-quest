@@ -1934,16 +1934,23 @@
     }
     function findMatrixForExpression(expressionId) {
       if (!expressionId) return null;
-      const existing = getQaMatrices().find(matrix => matrix.baseExpressionId === expressionId || matrix.id === expressionId)
-        || getUnlockedMatrices().find(matrix => matrix.baseExpressionId === expressionId || matrix.id === expressionId);
-      if (existing) return existing;
       const expression = getUnlockedBank().find(item => item.id === expressionId)
         || getGameBank().find(item => item.id === expressionId)
+        || appState.dictionaryData.expressions?.find(item => item.id === expressionId)
         || null;
-      if (!expression) return null;
+      const existing = getQaMatrices().find(matrix => matrix.baseExpressionId === expressionId || matrix.id === expressionId)
+        || getUnlockedMatrices().find(matrix => matrix.baseExpressionId === expressionId || matrix.id === expressionId)
+        || null;
+      // Keep curated (non-generated) matrices; refresh generated ones with the current generator
+      // so stale Cache Storage / CDN JSON cannot keep broken forms like "Does it is...".
+      if (existing && !existing.generated && !String(existing.id || '').startsWith('m_gen_')) {
+        return existing;
+      }
       const api = window.QaMatrixGenerate;
-      if (!api?.fromExpression) return null;
-      return api.fromExpression(expression, { verbs: appState.dictionaryData.verbs || [] });
+      if (api?.fromExpression && expression) {
+        return api.fromExpression(expression, { verbs: appState.dictionaryData.verbs || [] }) || existing;
+      }
+      return existing;
     }
     function enrichExpandQaItem(item, matrix) {
       if (!item || !matrix) return item;
@@ -4974,8 +4981,12 @@
       const matrices = getUnlockedMatrices();
       let matrix = null;
       if (seedId) {
-        matrix = matrices.find(item => item.id === seedId || item.baseExpressionId === seedId) || null;
-        if (!matrix) matrix = findMatrixForExpression(seedId);
+        // Always resolve by expression through findMatrixForExpression so generated
+        // matrices refresh with the current QaMatrixGenerate rules.
+        matrix = findMatrixForExpression(seedId);
+        if (!matrix) {
+          matrix = matrices.find(item => item.id === seedId || item.baseExpressionId === seedId) || null;
+        }
       }
       if (!matrix) {
         const recent = new Set(appState.progress.recentExpressionIds || []);
