@@ -856,8 +856,8 @@
       .nav button {
         flex: 1 1 0;
         min-width: 0;
-        font-size: 12px;
-        padding: 8px 4px;
+        font-size: 11px;
+        padding: 8px 2px;
         border-radius: 12px;
         line-height: 1.2;
       }
@@ -950,7 +950,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.4">v1.3.4</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.5">v1.3.5</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -967,6 +967,7 @@
     <nav class="nav" aria-label="주요 메뉴">
       <button class="active" data-screen="home"><span class="nav-full">오늘의 퀘스트</span><span class="nav-short">오늘</span></button>
       <button data-screen="play"><span class="nav-full">게임 모드</span><span class="nav-short">게임</span></button>
+      <button data-screen="map"><span class="nav-full">그래프</span><span class="nav-short">그래프</span></button>
       <button data-screen="dictionary"><span class="nav-full">동사 카드</span><span class="nav-short">동사</span></button>
       <button data-screen="phrasal"><span class="nav-full">구동사</span><span class="nav-short">구동사</span></button>
       <button data-screen="progress"><span class="nav-full">내 성장</span><span class="nav-short">성장</span></button>
@@ -1005,10 +1006,11 @@
         </article>
         <div class="home-more-actions">
           <button class="btn dark" type="button" id="jumpPlayFromHome">게임 모드</button>
+          <button class="btn soft" type="button" id="jumpMapFromHome">그래프</button>
           <button class="btn soft" type="button" id="jumpDictionary">동사 카드</button>
           <button class="btn soft" type="button" id="jumpPhrasalFromHome">구동사</button>
         </div>
-        <p class="small-note" style="margin-top:12px">홈은 오늘의 말로 확장 선택을 붙잡습니다. 모드 카드는 게임 모드와 동사 카드에 있습니다.</p>
+        <p class="small-note" style="margin-top:12px">홈은 오늘의 말로 확장 선택을 붙잡습니다. 그래프는 메인 메뉴에서, 모드 카드는 게임 모드에서 이어집니다.</p>
       </details>
     </section>
 
@@ -1017,7 +1019,7 @@
         <div><h2>게임 모드</h2><p>같은 표현을 다른 통로로 만날수록 오래 기억됩니다.</p></div>
       </div>
       <div class="grid cols-3" id="gameModes"></div>
-      <p class="small-note" style="margin-top:12px">힌트 사다리는 한글 → 영어 조립 안에서, 문장빌드맵은 동사 카드 안에서 이어집니다.</p>
+      <p class="small-note" style="margin-top:12px">힌트 사다리는 한글 → 영어 조립 안에서, 문장빌드맵(그래프)은 메인 메뉴에서 바로 열립니다.</p>
       <article class="card" style="margin-top:16px">
         <h3>왜 여러 채널로 하나요?</h3>
         <p>뜻만 보면 “알 것 같은 단어”가 됩니다. 소리로 듣고, 입으로 말하고, 한국어에서 영어를 만들고, 영어에서 장면을 떠올리면 그 표현이 실제로 꺼내 쓰는 말이 됩니다.</p>
@@ -1070,7 +1072,7 @@
         <div class="explorer-panel verb-map" id="dictionaryMap" style="margin-top:14px" data-dictionary-view="build"></div>
         <div class="explorer-panel" id="vaultOverlayPanel" style="margin-top:14px" data-dictionary-view="vault" hidden></div>
         <div class="map-focus-actions" id="mapFocusActions">
-          <button class="btn soft" type="button" id="openFullThinkingMap">전체 화면 맵</button>
+          <button class="btn soft" type="button" id="openFullThinkingMap">메인 그래프 열기</button>
           <button class="btn soft" type="button" id="showDictionaryLegacy">문장빌드맵 닫고 전체 사전 보기</button>
         </div>
       </article>
@@ -1099,13 +1101,13 @@
 
     <section id="map" class="screen">
       <div class="section-head">
-        <div><h2>문장빌드맵</h2><p>동사 카드의 빌드 탭을 크게 펼친 화면입니다. 기본 엔진 → 생각틀 → 실생활 표현.</p></div>
+        <div><h2>그래프</h2><p>기본 엔진 → 생각틀 → 실생활 표현. 동사를 고르고 예문을 눌러 바로 연습하세요.</p></div>
       </div>
-      <p class="small-note" style="margin-bottom:12px"><button class="btn soft" type="button" id="mapBackToDictionary">← 동사 카드 빌드 탭으로</button></p>
       <article class="card">
         <div class="filter-row" id="mapFilters" style="margin-bottom:15px"></div>
         <div class="map-wrap"><div class="thinking-map" id="thinkingMap"></div></div>
         <p class="small-note">예: <b>make + a decision</b> = 결정을 만들다 → “결정하다”. 단어 하나씩 번역하는 대신, 기본 엔진·생각틀·실생활 표현 5개를 함께 묶어 봅니다.</p>
+        <p class="small-note" style="margin-top:10px"><button class="btn soft" type="button" id="mapBackToDictionary">동사 카드 빌드맵으로</button></p>
       </article>
     </section>
 
@@ -1444,7 +1446,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.3.4';
+    const APP_CACHE_VERSION = 'etd-quest-v1.3.5';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const ProgressStoreApi = window.ProgressStore;
@@ -2966,7 +2968,7 @@
         return { screen: 'progress', label: '← 내 성장으로', options: {} };
       }
       if (options.bankSource === 'map') {
-        return { screen: 'map', label: '← 문장빌드맵으로', options: {} };
+        return { screen: 'map', label: '← 그래프로', options: {} };
       }
       if (options.bankSource === 'dictionary') {
         return {
@@ -6582,6 +6584,7 @@
     document.getElementById('startDaily').addEventListener('click', () => startQuest());
     document.getElementById('jumpDictionary').addEventListener('click', () => showScreen('dictionary'));
     document.getElementById('jumpPlayFromHome')?.addEventListener('click', () => showScreen('play'));
+    document.getElementById('jumpMapFromHome')?.addEventListener('click', () => showScreen('map'));
     document.getElementById('jumpPhrasalFromHome')?.addEventListener('click', () => showScreen('phrasal'));
     document.getElementById('exitLesson').addEventListener('click', () => exitLessonToSource());
     document.getElementById('mapBackToDictionary')?.addEventListener('click', () => {
