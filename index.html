@@ -1012,7 +1012,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.10">v1.3.10</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.11">v1.3.11</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -1371,6 +1371,7 @@
   <script src="./src/domain/verb-matrix-gate.js"></script>
   <script src="./src/domain/vault-overlay.js"></script>
   <script src="./src/domain/feynman-challenge.js"></script>
+  <script src="./src/domain/qa-matrix-generate.js"></script>
   <script src="./src/domain/graph-style.js"></script>
   <script src="./src/domain/progress-store.js"></script>
   <script src="./src/domain/active-speaking-set.js"></script>
@@ -1529,7 +1530,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.3.10';
+    const APP_CACHE_VERSION = 'etd-quest-v1.3.11';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const ProgressStoreApi = window.ProgressStore;
@@ -1895,7 +1896,16 @@
     }
     function findMatrixForExpression(expressionId) {
       if (!expressionId) return null;
-      return getUnlockedMatrices().find(matrix => matrix.baseExpressionId === expressionId || matrix.id === expressionId) || null;
+      const existing = getQaMatrices().find(matrix => matrix.baseExpressionId === expressionId || matrix.id === expressionId)
+        || getUnlockedMatrices().find(matrix => matrix.baseExpressionId === expressionId || matrix.id === expressionId);
+      if (existing) return existing;
+      const expression = getUnlockedBank().find(item => item.id === expressionId)
+        || getGameBank().find(item => item.id === expressionId)
+        || null;
+      if (!expression) return null;
+      const api = window.QaMatrixGenerate;
+      if (!api?.fromExpression) return null;
+      return api.fromExpression(expression, { verbs: appState.dictionaryData.verbs || [] });
     }
     function enrichExpandQaItem(item, matrix) {
       if (!item || !matrix) return item;
@@ -2077,9 +2087,9 @@
         return;
       }
       if (choice.mode === 'matrix') {
-        const hasMatrix = Boolean(findMatrixForExpression(targetId));
-        if (!hasMatrix) {
-          // Fall back to koen keep conversation going if matrix missing.
+        const matrix = findMatrixForExpression(targetId);
+        if (!matrix) {
+          // Fall back to koen keep conversation going if matrix cannot be resolved/generated.
           return startExpandChoice('continue', targetId);
         }
       }
@@ -4864,10 +4874,10 @@
     }
     function makeMatrixLesson(seedId = null, options = {}) {
       const matrices = getUnlockedMatrices();
-      if (!matrices.length) return [];
       let matrix = null;
       if (seedId) {
         matrix = matrices.find(item => item.id === seedId || item.baseExpressionId === seedId) || null;
+        if (!matrix) matrix = findMatrixForExpression(seedId);
       }
       if (!matrix) {
         const recent = new Set(appState.progress.recentExpressionIds || []);
@@ -4880,8 +4890,9 @@
           if (a.recent !== b.recent) return a.recent ? 1 : -1;
           return String(a.item.label).localeCompare(String(b.item.label));
         });
-        matrix = scored[0]?.item || matrices[0];
+        matrix = scored[0]?.item || matrices[0] || null;
       }
+      if (!matrix) return [];
       const formId = options.formId || null;
       if (formId) {
         const single = matrixFormToItem(matrix, formId);
