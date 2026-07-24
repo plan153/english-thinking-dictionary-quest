@@ -497,13 +497,16 @@
       display:none;
     }
     #dictionary.map-focus-mode #dictionaryLegacySearchSection { display:none; }
-    #dictionary.legacy-only-mode > .section-head,
-    #dictionary.legacy-only-mode .dictionary-explorer {
+    /* legacy 모드에서도 서브탭(동사/표현/빌드맵)은 남겨 그래프·맵으로 들어갈 수 있게 한다 */
+    #dictionary.legacy-only-mode > .section-head {
       display:none;
     }
     #dictionary.legacy-only-mode #dictionaryLegacySearchSection {
       display:block;
       margin-top:0;
+    }
+    .dictionary-explorer.legacy-focused .section-head {
+      display:none;
     }
     .map-focus-actions { display:none; margin-top:12px; }
     #dictionary.map-focus-mode .map-focus-actions { display:flex; justify-content:flex-start; }
@@ -839,6 +842,11 @@
       .map-section .map-row.two,
       .map-section .map-row.three { grid-template-columns: 1fr; }
       .answer-input { font-size: 16px; }
+      .thinking-map {
+        min-width: 0;
+        grid-template-columns: 1fr;
+      }
+      .map-wrap { overflow: visible; }
     }
     @media (max-width: 530px) {
       .app {
@@ -884,7 +892,10 @@
       .home-more > summary { min-height: var(--touch-min); display: flex; align-items: center; justify-content: space-between; float: none; }
       .home-more > summary::after { float: none; margin-left: 12px; }
       #obsidianSyncCard .question-actions .btn { width: 100%; }
-      .thinking-map { min-width: 640px; }
+      .thinking-map {
+        min-width: 0;
+        grid-template-columns: 1fr;
+      }
       .toast {
         left: 12px;
         right: 12px;
@@ -3958,6 +3969,10 @@
           button.classList.toggle('active', button.dataset.dictionaryView === appState.dictionaryData.selectedExplorerView);
         });
       }
+      // Keep hash ?view= in sync. Otherwise forcedView from stale hash snaps tabs back (e.g. legacy).
+      if (!appState.isApplyingRoute) {
+        updateRouteForScreen('dictionary', true);
+      }
     }
     function selectMapExpression(expressionId) {
       if (!expressionId) return;
@@ -5761,13 +5776,14 @@
       const expressions = data.expressions.filter(e => e.coreVerbId === selectedVerb.id);
       const buildConfig = getVerbMapConfig(selectedVerb, data);
       const route = parseHashRoute();
-      const forcedView = route.screen === 'dictionary' && route.view && ['legacy', 'verbs', 'expressions', 'build', 'vault'].includes(route.view) ? route.view : null;
+      const hashView = route.screen === 'dictionary' && route.view && ['legacy', 'verbs', 'expressions', 'build', 'vault'].includes(route.view) ? route.view : null;
       let selectedExpression = data.selectedExpressionId ? expressions.find(e => e.id === data.selectedExpressionId) : null;
       let selectedRoute = buildConfig?.routes?.find(route => route.routeId === data.selectedRouteId) || null;
       let selectedPattern = null;
       const routeActive = data.selectedRouteId || data.selectedPatternId || data.selectedSlotValue || data.selectedCombinationId;
       const isRouteVerb = isVerbMapFocus(selectedVerb.id);
-      const selectedView = forcedView || data.selectedExplorerView || (routeActive ? 'build' : selectedExpression ? 'expressions' : 'verbs');
+      // Prefer in-memory view over hash. Stale ?view=legacy was locking tabs and hiding the build map/graph.
+      const selectedView = data.selectedExplorerView || hashView || (routeActive ? 'build' : selectedExpression ? 'expressions' : 'verbs');
       if (!data.selectedExplorerView) appState.dictionaryData.selectedExplorerView = selectedView;
       let needsRerender = false;
       const legacyViewActive = selectedView === 'legacy';
@@ -5829,7 +5845,8 @@
         dictionaryExplorer.classList.toggle('map-focused', buildViewActive);
         dictionaryExplorer.classList.toggle('has-selected-expression', Boolean(selectedView !== 'build' && !legacyViewActive && !vaultViewActive && selectedExpression));
         dictionaryExplorer.classList.toggle('legacy-focused', legacyViewActive);
-        dictionaryExplorer.hidden = legacyViewActive;
+        // Keep explorer (and subnav) visible in legacy so users can reach 문장빌드맵 / graph.
+        dictionaryExplorer.hidden = false;
       }
       if (dictionaryScreen) {
         dictionaryScreen.classList.toggle('map-focus-mode', buildViewActive);
