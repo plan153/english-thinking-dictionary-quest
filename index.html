@@ -735,6 +735,42 @@
     .ring strong { position:relative; z-index:1; font-size:18px; }
     .daily-card h3 { margin:0 0 5px; }
 
+    .expand-board { margin-top: 4px; }
+    .expand-seed {
+      border: 1px solid rgba(40,111,108,.18);
+      background: #f7fbfa;
+      border-radius: 16px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+    }
+    .expand-seed .en { font-size: 18px; font-weight: 850; letter-spacing: -.3px; }
+    .expand-seed .ko { margin-top: 4px; color: var(--muted); font-size: 13px; }
+    .expand-choice-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .expand-choice {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 14px;
+      padding: 12px 12px;
+      text-align: left;
+      min-height: var(--touch-min);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .expand-choice strong { font-size: 14px; letter-spacing: -.2px; }
+    .expand-choice span { font-size: 12px; color: var(--muted); line-height: 1.4; }
+    .expand-choice:hover, .expand-choice:focus-visible {
+      border-color: var(--accent);
+      background: #eef7f6;
+    }
+    @media (max-width: 530px) {
+      .expand-choice-grid { grid-template-columns: 1fr; }
+    }
+
     .quest-inline-confirm {
       margin-top: 12px;
       border: 1px solid rgba(40,111,108,.22);
@@ -914,7 +950,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.2">v1.3.2</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.3">v1.3.3</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -939,10 +975,10 @@
     <section id="home" class="screen active">
       <div class="hero">
         <div class="eyebrow">English Thinking Dictionary</div>
-        <h2>오늘 7분,<br>입으로 조립하세요.</h2>
-        <p>듣고 → 말하고 → 조립 → 묻기·답하기. have → get → take 순으로 숙달합니다.</p>
+        <h2>오늘 한 마디,<br>이어서 말해 보세요.</h2>
+        <p>듣기·따라하기·이어묻기·이어답하기·이어말하기·화제전환 중 골라 확장합니다. 끝내는 목표가 아니라, 더 말하고 싶게 만드는 연습이에요.</p>
         <div class="hero-actions">
-          <button class="btn primary" id="startDaily">오늘의 7분 퀘스트 시작</button>
+          <button class="btn primary" id="startDaily">오늘의 말로 시작</button>
         </div>
       </div>
 
@@ -950,9 +986,9 @@
         <article class="card daily-card">
           <div class="ring" id="dailyRing" style="--p: 0"><strong id="dailyPercent">0%</strong></div>
           <div>
-            <h3>오늘의 7분 루프</h3>
-            <p id="dailyCopy">듣고 따라 말하기 → 한글→영어 조립 → 묻기·답하기(2형태) → 장면 고르기 → 입으로 다시 꺼내기</p>
-            <div class="mini-progress"><div class="progress-track"><span id="dailyBar" style="width:0%"></span></div><strong id="dailyCount">0 / 7</strong></div>
+            <h3>오늘의 말하기 흐름</h3>
+            <p id="dailyCopy">순서가 아니라 선택입니다. 같은 표현을 골라 자연스럽게 이어 가세요.</p>
+            <div class="mini-progress"><div class="progress-track"><span id="dailyBar" style="width:0%"></span></div><strong id="dailyCount">이어가기 0</strong></div>
           </div>
         </article>
         <div id="questArea" aria-live="polite"></div>
@@ -972,7 +1008,7 @@
           <button class="btn soft" type="button" id="jumpDictionary">동사 카드</button>
           <button class="btn soft" type="button" id="jumpPhrasalFromHome">구동사</button>
         </div>
-        <p class="small-note" style="margin-top:12px">모드 카드·엔진 연결은 게임 모드와 동사 카드에 있습니다. 홈은 하루 루프만 붙잡습니다.</p>
+        <p class="small-note" style="margin-top:12px">홈은 오늘의 말로 확장 선택을 붙잡습니다. 모드 카드는 게임 모드와 동사 카드에 있습니다.</p>
       </details>
     </section>
 
@@ -1138,13 +1174,13 @@
       </article>
       <article class="card" style="margin-top:16px" id="dayLoopGuideCard">
         <h3>하루 루프 체크리스트</h3>
-        <p class="small-note">앱에서 틀리고 → Vault에 남기고 → Next Practice로 돌아오는 최소 루프입니다. Local REST가 켜져 있으면 자동 sync가 됩니다.</p>
+        <p class="small-note">앱에서 말하고 → Vault에 남기고 → 다시 확장 고르기로 돌아오는 최소 루프입니다. Local REST가 켜져 있으면 자동 sync가 됩니다.</p>
         <ol class="small-note" style="margin:10px 0 0; padding-left:20px; line-height:1.7" id="dayLoopChecklist">
-          <li>오늘의 퀘스트 또는 게임 모드로 연습</li>
+          <li>오늘의 말로 확장 고르기 (순서 없음)</li>
           <li>틀림 → 간극 기록 저장</li>
           <li>Obsidian 동기화(자동 또는 수동)</li>
           <li>Vault에서 가져오기(선택)</li>
-          <li>Next Practice 시작</li>
+          <li>Next Practice 또는 홈에서 이어서 말하기</li>
         </ol>
         <p class="small-note" id="dayLoopGuideStatus" style="margin-top:10px">동기화 어댑터를 설정하면 상태가 여기 표시됩니다.</p>
       </article>
@@ -1408,7 +1444,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.3.2';
+    const APP_CACHE_VERSION = 'etd-quest-v1.3.3';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const ProgressStoreApi = window.ProgressStore;
@@ -1611,6 +1647,25 @@
       if (!matchesExpression) return;
       if (resultType !== 'correct' && resultType !== 'almost') return;
       const quest = appState.progress.dailyQuestV1;
+
+      // v6+: choice-based expand (not forced step order)
+      if (questCtx.expandChoiceId) {
+        if (questCtx.mode === 'listen' && !details.questStepComplete) return;
+        ensureToday();
+        quest.expandCount = Number(quest.expandCount || 0) + 1;
+        quest.lastExpandChoiceId = questCtx.expandChoiceId;
+        quest.lastExpressionId = questCtx.expressionId;
+        quest.startedAt = quest.startedAt || new Date().toISOString();
+        const token = `quest:expand:${questCtx.expandChoiceId}:${questCtx.expressionId}`;
+        if (!appState.progress.daily.done.includes(token)) {
+          appState.progress.daily.done.push(token);
+        }
+        if (!Array.isArray(quest.completedStepKeys)) quest.completedStepKeys = [];
+        if (!quest.completedStepKeys.includes(token)) quest.completedStepKeys.push(token);
+        saveProgress();
+        return;
+      }
+
       const step = (quest.stepPlan || [])[questCtx.stepIndex];
       if (!step) return;
       if (step.key !== questCtx.stepKey || step.mode !== mode) return;
@@ -1726,14 +1781,48 @@
         { key: 'step-7', label: '입으로 다시 꺼내기', mode: 'speak', expressionId: seventh, questStage: 'output' },
       ].filter(step => step.expressionId);
     }
+    function pickTodaySeedExpression(bank, questDate) {
+      if (!bank.length) return null;
+      const dayNum = Number(String(questDate || '').replace(/\D/g, '').slice(-3)) || 0;
+      return bank[dayNum % bank.length] || bank[0];
+    }
+    function pickTopicShiftExpression(fromExpressionId, bank) {
+      const current = bank.find(item => item.id === fromExpressionId) || null;
+      const sameVerb = bank.filter(item => item.id !== fromExpressionId && current?.coreVerbId && item.coreVerbId === current.coreVerbId);
+      const pool = sameVerb.length ? sameVerb : bank.filter(item => item.id !== fromExpressionId);
+      if (!pool.length) return current || bank[0] || null;
+      return pool[Math.floor(Math.random() * pool.length)] || pool[0];
+    }
+    function getConversationExpandChoices() {
+      return [
+        { id: 'listen', label: '듣기', desc: '한/영으로 들어보기', mode: 'listen', questStage: 'meaning' },
+        { id: 'shadow', label: '따라하기', desc: '영어로 말하기 · 타이핑 선택', mode: 'speak', questStage: 'output' },
+        { id: 'ask', label: '이어묻기', desc: '같은 말로 질문 확장', mode: 'matrix', matrixFormId: 'question', questStage: 'assembly' },
+        { id: 'answer', label: '이어답하기', desc: '짧은 답·부정으로 이어가기', mode: 'matrix', matrixFormId: 'shortYes', questStage: 'assembly' },
+        { id: 'continue', label: '이어말하기', desc: '한 문장 더 붙여 말하기', mode: 'koen', questStage: 'assembly' },
+        { id: 'topic', label: '화제전환', desc: '가까운 다른 표현으로 넘어가기', mode: 'speak', questStage: 'output', topicShift: true },
+      ];
+    }
+    function countTodayExpandMomentum(progress = appState.progress) {
+      const quest = progress?.dailyQuestV1;
+      // Soft meter for continue-motivation — not a clear gate.
+      if (quest?.version >= 6 && quest.date === seoulTodayKey()) {
+        return Math.min(7, Math.max(0, Number(quest.expandCount || 0)));
+      }
+      const done = progress?.daily?.date === todayKey() ? (progress.daily.done || []) : [];
+      const expandTokens = done.filter(token => String(token).startsWith('quest:expand:'));
+      return Math.min(7, expandTokens.length);
+    }
     function getQuestStepTitle(step) {
-      if (!step) return '오늘의 퀘스트';
+      if (!step) return '오늘의 말하기';
       return step.label;
     }
     function updateDashboard() {
       const p = appState.progress;
-      const done = p.daily?.date === todayKey() ? countDailyQuestDoneTokens(p.daily.done) : 0;
-      const percent = Math.min(100, Math.round(done / 7 * 100));
+      const done = countTodayExpandMomentum(p);
+      const legacyDone = p.daily?.date === todayKey() ? countDailyQuestDoneTokens(p.daily.done) : 0;
+      const momentum = Math.max(done, Math.min(7, legacyDone));
+      const percent = Math.min(100, Math.round(momentum / 7 * 100));
       const snapshot = renderActiveSetSummary();
       document.getElementById('streak').textContent = p.streak || 0;
       document.getElementById('xp').textContent = p.xp || 0;
@@ -1742,7 +1831,7 @@
       document.getElementById('dailyPercent').textContent = percent + '%';
       document.getElementById('dailyRing').style.setProperty('--p', percent);
       document.getElementById('dailyBar').style.width = percent + '%';
-      document.getElementById('dailyCount').textContent = `${done} / 7`;
+      document.getElementById('dailyCount').textContent = `이어가기 ${momentum}`;
       document.getElementById('xpBig').textContent = `${p.xp || 0} XP`;
       document.getElementById('streakBig').textContent = `${p.streak || 0}일`;
       document.getElementById('masteredBig').textContent = snapshot.mineCount;
@@ -1773,23 +1862,26 @@
       const bank = getUnlockedBank();
       if (bank.length === 0) {
         quest.stepPlan = [];
+        quest.seedExpressionId = null;
         quest.currentIndex = 0;
         return;
       }
-      const validPlan = Array.isArray(quest.stepPlan)
-        && quest.stepPlan.length === 7
-        && quest.stepPlan.every(step => step && step.key && step.mode && step.expressionId && bank.some(item => item.id === step.expressionId));
-      if (quest.version === 5 && quest.date === seoulToday && validPlan) {
-        quest.currentIndex = clampValue(Number.isFinite(quest.currentIndex) ? quest.currentIndex : 0, 0, quest.stepPlan.length);
-        quest.completedStepKeys = Array.isArray(quest.completedStepKeys) ? quest.completedStepKeys.filter(key => quest.stepPlan.some(step => step.key === key)) : [];
+      const seedOk = quest.seedExpressionId && bank.some(item => item.id === quest.seedExpressionId);
+      if (quest.version >= 6 && quest.date === seoulToday && seedOk) {
+        quest.expandCount = Number(quest.expandCount || 0);
+        quest.lastExpressionId = quest.lastExpressionId || quest.seedExpressionId;
         return;
       }
-      const stepPlan = buildDailyQuestStepPlan(bank, seoulToday);
+      const seed = pickTodaySeedExpression(bank, seoulToday);
       appState.progress.dailyQuestV1 = {
         ...defaultDailyQuestV1(),
-        version: 5,
+        version: 6,
         date: seoulToday,
-        stepPlan,
+        seedExpressionId: seed?.id || null,
+        lastExpressionId: seed?.id || null,
+        expandCount: 0,
+        lastExpandChoiceId: null,
+        stepPlan: [],
         currentIndex: 0,
         completedStepKeys: [],
         startedAt: null,
@@ -1799,75 +1891,131 @@
       saveProgress();
     }
 
+    function renderExpandChoiceButtons(expressionId, options = {}) {
+      const choices = getConversationExpandChoices();
+      const buttons = choices.map(choice => `
+        <button class="expand-choice" type="button" data-expand-choice="${escapeHtml(choice.id)}" data-expression-id="${escapeHtml(expressionId || '')}">
+          <strong>${escapeHtml(choice.label)}</strong>
+          <span>${escapeHtml(choice.desc)}</span>
+        </button>
+      `).join('');
+      return `
+        <div class="expand-board">
+          ${options.heading ? `<h3 style="margin:0 0 8px">${escapeHtml(options.heading)}</h3>` : ''}
+          ${options.note ? `<p class="small-note" style="margin:0 0 12px">${escapeHtml(options.note)}</p>` : ''}
+          <div class="expand-choice-grid">${buttons}</div>
+        </div>
+      `;
+    }
+
+    function bindExpandChoiceButtons(root = document) {
+      root.querySelectorAll('[data-expand-choice]').forEach(button => {
+        button.addEventListener('click', () => {
+          startExpandChoice(button.dataset.expandChoice, button.dataset.expressionId);
+        });
+      });
+    }
+
     function updateQuestUI() {
       ensureDailyQuest();
       const quest = appState.progress.dailyQuestV1;
       const questArea = document.getElementById('questArea');
       if (!questArea) return;
-      const stepPlan = Array.isArray(quest.stepPlan) ? quest.stepPlan : [];
-      const completed = Array.isArray(quest.completedStepKeys) ? quest.completedStepKeys.length : 0;
-      const total = stepPlan.length || 7;
-      const restartConfirmMarkup = appState.questRestartConfirmOpen ? `
-        <div class="quest-inline-confirm" role="status" aria-live="polite">
-          <h4>오늘의 퀘스트를 처음부터 다시 할까요?</h4>
-          <p>오늘 선택된 7단계는 유지하고, 진행 상태만 처음부터 다시 시작합니다.</p>
-          <p class="small-note">XP와 기존 학습 기록은 지워지지 않아요.</p>
-          <div class="quest-confirm-actions">
-            <button class="btn soft" id="cancelQuestRestartBtn" type="button">취소</button>
-            <button class="btn dark" id="confirmQuestRestartBtn" type="button">다시 시작</button>
+      const bank = getUnlockedBank();
+      const expressionId = quest.lastExpressionId || quest.seedExpressionId;
+      const item = bank.find(row => row.id === expressionId) || bank[0] || null;
+      const momentum = countTodayExpandMomentum();
+      const seedMarkup = item ? `
+        <div class="expand-seed">
+          <div class="en">${escapeHtml(item.en || item.english || '')}</div>
+          <div class="ko">${escapeHtml(item.ko || item.naturalKorean || '')}</div>
+        </div>
+      ` : `<p class="small-note">지금 연습할 Active set 표현이 없어요.</p>`;
+
+      questArea.innerHTML = `
+        <div class="card">
+          <h3>오늘의 말 · 확장 고르기</h3>
+          <p class="small-note" style="margin:0 0 10px">순서로 클리어하는 퀘스트가 아닙니다. 듣고·따라하고·이어 묻거나 말하며 자연스럽게 골라 보세요.</p>
+          ${seedMarkup}
+          <p class="small-note" style="margin:0 0 10px">오늘 이어간 연습 <b>${momentum}</b>회 · 더 할수록 흐름이 붙어요.</p>
+          ${item ? renderExpandChoiceButtons(item.id) : ''}
+          <div class="quest-confirm-actions" style="margin-top:12px">
+            <button class="btn soft" id="refreshSeedBtn" type="button">다른 말로 바꾸기</button>
           </div>
         </div>
-      ` : '';
-      const stepSummary = stepPlan.map((step, index) => `<li>${index + 1}. ${escapeHtml(step.label)}</li>`).join('');
-      const currentStep = stepPlan[quest.currentIndex] || null;
-      const currentLabel = currentStep ? `${quest.currentIndex + 1}/${total} · ${currentStep.label}` : `완료 대기 중 · ${completed}/${total}`;
-      if (quest.isCompleted) {
-        questArea.innerHTML = `
-          <div class="card">
-            <h3>✨ 오늘의 퀘스트 완료!</h3>
-            <p>7단계 루프를 모두 끝냈어요. 내일 또 새로운 표현들이 준비됩니다.</p>
-            <div style="margin-top:12px;">
-              <button class="btn soft" id="restartQuestBtn" type="button">오늘의 퀘스트 다시 시작</button>
-              <button class="btn soft" onclick="showScreen('dictionary')">동사 카드 보기</button>
-            </div>
-            ${restartConfirmMarkup}
-          </div>
-        `;
-      } else if (!quest.startedAt) {
-        questArea.innerHTML = `
-          <div class="card">
-            <h3>오늘의 퀘스트 · ${completed}/${total} 완료</h3>
-            <p>듣고 따라 말하기 → 조립 → 묻기·답하기(2형태) → 장면 고르기 → 입으로 다시 꺼내기, 7단계로 이어집니다.</p>
-            <ul style="margin:10px 0; padding-left:20px; line-height:1.7;">${stepSummary}</ul>
-            <button class="btn dark" id="startQuestBtn">퀘스트 시작하기</button>
-          </div>
-        `;
-      } else {
-        questArea.innerHTML = `
-          <div class="card">
-            <h3>오늘의 퀘스트 · ${completed}/${total} 완료</h3>
-            <p>현재 단계: <b>${escapeHtml(currentLabel)}</b></p>
-            <p class="small-note">7단계가 순서대로 이어지고, 완료되면 다음 단계가 자동으로 열립니다.</p>
-            <div style="margin:10px 0; padding-left:0;">
-              <ul style="margin:0; padding-left:20px; line-height:1.6;">${stepSummary}</ul>
-            </div>
-            <div class="quest-confirm-actions">
-              <button class="btn dark" id="continueQuestBtn" type="button">퀘스트 이어하기</button>
-              <button class="btn soft" id="restartQuestBtn" type="button">오늘의 퀘스트 다시 시작</button>
-            </div>
-            ${restartConfirmMarkup}
-          </div>
-        `;
+      `;
+      bindExpandChoiceButtons(questArea);
+      document.getElementById('refreshSeedBtn')?.addEventListener('click', () => {
+        const next = pickTopicShiftExpression(item?.id, bank) || pickTodaySeedExpression(bank, seoulTodayKey());
+        if (!next) return;
+        quest.seedExpressionId = next.id;
+        quest.lastExpressionId = next.id;
+        saveProgress();
+        updateQuestUI();
+        toast('다른 말로 바꿨어요. 확장을 골라 보세요.');
+      });
+    }
+
+    function startExpandChoice(choiceId, expressionId) {
+      ensureDailyQuest();
+      const quest = appState.progress.dailyQuestV1;
+      const bank = getUnlockedBank();
+      const choice = getConversationExpandChoices().find(item => item.id === choiceId);
+      if (!choice) return;
+      let targetId = expressionId || quest.lastExpressionId || quest.seedExpressionId;
+      let target = bank.find(item => item.id === targetId) || null;
+      if (choice.topicShift) {
+        target = pickTopicShiftExpression(targetId, bank);
+        targetId = target?.id || targetId;
       }
-      document.getElementById('startQuestBtn')?.addEventListener('click', startQuest);
-      document.getElementById('continueQuestBtn')?.addEventListener('click', continueQuest);
-      document.getElementById('restartQuestBtn')?.addEventListener('click', openQuestRestartConfirm);
-      document.getElementById('cancelQuestRestartBtn')?.addEventListener('click', cancelQuestRestartConfirm);
-      document.getElementById('confirmQuestRestartBtn')?.addEventListener('click', restartTodayQuest);
+      if (!targetId) {
+        toast('지금 연습할 표현이 없어요.');
+        return;
+      }
+      if (choice.mode === 'matrix') {
+        const hasMatrix = getUnlockedMatrices().some(matrix => matrix.baseExpressionId === targetId || matrix.id === targetId);
+        if (!hasMatrix) {
+          // Fall back to koen keep conversation going if matrix missing.
+          return startExpandChoice('continue', targetId);
+        }
+      }
+      quest.startedAt = quest.startedAt || new Date().toISOString();
+      quest.lastExpressionId = targetId;
+      quest.lastExpandChoiceId = choice.id;
+      quest.isCompleted = false;
+      saveProgress();
+      const questContext = {
+        source: 'dailyQuestV1',
+        expandChoiceId: choice.id,
+        stepKey: `expand-${choice.id}-${targetId}`,
+        stepIndex: -1,
+        expressionId: targetId,
+        mode: choice.mode,
+        label: choice.label,
+        questStage: choice.questStage,
+        matrixFormId: choice.matrixFormId || null,
+      };
+      appState.questContext = questContext;
+      startMode(choice.mode, targetId, {
+        skipRoute: false,
+        questContext,
+        matrixFormId: choice.matrixFormId || 'question',
+        bankSource: 'daily',
+        returnScreen: 'home',
+        returnLabel: '← 오늘의 말로',
+      });
     }
 
     function openQuestRestartConfirm() {
-      appState.questRestartConfirmOpen = true;
+      // Kept for compatibility; restart now just reshuffles seed.
+      const quest = appState.progress.dailyQuestV1;
+      const bank = getUnlockedBank();
+      const next = pickTopicShiftExpression(quest.lastExpressionId || quest.seedExpressionId, bank);
+      if (next) {
+        quest.seedExpressionId = next.id;
+        quest.lastExpressionId = next.id;
+        saveProgress();
+      }
       updateQuestUI();
     }
 
@@ -1879,13 +2027,8 @@
     function restartTodayQuest() {
       ensureDailyQuest();
       const quest = appState.progress.dailyQuestV1;
-      const stepPlan = Array.isArray(quest.stepPlan) ? quest.stepPlan.slice() : [];
-      if (!stepPlan.length) {
-        appState.questRestartConfirmOpen = false;
-        updateQuestUI();
-        return;
-      }
-      quest.currentIndex = 0;
+      quest.expandCount = 0;
+      quest.lastExpandChoiceId = null;
       quest.completedStepKeys = [];
       quest.startedAt = new Date().toISOString();
       quest.finishedAt = null;
@@ -1893,101 +2036,111 @@
       appState.questContext = null;
       appState.questRestartConfirmOpen = false;
       saveProgress();
-      runQuestStep();
+      updateQuestUI();
+      toast('오늘 흐름을 새로 시작해요. 확장을 골라 보세요.');
     }
 
     function startQuest() {
       ensureDailyQuest();
       window.clearTimeout(appState.questAutoAdvanceTimer);
       const quest = appState.progress.dailyQuestV1;
-      if (quest.startedAt && !quest.isCompleted) {
-        continueQuest();
-        return;
-      }
-      quest.startedAt = new Date().toISOString();
-      quest.currentIndex = 0;
-      quest.completedStepKeys = [];
+      quest.startedAt = quest.startedAt || new Date().toISOString();
       saveProgress();
-      runQuestStep();
+      showScreen('home');
+      updateQuestUI();
+      const seedId = quest.lastExpressionId || quest.seedExpressionId;
+      // Default entry: listening is a gentle start, still a choice afterward.
+      startExpandChoice('listen', seedId);
     }
 
     function continueQuest() {
-      runQuestStep();
+      ensureDailyQuest();
+      showScreen('home');
+      updateQuestUI();
     }
 
     function runQuestStep() {
-      const quest = appState.progress.dailyQuestV1;
-      const stepPlan = Array.isArray(quest.stepPlan) ? quest.stepPlan : [];
-      const step = stepPlan[quest.currentIndex];
-      if (!step) {
-        finishQuest();
-        return;
-      }
-      const bank = getUnlockedBank();
-      if (step.mode === 'matrix') {
-        const matrix = getUnlockedMatrices().find(item => item.baseExpressionId === step.expressionId || item.id === step.expressionId);
-        if (!matrix && !bank.some(item => item.id === step.expressionId)) {
-          finishQuest();
-          return;
-        }
-      } else {
-        const expression = bank.find(item => item.id === step.expressionId);
-        if (!expression) {
-          finishQuest();
-          return;
-        }
-      }
-      const questContext = {
-        source: 'dailyQuestV1',
-        stepKey: step.key,
-        stepIndex: quest.currentIndex,
-        expressionId: step.expressionId,
-        mode: step.mode,
-        label: step.label,
-        questStage: step.questStage,
-        matrixFormId: step.matrixFormId || 'question',
-      };
-      appState.questContext = questContext;
-      startMode(step.mode, step.expressionId, {
-        skipRoute: false,
-        questContext,
-        matrixFormId: step.matrixFormId || 'question',
-      });
+      // Legacy name: open expand board instead of forced step sequence.
+      continueQuest();
     }
 
     function advanceQuestStep() {
       const quest = appState.progress.dailyQuestV1;
-      quest.currentIndex += 1;
-      if (quest.currentIndex >= (quest.stepPlan || []).length) {
-        finishQuest();
-        return;
-      }
-      saveProgress();
-      runQuestStep();
+      const expressionId = appState.questContext?.expressionId
+        || quest.lastExpressionId
+        || quest.seedExpressionId;
+      showExpandBoard({
+        expressionId,
+        heading: '이어서 골라 보세요',
+        note: '클리어가 아니라 확장입니다. 같은 말·다른 말로 계속할 수 있어요.',
+      });
     }
 
     function finishQuest() {
+      // No hard clear. Keep inviting more expands.
       const quest = appState.progress.dailyQuestV1;
-      quest.completedStepKeys = Array.isArray(quest.completedStepKeys) ? [...new Set(quest.completedStepKeys)] : [];
-      quest.finishedAt = new Date().toISOString();
-      quest.isCompleted = true;
+      quest.finishedAt = null;
+      quest.isCompleted = false;
       saveProgress();
-      showQuestComplete();
+      showExpandBoard({
+        expressionId: quest.lastExpressionId || quest.seedExpressionId,
+        heading: '오늘 흐름이 좋아요',
+        note: '더 이어갈수록 말이 붙어요. 원하면 계속 골라 보세요.',
+      });
+    }
+
+    function showExpandBoard(options = {}) {
+      ensureDailyQuest();
+      const quest = appState.progress.dailyQuestV1;
+      const bank = getUnlockedBank();
+      const expressionId = options.expressionId || quest.lastExpressionId || quest.seedExpressionId;
+      const item = bank.find(row => row.id === expressionId) || bank[0] || null;
+      const momentum = countTodayExpandMomentum();
+      appState.questContext = null;
+      showScreen('lesson', { skipRoute: true });
+      document.getElementById('lessonProgress').style.width = `${Math.min(100, Math.round(momentum / 7 * 100))}%`;
+      document.getElementById('lessonProgressText').textContent = `이어가기 ${momentum}`;
+      const seedMarkup = item ? `
+        <div class="expand-seed" style="text-align:left; margin: 12px auto; max-width: 620px;">
+          <div class="en">${escapeHtml(item.en || item.english || '')}</div>
+          <div class="ko">${escapeHtml(item.ko || item.naturalKorean || '')}</div>
+        </div>
+      ` : '';
+      document.getElementById('questionCard').innerHTML = `
+        <div class="lesson-label">말하기 확장</div>
+        <h2>${escapeHtml(options.heading || '다음에 뭘 이어볼까요?')}</h2>
+        <p class="korean">${escapeHtml(options.note || '순서 없이 골라 확장하세요. 끝내는 게 목표가 아니에요.')}</p>
+        ${seedMarkup}
+        <div style="text-align:left; max-width:650px; width:100%; align-self:center">
+          ${item ? renderExpandChoiceButtons(item.id) : ''}
+        </div>
+        <div class="question-actions" style="margin-top:16px">
+          <button class="btn soft" id="expandBoardHome" type="button">홈으로</button>
+          <button class="btn dark" id="expandBoardOther" type="button">다른 말로</button>
+        </div>
+      `;
+      bindExpandChoiceButtons(document.getElementById('questionCard'));
+      document.getElementById('expandBoardHome')?.addEventListener('click', () => showScreen('home'));
+      document.getElementById('expandBoardOther')?.addEventListener('click', () => {
+        const next = pickTopicShiftExpression(item?.id, bank);
+        if (!next) return;
+        quest.seedExpressionId = next.id;
+        quest.lastExpressionId = next.id;
+        saveProgress();
+        showExpandBoard({
+          expressionId: next.id,
+          heading: '다른 말로 이어가요',
+          note: '화제를 바꿔도 확장은 마음대로 고르면 됩니다.',
+        });
+      });
+      if (momentum > 0) toast(`오늘 ${momentum}번 이어갔어요. 더 해도 좋아요`);
     }
 
     function showQuestComplete() {
-      appState.questContext = null;
-      showScreen('lesson', { skipRoute: true });
-      document.getElementById('lessonProgress').style.width = '100%';
-      document.getElementById('lessonProgressText').textContent = '7 / 7';
-      document.getElementById('questionCard').innerHTML = `
-        <div class="lesson-label">오늘의 퀘스트 완료</div>
-        <h2>오늘의 퀘스트를 완료했어요.</h2>
-        <p class="korean">듣고 따라 말하기 → 한글→영어 조립 → 묻기·답하기 2형태 → 장면 고르기 → 입으로 다시 꺼내기까지 모두 마쳤습니다. 내일 새로운 표현들이 열립니다.</p>
-        <div class="question-actions"><button class="btn accent" id="questDoneHome">홈으로</button><button class="btn dark" id="questDoneProgress">내 성장 보기</button></div>`;
-      document.getElementById('questDoneHome')?.addEventListener('click', () => showScreen('home'));
-      document.getElementById('questDoneProgress')?.addEventListener('click', () => showScreen('progress'));
-      toast('오늘의 퀘스트를 모두 완료했어요!');
+      showExpandBoard({
+        heading: '오늘 흐름이 좋아요',
+        note: '완료 화면이 아니라, 더 이어갈 선택판입니다.',
+      });
     }
 
     function showScreen(id, options = {}) {
@@ -4752,8 +4905,10 @@
         || appState.questContext?.expressionId === item.progressId
         || appState.questContext?.expressionId === item.matrixId
       ) ? appState.questContext : null;
-      const questStepNumber = questStep ? questStep.stepIndex + 1 : null;
-      const stageLabel = questStep ? `${questStepNumber} / 7 · ${questStep.label}`
+      const stageLabel = questStep?.expandChoiceId
+        ? `확장 · ${questStep.label}`
+        : questStep
+          ? `${(questStep.stepIndex >= 0 ? questStep.stepIndex + 1 : '·')} · ${questStep.label}`
         : mode === 'listen' ? '듣고 따라 말하기'
         : mode === 'explain' ? '파인만 설명 챌린지'
         : mode === 'matrix' ? `묻기·답하기 · ${item.formLabel || item.frame}`
@@ -5656,20 +5811,41 @@
     function finishLesson() {
       window.clearTimeout(appState.questAutoAdvanceTimer);
       if (appState.questContext && appState.questContext.source === 'dailyQuestV1') {
+        const expressionId = appState.questContext.expressionId
+          || appState.progress.dailyQuestV1?.lastExpressionId;
         appState.questContext = null;
-        advanceQuestStep();
+        showExpandBoard({
+          expressionId,
+          heading: '이어서 골라 보세요',
+          note: '클리어가 아니라 확장입니다. 같은 말·다른 말로 계속할 수 있어요.',
+        });
+        return;
+      }
+      const lastItem = appState.lessonItems?.[appState.currentIndex]
+        || appState.lessonItems?.[appState.lessonItems.length - 1]
+        || null;
+      const expressionId = lastItem?.progressId || lastItem?.baseExpressionId || lastItem?.id || null;
+      if (expressionId) {
+        ensureDailyQuest();
+        appState.progress.dailyQuestV1.lastExpressionId = expressionId;
+        saveProgress();
+        showExpandBoard({
+          expressionId,
+          heading: '이 말로 더 이어볼까요?',
+          note: '듣기·따라하기·이어묻기·이어말하기·화제전환 중 골라 보세요.',
+        });
         return;
       }
       const ret = appState.lessonReturn || { screen: 'play', label: '← 게임 모드로' };
       document.getElementById('lessonProgress').style.width = '100%';
       document.getElementById('questionCard').innerHTML = `
         <div class="lesson-label">연습 완료</div>
-        <h2>좋아요! 연결 하나를 더 만들었어요.</h2>
-        <p class="korean">오늘 푼 문장을 소리 내어 한 번 더 읽으면 더 오래 남습니다. 내일은 약한 연결부터 다시 꺼내 드릴게요.</p>
+        <h2>좋아요! 한 마디를 더 꺼냈어요.</h2>
+        <p class="korean">끝내는 게 목표가 아니에요. 홈에서 확장을 골라 이어서 말해 보세요.</p>
         <div class="question-actions">
           <button class="btn accent" id="againLesson" type="button">같은 모드 더하기</button>
           <button class="btn soft" id="backFromLessonDone" type="button">${escapeHtml(ret.label || '← 돌아가기')}</button>
-          <button class="btn dark" id="goProgress" type="button">내 성장 보기</button>
+          <button class="btn dark" id="goHomeSpeak" type="button">확장 고르기</button>
         </div>`;
       document.getElementById('againLesson').addEventListener('click', () => {
         startMode(appState.selectedMode, null, {
@@ -5686,8 +5862,8 @@
         });
       });
       document.getElementById('backFromLessonDone')?.addEventListener('click', () => exitLessonToSource());
-      document.getElementById('goProgress').addEventListener('click', () => showScreen('progress'));
-      toast('연습 완료! +연결 경험치');
+      document.getElementById('goHomeSpeak')?.addEventListener('click', () => showScreen('home'));
+      toast('연습을 이어갈 수 있어요');
     }
 
     function renderWords() {

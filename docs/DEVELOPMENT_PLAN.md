@@ -33,13 +33,13 @@
 ### 이미 동작하는 것
 
 1. 핵심 동사 15개, 핵심 명사 약 66개, 표현 틀 46개, 표현 카드 약 90개로 게임 모드가 동작한다.
-2. 듣기 / 따라 말하기 / 한글→영어 / 영어→뜻 / 약한 연결 복습과 오늘의 7분 퀘스트가 있다.
+2. 듣기 / 따라 말하기 / 한글→영어 / 영어→뜻 / 약한 연결 복습과 **오늘의 말 · 확장 선택**(듣기·따라하기·이어묻기·이어답하기·이어말하기·화제전환, 순서 클리어 없음)이 있다.
 3. `historyByExpressionId`로 뜻·문장·말하기 연결 강도와 `reviewPriority`를 저장한다.
 4. 학습 기록은 브라우저 `localStorage`에 저장된다. (`progressStorageKey`는 `appState` 생성 **이전**에 선언해야 한다.)
 5. 콘텐츠 원본은 `data/*.json`이며 `python3 scripts/validate.py`로 검증한다.
 6. Active Speaking Set Starter(동사 8·표현 40)가 `learning-paths.json`에 고정되어 있고, `getUnlockedBank()`가 퀴즈·데일리 퀘스트·복습·의미 선택지를 제한한다.
 7. **내 표현** = 연결도 3축 강함 **또는** (성공 ≥ masteryThreshold **그리고** output **strength**). 비율 70%면 다음 Unlock pack(`pack_1`–`pack_3`)이 해금된다. 홈/성장에 Active set 요약이 표시된다.
-8. 묻기·답하기·시제 매트릭스 모드(`matrix`)가 Active set 표현군에 대해 평서/의문/부정/짧은 답/과거/가까운 미래를 연습한다. 오늘의 퀘스트는 **의문 + (부정|짧은 답)** 두 형태를 넣고, enko MCQ는 1회로 줄인다.
+8. 묻기·답하기·시제 매트릭스 모드(`matrix`)가 Active set 표현군에 대해 평서/의문/부정/짧은 답/과거/가까운 미래를 연습한다. 오늘의 말 확장에서 **이어묻기(의문)·이어답하기(짧은 답)** 로 고를 수 있다.
 9. `gapNotes` 로컬 저장, 퀴즈 결과의 간극 기록 UI, Obsidian Markdown projection(`src/domain/markdown-projection.js`)과 내보내기가 동작한다. 열린 간극은 복습 우선순위에 +2 반영된다.
 10. Vault **Library 정원**: Gap → `expressionDrafts` → `Library/Drafts` export, 체크리스트 승격 시 `Library/Canon`. Canon이 곧장 퀴즈 은행에 들어가지는 않는다.
 11. **Phase 3 Local REST**: `src/domain/obsidian-sync.js`로 upsert·import·실패 큐·설정 UI.

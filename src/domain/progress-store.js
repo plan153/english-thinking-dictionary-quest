@@ -73,9 +73,13 @@
 
   function defaultDailyQuestV1() {
     return {
-      version: 2,
+      version: 6,
       date: null,
       stepPlan: [],
+      seedExpressionId: null,
+      lastExpressionId: null,
+      expandCount: 0,
+      lastExpandChoiceId: null,
       currentIndex: 0,
       completedStepKeys: [],
       startedAt: null,
