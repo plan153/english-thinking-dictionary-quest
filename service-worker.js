@@ -12,6 +12,7 @@ const ASSETS = [
   './src/domain/vault-overlay.js',
   './src/domain/feynman-challenge.js',
   './src/domain/qa-matrix-generate.js',
+  './src/domain/expand-turn.js',
   './src/domain/graph-style.js',
   './src/domain/progress-store.js',
   './src/domain/active-speaking-set.js',

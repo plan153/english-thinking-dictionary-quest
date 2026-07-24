@@ -1043,7 +1043,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.22">v1.3.22</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.23">v1.3.23</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -1403,6 +1403,7 @@
   <script src="./src/domain/vault-overlay.js"></script>
   <script src="./src/domain/feynman-challenge.js"></script>
   <script src="./src/domain/qa-matrix-generate.js"></script>
+  <script src="./src/domain/expand-turn.js"></script>
   <script src="./src/domain/graph-style.js"></script>
   <script src="./src/domain/progress-store.js"></script>
   <script src="./src/domain/active-speaking-set.js"></script>
@@ -1561,7 +1562,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.3.22';
+    const APP_CACHE_VERSION = 'etd-quest-v1.3.23';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const ProgressStoreApi = window.ProgressStore;
@@ -1923,6 +1924,38 @@
         { id: 'topic', label: '화제전환', desc: '가까운 다른 표현으로 넘어가기', mode: 'speak', questStage: 'output', topicShift: true },
       ];
     }
+    function findBankExpression(expressionId) {
+      if (!expressionId) return null;
+      return getUnlockedBank().find(item => item.id === expressionId)
+        || getGameBank().find(item => item.id === expressionId)
+        || appState.dictionaryData.expressions?.find(item => item.id === expressionId)
+        || null;
+    }
+    function resolveExpandTurnForExpression(expressionId, options = {}) {
+      const api = window.ExpandTurn;
+      const quest = appState.progress?.dailyQuestV1 || {};
+      const item = options.item || findBankExpression(expressionId);
+      const en = options.en || item?.en || item?.english || '';
+      const ko = options.ko || item?.ko || item?.naturalKorean || '';
+      if (!api?.resolveExpandTurn) {
+        return /\?/.test(String(en + ko)) ? 'question' : 'statement';
+      }
+      return api.resolveExpandTurn({
+        expressionId,
+        en,
+        ko,
+        formId: options.formId || null,
+        turn: options.turn || null,
+        lastExpandChoiceId: options.lastExpandChoiceId ?? quest.lastExpandChoiceId,
+        lastExpressionId: options.lastExpressionId ?? quest.lastExpressionId,
+      });
+    }
+    function getExpandChoicesForExpression(expressionId, options = {}) {
+      const turn = resolveExpandTurnForExpression(expressionId, options);
+      const api = window.ExpandTurn;
+      const all = getConversationExpandChoices();
+      return api?.filterExpandChoices ? api.filterExpandChoices(all, turn) : all;
+    }
     function isExpandQaPractice(ctx = appState.questContext) {
       return Boolean(ctx?.expandQa || ctx?.expandChoiceId === 'ask' || ctx?.expandChoiceId === 'answer');
     }
@@ -2051,7 +2084,12 @@
     }
 
     function renderExpandChoiceButtons(expressionId, options = {}) {
-      const choices = getConversationExpandChoices();
+      // 평서문 원문 → 이어묻기만, 의문문 원문(또는 이어묻기 직후) → 이어답하기만
+      const choices = getExpandChoicesForExpression(expressionId, options);
+      const turn = resolveExpandTurnForExpression(expressionId, options);
+      const flowNote = turn === 'question'
+        ? '지금 원문이 질문이에요. 이어답하기를 골라 보세요.'
+        : '지금 원문이 평서문이에요. 이어묻기를 골라 보세요.';
       const buttons = choices.map(choice => `
         <button class="expand-choice" type="button" data-expand-choice="${escapeHtml(choice.id)}" data-expression-id="${escapeHtml(expressionId || '')}">
           <strong>${escapeHtml(choice.label)}</strong>
@@ -2062,6 +2100,7 @@
         <div class="expand-board">
           ${options.heading ? `<h3 style="margin:0 0 8px">${escapeHtml(options.heading)}</h3>` : ''}
           ${options.note ? `<p class="small-note" style="margin:0 0 12px">${escapeHtml(options.note)}</p>` : ''}
+          <p class="small-note" style="margin:0 0 12px">${escapeHtml(flowNote)}</p>
           <div class="expand-choice-grid">${buttons}</div>
         </div>
       `;
@@ -2109,23 +2148,42 @@
         if (!next) return;
         quest.seedExpressionId = next.id;
         quest.lastExpressionId = next.id;
+        quest.lastExpandChoiceId = null;
         saveProgress();
         updateQuestUI();
         toast('다른 말로 바꿨어요. 확장을 골라 보세요.');
       });
     }
 
-    function startExpandChoice(choiceId, expressionId) {
+    function startExpandChoice(choiceId, expressionId, options = {}) {
       ensureDailyQuest();
       const quest = appState.progress.dailyQuestV1;
       const bank = getUnlockedBank();
-      const choice = getConversationExpandChoices().find(item => item.id === choiceId);
-      if (!choice) return;
+      let resolvedChoiceId = choiceId;
       let targetId = expressionId || quest.lastExpressionId || quest.seedExpressionId;
       let target = bank.find(item => item.id === targetId) || null;
+
+      // 평서↔의문 흐름에 맞게 ask/answer를 한 번 보정 (연속 이어묻기 튕김 방지)
+      if (!options._turnCorrected && (resolvedChoiceId === 'ask' || resolvedChoiceId === 'answer')) {
+        const turn = resolveExpandTurnForExpression(targetId, options);
+        const api = window.ExpandTurn;
+        const corrected = api?.correctExpandChoiceId
+          ? api.correctExpandChoiceId(resolvedChoiceId, turn)
+          : resolvedChoiceId;
+        if (corrected !== resolvedChoiceId) {
+          toast(corrected === 'answer'
+            ? '질문이 이어진 상태예요. 이어답하기로 갈게요.'
+            : '평서문 원문이에요. 이어묻기로 갈게요.');
+          return startExpandChoice(corrected, targetId, { ...options, _turnCorrected: true });
+        }
+      }
+
+      const choice = getConversationExpandChoices().find(item => item.id === resolvedChoiceId);
+      if (!choice) return;
       if (choice.topicShift) {
         target = pickTopicShiftExpression(targetId, bank);
         targetId = target?.id || targetId;
+        quest.lastExpandChoiceId = null;
       }
       if (!targetId) {
         toast('지금 연습할 표현이 없어요.');
@@ -2135,7 +2193,14 @@
         const matrix = findMatrixForExpression(targetId);
         if (!matrix) {
           // Fall back to koen keep conversation going if matrix cannot be resolved/generated.
-          return startExpandChoice('continue', targetId);
+          return startExpandChoice('continue', targetId, { _turnCorrected: true });
+        }
+        const formId = choice.matrixFormId || 'question';
+        if (!findMatrixForm(matrix, formId)) {
+          toast(formId === 'question'
+            ? '이 말로 이어묻기 문장을 만들지 못했어요. 다른 확장을 골라 보세요.'
+            : '이 말로 이어답하기 문장을 만들지 못했어요. 다른 확장을 골라 보세요.');
+          return;
         }
       }
       quest.startedAt = quest.startedAt || new Date().toISOString();
@@ -2288,6 +2353,7 @@
         if (!next) return;
         quest.seedExpressionId = next.id;
         quest.lastExpressionId = next.id;
+        quest.lastExpandChoiceId = null;
         saveProgress();
         showExpandBoard({
           expressionId: next.id,
@@ -5348,7 +5414,7 @@
         </div>
         <div class="question-actions">
           <button class="btn soft text-answer-toggle" type="button">타이핑으로 답하기</button>
-          ${showHint ? '<button class="btn soft next-hint" type="button">힌트 1/3</button>' : ''}
+          ${showHint ? '<button class="btn soft next-hint" type="button">힌트 보기</button>' : ''}
         </div>
         <div class="hint-box hidden" id="hintBox"></div>
         <div class="feedback hidden" id="feedback"></div>`;
@@ -5675,8 +5741,13 @@
           <div class="small-note" style="margin-top:6px">${escapeHtml(ko)}</div>
           <div class="expand-board" style="margin-top:16px">
             <h3 style="margin:0 0 8px">이어서 골라 보세요</h3>
-            <p class="small-note" style="margin:0 0 12px">이어묻기 · 이어답하기 등으로 대화를 확장해 보세요.</p>
-            ${renderExpandChoiceButtons(expressionId)}
+            <p class="small-note" style="margin:0 0 12px">대화 흐름에 맞는 확장만 보여 줄게요.</p>
+            ${renderExpandChoiceButtons(expressionId, {
+              formId: item.formId || null,
+              en,
+              ko,
+              item,
+            })}
           </div>
           <div class="question-actions" style="margin-top:12px; justify-content:flex-start">
             <button class="btn soft" id="practiceSuccessHome" type="button">홈으로</button>
@@ -5964,22 +6035,30 @@
         }
       }
     }
+    function syncHintButtons(shown, total) {
+      const label = shown >= total ? `힌트 ${total}/${total}` : `힌트 ${shown}/${total}`;
+      document.querySelectorAll('.show-hint, .next-hint').forEach(btn => {
+        btn.textContent = label;
+        btn.disabled = shown >= total;
+      });
+    }
     function showComposeHint(item, button) {
       const hints = itemHintList(item);
       const box = document.getElementById('hintBox');
       if (!box) return;
       const total = Math.min(3, hints.length || 3);
       if (appState.hintStep >= total) return;
-      // shown = 방금 연 힌트 번호. 박스·버튼이 같은 N/3를 쓰도록 먼저 올린다.
+      // shown = 방금 연 힌트 번호. 박스 제목·버튼 라벨이 같은 N/3를 쓴다.
       const shown = appState.hintStep + 1;
       const idx = shown - 1;
       const names = ['상황 힌트', '표현 덩어리', '일부 공개'];
       box.classList.remove('hidden');
       box.innerHTML = `<div class="hint-title">${names[idx] || '힌트'} · ${shown}/${total}</div><b>${escapeHtml(hints[idx] || '힌트가 없어요.')}</b>`;
       appState.hintStep = shown;
-      if (button) {
-        button.textContent = shown >= total ? `힌트 ${total}/${total}` : `힌트 보기 ${shown}/${total}`;
-        if (shown >= total) button.disabled = true;
+      syncHintButtons(shown, total);
+      if (button && !button.classList.contains('show-hint') && !button.classList.contains('next-hint')) {
+        button.textContent = shown >= total ? `힌트 ${total}/${total}` : `힌트 ${shown}/${total}`;
+        button.disabled = shown >= total;
       }
     }
     function checkComposeAnswer(item, mode) {
@@ -6188,19 +6267,15 @@
       const hints = itemHintList(item);
       const totalHints = Math.min(3, hints.length || 3);
       if (appState.hintStep >= totalHints) return;
-      // shown = 방금 연 힌트 번호. 박스·버튼이 같은 N/3를 쓰도록 먼저 올린다.
+      // shown = 방금 연 힌트 번호. 박스·버튼이 같은 N/3를 쓴다.
       const shown = appState.hintStep + 1;
       const idx = shown - 1;
       const names = ['상황 힌트', '표현 틀/덩어리', '일부 공개'];
       const hint = hints[idx] || '더 이상 열 힌트가 없어요.';
       box.classList.remove('hidden');
-      box.innerHTML = `<div class="hint-title">현재 힌트 단계: ${shown}/${totalHints} — ${names[idx] || '정답'}</div><b>힌트 문장:</b> ${escapeHtml(hint)}`;
+      box.innerHTML = `<div class="hint-title">${names[idx] || '힌트'} · ${shown}/${totalHints}</div><b>${escapeHtml(hint)}</b>`;
       appState.hintStep = shown;
-      const btn = document.querySelector('.next-hint');
-      if (btn) {
-        btn.textContent = shown >= totalHints ? `힌트 ${totalHints}/${totalHints} 열림` : `힌트 ${shown}/${totalHints}`;
-        btn.disabled = shown >= totalHints;
-      }
+      syncHintButtons(shown, totalHints);
     }
     function showAnswerSummary(type, item, result, rawGuess, connectionNote = '', options = {}) {
       const canAdvance = options.allowAdvance !== false && (result.status === 'correct' || result.status === 'almost');
