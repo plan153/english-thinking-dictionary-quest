@@ -1064,7 +1064,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.28">v1.3.28</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.29">v1.3.29</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -1573,7 +1573,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.3.28';
+    const APP_CACHE_VERSION = 'etd-quest-v1.3.29';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const ProgressStoreApi = window.ProgressStore;
@@ -2973,9 +2973,32 @@
       }
       return changed;
     }
+    function findExpressionRecord(expressionId) {
+      if (!expressionId) return null;
+      return getGameBank().find(item => item.id === expressionId)
+        || (appState.dictionaryData.expressions || []).find(item => item.id === expressionId)
+        || null;
+    }
+    function isStarterVerbId(verbId) {
+      if (!verbId) return false;
+      return (getActiveSpeakingSetConfig().verbIds || []).includes(verbId);
+    }
+    function isExpressionOpenByStarterVerb(expressionId) {
+      // 스타터 동사(get/have/be/take/feel/want/need/do)는 동사가 열려 있으면
+      // 그 동사 표현·맵 예문도 바로 연습 가능하게 한다.
+      const item = findExpressionRecord(expressionId);
+      let verbId = item?.coreVerbId || '';
+      if (!verbId && String(expressionId).startsWith('map_')) {
+        const verbWord = String(expressionId).split('_')[1] || '';
+        const verb = (appState.dictionaryData.verbs || []).find(row => row.word === verbWord);
+        verbId = verb?.id || (verbWord ? `v_${verbWord}` : '');
+      }
+      return isStarterVerbId(verbId) && isVerbInActiveSet(verbId);
+    }
     function isExpressionUnlocked(expressionId) {
       if (!expressionId) return false;
-      return getUnlockedExpressionIds().includes(expressionId);
+      if (getUnlockedExpressionIds().includes(expressionId)) return true;
+      return isExpressionOpenByStarterVerb(expressionId);
     }
     function isVerbInActiveSet(verbId) {
       const gate = window.VerbMatrixGate;
@@ -5027,7 +5050,7 @@
           if (item?.id) unlockedIds.add(item.id);
         });
       }
-      const filtered = bank.filter(item => unlockedIds.has(item.id));
+      const filtered = bank.filter(item => unlockedIds.has(item.id) || isExpressionOpenByStarterVerb(item.id));
       return filtered.length ? filtered : bank;
     }
     function getQaMatrices() {

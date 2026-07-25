@@ -37,16 +37,18 @@ const expressionIds = new Set(expressions.map(item => item.id));
   .forEach(id => assert.ok(expressionIds.has(id), `missing expression ${id}`));
 
 const starter = ass.listUnlockedExpressionIds(config, { unlockedPackCount: 0 }, { includeVerbPacks: false });
-assert.strictEqual(starter.length, 106);
+assert.strictEqual(starter.length, 110);
 assert.ok(starter.includes('e137'), 'It is what it is in starter');
 assert.ok(starter.includes('e016'), 'be ready in starter');
 assert.ok(starter.includes('e013'), 'feel expression in starter');
+assert.ok(starter.includes('e085'), 'get to school in starter');
+assert.ok(starter.includes('e099'), 'got a call in starter');
 const withPack1 = ass.listUnlockedExpressionIds(config, { unlockedPackCount: 1 }, { includeVerbPacks: false });
-assert.strictEqual(withPack1.length, 116);
+assert.strictEqual(withPack1.length, 120);
 const withPack2 = ass.listUnlockedExpressionIds(config, { unlockedPackCount: 2 }, { includeVerbPacks: false });
-assert.strictEqual(withPack2.length, 125);
+assert.strictEqual(withPack2.length, 129);
 const withPack3 = ass.listUnlockedExpressionIds(config, { unlockedPackCount: 3 }, { includeVerbPacks: false });
-assert.strictEqual(withPack3.length, 130);
+assert.strictEqual(withPack3.length, 134);
 assert.ok(withPack3.includes('e011'));
 assert.ok(withPack3.includes('e067'));
 

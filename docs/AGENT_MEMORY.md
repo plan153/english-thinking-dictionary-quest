@@ -1,7 +1,7 @@
 # Agent Memory (압축 스냅샷)
 
 > 세션 간 이어갈 때 **이 문서 + [`BACKLOG.md`](./BACKLOG.md)** 먼저 읽기.  
-> 기준 tip: **v1.3.28** · 갱신: 2026-07-25
+> 기준 tip: **v1.3.29** · 갱신: 2026-07-25
 
 ## 제품 한 줄
 한국어 학습자용 **ASS + Obsidian 제2영어뇌** 웹앱. 퀴즈 SoT=`expressions.json`. 비밀값은 localStorage only.
