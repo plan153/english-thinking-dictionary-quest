@@ -116,6 +116,8 @@
         policyImportProgressFromVault: true,
         policyImportExplanationsFromVault: true,
         policyPhrasalInAssBank: true,
+        // Implemented content freely usable (no unlock pack / verb gate / phrasal stage lock)
+        policyOpenImplementedBank: true,
       },
       historyByExpressionId: {},
       curriculum: {
