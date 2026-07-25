@@ -9,13 +9,15 @@
     root.NextPractice = factory();
   }
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
-  const ALLOWED_MODES = new Set(['listen', 'speak', 'koen', 'enko', 'review', 'matrix', 'explain', 'build']);
+  const ALLOWED_MODES = new Set(['listen', 'speak', 'koen', 'enko', 'review', 'matrix', 'build']);
 
   function normalizeQueueItem(item) {
     if (!item || typeof item !== 'object') return null;
     const expressionId = String(item.expressionId || '').trim();
     if (!expressionId) return null;
     let mode = String(item.mode || 'review').trim() || 'review';
+    // explain(파인만) 모드는 제거됨 → 복습으로 폴백
+    if (mode === 'explain') mode = 'review';
     if (!ALLOWED_MODES.has(mode)) mode = 'review';
     return {
       expressionId,

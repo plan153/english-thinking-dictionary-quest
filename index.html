@@ -1043,7 +1043,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.25">v1.3.25</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.26">v1.3.26</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -1283,11 +1283,6 @@
         </div>
         <div id="gapNotesList" style="margin-top:14px"></div>
       </article>
-      <article class="card" style="margin-top:16px">
-        <h3>파인만 설명 노트</h3>
-        <p class="small-note">제한 어휘로 쓴 설명입니다. 음성 인식 결과가 있으면 함께 저장됩니다. 퀴즈 은행에는 넣지 않습니다.</p>
-        <div id="explanationsList" style="margin-top:14px"></div>
-      </article>
       <article class="card" style="margin-top:16px" id="dayLoopGuideCard">
         <h3>하루 루프 체크리스트</h3>
         <p class="small-note">앱에서 말하고 → Vault에 남기고 → 다시 확장 고르기로 돌아오는 최소 루프입니다. Local REST가 켜져 있으면 자동 sync가 됩니다.</p>
@@ -1305,7 +1300,7 @@
           <div><h3 style="margin:0">동기화 설정</h3><p class="small-note" style="margin:6px 0 0">학습 기록과 분리된 앱↔Vault 연결입니다. 키는 이 브라우저에만 저장됩니다.</p></div>
         </div>
         <h3>Obsidian / Drive 동기화</h3>
-        <p class="small-note">Local REST로 Gaps·Brain·Next Practice·Progress·Explanations를 주고받습니다. Google 키·토큰은 <b>이 브라우저 localStorage에만</b> 저장되며 저장소에 커밋하지 마세요.</p>
+        <p class="small-note">Local REST로 Gaps·Brain·Next Practice·Progress를 주고받습니다. Google 키·토큰은 <b>이 브라우저 localStorage에만</b> 저장되며 저장소에 커밋하지 마세요.</p>
         <div class="gap-form" style="margin-top:12px">
           <label>Adapter
             <select id="syncAdapter">
@@ -1349,10 +1344,6 @@
           <label style="display:flex; align-items:center; gap:8px; margin-top:6px;">
             <input id="policyImportProgressFromVault" type="checkbox" />
             P2b Vault Progress.md → 앱 진행 숫자 병합 (max)
-          </label>
-          <label style="display:flex; align-items:center; gap:8px; margin-top:6px;">
-            <input id="policyImportExplanationsFromVault" type="checkbox" />
-            P2b Vault Explanations → 앱 설명 노트 병합
           </label>
           <label style="display:flex; align-items:center; gap:8px; margin-top:6px;">
             <input id="policyPhrasalInAssBank" type="checkbox" />
@@ -1474,7 +1465,6 @@
 
     const modeCards = [
       { id:'listen', icon:'🔊', title:'듣고 따라 말하기', desc:'문장을 듣고 바로 따라 말하며 리듬과 덩어리를 익혀요.', cta:'소리로 시작' },
-      { id:'explain', icon:'🧠', title:'파인만 설명 챌린지', desc:'Active Speaking Set 단어만으로 표현 뜻을 영어로 설명해 봐요.', cta:'제한 어휘로 설명' },
       { id:'matrix', icon:'🔄', title:'묻기 · 답하기 변형', desc:'같은 표현을 평서·의문·부정·짧은 답·시제로 바꿔 입으로 연습해요.', cta:'변형 연습' },
       { id:'koen', icon:'🧩', title:'한글 → 영어 조립', desc:'한국어 뜻을 보고 핵심 동사와 표현 덩어리를 빠르게 골라요. 힌트는 안쪽에서 좁혀요.', cta:'영어 만들기' },
       { id:'enko', icon:'🎯', title:'영어 → 장면 고르기', desc:'영어를 번역하지 말고, 가장 가까운 상황과 뜻을 골라요.', cta:'뜻 연결하기' },
@@ -1562,7 +1552,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.3.25';
+    const APP_CACHE_VERSION = 'etd-quest-v1.3.26';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const ProgressStoreApi = window.ProgressStore;
@@ -2030,7 +2020,6 @@
       renderNextPracticeList();
       renderReviewList();
       renderGapNotesList();
-      renderExplanationsList();
       renderExpressionDraftsList();
       updateQuestUI();
     }
@@ -3458,7 +3447,7 @@
       return {
         policyCanonAutoMerge: Boolean(document.getElementById('policyCanonAutoMerge')?.checked),
         policyImportProgressFromVault: Boolean(document.getElementById('policyImportProgressFromVault')?.checked),
-        policyImportExplanationsFromVault: Boolean(document.getElementById('policyImportExplanationsFromVault')?.checked),
+        policyImportExplanationsFromVault: false,
         policyPhrasalInAssBank: Boolean(document.getElementById('policyPhrasalInAssBank')?.checked),
       };
     }
@@ -3499,11 +3488,9 @@
       if (driveFolderId) driveFolderId.value = settings.driveFolderId || '';
       const policyCanon = document.getElementById('policyCanonAutoMerge');
       const policyProgress = document.getElementById('policyImportProgressFromVault');
-      const policyExplain = document.getElementById('policyImportExplanationsFromVault');
       const policyPhrasal = document.getElementById('policyPhrasalInAssBank');
       if (policyCanon) policyCanon.checked = getPolicyFlag('policyCanonAutoMerge', true);
       if (policyProgress) policyProgress.checked = getPolicyFlag('policyImportProgressFromVault', true);
-      if (policyExplain) policyExplain.checked = getPolicyFlag('policyImportExplanationsFromVault', true);
       if (policyPhrasal) policyPhrasal.checked = getPolicyFlag('policyPhrasalInAssBank', true);
       updateSyncStatusText(settings);
     }
@@ -3664,7 +3651,7 @@
         }
         const personalRoot = window.EnglishBrainMarkdown?.learnerVaultRoot?.(getActiveLearnerId()) || `Learners/${getActiveLearnerId()}`;
         const importProgress = getPolicyFlag('policyImportProgressFromVault', true);
-        const importExplanations = getPolicyFlag('policyImportExplanationsFromVault', true);
+        const importExplanations = false;
         const imported = await api.importGapsAndNextPractice(client, {
           personalRoot,
           localGaps: appState.progress.gapNotes || [],
@@ -3706,16 +3693,12 @@
         renderGapNotesList();
         renderNextPracticeList();
         renderReviewList();
-        renderExplanationsList();
         updateDashboard();
         const brainHintCount = imported.brainState?.weakSlots?.length || 0;
         const progressNote = imported.progressMerge?.applied
           ? ` · Progress ${imported.progressMerge.changed.join('+')}`
           : '';
-        const explainNote = imported.explanationMerge
-          ? ` · Explanations +${imported.explanationMerge.added}/~${imported.explanationMerge.updated}`
-          : '';
-        toast(`가져오기 완료 · Gaps ${imported.vaultGaps.length} · Next Practice ${imported.nextPractice.queue.length} · Brain 힌트 ${brainHintCount}${progressNote}${explainNote}`);
+        toast(`가져오기 완료 · Gaps ${imported.vaultGaps.length} · Next Practice ${imported.nextPractice.queue.length} · Brain 힌트 ${brainHintCount}${progressNote}`);
       } catch (error) {
         toast(`가져오기 실패: ${error.message || error}`);
         console.error(error);
@@ -3842,32 +3825,7 @@
       }));
     }
     function renderExplanationsList() {
-      const target = document.getElementById('explanationsList');
-      if (!target) return;
-      const notes = [...(appState.progress.explanations || [])]
-        .sort((a, b) => String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')))
-        .slice(0, 10);
-      if (!notes.length) {
-        target.innerHTML = '<p class="small-note">아직 설명 노트가 없습니다. 게임 모드에서 “파인만 설명 챌린지”를 해보세요.</p>';
-        return;
-      }
-      target.innerHTML = notes.map(note => `
-        <div class="gap-note-item">
-          <b>${escapeHtml(note.english || note.expressionId)}</b>
-          <div class="small-note" style="margin-top:4px">${escapeHtml(note.status)} · 허용 ${Math.round((note.allowedRatio || 0) * 100)}%${note.speechTranscript ? ' · 음성' : ''} · ${escapeHtml(note.id)}</div>
-          <div class="small-note" style="margin-top:8px">${escapeHtml(note.explanation || '')}</div>
-          ${note.speechTranscript ? `<div class="small-note">음성: ${escapeHtml(note.speechTranscript)}</div>` : ''}
-          <div class="question-actions" style="margin-top:8px; justify-content:flex-start">
-            <button class="btn soft explain-again" type="button" data-expression-id="${escapeHtml(note.expressionId)}">다시 설명</button>
-          </div>
-        </div>
-      `).join('');
-      target.querySelectorAll('.explain-again').forEach(button => {
-        button.addEventListener('click', () => {
-          if (!button.dataset.expressionId) return;
-          startMode('explain', button.dataset.expressionId);
-        });
-      });
+      // 파인만 설명 모드는 제거됨. 기존 노트 데이터는 progress에 남을 수 있음.
     }
     function renderExpressionDraftsList() {
       const target = document.getElementById('expressionDraftsList');
@@ -4722,7 +4680,6 @@
         <button class="map-action-btn" data-graph-practice="${escapeHtml(expressionId)}" data-mode="speak" type="button">말하기</button>
         <button class="map-action-btn" data-graph-practice="${escapeHtml(expressionId)}" data-mode="koen" type="button">한글→영어</button>
         <button class="map-action-btn" data-graph-practice="${escapeHtml(expressionId)}" data-mode="matrix" type="button">묻기·답하기</button>
-        <button class="map-action-btn" data-graph-practice="${escapeHtml(expressionId)}" data-mode="explain" type="button">파인만</button>
       </div>`;
     }
     function renderMapSentenceCard(expression, data, context) {
@@ -5176,6 +5133,11 @@
     }
         function startMode(mode, expressionId = null, options = {}) {
           const clearQuestContext = () => { appState.questContext = null; };
+          if (mode === 'explain') {
+            clearQuestContext();
+            toast('파인만 설명 모드는 없앴어요. 듣기·말하기·묻기·답하기로 연습해 보세요.');
+            return;
+          }
           const isPhrasal = options.bankSource === 'phrasal';
           if (isPhrasal && !isPhrasalMenuUnlocked()) {
             clearQuestContext();
@@ -6872,7 +6834,6 @@
             <button class="btn soft quiz-expression" data-expression-id="${selectedExpression.id}" data-mode="speak" ${unlocked ? '' : 'disabled'}>말하기</button>
             <button class="btn soft quiz-expression" data-expression-id="${selectedExpression.id}" data-mode="koen" ${unlocked ? '' : 'disabled'}>한글→영어</button>
             <button class="btn soft quiz-expression" data-expression-id="${selectedExpression.id}" data-mode="matrix" ${unlocked ? '' : 'disabled'}>묻기·답하기</button>
-            <button class="btn soft quiz-expression" data-expression-id="${selectedExpression.id}" data-mode="explain" ${unlocked ? '' : 'disabled'}>파인만</button>
           </div>
           <div class="filter-row" style="margin-top:10px">
             ${(selectedExpression.relatedExpressionIds || []).map(id => {
@@ -6988,7 +6949,7 @@
         </div>
         <div class="map-col">
           <h3>3. 실생활 표현</h3>
-          <p class="small-note" style="margin:0 0 10px">${escapeHtml(activeFrame ? `${activeFrame.label} 예문 5개를 바로 보여줘요. 표현을 고르면 듣기·말하기·한글→영어·묻기/답하기·파인만으로 이어집니다.` : '생각틀을 고르면 예문 5개가 바로 보여줘요.')}</p>
+          <p class="small-note" style="margin:0 0 10px">${escapeHtml(activeFrame ? `${activeFrame.label} 예문 5개를 바로 보여줘요. 표현을 고르면 듣기·말하기·한글→영어·묻기/답하기로 이어집니다.` : '생각틀을 고르면 예문 5개가 바로 보여줘요.')}</p>
           <p class="small-note" style="margin:0 0 10px"><b>선택됨:</b> ${escapeHtml(activeFrame?.label || '생각틀이 없습니다.')}${activeFrame?.meaning ? ` · ${escapeHtml(activeFrame.meaning)}` : ''}</p>
           ${activeFrameExamples.map(example => {
             const matched = (appState.dictionaryData.expressions || []).find(item => normalize(item.english || item.en || '') === normalize(example.en));
@@ -7017,7 +6978,6 @@
               <button class="map-action-btn" type="button" data-map-example-practice="${escapeHtml(example.en)}" data-mode="speak">말하기</button>
               <button class="map-action-btn" type="button" data-map-example-practice="${escapeHtml(example.en)}" data-mode="koen">한글→영어</button>
               <button class="map-action-btn" type="button" data-map-example-practice="${escapeHtml(example.en)}" data-mode="matrix">묻기·답하기</button>
-              <button class="map-action-btn" type="button" data-map-example-practice="${escapeHtml(example.en)}" data-mode="explain">파인만</button>
             </div>` : '';
             return `
             <div class="${classes}" role="button" tabindex="0" data-map-example-en="${escapeHtml(example.en)}" title="${escapeHtml(window.GraphStyle?.graphNodeTitle(kind) || '')}">
