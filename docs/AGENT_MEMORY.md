@@ -59,8 +59,8 @@
 2. Canon 파일 SoT는 `merge_canon_intake.js` + validate 후 커밋
 3. 구동사 매트릭스 ≠ VerbMatrixGate
 4. Cloud 에이전트는 Obsidian Local REST(Mac)에 도달 불가
-5. **D1·D2 = 앱/스크립트 준비 완료 · Mac Mini 실측으로만 닫힘**  
-   - vault: `~/Obsidian Vault/Project_English` · pathPrefix **비움** · 절차: `DAY_LOOP.md`
+5. **D1·D2 = 완료 (2026-07-25 Mac Mini)** · Local REST HTTP `27123` · pathPrefix=`Project_English`  
+   - 절차: `DAY_LOOP.md` · 러너: `scripts/run_day_loop_pc.js`
 6. 브랜치: `cursor/<name>-80e0` · base=`main` · PR는 ManagePullRequest
 
 ## 주요 파일
@@ -71,7 +71,7 @@
 - `scripts/validate.py` / `bump_version.py` — 버전·`fresh.html`·SW 동기
 
 ## 다음 작업 시
-1. **D1·D2:** Mac에서 `OBSIDIAN_API_KEY=… node scripts/run_day_loop_pc.js` 후 BACKLOG를 완료로 표시
-2. 듣기 UI 옛 스크린샷(`0/3`) = 캐시 → `fresh.html`
-3. 버전 올릴 때 `index.html` + VERSION + fresh + SW + package + version.json **함께**
-4. **듣기/말하기 수정 시:** `recognition.start()`는 클릭 핸들러에서 동기 호출 (await getUserMedia 금지). TTS는 cancel 후 짧은 재시도.
+1. 듣기 UI 옛 스크린샷(`0/3`) = 캐시 → `fresh.html`
+2. 버전 올릴 때 `index.html` + VERSION + fresh + SW + package + version.json **함께**
+3. **듣기/말하기 수정 시:** `recognition.start()`는 클릭 핸들러에서 동기 호출 (await getUserMedia 금지). TTS는 cancel 후 짧은 재시도.
+4. 앱 sync Path prefix는 이 Mac에서 **`Project_English`** (상위 vault 레이아웃)

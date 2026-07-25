@@ -24,7 +24,8 @@
    - Adapter: `local-rest`
    - Base URL: `http://127.0.0.1:27123`
    - API Key 붙여넣기
-   - Path prefix: vault 루트가 `Project_English`면 **비움**. 상위 vault 루트이고 그 아래 `Project_English/`면 `Project_English`
+   - Path prefix: vault 루트가 `Project_English`면 **비움**. 상위 vault 루트이고 그 아래 `Project_English/`면 **`Project_English`**  
+     (**Mac Mini 실측 2026-07-25:** pathPrefix=`Project_English` PASS)
    - 간극 저장 후 자동 동기화 ON → 설정 저장 → **연결 테스트**
 
 ### 2) 폴더 계약 검사 (D2)
@@ -106,8 +107,8 @@ https://plan153.github.io/english-thinking-dictionary-quest/fresh.html
 
 | ID | 항목 | 클라우드 | PC |
 | --- | --- | --- | --- |
-| D1 | 실 day loop 한 바퀴 | mock smoke만 | **준비 완료 · Mac 실측 대기** |
-| D2 | pathPrefix·폴더 실측 | 검사 API·스크립트 준비됨 | **준비 완료 · Mac 실측 대기** (pathPrefix 기본 비움) |
+| D1 | 실 day loop 한 바퀴 | mock smoke만 | **완료 2026-07-25 Mac Mini** |
+| D2 | pathPrefix·폴더 실측 | 검사 API·스크립트 준비됨 | **완료** · pathPrefix=`Project_English` |
 | O3 | Pages 캐시 안내 | `fresh.html` + HTML no-cache SW | 위 URL로 즉시 해소 |
 
 미완 SoT: [`BACKLOG.md`](./BACKLOG.md)
