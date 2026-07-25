@@ -138,7 +138,7 @@ python3 -m http.server 8080
 
 출제 게이트는 Active Speaking Set Starter(표현 40)로 동작하며, 내 표현 70% 도달 시 Unlock pack 1(10개)이 해금됩니다. 묻기/답하기·시제 매트릭스는 `묻기 · 답하기 변형` 모드와 오늘의 말 확장(이어묻기·이어답하기)에서 이어집니다.
 
-## 파인만식 영어뇌 · Obsidian 연동
+## 영어뇌 · Obsidian 연동
 
 최종 루프는 다음과 같습니다.
 
