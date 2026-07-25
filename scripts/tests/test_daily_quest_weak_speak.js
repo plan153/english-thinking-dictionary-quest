@@ -1,26 +1,10 @@
 #!/usr/bin/env node
 /**
- * Unit test: daily quest step-7 prefers weak output / high review priority.
+ * Unit test: forced retrieval prefers empty output; home seed uses weak-axis picker.
  */
 const assert = require('assert');
-
-function pickWeakSpeakId(bank, historyById, earlyIds = new Set()) {
-  const weakPick = [...bank]
-    .map(item => {
-      const history = historyById[item.id] || { connections: {} };
-      const outputStrength = history.connections?.output?.strength || 0;
-      const emptyPieces = ['recognition', 'assembly', 'output']
-        .filter(key => (history.connections?.[key]?.strength || 0) === 0).length;
-      const priority = history.reviewPriority || 0;
-      let score = priority * 10 + emptyPieces * 3;
-      if (outputStrength < 1) score += 12;
-      if (outputStrength === 0) score += 6;
-      if (!earlyIds.has(item.id)) score += 2;
-      return { id: item.id, score };
-    })
-    .sort((a, b) => b.score - a.score || String(a.id).localeCompare(String(b.id)));
-  return weakPick[0]?.id || null;
-}
+const path = require('path');
+const NextPractice = require(path.join(__dirname, '../../src/domain/next-practice.js'));
 
 const bank = [
   { id: 'strong' },
@@ -54,10 +38,15 @@ const historyById = {
   },
 };
 
-assert.strictEqual(
-  pickWeakSpeakId(bank, historyById, new Set(['strong', 'mid'])),
-  'weak-output',
-  'step-7 prefers empty output over already-strong items'
-);
+const items = NextPractice.weakConnectionItems(bank, historyById, { limit: 3 });
+assert.strictEqual(items[0].expressionId, 'weak-output', 'forced retrieval prefers empty output');
+assert.strictEqual(items[0].mode, 'speak');
+assert.ok(!items.some(item => item.expressionId === 'strong'));
+
+const seed = NextPractice.pickWeakAxisSeed(bank, historyById, {
+  dateKey: '2026-07-22',
+  excludeIds: ['strong'],
+});
+assert.strictEqual(seed.id, 'weak-output');
 
 console.log('✅ daily quest weak-speak pick tests passed');

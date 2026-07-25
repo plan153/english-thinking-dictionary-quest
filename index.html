@@ -1100,7 +1100,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.35">v1.3.35</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.36">v1.3.36</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -1298,7 +1298,7 @@
         <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap">
           <div>
             <h3>Next Practice</h3>
-            <p class="small-note" id="nextPracticeSource">간극 · watchlist · Vault Brain State 힌트 · 복습 후보 순으로 제안합니다.</p>
+            <p class="small-note" id="nextPracticeSource">간극 · 빈 연결 축 회수(말하기 우선) · watchlist · Brain · 복습 순으로 제안합니다.</p>
           </div>
           <button class="btn dark" id="startNextPractice" type="button">Next Practice 시작</button>
         </div>
@@ -1610,7 +1610,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.3.35';
+    const APP_CACHE_VERSION = 'etd-quest-v1.3.36';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const ProgressStoreApi = window.ProgressStore;
@@ -1963,10 +1963,36 @@
         { key: 'step-7', label: '입으로 다시 꺼내기', mode: 'speak', expressionId: seventh, questStage: 'output' },
       ].filter(step => step.expressionId);
     }
-    function pickTodaySeedExpression(bank, questDate) {
+    function pickTodaySeedExpression(bank, questDate, options = {}) {
       if (!bank.length) return null;
+      const api = window.NextPractice;
+      if (api?.pickWeakAxisSeed) {
+        const picked = api.pickWeakAxisSeed(bank, appState.progress?.historyByExpressionId || {}, {
+          dateKey: questDate,
+          excludeIds: options.excludeIds || [],
+        });
+        if (picked) return picked;
+      }
+      const exclude = new Set(options.excludeIds || []);
+      const pool = bank.filter(item => item && !exclude.has(item.id));
+      const list = pool.length ? pool : bank;
       const dayNum = Number(String(questDate || '').replace(/\D/g, '').slice(-3)) || 0;
-      return bank[dayNum % bank.length] || bank[0];
+      return list[dayNum % list.length] || list[0];
+    }
+    function retrievalNudgeForExpression(item) {
+      const api = window.NextPractice;
+      if (!api?.weakestIncompleteAxis || !item) return '';
+      const history = getHistory(progressItemId(item) || item.id);
+      const axis = api.weakestIncompleteAxis(history);
+      if (!axis) return '';
+      const label = api.axisLabel?.(axis) || axis;
+      if (axis === 'output') {
+        return `오늘 회수 · <b>${escapeHtml(label)}</b> 축이 비어 있어요. 영어를 숨긴 채 따라말하기·영작으로 꺼내 보세요.`;
+      }
+      if (axis === 'recognition') {
+        return `오늘 회수 · <b>${escapeHtml(label)}</b> 축이 약해요. 듣기로 뜻을 먼저 붙이세요.`;
+      }
+      return `오늘 회수 · <b>${escapeHtml(label)}</b> 축이 약해요. 평서/의문·영작으로 문장을 다시 조립하세요.`;
     }
     function getVaultCatalogForLinks() {
       return {
@@ -2408,10 +2434,12 @@
       }
 
       if (item) resetPromptLangToKorean(item);
+      const retrievalNudge = retrievalNudgeForExpression(item);
       questArea.innerHTML = `
         <div class="card">
           <h3>오늘의 말 · 확장 고르기</h3>
           <p class="small-note" style="margin:0 0 10px">순서로 클리어하는 퀘스트가 아닙니다. 듣기·따라말하기·평서/의문·이어말하기까지 이 화면에서 바로 이어가요.</p>
+          ${retrievalNudge ? `<p class="small-note" style="margin:0 0 10px" id="retrievalNudge">${retrievalNudge}</p>` : ''}
           ${renderExpandSeedCard(item)}
           <p class="small-note" style="margin:0 0 10px">오늘 이어간 연습 <b>${momentum}</b>회 · 더 할수록 흐름이 붙어요.</p>
           ${item ? renderExpandChoiceButtons(item.id) : ''}
@@ -2423,7 +2451,11 @@
       bindExpandSeedCard(questArea, item);
       bindExpandChoiceButtons(questArea);
       document.getElementById('refreshSeedBtn')?.addEventListener('click', () => {
-        const next = pickTopicShiftExpression(item?.id, bank) || pickTodaySeedExpression(bank, seoulTodayKey());
+        // Prefer another incomplete-axis seed; topic-shift is fallback.
+        const next = pickTodaySeedExpression(bank, seoulTodayKey(), { excludeIds: [item?.id].filter(Boolean) })
+          || pickTopicShiftExpression(item?.id, bank)
+          || bank.find(row => row.id !== item?.id)
+          || item;
         if (!next) return;
         clearExpandInline();
         quest.seedExpressionId = next.id;
@@ -2431,7 +2463,7 @@
         quest.lastExpandChoiceId = null;
         saveProgress();
         updateQuestUI({ force: true });
-        toast('다른 말로 바꿨어요. 확장을 골라 보세요.');
+        toast('다른 말로 바꿨어요. 비어 있는 연결부터 채워 보세요.');
       });
     }
 
@@ -3510,9 +3542,14 @@
     function buildNextPracticeQueue() {
       const api = window.NextPractice;
       const openGaps = getOpenGapNotes();
+      const historyByExpressionId = appState.progress?.historyByExpressionId || {};
+      const weakAxisItems = api?.weakConnectionItems
+        ? api.weakConnectionItems(getUnlockedBank(), historyByExpressionId, { limit: 5 })
+        : [];
       const weakReview = [...getUnlockedBank()]
         .map(item => ({ expressionId: item.id, mode: 'review', reason: 'weak-link', priority: getItemReviewPriority(item) }))
         .filter(entry => entry.priority > 0)
+        .filter(entry => !weakAxisItems.some(axis => axis.expressionId === entry.expressionId))
         .sort((a, b) => b.priority - a.priority)
         .slice(0, 5);
       const watchlistLinks = (appState.progress.vaultOverlay?.links || []);
@@ -3521,6 +3558,8 @@
           importedNextPractice: appState.progress.importedNextPractice,
           importedBrainState: appState.progress.importedBrainState,
           openGaps,
+          weakAxisItems,
+          historyByExpressionId,
           weakReview,
           watchlistLinks,
           unlockedBank: getUnlockedBank(),
@@ -3557,6 +3596,9 @@
         'vault-next-practice': 'Vault Next Practice',
         'open-gap': '열린 간극',
         'weak-link': '약한 연결',
+        'axis-output': '회수 · 말하기',
+        'axis-recognition': '회수 · 뜻 이해',
+        'axis-assembly': '회수 · 문장 만들기',
         'vault-watchlist': 'Vault watchlist',
         'vault-watchlist-verb': 'Watchlist 동사',
         'vault-watchlist-noun': 'Watchlist 명사',
@@ -3580,7 +3622,7 @@
         if (watchCount) bits.push(`watchlist ${watchCount}`);
         sourceEl.textContent = bits.length
           ? `${bits.join(' · ')}. 해금된 표현만 연습합니다.`
-          : '간극 · watchlist · Brain State 힌트 · 복습 후보 순으로 제안합니다.';
+          : '간극 · 빈 연결 축 회수(말하기 우선) · watchlist · Brain · 복습 순으로 제안합니다.';
       }
       if (!queue.length) {
         target.innerHTML = '<p class="small-note">지금은 제안할 Next Practice가 없어요. 퀴즈를 풀거나 Vault에서 가져오면 채워집니다.</p>';
@@ -3681,12 +3723,19 @@
       const nounIds = [...new Set(
         getUnlockedBank().flatMap(item => item.nounIds || [])
       )].slice(0, 40);
-      const weakSlots = [...getUnlockedBank()]
-        .map(item => ({ expressionId: item.id, priority: getItemReviewPriority(item) }))
-        .filter(entry => entry.priority > 0)
-        .sort((a, b) => b.priority - a.priority)
-        .slice(0, 8)
-        .map(entry => ({ expressionId: entry.expressionId, reason: entry.priority >= 5 ? 'output-low' : 'weak-link' }));
+      const np = window.NextPractice;
+      const weakSlots = (np?.weakConnectionItems
+        ? np.weakConnectionItems(getUnlockedBank(), appState.progress?.historyByExpressionId || {}, { limit: 8 })
+        : [...getUnlockedBank()]
+          .map(item => ({ expressionId: item.id, priority: getItemReviewPriority(item) }))
+          .filter(entry => entry.priority > 0)
+          .sort((a, b) => b.priority - a.priority)
+          .slice(0, 8)
+      ).map(entry => ({
+        expressionId: entry.expressionId,
+        reason: entry.reason
+          || (entry.axis === 'output' || entry.priority >= 5 ? 'output-low' : 'weak-link'),
+      }));
       const watchlist = (appState.progress.vaultOverlay?.links || [])
         .filter(link => link.status === 'watchlist')
         .slice(0, 20)

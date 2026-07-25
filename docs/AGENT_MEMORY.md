@@ -1,7 +1,7 @@
 # Agent Memory (압축 스냅샷)
 
 > 세션 간 이어갈 때 **이 문서 + [`BACKLOG.md`](./BACKLOG.md)** 먼저 읽기.  
-> 기준 tip: **v1.3.35** · 갱신: 2026-07-25
+> 기준 tip: **v1.3.36** · 갱신: 2026-07-25
 
 ## 제품 한 줄
 한국어 학습자용 **ASS + Obsidian 제2영어뇌** 웹앱. 퀴즈 SoT=`expressions.json`. 비밀값은 localStorage only.
@@ -49,6 +49,7 @@
 | 1.3.33 | 영작 전 영어 숨김 · she/he 의문문 생성 수정 · 오답 안내 명확화 · 주제/명사 연결 강화 |
 | 1.3.34 | 이어말하기/화제전환: Obsidian 볼트 연결 강도 1순위 (주제/명사는 폴백) |
 | 1.3.35 | 볼트 브리지 수정 · 홈 듣기→recognition · Gap→Draft 자동 · active 매치 자동연결 · sync 기본 ON |
+| 1.3.36 | 약한 연결 축 강제 회수 · output=0 우선 · Next Practice 구체 모드(speak/listen/koen) · 홈 시드 회수 안내 |
 
 ## 불변 규칙
 1. 퀴즈 은행 = ASS + (정책 ON) Canon 런타임 + (정책 ON) 해금 구동사
