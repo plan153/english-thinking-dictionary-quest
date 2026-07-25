@@ -12,7 +12,11 @@
  *   OBSIDIAN_PATH_PREFIX=            # or Project_English
  *   OBSIDIAN_LEARNER_ID=me
  *   OBSIDIAN_SEED_FOLDERS=1          # create missing contract notes (default 1)
+ *   SMOKE_ARTIFACT_DIR=./artifacts/day-loop-pc
  *   SMOKE_APP_PORT=8790
+ *
+ * Artifacts default to /opt/cursor/artifacts/day-loop-pc when writable,
+ * otherwise ./artifacts/day-loop-pc (Mac/PC local runs).
  *
  * Exit: 0 PASS · 1 FAIL · 2 SKIP (no key / Local REST unreachable)
  */
