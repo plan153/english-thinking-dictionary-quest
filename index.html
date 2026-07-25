@@ -2012,7 +2012,7 @@
         return;
       }
       const id = progressItemId(item) || item.id;
-      const lang = getPromptLang(id, 'en');
+      const lang = getPromptLang(id, 'ko');
       const en = item.en || item.english || '';
       const ko = item.ko || item.naturalKorean || '';
       if (lang === 'ko') speak(ko, { lang: 'ko-KR' });
@@ -2021,7 +2021,7 @@
     function renderExpandSeedCard(item, options = {}) {
       if (!item) return `<p class="small-note">지금 연습할 Active set 표현이 없어요.</p>`;
       const id = progressItemId(item) || item.id;
-      const lang = getPromptLang(id, 'en');
+      const lang = getPromptLang(id, 'ko');
       const en = item.en || item.english || '';
       const ko = item.ko || item.naturalKorean || '';
       const prompt = lang === 'en' ? en : ko;
@@ -2031,7 +2031,7 @@
       return `
         <div class="expand-seed" data-expand-seed-id="${escapeHtml(id)}">
           <div class="expand-seed-top">
-            <div class="prompt-lang" id="expandSeedLang">${lang === 'en' ? 'English · 참고' : '한국어 · 참고'}</div>
+            <div class="prompt-lang" id="expandSeedLang">${lang === 'en' ? 'English · 참고' : '영작하기'}</div>
             <button class="expand-lang-toggle" type="button" id="expandSeedLangToggle" title="${escapeHtml(toggleTitle)}" aria-label="${escapeHtml(toggleTitle)}">${escapeHtml(toggleLabel)}</button>
           </div>
           <div class="en" id="expandSeedPrompt">${escapeHtml(prompt)}</div>
@@ -2053,7 +2053,7 @@
         const promptEl = root.querySelector('#expandSeedPrompt');
         const secondaryEl = root.querySelector('#expandSeedSecondary');
         const toggleEl = root.querySelector('#expandSeedLangToggle');
-        if (langEl) langEl.textContent = next === 'en' ? 'English · 참고' : '한국어 · 참고';
+        if (langEl) langEl.textContent = next === 'en' ? 'English · 참고' : '영작하기';
         if (promptEl) promptEl.textContent = next === 'en' ? en : ko;
         if (secondaryEl) secondaryEl.textContent = next === 'en' ? ko : en;
         if (toggleEl) {
@@ -2068,7 +2068,7 @@
         startExpandChoice('shadow', id);
       });
       root.querySelector('#expandSeedLangToggle')?.addEventListener('click', () => {
-        const next = getPromptLang(id, 'en') === 'en' ? 'ko' : 'en';
+        const next = getPromptLang(id, 'ko') === 'en' ? 'ko' : 'en';
         setPromptLang(id, next);
         refreshLangUi(next);
       });
@@ -2338,6 +2338,7 @@
         return;
       }
 
+      if (item) resetPromptLangToKorean(item);
       questArea.innerHTML = `
         <div class="card">
           <h3>오늘의 말 · 확장 고르기</h3>
@@ -2580,6 +2581,7 @@
       const momentum = countTodayExpandMomentum();
       appState.questContext = null;
       appState.selectedMode = null;
+      if (item) resetPromptLangToKorean(item);
       showScreen('lesson', { skipRoute: true });
       document.getElementById('lessonProgress').style.width = `${Math.min(100, Math.round(momentum / 7 * 100))}%`;
       document.getElementById('lessonProgressText').textContent = `이어가기 ${momentum}`;
@@ -5670,11 +5672,19 @@
       if (!appState.promptLangByItem) appState.promptLangByItem = {};
       const key = String(itemId || '');
       const value = appState.promptLangByItem[key];
-      return value === 'ko' ? 'ko' : value === 'en' ? 'en' : fallback;
+      // 기본은 항상 한국어(영작하기). 명시적으로 en을 고른 경우만 영어.
+      return value === 'en' ? 'en' : (value === 'ko' ? 'ko' : fallback || 'ko');
     }
     function setPromptLang(itemId, lang) {
       if (!appState.promptLangByItem) appState.promptLangByItem = {};
       appState.promptLangByItem[String(itemId || '')] = lang === 'en' ? 'en' : 'ko';
+    }
+    function resetPromptLangToKorean(itemOrId) {
+      const id = typeof itemOrId === 'string' || typeof itemOrId === 'number'
+        ? itemOrId
+        : (progressItemId(itemOrId) || itemOrId?.id);
+      if (id == null || id === '') return;
+      setPromptLang(id, 'ko');
     }
     function togglePromptLang(item) {
       const id = progressItemId(item) || item?.id;
@@ -5713,6 +5723,8 @@
     function renderSimpleSpeakPractice(item, options = {}) {
       const mode = options.mode || 'listen';
       const id = progressItemId(item) || item.id;
+      // 연습 진입 시 항상 한국어(영작하기)로 시작. 한영전환은 그 화면 안에서만 유지.
+      if (options.resetLang !== false) resetPromptLangToKorean(id);
       const lang = getPromptLang(id, 'ko');
       const en = item.en || item.english || '';
       const ko = item.ko || item.naturalKorean || '';
@@ -5727,7 +5739,7 @@
         </div>
         ${renderPracticeCountBadge(item, { elementId: countId })}
         <div class="simple-actions">
-          <button class="btn soft tts-play" type="button" data-text="${escapeHtml(ttsText)}" data-lang="${ttsLang}">듣기</button>
+          <button class="btn soft tts-play" type="button" data-text="${escapeHtml(ttsText)}" data-lang="${ttsLang}">${lang === 'en' ? '영어 듣기' : '듣기'}</button>
           <button class="btn soft lang-toggle" type="button">한영전환</button>
           <div class="speak-row">
             <button class="btn accent mic-start" type="button">영어로 말하기</button>
