@@ -222,27 +222,48 @@
       async executeCommand(commandId) {
         const id = String(commandId || '').trim();
         if (!id) throw new Error('commandId가 비어 있어요.');
-        // Keep ":" unescaped — Local REST routes graph:open literally.
-        const url = `${cfg.baseUrl}/commands/${id.replace(/^\//, '').replace(/\/?$/, '')}/`;
-        const response = await fetchFn(url, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${cfg.apiKey}` },
-        });
-        if (response.status === 404) {
-          throw new Error(`Obsidian 명령을 찾지 못했어요: ${id}`);
+        // Prefer literal "graph:open" (Local REST examples). Fall back to %3A if needed.
+        const candidates = [
+          `${cfg.baseUrl}/commands/${id.replace(/^\//, '').replace(/\/?$/, '')}/`,
+          `${cfg.baseUrl}/commands/${encodeURIComponent(id)}/`,
+        ];
+        let lastStatus = 0;
+        let lastText = '';
+        for (const url of candidates) {
+          const response = await fetchFn(url, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${cfg.apiKey}` },
+          });
+          lastStatus = response.status;
+          if (response.status === 200 || response.status === 204) return true;
+          lastText = await response.text().catch(() => '');
+          if (response.status !== 404) {
+            throw new Error(`COMMAND ${id} failed (${response.status}): ${lastText.slice(0, 200)}`);
+          }
         }
-        if (!(response.status === 200 || response.status === 204)) {
-          const text = await response.text().catch(() => '');
-          throw new Error(`COMMAND ${id} failed (${response.status}): ${text.slice(0, 200)}`);
-        }
-        return true;
+        throw Object.assign(
+          new Error(`Obsidian 명령을 찾지 못했어요: ${id}${lastText ? ` (${lastText.slice(0, 120)})` : ''}`),
+          { code: 'COMMAND_NOT_FOUND', status: lastStatus }
+        );
       },
     };
+  }
+
+  function pickGraphCommandId(commands) {
+    const list = Array.isArray(commands) ? commands : [];
+    const byId = list.find(item => String(item?.id || '') === 'graph:open');
+    if (byId) return 'graph:open';
+    const byName = list.find(item => /graph view|그래프/i.test(String(item?.name || ''))
+      && /open|열/i.test(String(item?.name || '')));
+    if (byName?.id) return String(byName.id);
+    const loose = list.find(item => /^graph:/i.test(String(item?.id || '')));
+    return loose?.id ? String(loose.id) : 'graph:open';
   }
 
   /**
    * Open Obsidian's vault Graph view via Local REST / bridge command execute.
    * Requires Obsidian + Local REST on the same machine as the browser.
+   * The graph appears in the Obsidian app — not inside the web page.
    */
   async function openObsidianVaultGraph(settings, fetchImpl, options = {}) {
     const cfg = normalizeSettings(settings);
@@ -262,9 +283,31 @@
       err.code = 'NO_EXECUTE';
       throw err;
     }
-    const commandId = String(options.commandId || 'graph:open').trim() || 'graph:open';
     if (typeof client.ping === 'function') await client.ping();
-    await client.executeCommand(commandId);
+
+    let commandId = String(options.commandId || '').trim();
+    if (!commandId && typeof client.listCommands === 'function') {
+      try {
+        const commands = await client.listCommands();
+        commandId = pickGraphCommandId(commands);
+      } catch (_) {
+        commandId = 'graph:open';
+      }
+    }
+    if (!commandId) commandId = 'graph:open';
+
+    try {
+      await client.executeCommand(commandId);
+    } catch (error) {
+      if (error?.code === 'COMMAND_NOT_FOUND') {
+        const hint = new Error(
+          '그래프 명령을 못 찾았어요. Obsidian → 설정 → 코어 플러그인에서 "그래프 뷰"를 켠 뒤 다시 시도하세요.'
+        );
+        hint.code = 'COMMAND_NOT_FOUND';
+        throw hint;
+      }
+      throw error;
+    }
     return { ok: true, commandId, adapter: cfg.adapter, baseUrl: cfg.baseUrl };
   }
 
@@ -1025,6 +1068,7 @@
     createDriveOauthClient,
     createSyncClient,
     openObsidianVaultGraph,
+    pickGraphCommandId,
     evaluateVaultFolderContract,
     verifyVaultContract,
     parseFrontmatter,

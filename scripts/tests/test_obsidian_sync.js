@@ -365,9 +365,10 @@ async function main() {
   assert.strictEqual(importedLearner.personalRoot, 'Learners/me');
 
   const graphCalls = [];
+  let listedCommands = false;
   const graphFetch = async (url, options = {}) => {
-    graphCalls.push({ url, method: options.method });
-    if (String(url).replace(/\/$/, '') === 'http://127.0.0.1:27123' && options.method === 'GET') {
+    graphCalls.push({ url, method: options.method || 'GET' });
+    if (String(url).replace(/\/$/, '') === 'http://127.0.0.1:27123' && (options.method === 'GET' || !options.method)) {
       return {
         ok: true,
         status: 200,
@@ -376,7 +377,22 @@ async function main() {
         text: async () => '',
       };
     }
-    if (options.method === 'POST' && String(url).includes('/commands/graph:open')) {
+    if ((options.method === 'GET' || !options.method) && /\/commands\/?$/.test(String(url))) {
+      listedCommands = true;
+      return {
+        ok: true,
+        status: 200,
+        headers: { get: () => 'application/json' },
+        json: async () => ({
+          commands: [
+            { id: 'graph:open', name: 'Graph view: Open graph view' },
+            { id: 'global-search:open', name: 'Search: Search in all files' },
+          ],
+        }),
+        text: async () => '',
+      };
+    }
+    if (options.method === 'POST' && /\/commands\/graph(?::|%3A)open\/?/i.test(String(url))) {
       return { ok: true, status: 204, text: async () => '', headers: { get: () => '' } };
     }
     return { ok: false, status: 500, text: async () => 'no', headers: { get: () => '' } };
@@ -388,7 +404,12 @@ async function main() {
   }, graphFetch);
   assert.strictEqual(opened.ok, true);
   assert.strictEqual(opened.commandId, 'graph:open');
-  assert.ok(graphCalls.some(call => call.method === 'POST' && String(call.url).includes('/commands/graph:open/')));
+  assert.ok(listedCommands, 'should list commands before opening graph');
+  assert.ok(graphCalls.some(call => call.method === 'POST' && /graph(?::|%3A)open/i.test(String(call.url))));
+  assert.strictEqual(
+    sync.pickGraphCommandId([{ id: 'graph:open-local', name: 'Graph view: Open local graph' }]),
+    'graph:open-local'
+  );
 
   let unsupported = null;
   try {
