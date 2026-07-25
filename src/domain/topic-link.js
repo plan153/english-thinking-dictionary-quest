@@ -1,5 +1,7 @@
 /**
- * Topic / situation linking for continue & topic-shift expand choices.
+ * Expand linking for continue / topic-shift.
+ * Primary signal: Obsidian vault overlay links (confirmed/watchlist).
+ * Fallback: curated relatedExpressionIds → topic/noun/situation heuristics.
  * Browser: window.TopicLink
  * Node: module.exports
  */
@@ -55,7 +57,7 @@
       id: 'health',
       tags: ['health', 'emotion', 'comfort', 'encouragement', 'support'],
       nouns: ['n_feeling', 'n_help', 'n_break'],
-      keywords: ['tired', 'sick', 'feel', 'health', 'rest', 'break', '피곤', '아프', '쉬', '건강', '기분'],
+      keywords: ['tired', 'sick', 'feel', 'health', 'rest', 'help', '피곤', '아프', '쉬', '건강', '기분'],
     },
     {
       id: 'learning',
@@ -107,10 +109,106 @@
     return count;
   }
 
+  function confidenceWeight(confidence) {
+    if (confidence === 'high') return 3;
+    if (confidence === 'medium') return 2;
+    return 1;
+  }
+
+  function statusWeight(status) {
+    if (status === 'dismissed') return 0;
+    if (status === 'watchlist') return 0.45;
+    return 1; // confirmed / default
+  }
+
+  function expressionTouchesLink(item, link) {
+    if (!item || !link) return false;
+    if (link.entityType === 'expression' && link.entityId === item.id) return true;
+    if (link.entityType === 'verb' && link.entityId && link.entityId === item.coreVerbId) return true;
+    if (link.entityType === 'pattern' && link.entityId && link.entityId === item.patternId) return true;
+    if (link.entityType === 'noun' && link.entityId && (item.nounIds || []).includes(link.entityId)) return true;
+    if ((link.relatedExpressionIds || []).includes(item.id)) return true;
+    return false;
+  }
+
+  function linkWeight(link) {
+    return statusWeight(link?.status) * confidenceWeight(link?.confidence);
+  }
+
+  /**
+   * Build expressionId → vault strength map for neighbors of `fromItem`.
+   * Strength = sum of shared vault-link weights (note/entity bridges).
+   */
+  function vaultNeighborStrengthMap(fromItem, bank, vaultLinks = []) {
+    const scores = new Map();
+    if (!fromItem) return scores;
+    const list = Array.isArray(bank) ? bank : [];
+    const byId = new Map(list.map(item => [item.id, item]));
+    const links = (vaultLinks || []).filter(link => link && link.status !== 'dismissed');
+
+    links.forEach(link => {
+      if (!expressionTouchesLink(fromItem, link)) return;
+      const weight = linkWeight(link);
+      if (weight <= 0) return;
+
+      const candidateIds = new Set(link.relatedExpressionIds || []);
+      if (link.entityType === 'expression' && link.entityId) candidateIds.add(link.entityId);
+
+      // Same vault note can bridge other confirmed expression entities.
+      if (link.notePath) {
+        links.forEach(other => {
+          if (other === link) return;
+          if (other.notePath !== link.notePath) return;
+          if (other.status === 'dismissed') return;
+          if (other.entityType === 'expression' && other.entityId) candidateIds.add(other.entityId);
+          (other.relatedExpressionIds || []).forEach(id => candidateIds.add(id));
+        });
+      }
+
+      candidateIds.forEach(id => {
+        if (!id || id === fromItem.id) return;
+        if (!byId.has(id)) return;
+        const bridge = weight + (link.notePath ? 0.5 : 0);
+        scores.set(id, (scores.get(id) || 0) + bridge);
+      });
+    });
+
+    return scores;
+  }
+
+  function practiceConnectionStrength(historyByExpressionId, expressionId) {
+    const connections = historyByExpressionId?.[expressionId]?.connections || {};
+    const values = ['recognition', 'assembly', 'output']
+      .map(key => Number(connections[key]?.strength || 0))
+      .filter(value => Number.isFinite(value));
+    if (!values.length) return 0;
+    return values.reduce((sum, value) => sum + value, 0) / values.length;
+  }
+
   function scoreLink(fromItem, toItem, options = {}) {
     if (!fromItem || !toItem || fromItem.id === toItem.id) return -Infinity;
     const mode = options.mode || 'continue';
+    const vaultScores = options.vaultScores instanceof Map
+      ? options.vaultScores
+      : vaultNeighborStrengthMap(fromItem, options.bank || [], options.vaultLinks || []);
+    const vaultStrength = Number(vaultScores.get(toItem.id) || 0);
+    const history = options.historyByExpressionId || {};
+    const practiceStrength = practiceConnectionStrength(history, toItem.id);
+
     let score = 0;
+
+    // 1) Vault connection strength — primary axis
+    if (vaultStrength > 0) {
+      score += 200 + vaultStrength * 40;
+      // Among vault neighbors, prefer expressions already stronger in the English brain.
+      score += Math.min(24, practiceStrength * 8);
+    }
+
+    // 2) Curated expression related ids — secondary
+    const related = new Set(fromItem.relatedExpressionIds || []);
+    if (related.has(toItem.id)) score += vaultStrength > 0 ? 20 : 90;
+
+    // 3) Topic / noun / tag heuristics — fallback only (lower weight)
     const fromTopics = topicsForExpression(fromItem);
     const toTopics = topicsForExpression(toItem);
     const topicOverlap = sharedCount(fromTopics, toTopics);
@@ -120,21 +218,28 @@
       (toItem.situationTags || []).map(tag => String(tag).toLowerCase())
     );
     const sameVerb = Boolean(fromItem.coreVerbId && fromItem.coreVerbId === toItem.coreVerbId);
-    const related = new Set(fromItem.relatedExpressionIds || []);
 
-    if (related.has(toItem.id)) score += 100;
-    score += topicOverlap * 40;
-    score += nounOverlap * 25;
-    score += tagOverlap * 15;
-    if (sameVerb) score += mode === 'continue' ? 12 : 8;
+    if (vaultStrength <= 0) {
+      score += topicOverlap * 28;
+      score += nounOverlap * 18;
+      score += tagOverlap * 12;
+      if (sameVerb) score += mode === 'continue' ? 10 : 6;
+      if (mode === 'continue' && topicOverlap === 0 && nounOverlap === 0 && tagOverlap === 0) {
+        score -= 16;
+      }
+    } else {
+      // Soft topical coherence once vault already matched
+      score += topicOverlap * 4;
+      score += nounOverlap * 3;
+      if (sameVerb) score += 4;
+    }
+
     if (mode === 'topic') {
-      // 화제전환: 같은 큰 주제면 가깝고, 완전 동일 문장군은 약간 낮춤
-      if (topicOverlap > 0) score += 10;
-      else score -= 5;
+      if (vaultStrength > 0) score += 8;
+      else if (topicOverlap > 0) score += 6;
+      else score -= 4;
     }
-    if (mode === 'continue' && topicOverlap === 0 && nounOverlap === 0 && tagOverlap === 0) {
-      score -= 20;
-    }
+
     return score;
   }
 
@@ -144,25 +249,50 @@
     const current = list.find(item => item.id === fromExpressionId) || null;
     if (!current) return list[0] || null;
 
-    if (mode === 'continue') {
-      const related = (current.relatedExpressionIds || [])
-        .map(id => list.find(item => item.id === id))
-        .filter(Boolean);
-      if (related.length) {
-        return related[Math.floor(Math.random() * related.length)];
+    const vaultScores = vaultNeighborStrengthMap(current, list, options.vaultLinks || []);
+    const hasVaultNeighbors = [...vaultScores.values()].some(value => value > 0);
+
+    // Continue: if vault neighbors exist, pick only among them (vault-first).
+    if (mode === 'continue' && hasVaultNeighbors) {
+      const vaultPool = list
+        .filter(item => item && item.id !== current.id && (vaultScores.get(item.id) || 0) > 0)
+        .map(item => ({
+          item,
+          score: scoreLink(current, item, {
+            mode,
+            vaultScores,
+            vaultLinks: options.vaultLinks,
+            historyByExpressionId: options.historyByExpressionId,
+            bank: list,
+          }),
+        }))
+        .sort((a, b) => b.score - a.score || String(a.item.id).localeCompare(String(b.item.id)));
+      if (vaultPool.length) {
+        const best = vaultPool[0].score;
+        const top = vaultPool.filter(entry => entry.score >= best - 25);
+        return top[Math.floor(Math.random() * top.length)].item;
       }
     }
 
     const scored = list
       .filter(item => item && item.id !== current.id)
-      .map(item => ({ item, score: scoreLink(current, item, { mode }) }))
+      .map(item => ({
+        item,
+        score: scoreLink(current, item, {
+          mode,
+          vaultScores,
+          vaultLinks: options.vaultLinks,
+          historyByExpressionId: options.historyByExpressionId,
+          bank: list,
+        }),
+      }))
       .filter(entry => Number.isFinite(entry.score))
       .sort((a, b) => b.score - a.score || String(a.item.id).localeCompare(String(b.item.id)));
 
     if (!scored.length) return current;
 
     const best = scored[0].score;
-    const floor = mode === 'continue' ? Math.max(20, best - 15) : Math.max(8, best - 20);
+    const floor = mode === 'continue' ? Math.max(12, best - 18) : Math.max(6, best - 22);
     const top = scored.filter(entry => entry.score >= floor && entry.score > -10);
     const pool = top.length ? top : scored.slice(0, Math.min(5, scored.length));
     return pool[Math.floor(Math.random() * pool.length)].item;
@@ -171,6 +301,11 @@
   return {
     TOPIC_DEFS,
     topicsForExpression,
+    confidenceWeight,
+    statusWeight,
+    expressionTouchesLink,
+    vaultNeighborStrengthMap,
+    practiceConnectionStrength,
     scoreLink,
     pickLinkedExpression,
   };
