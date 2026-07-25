@@ -1,7 +1,7 @@
 # Agent Memory (압축 스냅샷)
 
 > 세션 간 이어갈 때 **이 문서 + [`BACKLOG.md`](./BACKLOG.md)** 먼저 읽기.  
-> 기준 tip: **v1.3.38** · 갱신: 2026-07-25
+> 기준 tip: **v1.3.39** · 갱신: 2026-07-25
 
 ## 제품 한 줄
 한국어 학습자용 **ASS + Obsidian 제2영어뇌** 웹앱. 퀴즈 SoT=`expressions.json`. 비밀값은 localStorage only.
@@ -52,14 +52,15 @@
 | 1.3.36 | 약한 연결 축 강제 회수 · output=0 우선 · Next Practice 구체 모드(speak/listen/koen) · 홈 시드 회수 안내 |
 | 1.3.37 | 한→영 contrast(기본동사+명사) · 홈/영작/상세/오답/맵에 조립 안내 · expression-contrast.js |
 | 1.3.38 | 구현된 표현·동사·구동사 해금 제한 해제 (`policyOpenImplementedBank` 기본 ON) |
+| 1.3.39 | 엔진+명사 **assemble** 모드 · assembly축 Next Practice=`assemble` · D1/D2 Mac 닫기 준비 |
 
 ## 불변 규칙
 1. 퀴즈 은행 = ASS + (정책 ON) Canon 런타임 + (정책 ON) 해금 구동사
 2. Canon 파일 SoT는 `merge_canon_intake.js` + validate 후 커밋
 3. 구동사 매트릭스 ≠ VerbMatrixGate
 4. Cloud 에이전트는 Obsidian Local REST(Mac)에 도달 불가
-5. **D1·D2(실제 day loop / vault path 실측) = 보류** — 사용자 지시 전까지 열지 않음  
-   - Mac Mini vault: `~/Obsidian Vault/Project_English` · pathPrefix **비움** · 절차: `DAY_LOOP.md`
+5. **D1·D2 = 앱/스크립트 준비 완료 · Mac Mini 실측으로만 닫힘**  
+   - vault: `~/Obsidian Vault/Project_English` · pathPrefix **비움** · 절차: `DAY_LOOP.md`
 6. 브랜치: `cursor/<name>-80e0` · base=`main` · PR는 ManagePullRequest
 
 ## 주요 파일
@@ -70,7 +71,7 @@
 - `scripts/validate.py` / `bump_version.py` — 버전·`fresh.html`·SW 동기
 
 ## 다음 작업 시
-1. `BACKLOG.md` P0(D1/D2) 건드리지 말 것 (명시 요청 전)
+1. **D1·D2:** Mac에서 `OBSIDIAN_API_KEY=… node scripts/run_day_loop_pc.js` 후 BACKLOG를 완료로 표시
 2. 듣기 UI 옛 스크린샷(`0/3`) = 캐시 → `fresh.html`
 3. 버전 올릴 때 `index.html` + VERSION + fresh + SW + package + version.json **함께**
 4. **듣기/말하기 수정 시:** `recognition.start()`는 클릭 핸들러에서 동기 호출 (await getUserMedia 금지). TTS는 cancel 후 짧은 재시도.

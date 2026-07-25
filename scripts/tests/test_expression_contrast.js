@@ -59,4 +59,18 @@ const comboWithContrast = maps
   .find(combo => combo.koreanContrast);
 assert.ok(comboWithContrast, 'verb-maps should expose koreanContrast on combinations');
 
+const quiz = Contrast.buildAssembleQuiz(mistake, {
+  bank: expressions.slice(0, 20),
+  collections: {
+    verbs: JSON.parse(fs.readFileSync(path.join(__dirname, '../../data/verbs.json'), 'utf8')),
+    nouns: JSON.parse(fs.readFileSync(path.join(__dirname, '../../data/nouns.json'), 'utf8')),
+    patterns: JSON.parse(fs.readFileSync(path.join(__dirname, '../../data/patterns.json'), 'utf8')),
+  },
+});
+assert.ok(quiz, 'assemble quiz should build for curated contrast cards');
+assert.strictEqual(quiz.correctEngine, 'make');
+assert.ok(quiz.engineChoices.includes('make'));
+assert.ok(quiz.nounChoices.some(choice => /mistake/i.test(choice)));
+assert.ok(Contrast.canAssemble(mistake));
+
 console.log('✅ expression-contrast tests passed');

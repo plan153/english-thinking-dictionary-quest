@@ -10,7 +10,7 @@
     root.NextPractice = factory();
   }
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
-  const ALLOWED_MODES = new Set(['listen', 'speak', 'koen', 'enko', 'review', 'matrix', 'build']);
+  const ALLOWED_MODES = new Set(['listen', 'speak', 'koen', 'enko', 'review', 'matrix', 'build', 'assemble']);
   const AXIS_KEYS = ['recognition', 'assembly', 'output'];
   // Prefer filling output first — that is what turns recognition/assembly into “내 표현”.
   const RETRIEVAL_AXIS_ORDER = ['output', 'recognition', 'assembly'];
@@ -80,7 +80,7 @@
 
   function modeForAxis(axis) {
     if (axis === 'recognition') return 'listen';
-    if (axis === 'assembly') return 'koen';
+    if (axis === 'assembly') return 'assemble';
     if (axis === 'output') return 'speak';
     return 'review';
   }

@@ -93,6 +93,88 @@
     return lines;
   }
 
+  function uniqueStrings(values) {
+    const seen = new Set();
+    const out = [];
+    (values || []).forEach(value => {
+      const text = clean(value);
+      if (!text) return;
+      const key = text.toLowerCase();
+      if (seen.has(key)) return;
+      seen.add(key);
+      out.push(text);
+    });
+    return out;
+  }
+
+  function shuffleInPlace(list) {
+    const arr = Array.isArray(list) ? list.slice() : [];
+    for (let i = arr.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = arr[i];
+      arr[i] = arr[j];
+      arr[j] = tmp;
+    }
+    return arr;
+  }
+
+  function canAssemble(expression, collections = {}) {
+    const contrast = resolveContrast(expression, collections);
+    return Boolean(contrast?.enEngine && contrast?.enNoun);
+  }
+
+  /**
+   * Build a 2-step engine→noun quiz, then the learner produces the full sentence.
+   */
+  function buildAssembleQuiz(expression, options = {}) {
+    const collections = options.collections || {};
+    const bank = Array.isArray(options.bank) ? options.bank : [];
+    const contrast = resolveContrast(expression, collections);
+    if (!contrast?.enEngine || !contrast?.enNoun) return null;
+
+    const enginePool = uniqueStrings([
+      contrast.enEngine,
+      ...(options.enginePool || []),
+      ...bank.map(item => resolveContrast(item, collections)?.enEngine),
+      'have', 'get', 'make', 'take', 'need', 'want', 'do', 'be', 'give', 'put',
+    ]).filter(word => word.toLowerCase() !== contrast.enEngine.toLowerCase());
+
+    const nounPool = uniqueStrings([
+      contrast.enNoun,
+      ...(options.nounPool || []),
+      ...bank.map(item => resolveContrast(item, collections)?.enNoun),
+      'a question', 'some time', 'a mistake', 'help', 'fun', 'a break', 'home', 'it',
+    ]).filter(word => word.toLowerCase() !== contrast.enNoun.toLowerCase());
+
+    const engineChoices = shuffleInPlace([
+      contrast.enEngine,
+      ...shuffleInPlace(enginePool).slice(0, 3),
+    ]).slice(0, 4);
+    if (!engineChoices.some(word => word.toLowerCase() === contrast.enEngine.toLowerCase())) {
+      engineChoices[0] = contrast.enEngine;
+    }
+
+    const nounChoices = shuffleInPlace([
+      contrast.enNoun,
+      ...shuffleInPlace(nounPool).slice(0, 3),
+    ]).slice(0, 4);
+    if (!nounChoices.some(word => word.toLowerCase() === contrast.enNoun.toLowerCase())) {
+      nounChoices[0] = contrast.enNoun;
+    }
+
+    return {
+      expressionId: expression.id || '',
+      promptKo: clean(expression.naturalKorean || expression.ko || contrast.koVerb),
+      contrast,
+      correctEngine: contrast.enEngine,
+      correctNoun: contrast.enNoun,
+      assembly: contrast.assembly,
+      engineChoices,
+      nounChoices,
+      english: clean(expression.english || expression.en),
+    };
+  }
+
   return {
     DEFAULT_TIP,
     normalizeContrast,
@@ -100,5 +182,7 @@
     resolveContrast,
     contrastSummaryLine,
     contrastTeachingLines,
+    canAssemble,
+    buildAssembleQuiz,
   };
 });
