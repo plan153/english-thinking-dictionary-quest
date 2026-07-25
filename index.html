@@ -561,6 +561,22 @@
       margin-bottom:10px;
       background:#fff;
     }
+    .gap-note-item .gap-note-head {
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      align-items:stretch;
+    }
+    .gap-note-item .gap-note-actions {
+      margin:0;
+      justify-content:flex-start;
+      flex-wrap:wrap;
+    }
+    .gap-note-item .gap-note-actions .btn {
+      flex:0 1 auto;
+      width:auto;
+      min-width:0;
+    }
     .matrix-form-badge {
       display:inline-flex;
       align-items:center;
@@ -4346,12 +4362,12 @@
       }
       target.innerHTML = notes.map(note => `
         <div class="gap-note-item" data-gap-id="${escapeHtml(note.id)}">
-          <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
+          <div class="gap-note-head">
             <div>
               <b>${escapeHtml(note.english || note.expressionId)}</b>
               <div class="small-note" style="margin-top:4px">${escapeHtml(note.status || 'open')}${note.missingInVault ? ' · Vault에 없음' : ''} · ${escapeHtml(note.mode || '')} · ${escapeHtml(note.id)}</div>
             </div>
-            <div class="question-actions" style="margin:0;flex-wrap:wrap">
+            <div class="question-actions gap-note-actions">
               ${note.status === 'open' ? `<button class="btn soft archive-gap" type="button" data-gap-id="${escapeHtml(note.id)}">보관</button>` : ''}
               <button class="btn soft draft-from-gap" type="button" data-gap-id="${escapeHtml(note.id)}">Draft로</button>
               <button class="btn soft practice-gap" type="button" data-expression-id="${escapeHtml(note.expressionId)}">다시 연결</button>
@@ -4408,14 +4424,14 @@
         const ageLabel = Number.isFinite(ageDays) && ageDays < 9999 ? `${ageDays}일 전` : '';
         return `
         <div class="gap-note-item" data-draft-id="${escapeHtml(draft.id)}">
-          <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
+          <div class="gap-note-head">
             <div>
               <b>${escapeHtml(draft.english || draft.id)}</b>
               <div class="small-note" style="margin-top:4px">${escapeHtml(draft.status)}${stale ? ' · 오래됨' : ''} · ${ready ? '승격 가능' : '보완 필요'} · ${escapeHtml(path)}${ageLabel ? ` · ${ageLabel}` : ''}</div>
               <div class="small-note">KO: ${escapeHtml(draft.naturalKorean || '(없음)')} · 동사: ${escapeHtml(draft.coreVerb || '(없음)')} · 패턴: ${escapeHtml(draft.pattern || '(없음)')}</div>
               ${missingNote ? `<div class="small-note" style="margin-top:4px;color:var(--warn, #9a5b00)">${missingNote}</div>` : ''}
             </div>
-            <div class="question-actions" style="margin:0;flex-wrap:wrap">
+            <div class="question-actions gap-note-actions">
               ${draft.status !== 'approved' ? `<button class="btn dark promote-draft" type="button" data-draft-id="${escapeHtml(draft.id)}">승격</button>` : `
                 <button class="btn soft canon-json-one" type="button" data-draft-id="${escapeHtml(draft.id)}">JSON 후보</button>
                 <button class="btn soft canon-queue-one" type="button" data-draft-id="${escapeHtml(draft.id)}">Unlock 대기열</button>`}
