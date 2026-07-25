@@ -1134,7 +1134,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.37">v1.3.37</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.38">v1.3.38</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -1440,6 +1440,10 @@
             <input id="policyPhrasalInAssBank" type="checkbox" />
             P2d 해금된 구동사를 getUnlockedBank()에 합류
           </label>
+          <label style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+            <input id="policyOpenImplementedBank" type="checkbox" />
+            구현된 표현·동사·구동사 전부 연습 가능 (해금/단계 제한 해제)
+          </label>
           <div class="question-actions" style="justify-content:flex-start; margin-top:12px; flex-wrap:wrap;">
             <button class="btn soft" id="saveSyncSettings" type="button">설정 저장</button>
             <button class="btn soft" id="testSyncConnection" type="button">연결 테스트</button>
@@ -1645,7 +1649,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.3.37';
+    const APP_CACHE_VERSION = 'etd-quest-v1.3.38';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const ProgressStoreApi = window.ProgressStore;
@@ -3040,11 +3044,13 @@
       return result.changed;
     }
     function isPhrasalMenuUnlocked() {
+      if (isOpenImplementedBank()) return true;
       const api = window.PhrasalSpeakingSet;
       if (!api) return getUnlockedPackCount() >= 1;
       return api.isMenuUnlocked(appState.progress.curriculum || {}, getPhrasalSpeakingSetConfig());
     }
     function isPhrasalGroupUnlocked(groupId) {
+      if (isOpenImplementedBank()) return true;
       const api = window.PhrasalSpeakingSet;
       if (!api) return isPhrasalMenuUnlocked();
       return api.isGroupUnlocked(appState.progress.curriculum || {}, getPhrasalSpeakingSetConfig(), groupId);
@@ -3056,8 +3062,10 @@
       let ids = [];
       if (api) {
         if (groupId) {
-          if (!api.isGroupUnlocked(curriculum, config, groupId)) return [];
+          if (!isOpenImplementedBank() && !api.isGroupUnlocked(curriculum, config, groupId)) return [];
           ids = api.listGroupExpressionIds(config, groupId);
+        } else if (isOpenImplementedBank()) {
+          ids = api.listExpressionIds(config);
         } else {
           ids = api.listUnlockedExpressionIds(curriculum, config);
         }
@@ -3106,23 +3114,28 @@
       const copy = document.getElementById('phrasalStatusCopy');
       const list = document.getElementById('phrasalGroupList');
       if (!title || !copy || !list) return;
-      if (!snap.unlocked) {
+      if (!snap.unlocked && !isOpenImplementedBank()) {
         title.textContent = '잠금 · Unlock pack 필요';
         copy.textContent = `표현 Unlock pack ${snap.unlockPackCountRequired}개를 열면 구동사 메뉴가 열려요. (지금 ${snap.unlockedPackCount}/${snap.unlockPackCountRequired}) 기본 퀴즈 은행에는 합류하지 않습니다.`;
         list.innerHTML = `<article class="card empty"><p>have → get → take 코어와 표현 팩을 먼저 익히세요. 구동사는 입자 연습용 별도 세트입니다.</p></article>`;
         return;
       }
-      const stageLine = snap.currentStage
-        ? `단계 ${snap.unlockedPhrasalStageCount}/${snap.totalStages} · ${snap.currentStage.title}${snap.nextStage ? ` · 다음: ${snap.nextStage.title}` : ' · 모두 열림'}`
-        : '';
+      const stageLine = isOpenImplementedBank()
+        ? '전체 열림 · 단계 제한 없음'
+        : (snap.currentStage
+          ? `단계 ${snap.unlockedPhrasalStageCount}/${snap.totalStages} · ${snap.currentStage.title}${snap.nextStage ? ` · 다음: ${snap.nextStage.title}` : ' · 모두 열림'}`
+          : '');
       title.textContent = `${snap.title} · 열림`;
-      copy.textContent = `${stageLine} · 해금 표현 ${snap.unlockedExpressionCount}/${snap.expressionCount}. P2d ON이면 해금 구동사가 퀴즈 은행에 합류합니다. 단계 숙달로 다음 그룹이 열려요.`;
+      copy.textContent = isOpenImplementedBank()
+        ? `${stageLine} · 구동사 표현 전부 연습 가능합니다.`
+        : `${stageLine} · 해금 표현 ${snap.unlockedExpressionCount}/${snap.expressionCount}. P2d ON이면 해금 구동사가 퀴즈 은행에 합류합니다. 단계 숙달로 다음 그룹이 열려요.`;
       list.innerHTML = (snap.groups || []).map(group => {
         const particles = (group.particles || []).join(' · ') || '—';
         const count = (group.expressionIds || []).length;
         const hasMatrix = getPhrasalQaMatrices().some(matrix => matrix.groupId === group.id
           || (group.expressionIds || []).includes(matrix.baseExpressionId));
-        if (group.locked) {
+        const locked = group.locked && !isOpenImplementedBank();
+        if (locked) {
           return `
             <article class="card" style="margin-bottom:12px; opacity:.72" data-phrasal-group="${escapeHtml(group.id)}">
               <h3>${escapeHtml(group.title)} · 잠금</h3>
@@ -3239,6 +3252,7 @@
         : 0;
     }
     function getUnlockedExpressionIds(packCount = getUnlockedPackCount(), options = {}) {
+      if (isOpenImplementedBank()) return listImplementedExpressionIds();
       return ActiveSpeakingSetApi
         ? ActiveSpeakingSetApi.listUnlockedExpressionIds(
           getActiveSpeakingSetConfig(),
@@ -3327,10 +3341,16 @@
     }
     function isExpressionUnlocked(expressionId) {
       if (!expressionId) return false;
+      if (isOpenImplementedBank()) {
+        if (findExpressionRecord(expressionId)) return true;
+        return listImplementedExpressionIds().includes(expressionId);
+      }
       if (getUnlockedExpressionIds().includes(expressionId)) return true;
       return isExpressionOpenByStarterVerb(expressionId);
     }
     function isVerbInActiveSet(verbId) {
+      if (!verbId) return false;
+      if (isOpenImplementedBank()) return listImplementedVerbIds().includes(verbId);
       const gate = window.VerbMatrixGate;
       const config = getActiveSpeakingSetConfig();
       if (!gate) return config.verbIds.includes(verbId);
@@ -3346,9 +3366,11 @@
       const mineCount = presentIds.filter(isMineExpression).length;
       const ratio = presentIds.length ? mineCount / presentIds.length : 0;
       const nextPack = config.unlockPacks[getUnlockedPackCount()] || null;
-      const unlockedVerbIds = gate
-        ? gate.getUnlockedVerbIds(config, appState.progress.curriculum || {})
-        : config.verbIds.slice();
+      const unlockedVerbIds = isOpenImplementedBank()
+        ? listImplementedVerbIds()
+        : (gate
+          ? gate.getUnlockedVerbIds(config, appState.progress.curriculum || {})
+          : config.verbIds.slice());
       const verbGate = gate
         ? gate.getVerbGateSnapshot(appState.progress.curriculum || {}, unlockedVerbIds, getQaMatrices())
         : null;
@@ -3380,11 +3402,14 @@
         <span>내 표현 ${snapshot.mineCount}개</span>
         ${snapshot.verbGate ? `<span>4형태 ${snapshot.verbGate.passedCount}/${snapshot.verbGate.requiredCount}</span>` : ''}
       `;
-      const unlockHint = snapshot.nextPackCount
-        ? `레벨업: 내 표현 ${snapshot.unlockThresholdPercent}%면 다음 Unlock pack ${snapshot.nextPackCount}개가 열립니다.`
-        : (snapshot.nextVerbPackTitle
-          ? `표현 팩 완료. 다음 동사 게이트: ${snapshot.nextVerbPackTitle} (Starter 동사 매트릭스 4형태 통과 필요 · ${snapshot.verbGate ? `${snapshot.verbGate.passedCount}/${snapshot.verbGate.requiredCount}` : ''})`
-          : 'Starter·Unlock pack·동사 해금을 모두 열었거나 대기 중입니다. Canon JSON은 리뷰 후 편입하세요.');
+      const openBank = isOpenImplementedBank();
+      const unlockHint = openBank
+        ? `구현된 표현 ${snapshot.unlockedCount}개 · 동사 ${snapshot.verbCount}개가 모두 연습 가능합니다.`
+        : (snapshot.nextPackCount
+          ? `레벨업: 내 표현 ${snapshot.unlockThresholdPercent}%면 다음 Unlock pack ${snapshot.nextPackCount}개가 열립니다.`
+          : (snapshot.nextVerbPackTitle
+            ? `표현 팩 완료. 다음 동사 게이트: ${snapshot.nextVerbPackTitle} (Starter 동사 매트릭스 4형태 통과 필요 · ${snapshot.verbGate ? `${snapshot.verbGate.passedCount}/${snapshot.verbGate.requiredCount}` : ''})`
+            : 'Starter·Unlock pack·동사 해금을 모두 열었거나 대기 중입니다. Canon JSON은 리뷰 후 편입하세요.'));
       const homeStats = document.getElementById('activeSetStats');
       const homeBar = document.getElementById('activeSetBar');
       const homePercent = document.getElementById('activeSetPercent');
@@ -3394,7 +3419,11 @@
       if (homeBar) homeBar.style.width = `${snapshot.percent}%`;
       if (homePercent) homePercent.textContent = `${snapshot.percent}%`;
       if (homeHint) homeHint.textContent = unlockHint;
-      if (homeCopy) homeCopy.textContent = `${snapshot.title} · 지금 입으로 훈련하는 범위만 퀴즈에 나옵니다. Library Canon은 자동으로 들어오지 않습니다.`;
+      if (homeCopy) {
+        homeCopy.textContent = openBank
+          ? `${snapshot.title} · 구현된 표현·동사·구동사를 제한 없이 연습합니다.`
+          : `${snapshot.title} · 지금 입으로 훈련하는 범위만 퀴즈에 나옵니다. Library Canon은 자동으로 들어오지 않습니다.`;
+      }
       const progressStats = document.getElementById('progressActiveSetStats');
       const progressBar = document.getElementById('progressActiveSetBar');
       const progressPercent = document.getElementById('progressActiveSetPercent');
@@ -3402,7 +3431,11 @@
       if (progressStats) progressStats.innerHTML = statsMarkup;
       if (progressBar) progressBar.style.width = `${snapshot.percent}%`;
       if (progressPercent) progressPercent.textContent = `${snapshot.percent}%`;
-      if (progressCopy) progressCopy.textContent = `해금 팩 ${snapshot.unlockedPackCount}/${snapshot.totalPacks} · 동사 팩 ${snapshot.unlockedVerbPackCount}/${snapshot.totalVerbPacks} · ${unlockHint}`;
+      if (progressCopy) {
+        progressCopy.textContent = openBank
+          ? `전체 열림 · ${unlockHint}`
+          : `해금 팩 ${snapshot.unlockedPackCount}/${snapshot.totalPacks} · 동사 팩 ${snapshot.unlockedVerbPackCount}/${snapshot.totalVerbPacks} · ${unlockHint}`;
+      }
       renderVerbGatePanel(snapshot);
       renderCanonIntakePanel();
       return snapshot;
@@ -3944,12 +3977,32 @@
       if (Object.prototype.hasOwnProperty.call(settings, key)) return Boolean(settings[key]);
       return fallback;
     }
+    function isOpenImplementedBank() {
+      return getPolicyFlag('policyOpenImplementedBank', true);
+    }
+    function listImplementedExpressionIds() {
+      const ids = new Set();
+      getGameBank().forEach(item => { if (item?.id) ids.add(item.id); });
+      (appState.dictionaryData?.expressions || []).forEach(item => { if (item?.id) ids.add(item.id); });
+      (appState.progress?.canonExpressions || []).forEach(item => { if (item?.id) ids.add(item.id); });
+      const phrasalApi = window.PhrasalSpeakingSet;
+      if (phrasalApi?.listExpressionIds) {
+        phrasalApi.listExpressionIds(getPhrasalSpeakingSetConfig()).forEach(id => ids.add(id));
+      }
+      return [...ids];
+    }
+    function listImplementedVerbIds() {
+      const ids = new Set((appState.dictionaryData?.verbs || []).map(verb => verb.id).filter(Boolean));
+      getGameBank().forEach(item => { if (item?.coreVerbId) ids.add(item.coreVerbId); });
+      return [...ids];
+    }
     function readPolicyFlagsFromForm() {
       return {
         policyCanonAutoMerge: Boolean(document.getElementById('policyCanonAutoMerge')?.checked),
         policyImportProgressFromVault: Boolean(document.getElementById('policyImportProgressFromVault')?.checked),
         policyImportExplanationsFromVault: false,
         policyPhrasalInAssBank: Boolean(document.getElementById('policyPhrasalInAssBank')?.checked),
+        policyOpenImplementedBank: Boolean(document.getElementById('policyOpenImplementedBank')?.checked),
       };
     }
     function readSyncSettingsFromForm() {
@@ -3990,9 +4043,11 @@
       const policyCanon = document.getElementById('policyCanonAutoMerge');
       const policyProgress = document.getElementById('policyImportProgressFromVault');
       const policyPhrasal = document.getElementById('policyPhrasalInAssBank');
+      const policyOpen = document.getElementById('policyOpenImplementedBank');
       if (policyCanon) policyCanon.checked = getPolicyFlag('policyCanonAutoMerge', true);
       if (policyProgress) policyProgress.checked = getPolicyFlag('policyImportProgressFromVault', true);
       if (policyPhrasal) policyPhrasal.checked = getPolicyFlag('policyPhrasalInAssBank', true);
+      if (policyOpen) policyOpen.checked = getPolicyFlag('policyOpenImplementedBank', true);
       updateSyncStatusText(settings);
     }
     function updateSyncStatusText(settings) {
@@ -5446,6 +5501,12 @@
     }
     function getUnlockedBank() {
       const bank = getGameBank();
+      if (isOpenImplementedBank()) {
+        // All loaded implemented expressions are practice-ready.
+        const openIds = new Set(listImplementedExpressionIds());
+        const open = bank.filter(item => openIds.has(item.id));
+        return open.length ? open : bank;
+      }
       const unlockedIds = new Set(getUnlockedExpressionIds());
       // P2a: Canon runtime admissions
       if (getPolicyFlag('policyCanonAutoMerge', true)) {
@@ -5477,11 +5538,13 @@
       const api = window.PhrasalSpeakingSet;
       const config = getPhrasalSpeakingSetConfig();
       const unlockedIds = new Set(
-        api
-          ? api.listUnlockedExpressionIds(appState.progress.curriculum || {}, config)
-          : []
+        isOpenImplementedBank()
+          ? (api ? api.listExpressionIds(config) : [])
+          : (api ? api.listUnlockedExpressionIds(appState.progress.curriculum || {}, config) : [])
       );
-      let matrices = all.filter(matrix => unlockedIds.has(matrix.baseExpressionId));
+      let matrices = isOpenImplementedBank()
+        ? all.slice()
+        : all.filter(matrix => unlockedIds.has(matrix.baseExpressionId));
       if (groupId) {
         const groupIds = new Set(
           (config.groups || []).find(group => group.id === groupId)?.expressionIds || []
@@ -5492,6 +5555,7 @@
       return matrices;
     }
     function getUnlockedMatrices() {
+      if (isOpenImplementedBank()) return getQaMatrices().slice();
       const unlockedIds = new Set(getUnlockedExpressionIds());
       const matrices = getQaMatrices().filter(matrix => (
         unlockedIds.has(matrix.baseExpressionId) && isVerbInActiveSet(matrix.coreVerbId)
