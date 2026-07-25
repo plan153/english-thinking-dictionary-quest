@@ -24,12 +24,14 @@ const loaded = progress.loadProgress('me', { storage: memory });
 assert.strictEqual(loaded.xp, 12);
 
 const cfg = ass.normalizeAssConfig(null);
-assert.strictEqual(cfg.verbIds.length, 1);
-assert.strictEqual(cfg.verbIds[0], 'v_have');
-assert.ok(cfg.verbUnlockPacks.map(p => p.id).includes('verb_pack_get'));
-assert.ok(cfg.verbUnlockPacks.map(p => p.id).includes('verb_pack_take'));
+// 스타터 동사: have + get/take/want/need/be/do/feel (v1.3.18+)
+assert.ok(cfg.verbIds.includes('v_have'));
+assert.ok(cfg.verbIds.length >= 8);
+const packIds = cfg.verbUnlockPacks.map(p => p.id);
+assert.ok(packIds.includes('verb_pack_go_come_make'));
+assert.ok(packIds.includes('verb_pack_give'));
 const unlocked = ass.listUnlockedExpressionIds(cfg, { unlockedPackCount: 0 }, { includeVerbPacks: false });
-assert.strictEqual(unlocked.length, 40);
+assert.ok(unlocked.length >= 40, `starter unlocked too small: ${unlocked.length}`);
 assert.ok(ass.isExpressionInUnlockedSet('e001', cfg, { unlockedPackCount: 0 }));
 
 const bundle = exp.buildBundleJson({

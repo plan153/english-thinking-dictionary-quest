@@ -10,9 +10,14 @@ const ass = require('../../src/domain/active-speaking-set.js');
 
 const config = ass.normalizeAssConfig(learningPaths.activeSpeakingSet);
 assert.ok(config.verbCurriculumWeights);
-assert.strictEqual(config.verbCurriculumWeights.v_have, 0.4);
-assert.strictEqual(config.verbCurriculumWeights.v_get, 0.25);
-assert.strictEqual(config.verbCurriculumWeights.v_take, 0.15);
+assert.strictEqual(config.verbCurriculumWeights.v_have, 0.28);
+assert.strictEqual(config.verbCurriculumWeights.v_get, 0.18);
+assert.strictEqual(config.verbCurriculumWeights.v_take, 0.12);
+assert.strictEqual(config.verbCurriculumWeights.v_be, 0.12);
+
+assert.deepStrictEqual(config.verbIds, [
+  'v_have', 'v_get', 'v_take', 'v_want', 'v_need', 'v_be', 'v_do', 'v_feel',
+]);
 
 const byId = new Map(expressions.map(item => [item.id, item]));
 const starterCounts = {};
@@ -21,17 +26,17 @@ config.expressionIds.forEach(id => {
   assert.ok(verb, `missing ${id}`);
   starterCounts[verb] = (starterCounts[verb] || 0) + 1;
 });
-assert.strictEqual(starterCounts.v_have, 16, 'have ~40% of 40');
-assert.strictEqual(starterCounts.v_get, 10, 'get ~25% of 40');
-assert.strictEqual(starterCounts.v_take, 6, 'take ~15% of 40');
-assert.strictEqual(config.expressionIds.length, 40);
-assert.ok(config.verbUnlockPacks.map(p => p.id).includes('verb_pack_get'));
-assert.ok(config.verbUnlockPacks.map(p => p.id).includes('verb_pack_take'));
-assert.ok(config.verbUnlockPacks.map(p => p.id).includes('verb_pack_keep'));
-assert.ok(config.verbUnlockPacks.map(p => p.id).includes('verb_pack_find'));
-assert.deepStrictEqual(config.verbIds, ['v_have']);
-['e081', 'e085', 'e086', 'e087'].forEach(id => {
-  assert.strictEqual(config.expressionIds.includes(id), false, `${id} should stay out of starter`);
-});
+assert.ok(starterCounts.v_have >= 16, 'have still a major starter share');
+assert.ok(starterCounts.v_get >= 10, 'get starter share');
+assert.ok(starterCounts.v_be >= 50, 'be pack joined starter');
+assert.ok(config.expressionIds.length >= 100);
+assert.ok(config.expressionIds.includes('e081'), 'get-place starter IDs included');
+assert.ok(config.expressionIds.includes('e085'));
+
+const packIds = config.verbUnlockPacks.map(p => p.id);
+assert.ok(packIds.includes('verb_pack_go_come_make'));
+assert.ok(packIds.includes('verb_pack_give'));
+assert.ok(packIds.includes('verb_pack_keep'));
+assert.ok(packIds.includes('verb_pack_find'));
 
 console.log('✅ verb curriculum mix tests passed');

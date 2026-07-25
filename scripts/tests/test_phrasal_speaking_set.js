@@ -54,11 +54,11 @@ assert.strictEqual(snap.unlocked, true);
 assert.ok(snap.groups.find(g => g.id === 'pv_put_on_off').locked);
 assert.ok(snap.groups.find(g => g.id === 'pv_put_on_off').lockReason.includes('이전 단계'));
 
-// ASS bank must not auto-include exclusive phrasal IDs
+// Starter get 장소 표현(e081…)은 ASS와 구동사 메뉴에 함께 열린다 (v1.3.29+).
 const assConfig = ass.normalizeAssConfig(learningPaths.activeSpeakingSet);
 const assStarter = new Set(ass.listUnlockedExpressionIds(assConfig, { unlockedPackCount: 0 }, { includeVerbPacks: false }));
 ['e081', 'e085', 'e086', 'e087'].forEach(id => {
-  assert.strictEqual(assStarter.has(id), false, `${id} must stay out of ASS starter bank`);
+  assert.strictEqual(assStarter.has(id), true, `${id} should be in ASS starter bank`);
 });
 
 // Phrasal Q/A matrices stay out of ASS qa-matrices SoT
