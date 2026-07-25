@@ -5,16 +5,16 @@
 > 에이전트/사람: 새 기능을 시작할 때 **이 목록을 먼저 읽고** 체크하거나 이어서 구현한다.  
 > 세션 압축 기억: [`AGENT_MEMORY.md`](./AGENT_MEMORY.md)
 
-## P0 — 사용자 기기(PC/Mac) · **닫기 준비 완료 (Mac에서만)**
+## P0 — 사용자 기기(PC/Mac) · **완료 (2026-07-25 Mac Mini)**
 
-> **2026-07-25:** 앱/스크립트 쪽 준비는 끝. 클라우드 에이전트는 `127.0.0.1:27123`에 닿지 못해 **실측은 Mac Mini에서만** 닫힌다.  
-> **Vault 확정 (Mac Mini):** `~/Obsidian Vault/Project_English` · 앱 Path prefix **비움**  
-> (`mini`는 컴퓨터 이름 — 폴더 경로에 넣지 않음.) · 절차 SoT: [`DAY_LOOP.md`](./DAY_LOOP.md)
+> **2026-07-25 Mac Mini 실측 PASS:** `node scripts/run_day_loop_pc.js` → D1·D2 닫힘.  
+> **Vault:** `~/Obsidian Vault/…` 상위 루트 + 하위 `Project_English/` → 앱 **Path prefix = `Project_English`**  
+> (vault 루트가 곧 `Project_English`인 경우에만 pathPrefix 비움.) · 절차 SoT: [`DAY_LOOP.md`](./DAY_LOOP.md)
 
-| ID | 항목 | 현재 상태 | Mac에서 할 일 |
+| ID | 항목 | 현재 상태 | 비고 |
 | --- | --- | --- | --- |
-| D1 | **실제 Obsidian day loop** | **준비 완료 · Mac 실측 대기** · 러너 준비됨 | Local REST 켠 뒤 `OBSIDIAN_API_KEY=… node scripts/run_day_loop_pc.js` → `D1_PASS.json` |
-| D2 | **Vault pathPrefix / 폴더 실측** | **준비 완료 · Mac 실측 대기** (D1과 함께) | pathPrefix **비움** 확인 + 폴더 계약 검사 PASS |
+| D1 | **실제 Obsidian day loop** | **완료** · Mac Mini · Local REST HTTP `27123` | artifacts `D1_PASS.json` |
+| D2 | **Vault pathPrefix / 폴더 실측** | **완료** (D1과 함께) | pathPrefix=`Project_English` PASS |
 
 ## P1 — 제품 기능 (앱 코드)
 
@@ -63,7 +63,7 @@
 
 ## 다음 작업 추천 순서
 
-1. **D1 → D2** — Mac Mini에서 닫기 (vault=`~/Obsidian Vault/Project_English` · pathPrefix 비움 · [`DAY_LOOP.md`](./DAY_LOOP.md))
+1. P0(D1·D2) **완료** — 일상은 Local REST + pathPrefix=`Project_English`로 day loop 유지
 2. P2 토글을 끄고 쓰려면 성장 화면 정책 체크박스
 
 변경할 때마다 이 표의 Status를 갱신한다.
