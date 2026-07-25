@@ -252,7 +252,7 @@ async function main() {
 
   try {
     await page.goto(`http://127.0.0.1:${APP_PORT}/`, { waitUntil: 'domcontentloaded', timeout: 45000 });
-    await page.waitForSelector('#startDaily', { timeout: 15000 });
+    await page.waitForSelector('#home.screen.active, #questArea', { timeout: 15000 });
     await page.waitForFunction(() => !!(window.EnglishBrainSync && window.NextPractice && window.ThinkingMapSets), { timeout: 20000 });
     await page.waitForFunction(() => {
       const total = document.getElementById('totalWords');

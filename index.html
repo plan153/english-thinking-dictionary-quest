@@ -1134,7 +1134,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.40">v1.3.40</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.41">v1.3.41</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -1158,15 +1158,6 @@
     </nav>
 
     <section id="home" class="screen active">
-      <div class="hero">
-        <div class="eyebrow">English Thinking Dictionary</div>
-        <h2>오늘 한 마디,<br>이어서 말해 보세요.</h2>
-        <p>듣고 · 따라하고 · 평서↔의문 · 이어말하기 · 화제전환을 골라 확장합니다. 끝내는 목표가 아니라, 더 말하고 싶게 만드는 연습이에요.</p>
-        <div class="hero-actions">
-          <button class="btn primary" id="startDaily">오늘의 말로 시작</button>
-        </div>
-      </div>
-
       <div class="home-quest-primary">
         <article class="card daily-card">
           <div class="ring" id="dailyRing" style="--p: 0"><strong id="dailyPercent">0%</strong></div>
@@ -1651,7 +1642,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.3.40';
+    const APP_CACHE_VERSION = 'etd-quest-v1.3.41';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const ProgressStoreApi = window.ProgressStore;
@@ -8064,7 +8055,7 @@
 
         window.addEventListener('hashchange', applyRoute);
         document.querySelectorAll('.nav button').forEach(btn => btn.addEventListener('click', () => showScreen(btn.dataset.screen)));
-    document.getElementById('startDaily').addEventListener('click', () => startQuest());
+    document.getElementById('startDaily')?.addEventListener('click', () => startQuest());
     document.getElementById('jumpDictionary').addEventListener('click', () => showScreen('dictionary'));
     document.getElementById('jumpPlayFromHome')?.addEventListener('click', () => showScreen('play'));
     document.getElementById('jumpVaultGraphFromHome')?.addEventListener('click', () => showScreen('vaultGraph'));
