@@ -309,6 +309,40 @@
     .answer-key { font-size: 14px; margin-top:8px; color:var(--muted); }
     .answer-summary { text-align:left; }
     .answer-summary .chunk-row { margin:9px 0 0; }
+    .contrast-teach {
+      margin: 10px 0 0;
+      padding: 10px 12px;
+      border-left: 3px solid var(--accent, #286f6c);
+      background: linear-gradient(120deg, rgba(40,111,108,.08), rgba(255,255,255,.55));
+      text-align: left;
+      font-weight: 600;
+      line-height: 1.45;
+    }
+    .contrast-teach .contrast-title {
+      font-size: 12px;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0 0 4px;
+      font-weight: 800;
+    }
+    .contrast-teach .contrast-summary {
+      font-size: 14px;
+      color: var(--ink);
+      margin: 0;
+    }
+    .contrast-teach .contrast-tip {
+      font-size: 13px;
+      color: var(--muted);
+      margin: 4px 0 0;
+      font-weight: 600;
+    }
+    .contrast-teach .contrast-wrong {
+      font-size: 12px;
+      color: #a7433b;
+      margin: 4px 0 0;
+      font-weight: 700;
+    }
     @keyframes pulseGood { 0% { box-shadow:0 18px 50px rgba(28,24,20,.08); } 45% { box-shadow:0 0 0 5px rgba(52,143,94,.25), 0 18px 50px rgba(28,24,20,.08); } 100% { box-shadow:0 18px 50px rgba(28,24,20,.08); } }
     @keyframes pulseWarn { 0% { box-shadow:0 18px 50px rgba(28,24,20,.08); } 45% { box-shadow:0 0 0 5px rgba(218,169,54,.25), 0 18px 50px rgba(28,24,20,.08); } 100% { box-shadow:0 18px 50px rgba(28,24,20,.08); } }
     @keyframes pulseBad { 0% { box-shadow:0 18px 50px rgba(28,24,20,.08); } 45% { box-shadow:0 0 0 5px rgba(191,76,63,.23), 0 18px 50px rgba(28,24,20,.08); } 100% { box-shadow:0 18px 50px rgba(28,24,20,.08); } }
@@ -1100,7 +1134,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.34">v1.3.34</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.37">v1.3.37</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -1298,7 +1332,7 @@
         <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap">
           <div>
             <h3>Next Practice</h3>
-            <p class="small-note" id="nextPracticeSource">간극 · watchlist · Vault Brain State 힌트 · 복습 후보 순으로 제안합니다.</p>
+            <p class="small-note" id="nextPracticeSource">간극 · 빈 연결 축 회수(말하기 우선) · watchlist · Brain · 복습 순으로 제안합니다.</p>
           </div>
           <button class="btn dark" id="startNextPractice" type="button">Next Practice 시작</button>
         </div>
@@ -1452,6 +1486,7 @@
   <script src="./src/domain/feynman-challenge.js"></script>
   <script src="./src/domain/qa-matrix-generate.js"></script>
   <script src="./src/domain/topic-link.js"></script>
+  <script src="./src/domain/expression-contrast.js"></script>
   <script src="./src/domain/expand-turn.js"></script>
   <script src="./src/domain/graph-style.js"></script>
   <script src="./src/domain/progress-store.js"></script>
@@ -1610,7 +1645,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.3.34';
+    const APP_CACHE_VERSION = 'etd-quest-v1.3.37';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const ProgressStoreApi = window.ProgressStore;
@@ -1753,7 +1788,6 @@
       const history = p.historyByExpressionId[itemId] || defaultHistoryEntry();
       history.lastAttemptedAt = now;
       history.timesSeen = (history.timesSeen || 0) + 1;
-      history.lastOutcome = resultType;
       const signature = details.signature || resultType;
       const sessionRecord = appState.sessionStudyRecords[itemId] || {};
       const duplicateCorrect = sessionRecord.lastRecordedSignature === signature && (resultType === 'correct' || resultType === 'almost');
@@ -1761,6 +1795,19 @@
       const connectionType = connectionTypeForMode(mode);
       const hintLevel = Number.isFinite(details.hintLevel) ? details.hintLevel : appState.hintStep || 0;
       const strength = (resultType === 'correct' || resultType === 'almost') ? strengthFromHints(hintLevel) : 0;
+      // 홈 듣기 등: recognition만 채우고 XP/성공 카운트는 올리지 않음.
+      if (details.recognitionOnly) {
+        const duplicateHeard = sessionRecord.lastRecordedSignature === signature;
+        if (!duplicateHeard) {
+          updateHistoryConnections(itemId, 'recognition', strengthFromHints(hintLevel));
+          appState.sessionStudyRecords[itemId] = { lastRecordedSignature: signature };
+        }
+        history.reviewPriority = computeReviewPriority(itemId);
+        p.historyByExpressionId[itemId] = history;
+        saveProgress();
+        return;
+      }
+      history.lastOutcome = resultType;
       if (resultType === 'correct' || resultType === 'almost') {
         if (!duplicateCorrect) {
           p.successes[itemId] = (p.successes[itemId] || 0) + 1;
@@ -1951,17 +1998,56 @@
         { key: 'step-7', label: '입으로 다시 꺼내기', mode: 'speak', expressionId: seventh, questStage: 'output' },
       ].filter(step => step.expressionId);
     }
-    function pickTodaySeedExpression(bank, questDate) {
+    function pickTodaySeedExpression(bank, questDate, options = {}) {
       if (!bank.length) return null;
+      const api = window.NextPractice;
+      if (api?.pickWeakAxisSeed) {
+        const picked = api.pickWeakAxisSeed(bank, appState.progress?.historyByExpressionId || {}, {
+          dateKey: questDate,
+          excludeIds: options.excludeIds || [],
+        });
+        if (picked) return picked;
+      }
+      const exclude = new Set(options.excludeIds || []);
+      const pool = bank.filter(item => item && !exclude.has(item.id));
+      const list = pool.length ? pool : bank;
       const dayNum = Number(String(questDate || '').replace(/\D/g, '').slice(-3)) || 0;
-      return bank[dayNum % bank.length] || bank[0];
+      return list[dayNum % list.length] || list[0];
+    }
+    function retrievalNudgeForExpression(item) {
+      const api = window.NextPractice;
+      if (!api?.weakestIncompleteAxis || !item) return '';
+      const history = getHistory(progressItemId(item) || item.id);
+      const axis = api.weakestIncompleteAxis(history);
+      if (!axis) return '';
+      const label = api.axisLabel?.(axis) || axis;
+      if (axis === 'output') {
+        return `오늘 회수 · <b>${escapeHtml(label)}</b> 축이 비어 있어요. 영어를 숨긴 채 따라말하기·영작으로 꺼내 보세요.`;
+      }
+      if (axis === 'recognition') {
+        return `오늘 회수 · <b>${escapeHtml(label)}</b> 축이 약해요. 듣기로 뜻을 먼저 붙이세요.`;
+      }
+      return `오늘 회수 · <b>${escapeHtml(label)}</b> 축이 약해요. 평서/의문·영작으로 문장을 다시 조립하세요.`;
+    }
+    function getVaultCatalogForLinks() {
+      return {
+        verbs: appState.dictionaryData.verbs || [],
+        nouns: appState.dictionaryData.nouns || [],
+        patterns: appState.dictionaryData.patterns || [],
+        expressions: appState.dictionaryData.expressions || getGameBank() || [],
+      };
     }
     function getExpandLinkContext() {
       const vo = (typeof ensureVaultOverlayState === 'function')
         ? ensureVaultOverlayState()
         : (appState.progress?.vaultOverlay || { links: [] });
+      const api = window.VaultOverlay;
+      const catalog = getVaultCatalogForLinks();
+      const vaultLinks = api?.buildLiveExpandLinks
+        ? api.buildLiveExpandLinks(vo.links || [], vo.matches || [], catalog)
+        : (vo.links || []).filter(link => link && link.status !== 'dismissed');
       return {
-        vaultLinks: (vo.links || []).filter(link => link && link.status !== 'dismissed'),
+        vaultLinks,
         historyByExpressionId: appState.progress?.historyByExpressionId || {},
       };
     }
@@ -2034,7 +2120,7 @@
       if (sameVerb.length) return sameVerb[Math.floor(Math.random() * sameVerb.length)];
       return pickTopicShiftExpression(fromExpressionId, bank);
     }
-    function playExpandSeedAudio(item) {
+    function playExpandSeedAudio(item, options = {}) {
       if (!item) {
         toast('재생할 문장이 없어요.');
         return;
@@ -2045,6 +2131,17 @@
       const ko = item.ko || item.naturalKorean || '';
       if (lang === 'ko') speak(ko, { lang: 'ko-KR' });
       else speak(item.audioText || en, { lang: 'en-US' });
+      // 홈 듣기도 recognition 연결 강도를 남긴다 (하루·표현당 1회, XP 없음).
+      if (options.creditRecognition !== false) {
+        markStudy('listen', id, 'heard', {
+          signature: `expand-listen:${id}:${seoulTodayKey()}`,
+          hintLevel: 0,
+          recognitionOnly: true,
+          baseExpressionId: item.baseExpressionId || item.id,
+          progressId: item.progressId || item.id,
+        });
+        maybeAutoSyncAfterPractice();
+      }
     }
     function renderExpandSeedCard(item, options = {}) {
       if (!item) return `<p class="small-note">지금 연습할 Active set 표현이 없어요.</p>`;
@@ -2065,6 +2162,7 @@
           </div>
           <div class="en" id="expandSeedPrompt">${escapeHtml(prompt)}</div>
           <div class="ko${secondary ? '' : ' hidden'}" id="expandSeedSecondary">${escapeHtml(secondary)}</div>
+          ${lang === 'ko' ? renderContrastTeach(item, { compact: true, showTip: true }) : ''}
           <div class="expand-seed-actions">
             <button class="btn soft" type="button" id="expandSeedListen">듣기</button>
             <button class="btn accent" type="button" id="expandSeedShadow">따라말하기</button>
@@ -2372,10 +2470,12 @@
       }
 
       if (item) resetPromptLangToKorean(item);
+      const retrievalNudge = retrievalNudgeForExpression(item);
       questArea.innerHTML = `
         <div class="card">
           <h3>오늘의 말 · 확장 고르기</h3>
           <p class="small-note" style="margin:0 0 10px">순서로 클리어하는 퀘스트가 아닙니다. 듣기·따라말하기·평서/의문·이어말하기까지 이 화면에서 바로 이어가요.</p>
+          ${retrievalNudge ? `<p class="small-note" style="margin:0 0 10px" id="retrievalNudge">${retrievalNudge}</p>` : ''}
           ${renderExpandSeedCard(item)}
           <p class="small-note" style="margin:0 0 10px">오늘 이어간 연습 <b>${momentum}</b>회 · 더 할수록 흐름이 붙어요.</p>
           ${item ? renderExpandChoiceButtons(item.id) : ''}
@@ -2387,7 +2487,11 @@
       bindExpandSeedCard(questArea, item);
       bindExpandChoiceButtons(questArea);
       document.getElementById('refreshSeedBtn')?.addEventListener('click', () => {
-        const next = pickTopicShiftExpression(item?.id, bank) || pickTodaySeedExpression(bank, seoulTodayKey());
+        // Prefer another incomplete-axis seed; topic-shift is fallback.
+        const next = pickTodaySeedExpression(bank, seoulTodayKey(), { excludeIds: [item?.id].filter(Boolean) })
+          || pickTopicShiftExpression(item?.id, bank)
+          || bank.find(row => row.id !== item?.id)
+          || item;
         if (!next) return;
         clearExpandInline();
         quest.seedExpressionId = next.id;
@@ -2395,7 +2499,7 @@
         quest.lastExpandChoiceId = null;
         saveProgress();
         updateQuestUI({ force: true });
-        toast('다른 말로 바꿨어요. 확장을 골라 보세요.');
+        toast('다른 말로 바꿨어요. 비어 있는 연결부터 채워 보세요.');
       });
     }
 
@@ -2775,6 +2879,10 @@
       return patterns.find(p => p.id === id)?.label || id || '';
     }
     function normalizeExpression(expression, collections = appState.dictionaryData) {
+      const api = window.ExpressionContrast;
+      const contrast = api?.resolveContrast
+        ? api.resolveContrast(expression, collections)
+        : (expression.contrast || null);
       return {
         ...expression,
         en: expression.english,
@@ -2783,7 +2891,42 @@
         frame: patternLabelFromId(expression.patternId, collections.patterns || []),
         nouns: expression.nounIds || [],
         hint: expression.hints || [],
+        contrast: contrast || expression.contrast || null,
       };
+    }
+    function resolveItemContrast(item) {
+      const api = window.ExpressionContrast;
+      if (!item) return null;
+      if (api?.resolveContrast) {
+        return api.resolveContrast(item, {
+          verbs: appState.dictionaryData?.verbs || [],
+          nouns: appState.dictionaryData?.nouns || [],
+          patterns: appState.dictionaryData?.patterns || [],
+        });
+      }
+      return item.contrast || null;
+    }
+    function renderContrastTeach(itemOrContrast, options = {}) {
+      const contrast = itemOrContrast && (itemOrContrast.koVerb || itemOrContrast.assembly)
+        ? itemOrContrast
+        : resolveItemContrast(itemOrContrast);
+      if (!contrast) return '';
+      const api = window.ExpressionContrast;
+      const summary = api?.contrastSummaryLine?.(contrast)
+        || [contrast.koVerb, contrast.assembly].filter(Boolean).join(' → ');
+      if (!summary) return '';
+      const showTip = options.showTip !== false;
+      const compact = options.compact === true;
+      return `
+        <div class="contrast-teach${compact ? ' compact' : ''}">
+          <p class="contrast-title">한 → 영 조립</p>
+          <p class="contrast-summary">${escapeHtml(summary)}</p>
+          ${showTip && contrast.tip ? `<p class="contrast-tip">${escapeHtml(contrast.tip)}</p>` : ''}
+          ${!compact && contrast.wrongDirectTranslation
+            ? `<p class="contrast-wrong">직역 주의: ${escapeHtml(contrast.wrongDirectTranslation)}</p>`
+            : ''}
+        </div>
+      `;
     }
     function normalizeFallbackPhrase(phrase) {
       return {
@@ -3315,15 +3458,16 @@
       saveProgress();
       return note;
     }
-    function createDraftFromGap(gapId) {
+    function createDraftFromGap(gapId, options = {}) {
+      const quiet = options.quiet === true;
       const gap = (appState.progress.gapNotes || []).find(item => item.id === gapId);
       if (!gap) {
-        toast('간극 기록을 찾지 못했어요.');
+        if (!quiet) toast('간극 기록을 찾지 못했어요.');
         return null;
       }
       const existing = (appState.progress.expressionDrafts || []).find(item => item.sourceGapId === gap.id && (item.status || 'draft') !== 'archived');
       if (existing) {
-        toast('이미 이 간극으로 만든 Draft가 있어요.');
+        if (!quiet) toast('이미 이 간극으로 만든 Draft가 있어요.');
         return existing;
       }
       const bankItem = getGameBank().find(item => item.id === gap.expressionId);
@@ -3344,27 +3488,45 @@
         status: 'draft',
         createdAt: new Date().toISOString(),
       });
-      toast(draft.promoteReady ? 'Draft를 만들었어요. 승격 체크리스트를 통과했어요.' : 'Draft를 만들었어요. 패턴/한글을 보완하면 승격할 수 있어요.');
-      renderExpressionDraftsList();
+      if (!quiet) {
+        toast(draft.promoteReady ? 'Draft를 만들었어요. 승격 체크리스트를 통과했어요.' : 'Draft를 만들었어요. 패턴/한글을 보완하면 승격할 수 있어요.');
+        renderExpressionDraftsList();
+      }
+      // 신규 표현만 Canon/런타임까지 자동. 이미 ASS에 있는 표현은 Draft로만 남김.
+      if (options.autoPromote !== false && draft.promoteReady) {
+        const alreadyKnown = Boolean(draft.expressionId)
+          && (isExpressionInActiveSet(draft.expressionId) || isExpressionUnlocked(draft.expressionId));
+        if (!alreadyKnown) {
+          promoteExpressionDraft(draft.id, { quiet: true, autoQueue: true });
+        }
+      }
       return draft;
     }
-    function promoteExpressionDraft(draftId) {
+    function promoteExpressionDraft(draftId, options = {}) {
+      const quiet = options.quiet === true;
       const draft = (appState.progress.expressionDrafts || []).find(item => item.id === draftId);
       if (!draft) return;
       const api = window.EnglishBrainMarkdown;
       const evaluation = api?.evaluatePromoteChecklist?.(draft) || { ready: false };
       if (!evaluation.ready) {
-        const missing = (evaluation.missing || []).join(', ') || '영어·한글·동사·패턴';
-        toast(`아직 승격 조건이 부족해요. 보완: ${missing}`);
+        if (!quiet) {
+          const missing = (evaluation.missing || []).join(', ') || '영어·한글·동사·패턴';
+          toast(`아직 승격 조건이 부족해요. 보완: ${missing}`);
+        }
         return;
       }
       draft.status = 'approved';
       draft.promoteReady = true;
       draft.updatedAt = new Date().toISOString();
       saveProgress();
-      toast('Canon으로 승격했어요. “JSON 후보 받기”로 리뷰용 번들을 받을 수 있어요. 퀴즈 은행에는 자동으로 안 들어갑니다.');
-      renderExpressionDraftsList();
-      renderCanonIntakePanel();
+      if (options.autoQueue || getPolicyFlag('policyCanonAutoMerge', true)) {
+        queueCanonDraftForUnlock(draft.id, { quiet });
+      }
+      if (!quiet) {
+        toast('Canon으로 승격했어요. 정책이 켜져 있으면 런타임 퀴즈에도 합류합니다.');
+        renderExpressionDraftsList();
+        renderCanonIntakePanel();
+      }
     }
     function archiveExpressionDraft(draftId) {
       const draft = (appState.progress.expressionDrafts || []).find(item => item.id === draftId);
@@ -3455,9 +3617,14 @@
     function buildNextPracticeQueue() {
       const api = window.NextPractice;
       const openGaps = getOpenGapNotes();
+      const historyByExpressionId = appState.progress?.historyByExpressionId || {};
+      const weakAxisItems = api?.weakConnectionItems
+        ? api.weakConnectionItems(getUnlockedBank(), historyByExpressionId, { limit: 5 })
+        : [];
       const weakReview = [...getUnlockedBank()]
         .map(item => ({ expressionId: item.id, mode: 'review', reason: 'weak-link', priority: getItemReviewPriority(item) }))
         .filter(entry => entry.priority > 0)
+        .filter(entry => !weakAxisItems.some(axis => axis.expressionId === entry.expressionId))
         .sort((a, b) => b.priority - a.priority)
         .slice(0, 5);
       const watchlistLinks = (appState.progress.vaultOverlay?.links || []);
@@ -3466,6 +3633,8 @@
           importedNextPractice: appState.progress.importedNextPractice,
           importedBrainState: appState.progress.importedBrainState,
           openGaps,
+          weakAxisItems,
+          historyByExpressionId,
           weakReview,
           watchlistLinks,
           unlockedBank: getUnlockedBank(),
@@ -3502,6 +3671,9 @@
         'vault-next-practice': 'Vault Next Practice',
         'open-gap': '열린 간극',
         'weak-link': '약한 연결',
+        'axis-output': '회수 · 말하기',
+        'axis-recognition': '회수 · 뜻 이해',
+        'axis-assembly': '회수 · 문장 만들기',
         'vault-watchlist': 'Vault watchlist',
         'vault-watchlist-verb': 'Watchlist 동사',
         'vault-watchlist-noun': 'Watchlist 명사',
@@ -3525,7 +3697,7 @@
         if (watchCount) bits.push(`watchlist ${watchCount}`);
         sourceEl.textContent = bits.length
           ? `${bits.join(' · ')}. 해금된 표현만 연습합니다.`
-          : '간극 · watchlist · Brain State 힌트 · 복습 후보 순으로 제안합니다.';
+          : '간극 · 빈 연결 축 회수(말하기 우선) · watchlist · Brain · 복습 순으로 제안합니다.';
       }
       if (!queue.length) {
         target.innerHTML = '<p class="small-note">지금은 제안할 Next Practice가 없어요. 퀴즈를 풀거나 Vault에서 가져오면 채워집니다.</p>';
@@ -3626,12 +3798,19 @@
       const nounIds = [...new Set(
         getUnlockedBank().flatMap(item => item.nounIds || [])
       )].slice(0, 40);
-      const weakSlots = [...getUnlockedBank()]
-        .map(item => ({ expressionId: item.id, priority: getItemReviewPriority(item) }))
-        .filter(entry => entry.priority > 0)
-        .sort((a, b) => b.priority - a.priority)
-        .slice(0, 8)
-        .map(entry => ({ expressionId: entry.expressionId, reason: entry.priority >= 5 ? 'output-low' : 'weak-link' }));
+      const np = window.NextPractice;
+      const weakSlots = (np?.weakConnectionItems
+        ? np.weakConnectionItems(getUnlockedBank(), appState.progress?.historyByExpressionId || {}, { limit: 8 })
+        : [...getUnlockedBank()]
+          .map(item => ({ expressionId: item.id, priority: getItemReviewPriority(item) }))
+          .filter(entry => entry.priority > 0)
+          .sort((a, b) => b.priority - a.priority)
+          .slice(0, 8)
+      ).map(entry => ({
+        expressionId: entry.expressionId,
+        reason: entry.reason
+          || (entry.axis === 'output' || entry.priority >= 5 ? 'output-low' : 'weak-link'),
+      }));
       const watchlist = (appState.progress.vaultOverlay?.links || [])
         .filter(link => link.status === 'watchlist')
         .slice(0, 20)
@@ -4089,7 +4268,7 @@
       appState.progress.practiceEvents.unshift(event);
       appState.progress.practiceEvents = appState.progress.practiceEvents.slice(0, 40);
       if (resultType === 'retry' || resultType === 'meaning') {
-        upsertGapNote({
+        const gap = upsertGapNote({
           expressionId,
           english: en,
           naturalKorean: ko,
@@ -4100,6 +4279,8 @@
             : '자동 기록: 뜻은 통했지만 목표 표현과 다름',
           status: 'open',
         });
+        // Gap → Draft → (승격 가능 시) Canon/런타임까지 자동
+        if (gap?.id) createDraftFromGap(gap.id, { quiet: true, autoPromote: true });
       }
       saveProgress();
       maybeAutoSyncAfterPractice();
@@ -4273,15 +4454,16 @@
       }
       return { added: mergedRuntime.added, runtime: appState.progress.canonExpressions };
     }
-    function queueCanonDraftForUnlock(draftId) {
+    function queueCanonDraftForUnlock(draftId, options = {}) {
+      const quiet = options.quiet === true;
       const api = window.CanonIntake;
       if (!api) {
-        toast('canon intake module missing');
+        if (!quiet) toast('canon intake module missing');
         return;
       }
       const drafts = getApprovedCanonDrafts(draftId ? [draftId] : null);
       if (!drafts.length) {
-        toast('승격된 Canon Draft가 없어요.');
+        if (!quiet) toast('승격된 Canon Draft가 없어요.');
         return;
       }
       const bundle = buildCanonIntakeFromDrafts(drafts);
@@ -4298,13 +4480,17 @@
         runtimeAdded = applyCanonRuntimeMerge(bundle.candidates).added.length;
       }
       saveProgress();
-      renderCanonIntakePanel();
-      updateDashboard();
-      toast(added
-        ? `Unlock 대기열 ${added}개${runtimeAdded ? ` · 런타임 퀴즈 합류 ${runtimeAdded}개` : ''} · 저장소 JSON은 merge_canon_intake.js`
-        : (runtimeAdded
-          ? `이미 대기열에 있어요. 런타임 합류 ${runtimeAdded}개 갱신.`
-          : '이미 대기열에 있는 후보예요.'));
+      if (!quiet) {
+        renderCanonIntakePanel();
+        updateDashboard();
+        toast(added
+          ? `Unlock 대기열 ${added}개${runtimeAdded ? ` · 런타임 퀴즈 합류 ${runtimeAdded}개` : ''} · 저장소 JSON은 merge_canon_intake.js`
+          : (runtimeAdded
+            ? `이미 대기열에 있어요. 런타임 합류 ${runtimeAdded}개 갱신.`
+            : '이미 대기열에 있는 후보예요.'));
+      } else {
+        maybeAutoSyncAfterPractice({ force: true });
+      }
     }
     function renderCanonIntakePanel() {
       const target = document.getElementById('canonIntakePanel');
@@ -4449,8 +4635,10 @@
         vo.lastFetchedAt = index.updatedAt;
         vo.lastError = errors.length ? `${errors.length}개 경로 읽기 실패` : null;
         saveProgress();
+        const autoAccepted = autoAcceptActiveVaultMatches();
         renderDictionaryExplorer();
-        toast(`Vault overlay ${notes.length}노트 · active ${index.byGate.active.length} · later ${index.byGate.unlockLater.length} · 후보 ${index.byGate.candidate.length}`);
+        toast(`Vault overlay ${notes.length}노트 · active ${index.byGate.active.length} · 자동연결 ${autoAccepted} · later ${index.byGate.unlockLater.length} · 후보 ${index.byGate.candidate.length}`);
+        maybeAutoSyncAfterPractice({ force: true });
       } catch (error) {
         const vo = ensureVaultOverlayState();
         vo.lastError = String(error.message || error);
@@ -4460,14 +4648,30 @@
         console.error(error);
       }
     }
-    function acceptVaultMatch(matchId, forceWatchlist = false) {
+    function upsertVaultLinkRecord(link, options = {}) {
+      const vo = ensureVaultOverlayState();
+      if (!link?.id) return null;
+      // notePath가 같아도 entity별로 여러 링크를 유지 (브리지 핵심).
+      const index = vo.links.findIndex(item => item.id === link.id);
+      if (index >= 0) vo.links[index] = { ...vo.links[index], ...link };
+      else vo.links.unshift(link);
+      if (options.save !== false) saveProgress();
+      return link;
+    }
+    function acceptVaultMatch(matchId, forceWatchlist = false, options = {}) {
+      const quiet = options.quiet === true;
       const vo = ensureVaultOverlayState();
       const match = (vo.matches || []).find(item => vaultMatchId(item) === matchId);
       if (!match) {
-        toast('후보를 찾지 못했어요. Vault를 다시 읽어 주세요.');
-        return;
+        if (!quiet) toast('후보를 찾지 못했어요. Vault를 다시 읽어 주세요.');
+        return null;
       }
       const status = forceWatchlist || match.gate !== 'active' ? 'watchlist' : 'confirmed';
+      const catalog = getVaultCatalogForLinks();
+      const api = window.VaultOverlay;
+      const relatedExpressionIds = api?.relatedExpressionsForEntity
+        ? api.relatedExpressionsForEntity(match.entityType, match.entityId, catalog)
+        : (Array.isArray(match.relatedExpressionIds) ? match.relatedExpressionIds.slice(0, 48) : []);
       const link = {
         id: matchId,
         notePath: match.note?.path || '',
@@ -4477,18 +4681,33 @@
         entityLabel: match.entityLabel || match.note?.word || '',
         confidence: match.confidence || 'low',
         gate: match.gate || 'background',
-        relatedExpressionIds: Array.isArray(match.relatedExpressionIds) ? match.relatedExpressionIds.slice(0, 12) : [],
+        relatedExpressionIds,
         status,
         updatedAt: new Date().toISOString(),
       };
-      const index = vo.links.findIndex(item => item.id === matchId || item.notePath === link.notePath);
-      if (index >= 0) vo.links[index] = link;
-      else vo.links.unshift(link);
-      saveProgress();
-      renderDictionaryExplorer();
-      toast(status === 'watchlist'
-        ? '나중에 해금 후보(watchlist)에 넣었어요. 퀴즈에는 안 나옵니다.'
-        : 'Vault 연결을 확정했어요. 퀴즈 범위는 그대로입니다.');
+      upsertVaultLinkRecord(link);
+      if (!quiet) {
+        renderDictionaryExplorer();
+        toast(status === 'watchlist'
+          ? '나중에 해금 후보(watchlist)에 넣었어요. 퀴즈에는 안 나옵니다.'
+          : 'Vault 연결을 확정했어요. 퀴즈 범위는 그대로입니다.');
+      }
+      return link;
+    }
+    function autoAcceptActiveVaultMatches() {
+      const vo = ensureVaultOverlayState();
+      const active = (vo.matches || []).filter(match => match.gate === 'active' && match.note?.path);
+      let accepted = 0;
+      active.forEach(match => {
+        const id = vaultMatchId(match);
+        const existing = (vo.links || []).find(link => link.id === id);
+        if (existing?.status === 'dismissed') return;
+        if (existing?.status === 'confirmed') return;
+        acceptVaultMatch(id, false, { quiet: true });
+        accepted += 1;
+      });
+      if (accepted) saveProgress();
+      return accepted;
     }
     function dismissVaultMatch(matchId) {
       const vo = ensureVaultOverlayState();
@@ -4505,10 +4724,8 @@
         status: 'dismissed',
         updatedAt: new Date().toISOString(),
       };
-      const index = vo.links.findIndex(item => item.id === matchId || item.notePath === link.notePath);
-      if (index >= 0) vo.links[index] = { ...vo.links[index], ...link };
-      else vo.links.unshift(link);
-      saveProgress();
+      // dismiss도 id 기준. 같은 노트의 다른 entity 링크는 유지.
+      upsertVaultLinkRecord(link);
       renderDictionaryExplorer();
       toast('연결 제안을 숨겼어요.');
     }
@@ -5035,6 +5252,7 @@
               <h6>뜻</h6>
               <p>${escapeHtml(expression.naturalKorean || '')}</p>
               ${expression.literalMeaning ? `<p class="small-note">직역: ${escapeHtml(expression.literalMeaning)}</p>` : ''}
+              ${renderContrastTeach(expression)}
               ${expression.usageNotes ? `<p><span class="small-note">언제:</span> ${escapeHtml(expression.usageNotes)}</p>` : ''}
               ${expression.nuanceNotes ? `<p><span class="small-note">실제 의미:</span> ${escapeHtml(expression.nuanceNotes)}</p>` : ''}
               <h6 style="margin-top:10px">덩어리</h6>
@@ -5154,6 +5372,13 @@
             <div class="map-detail-card">
               <p><b><span class="map-step-title"><span class="map-step-index">4</span>자주 쓰는 조합</span></b></p>
               <div class="map-chip-list">${combinationButtons}</div>
+              ${selectedCombination?.koreanContrast
+                ? `<div class="contrast-teach compact" style="margin-top:10px">
+                    <p class="contrast-title">한 → 영 조립</p>
+                    <p class="contrast-summary">${escapeHtml(selectedCombination.koreanContrast)}</p>
+                    ${selectedCombination.contrastTip ? `<p class="contrast-tip">${escapeHtml(selectedCombination.contrastTip)}</p>` : ''}
+                  </div>`
+                : ''}
             </div>
           ` : ''}
           ${selectedCombination ? `
@@ -5770,6 +5995,7 @@
           <div class="prompt-lang" id="simplePromptLang">${lang === 'en' ? 'English · 참고' : '영작하기'}</div>
           <h2 id="simplePromptText">${escapeHtml(prompt)}</h2>
         </div>
+        ${lang === 'ko' ? renderContrastTeach(item, { compact: true }) : ''}
         ${renderPracticeCountBadge(item, { elementId: countId })}
         <div class="simple-actions">
           <button class="btn soft tts-play" type="button" data-text="${escapeHtml(ttsText)}" data-lang="${ttsLang}">${lang === 'en' ? '영어 듣기' : '듣기'}</button>
@@ -5813,6 +6039,7 @@
       return `
         <h2>${item.ko}</h2>
         <p class="korean">말하듯이 영어로 조립해 보세요. 대소문자와 마침표는 크게 신경 쓰지 않아도 됩니다.</p>
+        ${renderContrastTeach(item, { compact: true })}
         ${renderVoiceFirstTypedBlock({ checkLabel: '정답 확인', placeholder: 'Type your English sentence', item })}`;
     }
     function renderMatrix(item) {
@@ -6525,9 +6752,27 @@
       }
       const guessWords = new Set(guessExpanded.split(' ').filter(Boolean));
       if (item.verb && !guessWords.has(String(item.verb).toLowerCase())) {
-        return { status: 'retry', feedbackClass: 'bad', title: '핵심 동사가 달라요.', message: `오늘은 ${item.verb}로 문장을 만드는 연습이에요. 힌트를 보고 다시 말해 보세요.`, countsAsSuccess: false };
+        const contrast = resolveItemContrast(item);
+        const assemblyHint = contrast?.assembly ? ` 영어는 ${contrast.assembly}로 조립해 보세요.` : '';
+        return {
+          status: 'retry',
+          feedbackClass: 'bad',
+          title: '핵심 동사가 달라요.',
+          message: `오늘은 ${item.verb}로 문장을 만드는 연습이에요.${assemblyHint}`,
+          countsAsSuccess: false,
+        };
       }
-      return { status: 'retry', feedbackClass: 'bad', title: '목표 문장과 달라요.', message: item.mistakeExplanation || '아직 목표 표현과 조금 달라요. 힌트를 보거나 다시 말해 보세요.', countsAsSuccess: false };
+      const contrast = resolveItemContrast(item);
+      const contrastHint = contrast?.assembly
+        ? ` 한국어 상황 표현을 ${contrast.assembly}로 바꿔 말해 보세요.`
+        : '';
+      return {
+        status: 'retry',
+        feedbackClass: 'bad',
+        title: '목표 문장과 달라요.',
+        message: (item.mistakeExplanation || '아직 목표 표현과 조금 달라요.') + contrastHint,
+        countsAsSuccess: false,
+      };
     }
     function checkTextAnswer(item, mode, options = {}) {
       if (mode === 'explain') {
@@ -6645,6 +6890,7 @@
             : `<div class="small-note" style="margin-top:8px">정답 영어는 맞춘 뒤에 보여 줄게요. 힌트로 이어서 맞춰 보세요.</div>`}
           <div class="answer-key">자연스러운 한국어</div>
           <div>${escapeHtml(item.ko)}</div>
+          ${renderContrastTeach(item)}
           ${nuance}
           <div class="answer-key">단어 덩어리</div>
           <div class="chunk-row">${(item.chunks || []).map(chunk => `<span class="chunk">${escapeHtml(chunk)}</span>`).join('')}</div>
@@ -7178,6 +7424,7 @@
           <h3>${escapeHtml(selectedExpression.english)}</h3>
           <p><b>${escapeHtml(selectedExpression.naturalKorean)}</b></p>
           <p class="small-note">직역: ${escapeHtml(selectedExpression.literalMeaning || '')}</p>
+          ${renderContrastTeach(selectedExpression)}
           ${selectedExpression.usageNotes ? `<p><span class="small-note">언제:</span> ${escapeHtml(selectedExpression.usageNotes)}</p>` : ''}
           ${selectedExpression.nuanceNotes ? `<p><span class="small-note">실제 의미:</span> ${escapeHtml(selectedExpression.nuanceNotes)}</p>` : ''}
           <div class="chunk-row">${selectedExpression.chunks.map(chunk => `<span class="chunk">${escapeHtml(chunk)}</span>`).join('')}</div>

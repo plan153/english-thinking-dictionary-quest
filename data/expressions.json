@@ -37,7 +37,16 @@
     "relatedExpressionIds": [
       "e021",
       "e015"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "질문하다 / 질문이 있다",
+      "enEngine": "have",
+      "enNoun": "a question",
+      "assembly": "have + a question",
+      "tip": "한국어는 「질문하다」, 영어는 have + question으로 자주 말합니다.",
+      "wrongDirectTranslation": "ask a question만 고집하기보다, 상황에서는 have a question도 자연스럽습니다.",
+      "source": "curated"
+    }
   },
   {
     "id": "e002",
@@ -80,7 +89,16 @@
     ],
     "isCoreExample": true,
     "mapCombination": "need some time",
-    "mapOrder": 1
+    "mapOrder": 1,
+    "contrast": {
+      "koVerb": "시간이 필요하다",
+      "enEngine": "need",
+      "enNoun": "some time",
+      "assembly": "need + some time",
+      "tip": "「필요하다」를 need + 명사로 붙입니다.",
+      "wrongDirectTranslation": "",
+      "source": "curated"
+    }
   },
   {
     "id": "e003",
@@ -144,7 +162,16 @@
     ],
     "isCoreExample": true,
     "mapCombination": "get it",
-    "mapOrder": 1
+    "mapOrder": 1,
+    "contrast": {
+      "koVerb": "이해하다",
+      "enEngine": "get",
+      "enNoun": "it",
+      "assembly": "get + it",
+      "tip": "한국어 「이해하다」를 영어 get it로 자주 조립합니다.",
+      "wrongDirectTranslation": "understand만 떠올리기",
+      "source": "curated"
+    }
   },
   {
     "id": "e004",
@@ -183,7 +210,15 @@
     "relatedExpressionIds": [
       "e013",
       "e064"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "점점 피곤해지고 있어요",
+      "enEngine": "get",
+      "enNoun": "feeling",
+      "assembly": "get + adjective",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e005",
@@ -223,7 +258,15 @@
     "relatedExpressionIds": [
       "e008",
       "e060"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "편하게 있어요",
+      "enEngine": "make",
+      "enNoun": "yourself · home",
+      "assembly": "make + person + state",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e006",
@@ -261,7 +304,16 @@
     "relatedExpressionIds": [
       "e002",
       "e036"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "천천히 하다 / 서두르지 않다",
+      "enEngine": "take",
+      "enNoun": "your time",
+      "assembly": "take + your time",
+      "tip": "「서두르지 마세요」를 take your time으로 말합니다.",
+      "wrongDirectTranslation": "",
+      "source": "curated"
+    }
   },
   {
     "id": "e007",
@@ -302,7 +354,15 @@
     "relatedExpressionIds": [
       "e040",
       "e002"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "잠깐만요",
+      "enEngine": "give",
+      "enNoun": "second",
+      "assembly": "give + person + noun",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e008",
@@ -343,7 +403,15 @@
       "e044"
     ],
     "usageNotes": "가는 중이라고 알릴 때 써요.",
-    "nuanceNotes": "곧 도착한다는 메시지에 아주 흔해요."
+    "nuanceNotes": "곧 도착한다는 메시지에 아주 흔해요.",
+    "contrast": {
+      "koVerb": "가는 중이에요",
+      "enEngine": "be",
+      "enNoun": "way",
+      "assembly": "be on one's way",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e009",
@@ -424,7 +492,15 @@
     "relatedExpressionIds": [
       "e051",
       "e052"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "여기에 놓으세요",
+      "enEngine": "put",
+      "enNoun": "here",
+      "assembly": "put + thing + place",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e011",
@@ -462,7 +538,15 @@
     "relatedExpressionIds": [
       "e054",
       "e047"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "계속 가세요. 계속 해요",
+      "enEngine": "keep",
+      "enNoun": "way",
+      "assembly": "keep + -ing",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e012",
@@ -540,7 +624,15 @@
     "relatedExpressionIds": [
       "e004",
       "e064"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "좀 나아졌어요",
+      "enEngine": "feel",
+      "enNoun": "feeling",
+      "assembly": "feel + adjective",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e014",
@@ -582,7 +674,15 @@
     ],
     "isCoreExample": true,
     "mapCombination": "want to try",
-    "mapOrder": 1
+    "mapOrder": 1,
+    "contrast": {
+      "koVerb": "해보고 싶어요",
+      "enEngine": "want",
+      "enNoun": "try",
+      "assembly": "want to + verb",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e015",
@@ -643,7 +743,16 @@
     "relatedExpressionIds": [
       "e075",
       "e001"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "도움이 필요하다",
+      "enEngine": "need",
+      "enNoun": "help",
+      "assembly": "need + help",
+      "tip": "「도움이 필요하다」= need + help.",
+      "wrongDirectTranslation": "",
+      "source": "curated"
+    }
   },
   {
     "id": "e016",
@@ -723,7 +832,15 @@
     "relatedExpressionIds": [
       "e049",
       "e050"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "지금 하세요",
+      "enEngine": "do",
+      "enNoun": "today",
+      "assembly": "do + action",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e018",
@@ -761,7 +878,15 @@
     "relatedExpressionIds": [
       "e039",
       "e024"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "좋은 하루 보내세요",
+      "enEngine": "have",
+      "enNoun": "day",
+      "assembly": "have + noun",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e019",
@@ -801,7 +926,16 @@
       "e013"
     ],
     "mapCombination": "get some rest",
-    "mapOrder": 4
+    "mapOrder": 4,
+    "contrast": {
+      "koVerb": "쉬다",
+      "enEngine": "get",
+      "enNoun": "some rest",
+      "assembly": "get + some rest",
+      "tip": "한국어 「쉬다」를 get + rest로 자주 말합니다.",
+      "wrongDirectTranslation": "rest만 동사로 쓰기",
+      "source": "curated"
+    }
   },
   {
     "id": "e020",
@@ -839,7 +973,15 @@
     "relatedExpressionIds": [
       "e031",
       "e032"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "계획을 세우세요",
+      "enEngine": "make",
+      "enNoun": "plan",
+      "assembly": "make + noun",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e021",
@@ -878,7 +1020,16 @@
     "relatedExpressionIds": [
       "e001",
       "e031"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "생각이 나다 / 아이디어가 있다",
+      "enEngine": "have",
+      "enNoun": "an idea",
+      "assembly": "have + an idea",
+      "tip": "「생각이 있다」= have + idea.",
+      "wrongDirectTranslation": "",
+      "source": "curated"
+    }
   },
   {
     "id": "e022",
@@ -918,7 +1069,15 @@
     "relatedExpressionIds": [
       "e002",
       "e006"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "시간 있어요",
+      "enEngine": "have",
+      "enNoun": "time",
+      "assembly": "have + time",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e023",
@@ -957,7 +1116,16 @@
     "relatedExpressionIds": [
       "e058",
       "e071"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "문제가 있다",
+      "enEngine": "have",
+      "enNoun": "a problem",
+      "assembly": "have + a problem",
+      "tip": "「문제가 있다」= have + problem.",
+      "wrongDirectTranslation": "",
+      "source": "curated"
+    }
   },
   {
     "id": "e024",
@@ -1017,7 +1185,16 @@
     "relatedExpressionIds": [
       "e025",
       "e018"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "점심 먹다",
+      "enEngine": "have",
+      "enNoun": "lunch",
+      "assembly": "have + lunch",
+      "tip": "식사 동사 대신 have + meal이 흔합니다.",
+      "wrongDirectTranslation": "eat lunch만 쓰기",
+      "source": "curated"
+    }
   },
   {
     "id": "e025",
@@ -1055,7 +1232,16 @@
     "relatedExpressionIds": [
       "e019",
       "e024"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "물 마시다",
+      "enEngine": "have",
+      "enNoun": "some water",
+      "assembly": "have + some water",
+      "tip": "「마시다」를 have + water로도 말합니다.",
+      "wrongDirectTranslation": "",
+      "source": "curated"
+    }
   },
   {
     "id": "e026",
@@ -1153,7 +1339,16 @@
     "relatedExpressionIds": [
       "e028",
       "e043"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "받다 / 문자를 받다",
+      "enEngine": "get",
+      "enNoun": "a message",
+      "assembly": "get + message",
+      "tip": "「받다」를 get + message로 조립합니다.",
+      "wrongDirectTranslation": "",
+      "source": "curated"
+    }
   },
   {
     "id": "e028",
@@ -1191,7 +1386,16 @@
     "relatedExpressionIds": [
       "e027",
       "e043"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "문자 받다",
+      "enEngine": "get",
+      "enNoun": "my text",
+      "assembly": "get + text",
+      "tip": "「받다」= get + text/message.",
+      "wrongDirectTranslation": "",
+      "source": "curated"
+    }
   },
   {
     "id": "e029",
@@ -1305,7 +1509,16 @@
     ],
     "isCoreExample": true,
     "mapCombination": "get home",
-    "mapOrder": 3
+    "mapOrder": 3,
+    "contrast": {
+      "koVerb": "도착하다",
+      "enEngine": "get",
+      "enNoun": "home",
+      "assembly": "get + home / get to + place",
+      "tip": "「도착하다」를 get + place로 자주 말합니다.",
+      "wrongDirectTranslation": "arrive만 쓰기",
+      "source": "curated"
+    }
   },
   {
     "id": "e081",
@@ -1348,7 +1561,15 @@
     ],
     "isCoreExample": true,
     "mapCombination": "get to work",
-    "mapOrder": 5
+    "mapOrder": 5,
+    "contrast": {
+      "koVerb": "나는 직장에 도착해요",
+      "enEngine": "get",
+      "enNoun": "work",
+      "assembly": "get to + place",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e082",
@@ -1390,7 +1611,15 @@
     ],
     "isCoreExample": true,
     "mapCombination": "want help",
-    "mapOrder": 5
+    "mapOrder": 5,
+    "contrast": {
+      "koVerb": "도움이 필요해요",
+      "enEngine": "want",
+      "enNoun": "help",
+      "assembly": "want + noun",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e083",
@@ -1433,7 +1662,15 @@
     ],
     "isCoreExample": true,
     "mapCombination": "want some time",
-    "mapOrder": 6
+    "mapOrder": 6,
+    "contrast": {
+      "koVerb": "시간이 좀 필요해요",
+      "enEngine": "want",
+      "enNoun": "time",
+      "assembly": "want + noun",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e084",
@@ -1512,7 +1749,15 @@
     "relatedExpressionIds": [
       "e020",
       "e032"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "결정합시다",
+      "enEngine": "make",
+      "enNoun": "decision",
+      "assembly": "make + noun",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e032",
@@ -1570,7 +1815,16 @@
     "relatedExpressionIds": [
       "e031",
       "e033"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "실수하다",
+      "enEngine": "make",
+      "enNoun": "a mistake",
+      "assembly": "make + a mistake",
+      "tip": "한국어는 「실수하다」 한 동사, 영어는 make + mistake.",
+      "wrongDirectTranslation": "do a mistake",
+      "source": "curated"
+    }
   },
   {
     "id": "e033",
@@ -1609,7 +1863,16 @@
     "relatedExpressionIds": [
       "e011",
       "e029"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "발전하다 / 진전하다",
+      "enEngine": "make",
+      "enNoun": "progress",
+      "assembly": "make + progress",
+      "tip": "「발전하다」를 make + progress로 말합니다.",
+      "wrongDirectTranslation": "progress를 동사로만 쓰기",
+      "source": "curated"
+    }
   },
   {
     "id": "e034",
@@ -1689,7 +1952,15 @@
     "relatedExpressionIds": [
       "e013",
       "e059"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "그게 저를 기쁘게 해요",
+      "enEngine": "make",
+      "enNoun": "feeling",
+      "assembly": "make + person + state",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e036",
@@ -1748,7 +2019,16 @@
     "relatedExpressionIds": [
       "e006",
       "e002"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "시간이 걸리다",
+      "enEngine": "take",
+      "enNoun": "time",
+      "assembly": "take + time",
+      "tip": "「걸리다」를 take + time으로 조립합니다.",
+      "wrongDirectTranslation": "spend time과 혼동",
+      "source": "curated"
+    }
   },
   {
     "id": "e037",
@@ -1786,7 +2066,15 @@
     "relatedExpressionIds": [
       "e019",
       "e006"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "잠깐 쉬세요",
+      "enEngine": "take",
+      "enNoun": "break",
+      "assembly": "take + a break",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e038",
@@ -1824,7 +2112,15 @@
     "relatedExpressionIds": [
       "e057",
       "e034"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "한번 보세요",
+      "enEngine": "take",
+      "enNoun": "look",
+      "assembly": "take + a look",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e039",
@@ -1862,7 +2158,15 @@
     "relatedExpressionIds": [
       "e018",
       "e025"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "잘 지내요. 조심해요",
+      "enEngine": "take",
+      "enNoun": "care",
+      "assembly": "take care",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e040",
@@ -1902,7 +2206,15 @@
     "relatedExpressionIds": [
       "e007",
       "e041"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "잠깐만요",
+      "enEngine": "give",
+      "enNoun": "minute",
+      "assembly": "give + person + noun",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e041",
@@ -1942,7 +2254,15 @@
     "relatedExpressionIds": [
       "e040",
       "e043"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "휴대폰 좀 주세요",
+      "enEngine": "give",
+      "enNoun": "phone",
+      "assembly": "give + person + noun",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e042",
@@ -1982,7 +2302,15 @@
     "relatedExpressionIds": [
       "e014",
       "e011"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "한번 해보세요",
+      "enEngine": "give",
+      "enNoun": "try",
+      "assembly": "give it a try",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e043",
@@ -2022,7 +2350,15 @@
     "relatedExpressionIds": [
       "e027",
       "e028"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "전화 주세요",
+      "enEngine": "give",
+      "enNoun": "call",
+      "assembly": "give + person + a call",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e044",
@@ -2060,7 +2396,15 @@
     "relatedExpressionIds": [
       "e030",
       "e008"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "집에 가세요",
+      "enEngine": "go",
+      "enNoun": "home",
+      "assembly": "go + place",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e045",
@@ -2118,7 +2462,15 @@
     "relatedExpressionIds": [
       "e009",
       "e044"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "거기로 가요",
+      "enEngine": "go",
+      "enNoun": "there",
+      "assembly": "go + place",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e046",
@@ -2293,7 +2645,15 @@
     "relatedExpressionIds": [
       "e011",
       "e042"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "최선을 다하세요",
+      "enEngine": "do",
+      "enNoun": "work",
+      "assembly": "do + action",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e050",
@@ -2372,7 +2732,15 @@
     "relatedExpressionIds": [
       "e010",
       "e052"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "가방을 거기에 놓으세요",
+      "enEngine": "put",
+      "enNoun": "bag · there",
+      "assembly": "put + thing + place",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e052",
@@ -2410,7 +2778,15 @@
     "relatedExpressionIds": [
       "e051",
       "e010"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "코트를 입으세요",
+      "enEngine": "put",
+      "enNoun": "thing",
+      "assembly": "put on + thing",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e053",
@@ -2512,7 +2888,15 @@
     "relatedExpressionIds": [
       "e011",
       "e042"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "계속 해보세요",
+      "enEngine": "keep",
+      "enNoun": "try",
+      "assembly": "keep + -ing",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e055",
@@ -2590,7 +2974,15 @@
     "relatedExpressionIds": [
       "e043",
       "e027"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "연락하고 지내요",
+      "enEngine": "keep",
+      "enNoun": "call · message",
+      "assembly": "keep in touch",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e057",
@@ -2628,7 +3020,15 @@
     "relatedExpressionIds": [
       "e012",
       "e038"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "자리를 찾으세요",
+      "enEngine": "find",
+      "enNoun": "seat",
+      "assembly": "find + noun",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e058",
@@ -2667,7 +3067,15 @@
     "relatedExpressionIds": [
       "e023",
       "e071"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "방법을 찾을 거예요",
+      "enEngine": "find",
+      "enNoun": "way",
+      "assembly": "find + a way",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e059",
@@ -2706,7 +3114,15 @@
       "e013"
     ],
     "usageNotes": "기쁜 감정을 짧게 말할 때 써요.",
-    "nuanceNotes": "상태 형용사의 기본 예로 자주 나와요."
+    "nuanceNotes": "상태 형용사의 기본 예로 자주 나와요.",
+    "contrast": {
+      "koVerb": "기뻐요",
+      "enEngine": "be",
+      "enNoun": "feeling",
+      "assembly": "be + state",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e060",
@@ -2747,7 +3163,15 @@
       "e008"
     ],
     "usageNotes": "거의 도착·거의 성공했을 때 격려할 때 써요.",
-    "nuanceNotes": "물리 도착과 목표 달성 둘 다에 써요."
+    "nuanceNotes": "물리 도착과 목표 달성 둘 다에 써요.",
+    "contrast": {
+      "koVerb": "거의 다 왔어요",
+      "enEngine": "be",
+      "enNoun": "there",
+      "assembly": "be on one's way",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e061",
@@ -2824,7 +3248,15 @@
     "relatedExpressionIds": [
       "e002",
       "e022"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "시간이 없어요",
+      "enEngine": "have",
+      "enNoun": "time",
+      "assembly": "have + time",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e063",
@@ -2862,7 +3294,15 @@
     "relatedExpressionIds": [
       "e003",
       "e001"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "알아봅시다",
+      "enEngine": "find",
+      "enNoun": "question",
+      "assembly": "find out",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e064",
@@ -2900,7 +3340,15 @@
     "relatedExpressionIds": [
       "e013",
       "e019"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "몸이 안 좋아요",
+      "enEngine": "feel",
+      "enNoun": "feeling",
+      "assembly": "feel + adjective",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e065",
@@ -2938,7 +3386,16 @@
     "relatedExpressionIds": [
       "e064",
       "e013"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "감기에 걸리다",
+      "enEngine": "have",
+      "enNoun": "a cold",
+      "assembly": "have + a cold",
+      "tip": "「감기에 걸리다」= have + a cold.",
+      "wrongDirectTranslation": "catch a cold만 고집",
+      "source": "curated"
+    }
   },
   {
     "id": "e066",
@@ -2977,7 +3434,15 @@
     "relatedExpressionIds": [
       "e025",
       "e024"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "커피가 당겨요",
+      "enEngine": "feel",
+      "enNoun": "coffee",
+      "assembly": "feel like + noun/-ing",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e067",
@@ -3016,7 +3481,15 @@
     "relatedExpressionIds": [
       "e001",
       "e015"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "편하게 물어보세요",
+      "enEngine": "feel",
+      "enNoun": "question",
+      "assembly": "feel free to + verb",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e068",
@@ -3058,7 +3531,15 @@
     ],
     "isCoreExample": true,
     "mapCombination": "want to know",
-    "mapOrder": 2
+    "mapOrder": 2,
+    "contrast": {
+      "koVerb": "알고 싶어요",
+      "enEngine": "want",
+      "enNoun": "question",
+      "assembly": "want to + verb",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e069",
@@ -3100,7 +3581,15 @@
     ],
     "isCoreExample": true,
     "mapCombination": "want to go home",
-    "mapOrder": 3
+    "mapOrder": 3,
+    "contrast": {
+      "koVerb": "집에 가고 싶어요",
+      "enEngine": "want",
+      "enNoun": "home",
+      "assembly": "want to + verb",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e070",
@@ -3142,7 +3631,15 @@
     ],
     "isCoreExample": true,
     "mapCombination": "want more coffee",
-    "mapOrder": 4
+    "mapOrder": 4,
+    "contrast": {
+      "koVerb": "커피를 더 원해요",
+      "enEngine": "want",
+      "enNoun": "coffee",
+      "assembly": "want + noun",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e071",
@@ -3181,7 +3678,15 @@
     "relatedExpressionIds": [
       "e020",
       "e058"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "계획이 필요해요",
+      "enEngine": "need",
+      "enNoun": "plan",
+      "assembly": "need + noun",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e072",
@@ -3223,7 +3728,15 @@
     ],
     "isCoreExample": true,
     "mapCombination": "need a break",
-    "mapOrder": 3
+    "mapOrder": 3,
+    "contrast": {
+      "koVerb": "휴식이 필요해요",
+      "enEngine": "need",
+      "enNoun": "break",
+      "assembly": "need + noun",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e073",
@@ -3265,7 +3778,15 @@
     ],
     "isCoreExample": true,
     "mapCombination": "need to go",
-    "mapOrder": 4
+    "mapOrder": 4,
+    "contrast": {
+      "koVerb": "가야 해요",
+      "enEngine": "need",
+      "enNoun": "way",
+      "assembly": "need to + verb",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e074",
@@ -3304,7 +3825,15 @@
     "relatedExpressionIds": [
       "e019",
       "e064"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "자야 해요",
+      "enEngine": "need",
+      "enNoun": "sleep",
+      "assembly": "need to + verb",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e075",
@@ -3346,7 +3875,15 @@
     ],
     "isCoreExample": true,
     "mapCombination": "need help",
-    "mapOrder": 2
+    "mapOrder": 2,
+    "contrast": {
+      "koVerb": "도움이 필요해요",
+      "enEngine": "need",
+      "enNoun": "help",
+      "assembly": "need help",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e076",
@@ -3386,7 +3923,15 @@
     "relatedExpressionIds": [
       "e010",
       "e012"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "열쇠를 여기에 뒀어요",
+      "enEngine": "put",
+      "enNoun": "key · here",
+      "assembly": "put + thing + place",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e077",
@@ -3425,7 +3970,15 @@
     "relatedExpressionIds": [
       "e055",
       "e010"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "문을 열어 두세요",
+      "enEngine": "keep",
+      "enNoun": "door",
+      "assembly": "keep + object + state",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e078",
@@ -3538,7 +4091,15 @@
     "relatedExpressionIds": [
       "e079",
       "e008"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "기차를 타세요",
+      "enEngine": "take",
+      "enNoun": "train",
+      "assembly": "take + transport",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e085",
@@ -3581,7 +4142,15 @@
     ],
     "isCoreExample": true,
     "mapCombination": "get to school",
-    "mapOrder": 6
+    "mapOrder": 6,
+    "contrast": {
+      "koVerb": "나는 학교에 도착해요",
+      "enEngine": "get",
+      "enNoun": "school",
+      "assembly": "get to + place",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e086",
@@ -3623,7 +4192,15 @@
     ],
     "isCoreExample": true,
     "mapCombination": "get to the station",
-    "mapOrder": 7
+    "mapOrder": 7,
+    "contrast": {
+      "koVerb": "나는 역에 도착해요",
+      "enEngine": "get",
+      "enNoun": "station",
+      "assembly": "get to + place",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e087",
@@ -3668,7 +4245,15 @@
     ],
     "isCoreExample": true,
     "mapCombination": "get to work",
-    "mapOrder": 8
+    "mapOrder": 8,
+    "contrast": {
+      "koVerb": "나는 아홉 시에 직장에 도착해요",
+      "enEngine": "get",
+      "enNoun": "work · time",
+      "assembly": "get to + place",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e088",
@@ -3709,7 +4294,15 @@
       "e002"
     ],
     "mapCombination": "want a break",
-    "mapOrder": 5
+    "mapOrder": 5,
+    "contrast": {
+      "koVerb": "휴식이 필요해요",
+      "enEngine": "want",
+      "enNoun": "break",
+      "assembly": "want + noun",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e089",
@@ -3750,7 +4343,15 @@
       "e070"
     ],
     "mapCombination": "want more time",
-    "mapOrder": 6
+    "mapOrder": 6,
+    "contrast": {
+      "koVerb": "시간을 더 원해요",
+      "enEngine": "want",
+      "enNoun": "time",
+      "assembly": "want + noun",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e090",
@@ -3791,7 +4392,15 @@
       "e019"
     ],
     "mapCombination": "need to sleep",
-    "mapOrder": 6
+    "mapOrder": 6,
+    "contrast": {
+      "koVerb": "자야 해요",
+      "enEngine": "need",
+      "enNoun": "sleep",
+      "assembly": "need to + verb",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e091",
@@ -3830,7 +4439,16 @@
     "relatedExpressionIds": [
       "e022",
       "e062"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "잠깐 시간 있다",
+      "enEngine": "have",
+      "enNoun": "a minute",
+      "assembly": "have + a minute",
+      "tip": "「시간 있어요?」= have + a minute/time.",
+      "wrongDirectTranslation": "",
+      "source": "curated"
+    }
   },
   {
     "id": "e092",
@@ -3869,7 +4487,16 @@
     "relatedExpressionIds": [
       "e022",
       "e062"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "시간이 없다",
+      "enEngine": "have",
+      "enNoun": "time",
+      "assembly": "don't have + time",
+      "tip": "「시간이 없다」= not have + time.",
+      "wrongDirectTranslation": "",
+      "source": "curated"
+    }
   },
   {
     "id": "e093",
@@ -3908,7 +4535,16 @@
     "relatedExpressionIds": [
       "e023",
       "e021"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "회의가 있다",
+      "enEngine": "have",
+      "enNoun": "a meeting",
+      "assembly": "have + a meeting",
+      "tip": "「회의가 있다」= have + meeting.",
+      "wrongDirectTranslation": "",
+      "source": "curated"
+    }
   },
   {
     "id": "e094",
@@ -3947,7 +4583,16 @@
     "relatedExpressionIds": [
       "e021",
       "e020"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "계획을 세우다 / 계획이 있다",
+      "enEngine": "have",
+      "enNoun": "a plan",
+      "assembly": "have + a plan",
+      "tip": "「계획을 세우다」도 have/make + plan으로 말합니다.",
+      "wrongDirectTranslation": "set a plan",
+      "source": "curated"
+    }
   },
   {
     "id": "e095",
@@ -3985,7 +4630,16 @@
     "relatedExpressionIds": [
       "e018",
       "e039"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "재미있게 보내다",
+      "enEngine": "have",
+      "enNoun": "fun",
+      "assembly": "have + fun",
+      "tip": "「재미있게 보내다」= have + fun.",
+      "wrongDirectTranslation": "",
+      "source": "curated"
+    }
   },
   {
     "id": "e096",
@@ -4024,7 +4678,15 @@
     "relatedExpressionIds": [
       "e044",
       "e073"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "가야 해요",
+      "enEngine": "have",
+      "enNoun": "way",
+      "assembly": "have + noun",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e097",
@@ -4063,7 +4725,15 @@
     "relatedExpressionIds": [
       "e021",
       "e001"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "아이디어 있어요",
+      "enEngine": "have",
+      "enNoun": "idea",
+      "assembly": "have + noun",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e098",
@@ -4102,7 +4772,16 @@
     "relatedExpressionIds": [
       "e019",
       "e027"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "커피 받다 / 시키다",
+      "enEngine": "get",
+      "enNoun": "coffee",
+      "assembly": "get + coffee",
+      "tip": "「받다/시키다」를 get + coffee로 자주 말합니다.",
+      "wrongDirectTranslation": "",
+      "source": "curated"
+    }
   },
   {
     "id": "e099",
@@ -4141,7 +4820,15 @@
     "relatedExpressionIds": [
       "e027",
       "e028"
-    ]
+    ],
+    "contrast": {
+      "koVerb": "전화 받았어요",
+      "enEngine": "get",
+      "enNoun": "call",
+      "assembly": "get + noun",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e100",
@@ -4183,7 +4870,15 @@
       "e102"
     ],
     "usageNotes": "이미 정한 출발·일정을 말할 때 써요.",
-    "nuanceNotes": "의지(will)보다, 이미 잡혀 있는 계획에 가깝게 들려요."
+    "nuanceNotes": "의지(will)보다, 이미 잡혀 있는 계획에 가깝게 들려요.",
+    "contrast": {
+      "koVerb": "내일 떠나요",
+      "enEngine": "be",
+      "enNoun": "tomorrow",
+      "assembly": "be + -ing (near future)",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e101",
@@ -4266,7 +4961,15 @@
       "e100"
     ],
     "usageNotes": "이제 집에 간다고 알릴 때 자주 써요.",
-    "nuanceNotes": "곧 또는 지금 집으로 향한다는 확정된 움직임이에요."
+    "nuanceNotes": "곧 또는 지금 집으로 향한다는 확정된 움직임이에요.",
+    "contrast": {
+      "koVerb": "집에 갈게요",
+      "enEngine": "be",
+      "enNoun": "home",
+      "assembly": "be + -ing (near future)",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e103",
@@ -4310,7 +5013,15 @@
       "e104"
     ],
     "usageNotes": "이미 잡은 만남 약속을 말할 때 써요.",
-    "nuanceNotes": "내일 친구와 만나기로 되어 있다는 뜻이에요."
+    "nuanceNotes": "내일 친구와 만나기로 되어 있다는 뜻이에요.",
+    "contrast": {
+      "koVerb": "내일 친구 만나요",
+      "enEngine": "be",
+      "enNoun": "friend · tomorrow",
+      "assembly": "be + -ing (near future)",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e104",
@@ -4354,7 +5065,15 @@
       "e024"
     ],
     "usageNotes": "이미 잡은 식사 약속을 말할 때 써요.",
-    "nuanceNotes": "내일 점심이 일정으로 잡혀 있다는 뜻이에요."
+    "nuanceNotes": "내일 점심이 일정으로 잡혀 있다는 뜻이에요.",
+    "contrast": {
+      "koVerb": "내일 점심 먹어요",
+      "enEngine": "be",
+      "enNoun": "lunch · tomorrow",
+      "assembly": "be + -ing (near future)",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e105",
@@ -4514,7 +5233,15 @@
       "e059"
     ],
     "usageNotes": "하루 끝이나 힘들 때 상태를 말할 때 써요.",
-    "nuanceNotes": "몸·마음이 지쳤다는 가장 일상적인 표현이에요."
+    "nuanceNotes": "몸·마음이 지쳤다는 가장 일상적인 표현이에요.",
+    "contrast": {
+      "koVerb": "피곤해요",
+      "enEngine": "be",
+      "enNoun": "feeling",
+      "assembly": "be + state",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e109",
@@ -4634,7 +5361,15 @@
       "e140"
     ],
     "usageNotes": "실수·방해·거절 뒤에 바로 사과할 때 써요.",
-    "nuanceNotes": "가장 기본적인 생활 사과 표현이에요."
+    "nuanceNotes": "가장 기본적인 생활 사과 표현이에요.",
+    "contrast": {
+      "koVerb": "미안해요",
+      "enEngine": "be",
+      "enNoun": "feeling",
+      "assembly": "be + state",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e112",
@@ -4714,7 +5449,15 @@
       "e103"
     ],
     "usageNotes": "시간·약속 잡을 수 있다고 말할 때 써요.",
-    "nuanceNotes": "busy의 반대로, 스케줄이 비어 있다는 뜻이에요."
+    "nuanceNotes": "busy의 반대로, 스케줄이 비어 있다는 뜻이에요.",
+    "contrast": {
+      "koVerb": "한가해요. / 시간 있어요",
+      "enEngine": "be",
+      "enNoun": "time",
+      "assembly": "be + state",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e114",
@@ -4754,7 +5497,15 @@
       "e108"
     ],
     "usageNotes": "밥·간식 제안 전후로 상태를 말할 때 써요.",
-    "nuanceNotes": "식사하자고 이끄는 아주 흔한 한마디예요."
+    "nuanceNotes": "식사하자고 이끄는 아주 흔한 한마디예요.",
+    "contrast": {
+      "koVerb": "배고파요",
+      "enEngine": "be",
+      "enNoun": "feeling",
+      "assembly": "be + state",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e115",
@@ -5073,7 +5824,15 @@
       "e102"
     ],
     "usageNotes": "시간이 늦었다고 말할 때 써요.",
-    "nuanceNotes": "I’m late(내가 늦음)와 달리, 시계·상황이 늦다는 뜻이에요."
+    "nuanceNotes": "I’m late(내가 늦음)와 달리, 시계·상황이 늦다는 뜻이에요.",
+    "contrast": {
+      "koVerb": "늦었어요. / 시간이 늦어요",
+      "enEngine": "be",
+      "enNoun": "time",
+      "assembly": "be + state",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e123",
@@ -5114,7 +5873,15 @@
       "e133"
     ],
     "usageNotes": "도착했거나 자리에 있음을 알릴 때 써요.",
-    "nuanceNotes": "메시지·전화에서 ‘나 왔어/여기 있어’로 자주 써요."
+    "nuanceNotes": "메시지·전화에서 ‘나 왔어/여기 있어’로 자주 써요.",
+    "contrast": {
+      "koVerb": "여기 있어요",
+      "enEngine": "be",
+      "enNoun": "here",
+      "assembly": "be + place",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e124",
@@ -5154,7 +5921,15 @@
       "e102"
     ],
     "usageNotes": "집에 도착했거나 집에 있다고 알릴 때 써요.",
-    "nuanceNotes": "I’m at home보다 더 짧고 구어체예요."
+    "nuanceNotes": "I’m at home보다 더 짧고 구어체예요.",
+    "contrast": {
+      "koVerb": "집이에요. / 집에 왔어요",
+      "enEngine": "be",
+      "enNoun": "home",
+      "assembly": "be + place",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e125",
@@ -5194,7 +5969,15 @@
       "e127"
     ],
     "usageNotes": "지금 일하는 중·회사에 있다고 알릴 때 써요.",
-    "nuanceNotes": "근무 중이라 바빠 보일 때도 자연스러워요."
+    "nuanceNotes": "근무 중이라 바빠 보일 때도 자연스러워요.",
+    "contrast": {
+      "koVerb": "회사예요. / 일하는 중이에요",
+      "enEngine": "be",
+      "enNoun": "work",
+      "assembly": "be + place",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e126",
@@ -5234,7 +6017,15 @@
       "e123"
     ],
     "usageNotes": "지금 학교에 있다고 알릴 때 써요.",
-    "nuanceNotes": "학생·학부모 메시지에서 흔해요."
+    "nuanceNotes": "학생·학부모 메시지에서 흔해요.",
+    "contrast": {
+      "koVerb": "학교예요",
+      "enEngine": "be",
+      "enNoun": "school",
+      "assembly": "be + place",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e127",
@@ -5275,7 +6066,15 @@
       "e125"
     ],
     "usageNotes": "지금은 통화·대화가 어렵다고 알릴 때 써요.",
-    "nuanceNotes": "잠시 후에 연락하겠다는 신호로도 많이 써요."
+    "nuanceNotes": "잠시 후에 연락하겠다는 신호로도 많이 써요.",
+    "contrast": {
+      "koVerb": "회의 중이에요",
+      "enEngine": "be",
+      "enNoun": "meeting",
+      "assembly": "be + place",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e128",
@@ -5316,7 +6115,15 @@
       "e099"
     ],
     "usageNotes": "다른 통화 중이라 못 받을 때 써요.",
-    "nuanceNotes": "직역은 어색하지만, 실제로는 ‘통화 중’이에요."
+    "nuanceNotes": "직역은 어색하지만, 실제로는 ‘통화 중’이에요.",
+    "contrast": {
+      "koVerb": "통화 중이에요",
+      "enEngine": "be",
+      "enNoun": "phone",
+      "assembly": "be + place",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e129",
@@ -5357,7 +6164,15 @@
       "e131"
     ],
     "usageNotes": "물건 위치를 가리킬 때 써요.",
-    "nuanceNotes": "상대가 찾는 것을 바로 옆에 두고 말할 때 좋아요."
+    "nuanceNotes": "상대가 찾는 것을 바로 옆에 두고 말할 때 좋아요.",
+    "contrast": {
+      "koVerb": "여기 있어요",
+      "enEngine": "be",
+      "enNoun": "here",
+      "assembly": "be + place",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e130",
@@ -5398,7 +6213,15 @@
       "e132"
     ],
     "usageNotes": "떨어진 위치를 가리킬 때 써요.",
-    "nuanceNotes": "here/there로 거리감을 나눠 말해요."
+    "nuanceNotes": "here/there로 거리감을 나눠 말해요.",
+    "contrast": {
+      "koVerb": "거기 있어요",
+      "enEngine": "be",
+      "enNoun": "there",
+      "assembly": "be + place",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e131",
@@ -5439,7 +6262,15 @@
       "e129"
     ],
     "usageNotes": "찾던 것을 발견·건네줄 때 써요.",
-    "nuanceNotes": "‘자, 여기 있어’에 가장 가까운 말이에요."
+    "nuanceNotes": "‘자, 여기 있어’에 가장 가까운 말이에요.",
+    "contrast": {
+      "koVerb": "여기 있어요",
+      "enEngine": "be",
+      "enNoun": "here",
+      "assembly": "be + place",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e132",
@@ -5480,7 +6311,15 @@
       "e130"
     ],
     "usageNotes": "멀리서 찾던 것을 발견했을 때 써요.",
-    "nuanceNotes": "Here it is와 짝으로 배워 두면 좋아요."
+    "nuanceNotes": "Here it is와 짝으로 배워 두면 좋아요.",
+    "contrast": {
+      "koVerb": "저기 있네요",
+      "enEngine": "be",
+      "enNoun": "there",
+      "assembly": "be + place",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e133",
@@ -5564,7 +6403,15 @@
       "e123"
     ],
     "usageNotes": "위치를 물을 때 가장 기본으로 써요.",
-    "nuanceNotes": "문자·전화에서 제일 많이 쓰는 위치 질문이에요."
+    "nuanceNotes": "문자·전화에서 제일 많이 쓰는 위치 질문이에요.",
+    "contrast": {
+      "koVerb": "어디예요",
+      "enEngine": "be",
+      "enNoun": "place",
+      "assembly": "be + place",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e135",
@@ -5606,7 +6453,15 @@
       "e123"
     ],
     "usageNotes": "상대가 듣는지·자리에 있는지 확인할 때 써요.",
-    "nuanceNotes": "통화·온라인에서 ‘있어?’로 자주 써요."
+    "nuanceNotes": "통화·온라인에서 ‘있어?’로 자주 써요.",
+    "contrast": {
+      "koVerb": "거기 있어요",
+      "enEngine": "be",
+      "enNoun": "there",
+      "assembly": "be + place",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e136",
@@ -6250,7 +7105,15 @@
       "e111"
     ],
     "usageNotes": "상대가 안 좋아 보이거나 문제가 느껴질 때 써요.",
-    "nuanceNotes": "걱정하며 원인을 묻는 말이에요."
+    "nuanceNotes": "걱정하며 원인을 묻는 말이에요.",
+    "contrast": {
+      "koVerb": "뭐가 문제예요",
+      "enEngine": "be",
+      "enNoun": "problem",
+      "assembly": "be everyday phrase",
+      "tip": "한국어는 상황마다 동사가 갈라지고, 영어는 기본 동사 + 명사로 자주 조립합니다.",
+      "source": "derived"
+    }
   },
   {
     "id": "e152",

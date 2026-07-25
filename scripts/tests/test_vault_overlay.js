@@ -32,6 +32,7 @@ const catalog = {
   patterns: [{ id: 'p_have_thing', label: 'have + noun' }],
   expressions: [
     { id: 'e001', coreVerbId: 'v_have', patternId: 'p_have_thing', nounIds: ['n_question'], english: 'I have a question.' },
+    { id: 'e002', coreVerbId: 'v_have', patternId: 'p_have_thing', nounIds: ['n_question'], english: 'Do you have a question?' },
     { id: 'e999', coreVerbId: 'v_give', patternId: 'p_x', nounIds: [], english: 'Give it a try.' },
   ],
 };
@@ -70,6 +71,60 @@ assert.strictEqual(
   }),
   'unlock-later'
 );
+
+const expressionNote = overlay.parseVaultNote(`---
+id: e001
+type: expression
+word: question
+---
+`, 'Library/Scenes/question.md');
+const expressionMatch = overlay.matchNoteToCatalog(expressionNote, catalog);
+assert.strictEqual(expressionMatch.entityType, 'expression');
+assert.strictEqual(expressionMatch.entityId, 'e001');
+assert.ok(expressionMatch.relatedExpressionIds.includes('e002'), 'expression vault links must expose neighbors');
+assert.ok(!expressionMatch.relatedExpressionIds.includes('e001'));
+
+const live = overlay.buildLiveExpandLinks(
+  [{
+    id: 'Library/Scenes/commute.md::verb::v_have',
+    notePath: 'Library/Scenes/commute.md',
+    entityType: 'verb',
+    entityId: 'v_have',
+    confidence: 'high',
+    status: 'confirmed',
+    relatedExpressionIds: ['e001'],
+  }],
+  [{
+    note: { path: 'Library/Scenes/commute.md', word: 'question' },
+    entityType: 'expression',
+    entityId: 'e001',
+    entityLabel: 'question',
+    confidence: 'high',
+    gate: 'active',
+    relatedExpressionIds: expressionMatch.relatedExpressionIds,
+  }],
+  catalog
+);
+assert.ok(live.length >= 2, 'same notePath must keep multiple entity links');
+assert.ok(live.every(link => (link.relatedExpressionIds || []).length >= 0));
+assert.ok(overlay.DEFAULT_DIRS.some(dir => dir.includes('Scenes')));
+
+const curatedBridge = overlay.buildLiveExpandLinks(
+  [{
+    id: 'Library/Scenes/bridge.md::verb::v_have',
+    notePath: 'Library/Scenes/bridge.md',
+    entityType: 'verb',
+    entityId: 'v_have',
+    confidence: 'high',
+    status: 'confirmed',
+    relatedExpressionIds: ['e999'],
+  }],
+  [],
+  catalog
+);
+const bridgeRelated = curatedBridge[0]?.relatedExpressionIds || [];
+assert.ok(bridgeRelated.includes('e999'), 'refresh must keep vault-curated related ids');
+assert.ok(bridgeRelated.includes('e001'), 'refresh must also merge catalog neighbors');
 
 const calls = [];
 const fakeClient = {

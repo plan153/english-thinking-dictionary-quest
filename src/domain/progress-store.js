@@ -264,7 +264,7 @@
       entityLabel: entry.entityLabel || entry.noteWord || notePath,
       confidence: entry.confidence || 'low',
       gate: entry.gate || 'background',
-      relatedExpressionIds: Array.isArray(entry.relatedExpressionIds) ? entry.relatedExpressionIds.slice(0, 12) : [],
+      relatedExpressionIds: Array.isArray(entry.relatedExpressionIds) ? entry.relatedExpressionIds.slice(0, 48) : [],
       status: entry.status === 'watchlist' || entry.status === 'dismissed' ? entry.status : 'confirmed',
       updatedAt: entry.updatedAt || new Date().toISOString(),
     };

@@ -26,7 +26,7 @@
       googleClientId: '',
       googleAccessToken: '',
       driveFolderId: '',
-      autoSyncAfterGap: false,
+      autoSyncAfterGap: true,
       lastSyncAt: null,
       lastSyncError: null,
       lastImportAt: null,
@@ -54,7 +54,8 @@
       googleClientId: String(src.googleClientId || '').trim(),
       googleAccessToken: String(src.googleAccessToken || '').trim(),
       driveFolderId: String(src.driveFolderId || '').trim(),
-      autoSyncAfterGap: Boolean(src.autoSyncAfterGap),
+      // 키가 없으면 기본 ON (실력 루프 자동 저장)
+      autoSyncAfterGap: src.autoSyncAfterGap === undefined ? base.autoSyncAfterGap : Boolean(src.autoSyncAfterGap),
     };
   }
 
