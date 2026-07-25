@@ -106,8 +106,8 @@ https://plan153.github.io/english-thinking-dictionary-quest/fresh.html
 
 | ID | 항목 | 클라우드 | PC |
 | --- | --- | --- | --- |
-| D1 | 실 day loop 한 바퀴 | mock smoke만 | **사용자 실행 필요** |
-| D2 | pathPrefix·폴더 실측 | 검사 API·스크립트 준비됨 | **사용자 실행 필요** |
+| D1 | 실 day loop 한 바퀴 | mock smoke만 | **준비 완료 · Mac 실측 대기** |
+| D2 | pathPrefix·폴더 실측 | 검사 API·스크립트 준비됨 | **준비 완료 · Mac 실측 대기** (pathPrefix 기본 비움) |
 | O3 | Pages 캐시 안내 | `fresh.html` + HTML no-cache SW | 위 URL로 즉시 해소 |
 
 미완 SoT: [`BACKLOG.md`](./BACKLOG.md)

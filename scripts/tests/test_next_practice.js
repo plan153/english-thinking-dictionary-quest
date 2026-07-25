@@ -62,7 +62,7 @@ assert.strictEqual(next.softHintBoost('e001', { weakSlots: [{ expressionId: 'e01
 
 assert.strictEqual(next.modeForAxis('output'), 'speak');
 assert.strictEqual(next.modeForAxis('recognition'), 'listen');
-assert.strictEqual(next.modeForAxis('assembly'), 'koen');
+assert.strictEqual(next.modeForAxis('assembly'), 'assemble');
 assert.strictEqual(
   next.weakestIncompleteAxis({
     connections: {

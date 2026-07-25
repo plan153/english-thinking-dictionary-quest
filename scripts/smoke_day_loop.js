@@ -244,18 +244,32 @@ async function main() {
     note(`enko prompt: ${promptEn}`);
 
     const wrongInfo = await page.evaluate(async (en) => {
+      const choicesRoot = document.getElementById('choices');
+      const fromDomKo = (choicesRoot?.dataset?.correctKo || '').trim();
+      const fromDomId = (choicesRoot?.dataset?.expressionId || '').trim();
+      const normalize = (value) => String(value || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[’']/g, "'")
+        .replace(/[.?!。？！]+$/u, '');
       const res = await fetch('./data/expressions.json');
       const list = await res.json();
-      const row = list.find(item => item.english === en || item.audioText === en);
-      const correctKo = (row?.naturalKorean || '').trim();
+      const row = list.find(item => (
+        normalize(item.english) === normalize(en)
+        || normalize(item.audioText) === normalize(en)
+        || normalize(item.en) === normalize(en)
+      ));
+      const correctKo = fromDomKo || (row?.naturalKorean || row?.ko || '').trim();
       const buttons = [...document.querySelectorAll('#choices .choice')];
-      const wrong = buttons.find(btn => (btn.dataset.value || '').trim() !== correctKo);
-      if (!wrong) return { correctKo, expressionId: row?.id || '', value: null };
+      const wrong = buttons.find(btn => normalize(btn.dataset.value) !== normalize(correctKo));
+      if (!wrong || !correctKo) {
+        return { correctKo, expressionId: fromDomId || row?.id || '', value: null };
+      }
       wrong.click();
       return {
         value: wrong.dataset.value || '',
         correctKo,
-        expressionId: row?.id || '',
+        expressionId: fromDomId || row?.id || '',
         english: row?.english || en,
       };
     }, promptEn);

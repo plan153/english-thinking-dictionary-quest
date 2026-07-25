@@ -1134,7 +1134,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.38">v1.3.38</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.39">v1.3.39</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -1563,6 +1563,7 @@
     const modeCards = [
       { id:'listen', icon:'🔊', title:'듣고 따라 말하기', desc:'문장을 듣고 바로 따라 말하며 리듬과 덩어리를 익혀요.', cta:'소리로 시작' },
       { id:'matrix', icon:'🔄', title:'묻기 · 답하기 변형', desc:'같은 표현을 평서·의문·부정·짧은 답·시제로 바꿔 입으로 연습해요.', cta:'변형 연습' },
+      { id:'assemble', icon:'🧱', title:'엔진 + 명사 조립', desc:'한국어 상황 동사를 영어 기본 동사와 명사로 나눠 고른 뒤, 문장으로 말해요.', cta:'조립 시작' },
       { id:'koen', icon:'🧩', title:'한글 → 영어 조립', desc:'한국어 뜻을 보고 핵심 동사와 표현 덩어리를 빠르게 골라요. 힌트는 안쪽에서 좁혀요.', cta:'영어 만들기' },
       { id:'enko', icon:'🎯', title:'영어 → 장면 고르기', desc:'영어를 번역하지 말고, 가장 가까운 상황과 뜻을 골라요.', cta:'뜻 연결하기' },
       { id:'review', icon:'🔁', title:'약한 연결 복습', desc:'틀린 표현과 아직 덜 익은 연결만 다시 만나요.', cta:'복습 시작' },
@@ -1649,7 +1650,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.3.38';
+    const APP_CACHE_VERSION = 'etd-quest-v1.3.39';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const ProgressStoreApi = window.ProgressStore;
@@ -2031,7 +2032,7 @@
       if (axis === 'recognition') {
         return `오늘 회수 · <b>${escapeHtml(label)}</b> 축이 약해요. 듣기로 뜻을 먼저 붙이세요.`;
       }
-      return `오늘 회수 · <b>${escapeHtml(label)}</b> 축이 약해요. 평서/의문·영작으로 문장을 다시 조립하세요.`;
+      return `오늘 회수 · <b>${escapeHtml(label)}</b> 축이 약해요. 엔진+명사 조립·영작으로 문장을 다시 나눠 붙이세요.`;
     }
     function getVaultCatalogForLinks() {
       return {
@@ -2852,7 +2853,7 @@
         }
 
     function shuffled(arr) { return [...arr].sort(() => Math.random() - .5); }
-    const modeQuizTypes = { listen: 'listening', koen: 'koToEn', enko: 'enToKo', hint: 'hint', build: 'blank', speak: 'speaking', review: 'koToEn', matrix: 'matrix', explain: 'koToEn' };
+    const modeQuizTypes = { listen: 'listening', koen: 'koToEn', assemble: 'koToEn', enko: 'enToKo', hint: 'hint', build: 'blank', speak: 'speaking', review: 'koToEn', matrix: 'matrix', explain: 'koToEn' };
     function progressItemId(itemOrId) {
       if (itemOrId && typeof itemOrId === 'object') return itemOrId.progressId || itemOrId.baseExpressionId || itemOrId.id;
       return itemOrId;
@@ -2953,7 +2954,7 @@
     }
     function connectionTypeForMode(mode) {
       if (mode === 'listen' || mode === 'enko') return 'recognition';
-      if (mode === 'build' || mode === 'hint' || mode === 'matrix' || mode === 'particle' || mode === 'koen') return 'assembly';
+      if (mode === 'build' || mode === 'hint' || mode === 'matrix' || mode === 'particle' || mode === 'koen' || mode === 'assemble') return 'assembly';
       return 'output';
     }
     function strengthFromHints(hintLevel) {
@@ -3706,7 +3707,7 @@
         'weak-link': '약한 연결',
         'axis-output': '회수 · 말하기',
         'axis-recognition': '회수 · 뜻 이해',
-        'axis-assembly': '회수 · 문장 만들기',
+        'axis-assembly': '회수 · 엔진+명사 조립',
         'vault-watchlist': 'Vault watchlist',
         'vault-watchlist-verb': 'Watchlist 동사',
         'vault-watchlist-noun': 'Watchlist 명사',
@@ -4923,7 +4924,7 @@
     }
     function modeToConnectionKey(mode) {
       if (mode === 'enko' || mode === 'listen') return 'recognition';
-      if (mode === 'koen' || mode === 'hint' || mode === 'build' || mode === 'matrix' || mode === 'particle') return 'assembly';
+      if (mode === 'koen' || mode === 'hint' || mode === 'build' || mode === 'matrix' || mode === 'particle' || mode === 'assemble') return 'assembly';
       if (mode === 'speak' || mode === 'explain') return 'output';
       return null;
     }
@@ -5684,6 +5685,17 @@
     }
     function supportsMode(item, mode) {
       if (mode === 'matrix' || mode === 'explain' || mode === 'particle') return true;
+      if (mode === 'assemble') {
+        const api = window.ExpressionContrast;
+        if (api?.canAssemble) {
+          return api.canAssemble(item, {
+            verbs: appState.dictionaryData?.verbs || [],
+            nouns: appState.dictionaryData?.nouns || [],
+            patterns: appState.dictionaryData?.patterns || [],
+          });
+        }
+        return Boolean(resolveItemContrast(item)?.enEngine && resolveItemContrast(item)?.enNoun);
+      }
       const quizType = modeQuizTypes[mode] || 'koToEn';
       return (item.quizTypes || []).includes(quizType);
     }
@@ -5856,6 +5868,7 @@
       else if (mode === 'explain') body = renderExplain(item);
       else if (mode === 'matrix' && isExpandQaPractice(questStep || appState.questContext)) body = renderExpandQaPractice(item, questStep || appState.questContext);
       else if (mode === 'matrix') body = renderMatrix(item);
+      else if (mode === 'assemble') body = renderAssemble(item);
       else if (mode === 'koen') body = renderKoEn(item);
       else if (mode === 'enko') body = renderEnKo(item);
       else if (mode === 'particle') body = renderParticle(item);
@@ -6106,6 +6119,75 @@
         ${renderContrastTeach(item, { compact: true })}
         ${renderVoiceFirstTypedBlock({ checkLabel: '정답 확인', placeholder: 'Type your English sentence', item })}`;
     }
+    function buildAssembleQuizForItem(item) {
+      const api = window.ExpressionContrast;
+      if (!api?.buildAssembleQuiz) return null;
+      return api.buildAssembleQuiz(item, {
+        bank: getUnlockedBank(),
+        collections: {
+          verbs: appState.dictionaryData?.verbs || [],
+          nouns: appState.dictionaryData?.nouns || [],
+          patterns: appState.dictionaryData?.patterns || [],
+        },
+      });
+    }
+    function renderAssemble(item) {
+      const expressionKey = progressItemId(item) || item.id;
+      const existing = appState.assembleSession;
+      const reuseSession = existing
+        && existing.expressionId === expressionKey
+        && existing.quiz
+        && Array.isArray(existing.quiz.engineChoices);
+      const quiz = reuseSession ? existing.quiz : buildAssembleQuizForItem(item);
+      if (!quiz) {
+        appState.assembleSession = null;
+        return `
+          <h2>${escapeHtml(item.ko || item.naturalKorean || '')}</h2>
+          <p class="korean">이 표현은 아직 엔진+명사 조립 퀴즈가 없어요. 한글→영어로 이어서 연습해 보세요.</p>
+          ${renderKoEn(item)}
+        `;
+      }
+      if (!reuseSession) {
+        appState.assembleSession = {
+          expressionId: expressionKey,
+          quiz,
+          pickedEngine: null,
+          pickedNoun: null,
+          engineOk: false,
+          nounOk: false,
+        };
+      }
+      const session = appState.assembleSession;
+      const engineButtons = quiz.engineChoices.map(choice => (
+        `<button class="choice assemble-engine" type="button" data-value="${escapeHtml(choice)}">${escapeHtml(choice)}</button>`
+      )).join('');
+      const nounButtons = quiz.nounChoices.map(choice => (
+        `<button class="choice assemble-noun" type="button" data-value="${escapeHtml(choice)}">${escapeHtml(choice)}</button>`
+      )).join('');
+      const engineHidden = session.engineOk ? ' hidden' : '';
+      const nounHidden = session.engineOk ? '' : ' hidden';
+      const speakHidden = (session.engineOk && session.nounOk) ? '' : ' hidden';
+      const pickedSummary = (session.engineOk && session.nounOk)
+        ? `조립: <b>${escapeHtml(quiz.correctEngine)}</b> + <b>${escapeHtml(quiz.correctNoun)}</b> → 이제 전체 문장을 말해 보세요.`
+        : '';
+      return `
+        <h2>${escapeHtml(quiz.promptKo)}</h2>
+        <p class="korean">한국어 상황 표현을 영어 <b>기본 동사 + 명사</b>로 나눠 조립하세요.</p>
+        ${renderContrastTeach(quiz.contrast, { compact: true, showTip: true })}
+        <div class="assemble-step${engineHidden}" id="assembleEngineStep">
+          <div class="answer-key">1단계 · 영어 엔진(기본 동사)</div>
+          <div class="choices">${engineButtons}</div>
+        </div>
+        <div class="assemble-step${nounHidden}" id="assembleNounStep">
+          <div class="answer-key">2단계 · 붙일 명사</div>
+          <div class="choices">${nounButtons}</div>
+        </div>
+        <div class="assemble-step${speakHidden}" id="assembleSpeakStep">
+          <div class="answer-key">3단계 · 문장으로 말하기</div>
+          <p class="small-note" id="assemblePickedSummary">${pickedSummary}</p>
+          ${renderVoiceFirstTypedBlock({ checkLabel: '문장 확인', placeholder: 'Type the full English sentence', item })}
+        </div>`;
+    }
     function renderMatrix(item) {
       const baseBox = item.matrixBaseKo
         ? `<div class="matrix-base"><strong>기준 문장</strong>${escapeHtml(item.matrixBaseKo)}</div>`
@@ -6134,7 +6216,7 @@
         <h2>${item.en}</h2>
         <p class="korean">이 문장의 자연스러운 한국어 뜻을 고르세요.</p>
         <button class="sound-btn speak" data-text="${escapeHtml(item.audioText || item.en)}" title="문장 듣기">🔊</button>
-        <div class="choices" id="choices">${choices.map(c => `<button class="choice" data-value="${escapeHtml(c)}">${c}</button>`).join('')}</div>
+        <div class="choices" id="choices" data-correct-ko="${escapeHtml(item.ko || '')}" data-expression-id="${escapeHtml(progressItemId(item) || item.id || '')}">${choices.map(c => `<button class="choice" data-value="${escapeHtml(c)}">${c}</button>`).join('')}</div>
         <div class="feedback hidden" id="feedback"></div>`;
     }
     function renderHint(item) {
@@ -6447,6 +6529,10 @@
     }
 
     function startSpeechCapture(item, mode) {
+      if (mode === 'assemble' && !(appState.assembleSession?.engineOk && appState.assembleSession?.nounOk)) {
+        toast('먼저 엔진과 명사를 고르세요.');
+        return;
+      }
       const listenMode = isSimpleSpeakCapture(mode);
       // TTS가 켜져 있으면 인식이 먹통이 되는 브라우저가 있어 먼저 끊는다.
       stopSpeechPlayback();
@@ -6621,7 +6707,15 @@
         });
       });
       document.querySelectorAll('.text-practice-check').forEach(btn => btn.addEventListener('click', () => checkTextAnswer(item, mode, { practiceOnly: true, inputId: 'textPracticeAnswerInput' })));
-      document.querySelectorAll('.choice').forEach(btn => btn.addEventListener('click', () => chooseAnswer(item, mode, btn)));
+      document.querySelectorAll('.choice:not(.assemble-engine):not(.assemble-noun)').forEach(btn => {
+        btn.addEventListener('click', () => chooseAnswer(item, mode, btn));
+      });
+      document.querySelectorAll('.assemble-engine').forEach(btn => {
+        btn.addEventListener('click', () => handleAssemblePick(item, 'engine', btn));
+      });
+      document.querySelectorAll('.assemble-noun').forEach(btn => {
+        btn.addEventListener('click', () => handleAssemblePick(item, 'noun', btn));
+      });
       document.querySelectorAll('.prev-question').forEach(btn => btn.addEventListener('click', () => previousQuestion()));
       document.querySelectorAll('.next-question').forEach(btn => btn.addEventListener('click', () => advanceFromNav(item, mode)));
       const textInputs = ['answerInput', 'textPracticeAnswerInput'].map(id => document.getElementById(id)).filter(Boolean);
@@ -6630,12 +6724,16 @@
           if (e.key !== 'Enter') return;
           e.preventDefault();
           if (appState.questionAnswered) return;
+          if (mode === 'assemble' && !(appState.assembleSession?.engineOk && appState.assembleSession?.nounOk)) {
+            toast('먼저 엔진과 명사를 고르세요.');
+            return;
+          }
           if (isSimpleSpeakCapture(mode) && input.id === 'answerInput') checkComposeAnswer(item, mode);
           else checkTextAnswer(item, mode, { practiceOnly: mode === 'speak', inputId: input.id });
         });
       });
       focusVisibleAnswerInput();
-      if (mode === 'speak' || mode === 'explain') {
+      if (mode === 'speak' || mode === 'explain' || mode === 'assemble') {
         const speechInput = document.getElementById('speechAnswerInput');
         if (speechInput) {
           speechInput.addEventListener('keydown', e => {
@@ -6644,6 +6742,64 @@
             checkTextAnswer(item, mode, { fromSpeech: true, inputId: 'speechAnswerInput' });
           });
         }
+      }
+    }
+    function handleAssemblePick(item, step, button) {
+      const session = appState.assembleSession;
+      if (!session?.quiz || appState.questionAnswered) return;
+      const value = String(button?.dataset?.value || '').trim();
+      if (!value) return;
+      const quiz = session.quiz;
+      if (step === 'engine') {
+        const ok = value.toLowerCase() === String(quiz.correctEngine || '').toLowerCase();
+        session.pickedEngine = value;
+        session.engineOk = ok;
+        document.querySelectorAll('.assemble-engine').forEach(btn => {
+          btn.classList.toggle('selected', btn === button);
+          btn.style.borderColor = '';
+        });
+        button.style.borderColor = ok ? 'var(--good)' : 'var(--bad)';
+        if (!ok) {
+          showFeedback('bad', `엔진이 달라요. 오늘은 <b>${escapeHtml(quiz.correctEngine)}</b>로 조립해요.`);
+          recordPracticeEvent(item, 'assemble', 'retry', value);
+          return;
+        }
+        showFeedback('good', `엔진 <b>${escapeHtml(quiz.correctEngine)}</b> · 이제 붙일 명사를 고르세요.`);
+        document.getElementById('assembleNounStep')?.classList.remove('hidden');
+        return;
+      }
+      if (step === 'noun') {
+        if (!session.engineOk) {
+          toast('먼저 영어 엔진(기본 동사)을 고르세요.');
+          return;
+        }
+        const ok = value.toLowerCase() === String(quiz.correctNoun || '').toLowerCase();
+        session.pickedNoun = value;
+        session.nounOk = ok;
+        document.querySelectorAll('.assemble-noun').forEach(btn => {
+          btn.classList.toggle('selected', btn === button);
+          btn.style.borderColor = '';
+        });
+        button.style.borderColor = ok ? 'var(--good)' : 'var(--bad)';
+        if (!ok) {
+          showFeedback('bad', `명사가 달라요. <b>${escapeHtml(quiz.correctEngine)}</b> + <b>${escapeHtml(quiz.correctNoun)}</b>로 이어가요.`);
+          recordPracticeEvent(item, 'assemble', 'retry', value);
+          return;
+        }
+        // Assembly axis credit for correct engine+noun before full sentence output.
+        markStudy('assemble', progressItemId(item), 'correct', {
+          signature: `assemble-parts:${progressItemId(item)}:${seoulTodayKey()}`,
+          hintLevel: 0,
+          baseExpressionId: item.baseExpressionId || item.id,
+          progressId: item.progressId || item.id,
+        });
+        const summary = document.getElementById('assemblePickedSummary');
+        if (summary) {
+          summary.innerHTML = `조립: <b>${escapeHtml(quiz.correctEngine)}</b> + <b>${escapeHtml(quiz.correctNoun)}</b> → 이제 전체 문장을 말해 보세요.`;
+        }
+        showFeedback('good', `조립 성공 · <b>${escapeHtml(quiz.assembly || `${quiz.correctEngine} + ${quiz.correctNoun}`)}</b>`);
+        document.getElementById('assembleSpeakStep')?.classList.remove('hidden');
+        focusVisibleAnswerInput();
       }
     }
     function syncHintButtons(shown, total) {
@@ -6844,6 +7000,10 @@
         return;
       }
       if (appState.questionAnswered) { nextQuestion(); return; }
+      if (mode === 'assemble' && !(appState.assembleSession?.engineOk && appState.assembleSession?.nounOk)) {
+        toast('먼저 엔진과 명사를 고르세요.');
+        return;
+      }
       const inputId = options.inputId || (options.fromSpeech ? 'speechAnswerInput' : 'answerInput');
       const input = document.getElementById(inputId);
       const rawGuess = input?.value || '';
@@ -7061,12 +7221,14 @@
         finishLesson();
         return;
       }
+      appState.assembleSession = null;
       appState.currentIndex++;
       playNextQuestionSound();
       renderQuestion();
     }
     function previousQuestion() {
       if (appState.currentIndex <= 0) return;
+      appState.assembleSession = null;
       appState.currentIndex--;
       renderQuestion();
     }
@@ -7501,6 +7663,7 @@
           <div class="question-actions" style="justify-content:flex-start;flex-wrap:wrap">
             <button class="btn dark quiz-expression" data-expression-id="${selectedExpression.id}" data-mode="listen" ${unlocked ? '' : 'disabled'}>${unlocked ? '듣기' : '잠긴 표현'}</button>
             <button class="btn soft quiz-expression" data-expression-id="${selectedExpression.id}" data-mode="speak" ${unlocked ? '' : 'disabled'}>말하기</button>
+            <button class="btn soft quiz-expression" data-expression-id="${selectedExpression.id}" data-mode="assemble" ${unlocked ? '' : 'disabled'}>엔진+명사</button>
             <button class="btn soft quiz-expression" data-expression-id="${selectedExpression.id}" data-mode="koen" ${unlocked ? '' : 'disabled'}>한글→영어</button>
             <button class="btn soft quiz-expression" data-expression-id="${selectedExpression.id}" data-mode="matrix" ${unlocked ? '' : 'disabled'}>묻기·답하기</button>
           </div>
