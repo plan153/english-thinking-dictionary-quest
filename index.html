@@ -1100,7 +1100,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.32">v1.3.32</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.33">v1.3.33</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -1451,6 +1451,7 @@
   <script src="./src/domain/vault-overlay.js"></script>
   <script src="./src/domain/feynman-challenge.js"></script>
   <script src="./src/domain/qa-matrix-generate.js"></script>
+  <script src="./src/domain/topic-link.js"></script>
   <script src="./src/domain/expand-turn.js"></script>
   <script src="./src/domain/graph-style.js"></script>
   <script src="./src/domain/progress-store.js"></script>
@@ -1609,7 +1610,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.3.32';
+    const APP_CACHE_VERSION = 'etd-quest-v1.3.33';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const ProgressStoreApi = window.ProgressStore;
@@ -1956,6 +1957,13 @@
       return bank[dayNum % bank.length] || bank[0];
     }
     function pickTopicShiftExpression(fromExpressionId, bank) {
+      const api = window.TopicLink;
+      if (api?.pickLinkedExpression) {
+        return api.pickLinkedExpression(fromExpressionId, bank, { mode: 'topic' })
+          || bank.find(item => item.id === fromExpressionId)
+          || bank[0]
+          || null;
+      }
       const current = bank.find(item => item.id === fromExpressionId) || null;
       const sameVerb = bank.filter(item => item.id !== fromExpressionId && current?.coreVerbId && item.coreVerbId === current.coreVerbId);
       const pool = sameVerb.length ? sameVerb : bank.filter(item => item.id !== fromExpressionId);
@@ -1996,6 +2004,11 @@
       return choice.mode || 'speak';
     }
     function pickContinueExpression(fromExpressionId, bank = getUnlockedBank()) {
+      const api = window.TopicLink;
+      if (api?.pickLinkedExpression) {
+        return api.pickLinkedExpression(fromExpressionId, bank, { mode: 'continue' })
+          || pickTopicShiftExpression(fromExpressionId, bank);
+      }
       const current = bank.find(item => item.id === fromExpressionId) || null;
       const relatedIds = current?.relatedExpressionIds || [];
       const related = relatedIds
@@ -2025,7 +2038,8 @@
       const en = item.en || item.english || '';
       const ko = item.ko || item.naturalKorean || '';
       const prompt = lang === 'en' ? en : ko;
-      const secondary = lang === 'en' ? ko : en;
+      // 영작하기(기본 KO)에서는 영어 정답을 절대 미리 보여 주지 않는다.
+      const secondary = lang === 'en' ? ko : '';
       const toggleLabel = lang === 'en' ? '한' : 'EN';
       const toggleTitle = lang === 'en' ? '한국어로 보기' : '영어로 보기';
       return `
@@ -2035,7 +2049,7 @@
             <button class="expand-lang-toggle" type="button" id="expandSeedLangToggle" title="${escapeHtml(toggleTitle)}" aria-label="${escapeHtml(toggleTitle)}">${escapeHtml(toggleLabel)}</button>
           </div>
           <div class="en" id="expandSeedPrompt">${escapeHtml(prompt)}</div>
-          <div class="ko" id="expandSeedSecondary">${escapeHtml(secondary)}</div>
+          <div class="ko${secondary ? '' : ' hidden'}" id="expandSeedSecondary">${escapeHtml(secondary)}</div>
           <div class="expand-seed-actions">
             <button class="btn soft" type="button" id="expandSeedListen">듣기</button>
             <button class="btn accent" type="button" id="expandSeedShadow">따라말하기</button>
@@ -2055,7 +2069,11 @@
         const toggleEl = root.querySelector('#expandSeedLangToggle');
         if (langEl) langEl.textContent = next === 'en' ? 'English · 참고' : '영작하기';
         if (promptEl) promptEl.textContent = next === 'en' ? en : ko;
-        if (secondaryEl) secondaryEl.textContent = next === 'en' ? ko : en;
+        if (secondaryEl) {
+          // EN 참고 모드에서만 한국어 부제를 보여 주고, 영작하기에서는 영어를 숨긴다.
+          secondaryEl.textContent = next === 'en' ? ko : '';
+          secondaryEl.classList.toggle('hidden', next !== 'en');
+        }
         if (toggleEl) {
           toggleEl.textContent = next === 'en' ? '한' : 'EN';
           const title = next === 'en' ? '한국어로 보기' : '영어로 보기';
@@ -5766,11 +5784,11 @@
       const toStatement = choiceId === 'answer';
       const linkLabel = toStatement ? '의문문 원문' : '평서문 원문';
       const arrowLabel = toStatement ? '↓ 평서문으로 바꿔 말하기' : '↓ 의문문으로 바꿔 말하기';
-      const context = (item.matrixBaseEn || item.matrixBaseKo)
+      // 영작 전에는 영어 원문을 숨기고 한국어 맥락만 보여 준다.
+      const context = item.matrixBaseKo
         ? `<div class="expand-link-context">
             <div class="expand-link-label">${escapeHtml(linkLabel)}</div>
-            ${item.matrixBaseEn ? `<div class="expand-link-en">${escapeHtml(item.matrixBaseEn)}</div>` : ''}
-            ${item.matrixBaseKo ? `<div class="expand-link-ko">${escapeHtml(item.matrixBaseKo)}</div>` : ''}
+            <div class="expand-link-ko">${escapeHtml(item.matrixBaseKo)}</div>
           </div>
           <div class="expand-link-arrow">${escapeHtml(arrowLabel)}</div>`
         : '';
@@ -5783,8 +5801,8 @@
         ${renderVoiceFirstTypedBlock({ checkLabel: '정답 확인', placeholder: 'Type your English sentence', item })}`;
     }
     function renderMatrix(item) {
-      const baseBox = item.matrixBaseEn
-        ? `<div class="matrix-base"><strong>기준 문장</strong>${escapeHtml(item.matrixBaseEn)}<div class="small-note" style="margin-top:4px">${escapeHtml(item.matrixBaseKo || '')}</div></div>`
+      const baseBox = item.matrixBaseKo
+        ? `<div class="matrix-base"><strong>기준 문장</strong>${escapeHtml(item.matrixBaseKo)}</div>`
         : '';
       return `
         <div class="matrix-form-badge">${escapeHtml(item.formLabel || '변형')} · ${escapeHtml(item.matrixLabel || item.frame || '')}</div>
@@ -5824,7 +5842,7 @@
       return `
         <h2>${item.ko}</h2>
         <p class="korean">핵심 동사와 표현 덩어리를 보고 빈칸을 떠올린 뒤 문장을 완성하세요.</p>
-        <div class="hint-box" style="background:#eef7f6; border-style:solid; border-color:#b8dcd9"><div class="hint-title" style="color:#286f6c">목표 문장</div><strong>${item.en}</strong>을 스스로 조립해 보세요.</div>
+        <div class="hint-box" style="background:#eef7f6; border-style:solid; border-color:#b8dcd9"><div class="hint-title" style="color:#286f6c">목표 문장</div><strong>${escapeHtml(item.ko || '')}</strong>을 영어로 스스로 조립해 보세요.</div>
         <div class="answer-key" style="margin-top:12px">핵심 동사를 고르세요.</div>
         <p class="small-note" style="margin:6px 0 10px">문장 뼈대를 만드는 동사를 먼저 찾습니다.</p>
         <div class="choices" id="choices">${shuffled([item.verb, ...verbs.filter(v=>v!==item.verb)]).slice(0,4).map(c => `<button class="choice build-verb" data-value="${c}">${c}</button>`).join('')}</div>
@@ -6385,7 +6403,7 @@
         });
         recordPracticeEvent(item, mode, result.status === 'meaning' ? 'meaning' : 'retry', rawGuess);
         showFeedback(result.feedbackClass || 'bad', `
-          <b>${escapeHtml(result.title || '다시 연결해 볼게요.')}</b>
+          <b>${escapeHtml(result.title || '목표 문장과 달라요.')}</b>
           <div style="margin-top:6px">${escapeHtml(result.message || '')}</div>
           <div class="answer-key" style="margin-top:8px">내 답</div>
           <div>${escapeHtml(rawGuess)}</div>
@@ -6447,35 +6465,54 @@
       }
       return rows[a.length][b.length];
     }
+    function extractAnswerSubject(text) {
+      const value = normalizeExpanded(text);
+      if (!value) return '';
+      const aux = value.match(/^(do|does|did|are|is|am|was|were|can|could|will|would|have|has|had)\s+(i|you|we|they|he|she|it|this|that)\b/);
+      if (aux) return aux[2];
+      const lead = value.match(/^(i|you|we|they|he|she|it|this|that)\b/);
+      return lead ? lead[1] : '';
+    }
     function classifyAnswer(item, rawGuess) {
       const answers = expressionAnswers(item);
       if (matchesAnyAnswer(rawGuess, answers, normalize)) {
-        return { status: 'correct', feedbackClass: 'good', title: '정답이에요!', message: item.usageNotes || '오늘 목표 표현과 잘 연결됐어요.', countsAsSuccess: true };
+        return { status: 'correct', feedbackClass: 'good', title: '정답이에요!', message: item.usageNotes || '목표 표현과 잘 맞았어요.', countsAsSuccess: true };
       }
       if (matchesAnyAnswer(rawGuess, answers, normalizeExpanded)) {
         return { status: 'almost', feedbackClass: 'almost', title: '거의 맞았어요.', message: '축약형이나 작은 표기 차이만 있어요. 같은 표현으로 볼 수 있어요.', countsAsSuccess: true };
       }
       const alternative = (item.alternativeExpressions || []).find(alt => answerForms(alt.text).has(normalize(rawGuess)) || answerForms(alt.text).has(normalizeExpanded(rawGuess)));
       if (alternative) {
-        return { status: 'meaning', feedbackClass: 'meaning', title: '뜻은 잘 전달됐어요.', message: alternative.message || `오늘은 ${item.frame} 연결을 익히는 중이에요.`, nuance: alternative.nuance || '', countsAsSuccess: false };
+        return { status: 'meaning', feedbackClass: 'meaning', title: '뜻은 잘 전달됐어요.', message: alternative.message || `오늘은 ${item.frame} 표현을 익히는 중이에요.`, nuance: alternative.nuance || '', countsAsSuccess: false };
       }
       const mistake = (item.commonMistakes || []).find(entry => answerForms(entry.answer || entry.pattern).has(normalize(rawGuess)) || answerForms(entry.answer || entry.pattern).has(normalizeExpanded(rawGuess)));
       if (mistake) {
-        return { status: 'retry', feedbackClass: 'bad', title: '다시 연결해 볼게요.', message: mistake.message || item.mistakeExplanation || '표현의 순서나 핵심 연결이 조금 어색해요.', countsAsSuccess: false };
+        return { status: 'retry', feedbackClass: 'bad', title: '목표 문장과 달라요.', message: mistake.message || item.mistakeExplanation || '표현의 순서나 핵심 단어가 조금 어색해요. 힌트를 보고 다시 말해 보세요.', countsAsSuccess: false };
       }
       const guessExpanded = normalizeExpanded(rawGuess);
       const expectedExpanded = normalizeExpanded(item.en);
+      const expectedSubject = extractAnswerSubject(item.en);
+      const guessSubject = extractAnswerSubject(rawGuess);
+      if (expectedSubject && guessSubject && expectedSubject !== guessSubject) {
+        return {
+          status: 'retry',
+          feedbackClass: 'bad',
+          title: '주어가 달라요.',
+          message: `목표 문장은 "${expectedSubject}" 주어로 이어가요. 힌트를 열고 같은 주어로 다시 말해 보세요.`,
+          countsAsSuccess: false,
+        };
+      }
       if (Math.abs(guessExpanded.length - expectedExpanded.length) <= 2 && editDistance(guessExpanded, expectedExpanded) <= 2) {
         return { status: 'almost', feedbackClass: 'almost', title: '거의 맞았어요.', message: '철자나 짧은 단어 하나만 조금 다르게 보였어요.', countsAsSuccess: true };
       }
       if (sortedTokens(rawGuess) === sortedTokens(item.en)) {
-        return { status: 'retry', feedbackClass: 'bad', title: '다시 연결이 필요해요.', message: '단어는 거의 맞는데 순서가 어색해요. 입에 붙는 순서로 다시 말해 볼게요.', countsAsSuccess: false };
+        return { status: 'retry', feedbackClass: 'bad', title: '어순이 달라요.', message: '단어는 거의 맞는데 순서가 어색해요. 입에 붙는 순서로 다시 말해 보세요.', countsAsSuccess: false };
       }
-      const guessWords = new Set(guessExpanded.split(' '));
-      if (item.verb && !guessWords.has(item.verb)) {
-        return { status: 'retry', feedbackClass: 'bad', title: '다시 연결이 필요해요.', message: `뜻은 가까울 수 있지만 오늘은 ${item.verb} 엔진으로 표현을 꺼내는 연습이에요.`, countsAsSuccess: false };
+      const guessWords = new Set(guessExpanded.split(' ').filter(Boolean));
+      if (item.verb && !guessWords.has(String(item.verb).toLowerCase())) {
+        return { status: 'retry', feedbackClass: 'bad', title: '핵심 동사가 달라요.', message: `오늘은 ${item.verb}로 문장을 만드는 연습이에요. 힌트를 보고 다시 말해 보세요.`, countsAsSuccess: false };
       }
-      return { status: 'retry', feedbackClass: 'bad', title: '다시 연결이 필요해요.', message: item.mistakeExplanation || '오늘 목표 표현과는 아직 조금 달라요. 정답을 보고 한 번 더 입으로 붙여 볼게요.', countsAsSuccess: false };
+      return { status: 'retry', feedbackClass: 'bad', title: '목표 문장과 달라요.', message: item.mistakeExplanation || '아직 목표 표현과 조금 달라요. 힌트를 보거나 다시 말해 보세요.', countsAsSuccess: false };
     }
     function checkTextAnswer(item, mode, options = {}) {
       if (mode === 'explain') {
@@ -6588,8 +6625,9 @@
           ${practiceLine}
           <div class="answer-key">내 답</div>
           <div>${escapeHtml(rawGuess)}</div>
-          <div class="answer-key">정답 영어 문장</div>
-          <div><b>${escapeHtml(item.en)}</b></div>
+          ${canAdvance
+            ? `<div class="answer-key">정답 영어 문장</div><div><b>${escapeHtml(item.en)}</b></div>`
+            : `<div class="small-note" style="margin-top:8px">정답 영어는 맞춘 뒤에 보여 줄게요. 힌트로 이어서 맞춰 보세요.</div>`}
           <div class="answer-key">자연스러운 한국어</div>
           <div>${escapeHtml(item.ko)}</div>
           ${nuance}

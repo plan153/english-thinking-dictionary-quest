@@ -1,4 +1,4 @@
-const CACHE = 'etd-quest-v1.3.32';
+const CACHE = 'etd-quest-v1.3.33';
 // Do NOT precache HTML. Stale index.html in Cache Storage is the main Safari stuck-UI cause.
 // Do NOT precache data/*.json — large JSON + addAll can fail on mobile quotas and leave a broken SW.
 const ASSETS = [
@@ -12,6 +12,7 @@ const ASSETS = [
   './src/domain/vault-overlay.js',
   './src/domain/feynman-challenge.js',
   './src/domain/qa-matrix-generate.js',
+  './src/domain/topic-link.js',
   './src/domain/expand-turn.js',
   './src/domain/graph-style.js',
   './src/domain/progress-store.js',
