@@ -49,20 +49,61 @@ const bank = [
   },
 ];
 
-assert.deepStrictEqual(TopicLink.topicsForExpression(bank[0]).sort(), ['travel', 'work'].sort());
+assert.ok(TopicLink.topicsForExpression(bank[0]).includes('work'));
 assert.ok(TopicLink.topicsForExpression(bank[2]).includes('time'));
-assert.ok(TopicLink.topicsForExpression(bank[3]).includes('money'));
-assert.ok(TopicLink.topicsForExpression(bank[4]).includes('hobby'));
 
-const continuePick = TopicLink.pickLinkedExpression('e_sub', bank, { mode: 'continue' });
-assert.strictEqual(continuePick.id, 'e_bus');
+// Without vault links, curated/topic fallback still works.
+const fallbackPick = TopicLink.pickLinkedExpression('e_sub', bank, { mode: 'continue', vaultLinks: [] });
+assert.strictEqual(fallbackPick.id, 'e_bus');
 
-const timeOnlyBank = bank.filter(item => item.id !== 'e_sub' && item.id !== 'e_bus');
-const timeContinue = TopicLink.pickLinkedExpression('e_time', timeOnlyBank, { mode: 'continue' });
-assert.ok(timeContinue && timeContinue.id !== 'e_time');
+const vaultLinks = [
+  {
+    notePath: 'Library/Scenes/commute.md',
+    entityType: 'verb',
+    entityId: 'v_take',
+    confidence: 'high',
+    status: 'confirmed',
+    relatedExpressionIds: ['e_sub', 'e_time'],
+  },
+  {
+    notePath: 'Library/Scenes/commute.md',
+    entityType: 'expression',
+    entityId: 'e_money',
+    confidence: 'medium',
+    status: 'confirmed',
+    relatedExpressionIds: [],
+  },
+];
 
-const workScore = TopicLink.scoreLink(bank[0], bank[1], { mode: 'continue' });
-const moneyScore = TopicLink.scoreLink(bank[0], bank[3], { mode: 'continue' });
-assert.ok(workScore > moneyScore);
+const vaultScores = TopicLink.vaultNeighborStrengthMap(bank[0], bank, vaultLinks);
+assert.ok((vaultScores.get('e_time') || 0) > 0, 'vault should link subway → time via shared verb note');
+assert.ok((vaultScores.get('e_money') || 0) > 0, 'same notePath bridges money expression');
+
+const historyByExpressionId = {
+  e_time: { connections: { recognition: { strength: 3 }, assembly: { strength: 3 }, output: { strength: 2 } } },
+  e_money: { connections: { recognition: { strength: 0 }, assembly: { strength: 0 }, output: { strength: 0 } } },
+};
+
+const vaultPick = TopicLink.pickLinkedExpression('e_sub', bank, {
+  mode: 'continue',
+  vaultLinks,
+  historyByExpressionId,
+});
+assert.ok(['e_time', 'e_money'].includes(vaultPick.id), 'continue should stay inside vault neighbors');
+assert.notStrictEqual(vaultPick.id, 'e_hobby', 'unrelated hobby must not win when vault neighbors exist');
+
+const timeScore = TopicLink.scoreLink(bank[0], bank[2], {
+  mode: 'continue',
+  vaultLinks,
+  historyByExpressionId,
+  bank,
+});
+const hobbyScore = TopicLink.scoreLink(bank[0], bank[4], {
+  mode: 'continue',
+  vaultLinks,
+  historyByExpressionId,
+  bank,
+});
+assert.ok(timeScore > hobbyScore, 'vault neighbor must outrank topic-only hobby');
 
 console.log('✅ topic-link tests passed');

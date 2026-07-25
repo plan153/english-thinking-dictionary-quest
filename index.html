@@ -1100,7 +1100,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.33">v1.3.33</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.34">v1.3.34</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -1610,7 +1610,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.3.33';
+    const APP_CACHE_VERSION = 'etd-quest-v1.3.34';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const ProgressStoreApi = window.ProgressStore;
@@ -1956,10 +1956,22 @@
       const dayNum = Number(String(questDate || '').replace(/\D/g, '').slice(-3)) || 0;
       return bank[dayNum % bank.length] || bank[0];
     }
+    function getExpandLinkContext() {
+      const vo = (typeof ensureVaultOverlayState === 'function')
+        ? ensureVaultOverlayState()
+        : (appState.progress?.vaultOverlay || { links: [] });
+      return {
+        vaultLinks: (vo.links || []).filter(link => link && link.status !== 'dismissed'),
+        historyByExpressionId: appState.progress?.historyByExpressionId || {},
+      };
+    }
     function pickTopicShiftExpression(fromExpressionId, bank) {
       const api = window.TopicLink;
       if (api?.pickLinkedExpression) {
-        return api.pickLinkedExpression(fromExpressionId, bank, { mode: 'topic' })
+        return api.pickLinkedExpression(fromExpressionId, bank, {
+          mode: 'topic',
+          ...getExpandLinkContext(),
+        })
           || bank.find(item => item.id === fromExpressionId)
           || bank[0]
           || null;
@@ -2006,7 +2018,10 @@
     function pickContinueExpression(fromExpressionId, bank = getUnlockedBank()) {
       const api = window.TopicLink;
       if (api?.pickLinkedExpression) {
-        return api.pickLinkedExpression(fromExpressionId, bank, { mode: 'continue' })
+        return api.pickLinkedExpression(fromExpressionId, bank, {
+          mode: 'continue',
+          ...getExpandLinkContext(),
+        })
           || pickTopicShiftExpression(fromExpressionId, bank);
       }
       const current = bank.find(item => item.id === fromExpressionId) || null;
