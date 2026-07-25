@@ -835,6 +835,14 @@
       padding: 14px 14px 12px;
       margin-bottom: 12px;
       text-align: left;
+      position: relative;
+    }
+    .expand-seed-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 6px;
     }
     .expand-seed .prompt-lang {
       font-size: 11px;
@@ -842,17 +850,37 @@
       letter-spacing: .04em;
       text-transform: uppercase;
       color: var(--muted);
-      margin-bottom: 6px;
+      margin: 0;
+      padding-top: 6px;
     }
-    .expand-seed .en { font-size: 22px; font-weight: 850; letter-spacing: -.4px; line-height: 1.25; }
+    .expand-lang-toggle {
+      flex: 0 0 auto;
+      min-width: 44px;
+      min-height: 44px;
+      border: 1px solid rgba(40,111,108,.28);
+      background: #fff;
+      color: var(--accent);
+      border-radius: 12px;
+      font-weight: 850;
+      font-size: 13px;
+      letter-spacing: -.02em;
+      padding: 0 10px;
+      line-height: 1;
+    }
+    .expand-lang-toggle:hover,
+    .expand-lang-toggle:focus-visible {
+      background: #eef7f6;
+      border-color: var(--accent);
+    }
+    .expand-seed .en { font-size: 22px; font-weight: 850; letter-spacing: -.4px; line-height: 1.25; padding-right: 4px; }
     .expand-seed .ko { margin-top: 6px; color: var(--muted); font-size: 14px; line-height: 1.4; }
     .expand-seed-actions {
       display: flex;
-      flex-wrap: wrap;
+      flex-direction: column;
       gap: 8px;
       margin-top: 12px;
     }
-    .expand-seed-actions .btn { flex: 1 1 120px; }
+    .expand-seed-actions .btn { width: 100%; }
     .expand-choice-grid {
       display: grid;
       grid-template-columns: 1fr;
@@ -1064,7 +1092,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.29">v1.3.29</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.30">v1.3.30</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -1573,7 +1601,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.3.29';
+    const APP_CACHE_VERSION = 'etd-quest-v1.3.30';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const ProgressStoreApi = window.ProgressStore;
@@ -1929,7 +1957,7 @@
       return [
         // 듣기는 시드 카드에서 바로 재생 (화면 이동 없음)
         { id: 'listen', label: '듣기', desc: '이 화면에서 바로 듣기', mode: 'listen', questStage: 'meaning', inlineListen: true },
-        { id: 'shadow', label: '따라하기', desc: '영어로 말해 보기 · 누적 학습', mode: 'speak', questStage: 'output' },
+        { id: 'shadow', label: '따라말하기', desc: '영어로 따라 말해 보기 · 누적 학습', mode: 'speak', questStage: 'output', inlineShadow: true },
         { id: 'ask', label: '의문문으로', desc: '평서문을 질문 형태로 바꿔 말하기', mode: 'matrix', matrixFormId: 'question', questStage: 'assembly', expandQa: true },
         { id: 'answer', label: '평서문으로', desc: '질문을 평서문 형태로 바꿔 말하기', mode: 'matrix', matrixFormId: 'statement', questStage: 'assembly', expandQa: true },
         { id: 'continue', label: '이어말하기', desc: '원문과 이어지는 다음 문장 말하기', mode: 'koen', questStage: 'assembly', continueLink: true },
@@ -1967,14 +1995,19 @@
       const ko = item.ko || item.naturalKorean || '';
       const prompt = lang === 'en' ? en : ko;
       const secondary = lang === 'en' ? ko : en;
+      const toggleLabel = lang === 'en' ? '한' : 'EN';
+      const toggleTitle = lang === 'en' ? '한국어로 보기' : '영어로 보기';
       return `
         <div class="expand-seed" data-expand-seed-id="${escapeHtml(id)}">
-          <div class="prompt-lang" id="expandSeedLang">${lang === 'en' ? 'English · 참고' : '한국어 · 참고'}</div>
+          <div class="expand-seed-top">
+            <div class="prompt-lang" id="expandSeedLang">${lang === 'en' ? 'English · 참고' : '한국어 · 참고'}</div>
+            <button class="expand-lang-toggle" type="button" id="expandSeedLangToggle" title="${escapeHtml(toggleTitle)}" aria-label="${escapeHtml(toggleTitle)}">${escapeHtml(toggleLabel)}</button>
+          </div>
           <div class="en" id="expandSeedPrompt">${escapeHtml(prompt)}</div>
           <div class="ko" id="expandSeedSecondary">${escapeHtml(secondary)}</div>
-          <div class="question-actions expand-seed-actions">
+          <div class="expand-seed-actions">
             <button class="btn soft" type="button" id="expandSeedListen">듣기</button>
-            <button class="btn soft" type="button" id="expandSeedLangToggle">한영전환</button>
+            <button class="btn accent" type="button" id="expandSeedShadow">따라말하기</button>
           </div>
         </div>
       `;
@@ -1982,18 +2015,31 @@
     function bindExpandSeedCard(root, item) {
       if (!root || !item) return;
       const id = progressItemId(item) || item.id;
-      root.querySelector('#expandSeedListen')?.addEventListener('click', () => playExpandSeedAudio(item));
-      root.querySelector('#expandSeedLangToggle')?.addEventListener('click', () => {
-        const next = getPromptLang(id, 'en') === 'en' ? 'ko' : 'en';
-        setPromptLang(id, next);
+      const refreshLangUi = (next) => {
         const en = item.en || item.english || '';
         const ko = item.ko || item.naturalKorean || '';
         const langEl = root.querySelector('#expandSeedLang');
         const promptEl = root.querySelector('#expandSeedPrompt');
         const secondaryEl = root.querySelector('#expandSeedSecondary');
+        const toggleEl = root.querySelector('#expandSeedLangToggle');
         if (langEl) langEl.textContent = next === 'en' ? 'English · 참고' : '한국어 · 참고';
         if (promptEl) promptEl.textContent = next === 'en' ? en : ko;
         if (secondaryEl) secondaryEl.textContent = next === 'en' ? ko : en;
+        if (toggleEl) {
+          toggleEl.textContent = next === 'en' ? '한' : 'EN';
+          const title = next === 'en' ? '한국어로 보기' : '영어로 보기';
+          toggleEl.title = title;
+          toggleEl.setAttribute('aria-label', title);
+        }
+      };
+      root.querySelector('#expandSeedListen')?.addEventListener('click', () => playExpandSeedAudio(item));
+      root.querySelector('#expandSeedShadow')?.addEventListener('click', () => {
+        startExpandChoice('shadow', id);
+      });
+      root.querySelector('#expandSeedLangToggle')?.addEventListener('click', () => {
+        const next = getPromptLang(id, 'en') === 'en' ? 'ko' : 'en';
+        setPromptLang(id, next);
+        refreshLangUi(next);
       });
     }
     function findBankExpression(expressionId) {
@@ -2163,7 +2209,7 @@
     }
 
     function renderExpandChoiceButtons(expressionId, options = {}) {
-      // 평서문 → 의문문으로, 의문문 → 평서문으로 (동적 1개). 듣기는 시드 카드에서 처리.
+      // 평서문 → 의문문으로, 의문문 → 평서문으로 (동적 1개). 듣기·따라말하기는 시드 카드에서 처리.
       const choices = getExpandChoicesForExpression(expressionId, options);
       const turn = resolveExpandTurnForExpression(expressionId, options);
       const api = window.ExpandTurn;

@@ -16,6 +16,7 @@ const choices = [
 
 assert.strictEqual(ExpandTurn.isQuestionLike("That's it."), false);
 assert.strictEqual(ExpandTurn.isQuestionLike('Is that it?'), true);
+assert.strictEqual(ExpandTurn.isQuestionLike('Do you have a minute?'), true);
 assert.strictEqual(ExpandTurn.isQuestionLike("That's it.", '그게 다예요. / 됐어?'), true);
 
 assert.strictEqual(
@@ -23,7 +24,18 @@ assert.strictEqual(
   'statement'
 );
 assert.strictEqual(
-  ExpandTurn.resolveExpandTurn({ en: 'Is that it?', ko: '그게 다예요?' }),
+  ExpandTurn.resolveExpandTurn({ en: 'Do you have a minute?', ko: '잠깐 시간 있어요?' }),
+  'question'
+);
+// Visible seed sentence wins over stale lastExpandChoiceId
+assert.strictEqual(
+  ExpandTurn.resolveExpandTurn({
+    expressionId: 'e1',
+    lastExpressionId: 'e1',
+    lastExpandChoiceId: 'answer',
+    en: 'Do you have a minute?',
+    ko: '잠깐 시간 있어요?',
+  }),
   'question'
 );
 assert.strictEqual(
@@ -35,27 +47,17 @@ assert.strictEqual(
     expressionId: 'e1',
     lastExpressionId: 'e1',
     lastExpandChoiceId: 'ask',
-    en: "That's it.",
   }),
   'question'
-);
-assert.strictEqual(
-  ExpandTurn.resolveExpandTurn({
-    expressionId: 'e2',
-    lastExpressionId: 'e1',
-    lastExpandChoiceId: 'ask',
-    en: "That's it.",
-  }),
-  'statement'
 );
 
 assert.strictEqual(ExpandTurn.formSwapLabel('statement'), '의문문으로');
 assert.strictEqual(ExpandTurn.formSwapLabel('question'), '평서문으로');
 
 const fromStatement = ExpandTurn.filterExpandChoices(choices, 'statement').map(c => c.id);
-assert.deepStrictEqual(fromStatement, ['shadow', 'ask', 'continue', 'topic']);
+assert.deepStrictEqual(fromStatement, ['ask', 'continue', 'topic']);
 const fromQuestion = ExpandTurn.filterExpandChoices(choices, 'question').map(c => c.id);
-assert.deepStrictEqual(fromQuestion, ['shadow', 'answer', 'continue', 'topic']);
+assert.deepStrictEqual(fromQuestion, ['answer', 'continue', 'topic']);
 
 assert.strictEqual(ExpandTurn.correctExpandChoiceId('ask', 'question'), 'answer');
 assert.strictEqual(ExpandTurn.correctExpandChoiceId('answer', 'statement'), 'ask');

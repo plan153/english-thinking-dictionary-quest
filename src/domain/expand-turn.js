@@ -29,8 +29,7 @@
 
   /**
    * Resolve whether the source sentence is a statement or a question.
-   * - statement → show 의문문으로 (ask)
-   * - question → show 평서문으로 (answer/toStatement)
+   * Priority: explicit formId/turn → visible sentence shape → last expand choice.
    */
   function resolveExpandTurn(options = {}) {
     const formId = options.formId || null;
@@ -39,6 +38,11 @@
       return 'statement';
     }
     if (options.turn === 'question' || options.turn === 'statement') return options.turn;
+
+    // 화면에 보이는 원문 형태를 우선 (Do you have a minute? 가 평서로 잘못 잡히지 않게)
+    if (options.en || options.ko) {
+      return isQuestionLike(options.en, options.ko) ? 'question' : 'statement';
+    }
 
     const lastChoice = options.lastExpandChoiceId || null;
     const sameExpression = !options.expressionId
@@ -49,7 +53,6 @@
       if (lastChoice === 'answer') return 'statement';
     }
 
-    if (isQuestionLike(options.en, options.ko)) return 'question';
     return 'statement';
   }
 
@@ -67,7 +70,8 @@
     const safeTurn = turn === 'question' ? 'question' : 'statement';
     return (choices || []).filter(choice => {
       if (!choice) return false;
-      if (choice.id === 'listen') return false; // 듣기는 시드 카드에서 바로 재생
+      // 듣기·따라말하기는 시드 카드에서 처리
+      if (choice.id === 'listen' || choice.id === 'shadow') return false;
       if (choice.id === 'ask') return safeTurn === 'statement';
       if (choice.id === 'answer') return safeTurn === 'question';
       return true;
