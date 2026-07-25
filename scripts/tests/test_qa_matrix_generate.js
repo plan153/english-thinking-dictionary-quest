@@ -145,6 +145,33 @@ const illDo = QaMatrixGenerate.fromExpression({
 assert.strictEqual(illDo.forms.find(f => f.id === 'question').en, 'Will you do it?');
 assert.strictEqual(illDo.forms.find(f => f.id === 'negative').en, "I won't do it.");
 
+const sheSubway = QaMatrixGenerate.fromExpression({
+  id: 'e_she_subway',
+  english: 'She takes the subway to work.',
+  naturalKorean: '그녀는 출근할 때 지하철을 타.',
+  coreVerbId: 'v_take',
+});
+assert.strictEqual(sheSubway.forms.find(f => f.id === 'question').en, 'Does she take the subway to work?');
+assert.strictEqual(sheSubway.forms.find(f => f.id === 'negative').en, "She doesn't take the subway to work.");
+assert.ok(!/Do you She/i.test(sheSubway.forms.find(f => f.id === 'question').en));
+
+const heNeeds = QaMatrixGenerate.fromExpression({
+  id: 'e_he_needs',
+  english: 'He needs more time.',
+  naturalKorean: '그는 시간이 더 필요해.',
+  coreVerbId: 'v_need',
+});
+assert.strictEqual(heNeeds.forms.find(f => f.id === 'question').en, 'Does he need more time?');
+assert.strictEqual(heNeeds.forms.find(f => f.id === 'negative').en, "He doesn't need more time.");
+
+const theyTake = QaMatrixGenerate.fromExpression({
+  id: 'e_they_take',
+  english: 'They take the bus.',
+  naturalKorean: '그들은 버스를 타.',
+  coreVerbId: 'v_take',
+});
+assert.strictEqual(theyTake.forms.find(f => f.id === 'question').en, 'Do they take the bus?');
+
 const ensured = QaMatrixGenerate.ensureMatrix(
   { id: 'e021', english: 'I have an idea.', naturalKorean: '생각이 있어요.', coreVerbId: 'v_have' },
   [{ id: 'm_have_idea', baseExpressionId: 'e021', forms: [] }]

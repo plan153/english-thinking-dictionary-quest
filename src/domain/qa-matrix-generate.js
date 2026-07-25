@@ -274,10 +274,21 @@
     }
     const aux = match[1].toLowerCase();
     const subject = match[2].toLowerCase();
-    if (aux === 'does') return { aux, subject, shortYes: 'Yes, it does.', shortNo: "No, it doesn't.", statementSubject: subject === 'that' ? 'That' : 'It' };
+    if (aux === 'does') {
+      if (subject === 'she') return { aux, subject, shortYes: 'Yes, she does.', shortNo: "No, she doesn't.", statementSubject: 'She' };
+      if (subject === 'he') return { aux, subject, shortYes: 'Yes, he does.', shortNo: "No, he doesn't.", statementSubject: 'He' };
+      if (subject === 'that') return { aux, subject, shortYes: 'Yes, it does.', shortNo: "No, it doesn't.", statementSubject: 'That' };
+      return { aux, subject, shortYes: 'Yes, it does.', shortNo: "No, it doesn't.", statementSubject: 'It' };
+    }
     if (aux === 'do' && subject === 'you') return { aux, subject, shortYes: 'Yes, I do.', shortNo: "No, I don't.", statementSubject: 'I' };
     if (aux === 'do' && subject === 'we') return { aux, subject, shortYes: 'Yes, we do.', shortNo: "No, we don't.", statementSubject: 'We' };
-    if (aux === 'did') return { aux, subject, shortYes: 'Yes, I did.', shortNo: "No, I didn't.", statementSubject: 'I' };
+    if (aux === 'do' && subject === 'they') return { aux, subject, shortYes: 'Yes, they do.', shortNo: "No, they don't.", statementSubject: 'They' };
+    if (aux === 'did') {
+      if (subject === 'she') return { aux, subject, shortYes: 'Yes, she did.', shortNo: "No, she didn't.", statementSubject: 'She' };
+      if (subject === 'he') return { aux, subject, shortYes: 'Yes, he did.', shortNo: "No, he didn't.", statementSubject: 'He' };
+      if (subject === 'they') return { aux, subject, shortYes: 'Yes, they did.', shortNo: "No, they didn't.", statementSubject: 'They' };
+      return { aux, subject, shortYes: 'Yes, I did.', shortNo: "No, I didn't.", statementSubject: 'I' };
+    }
     if (aux === 'are' && subject === 'you') return { aux, subject, shortYes: 'Yes, I am.', shortNo: "No, I'm not.", statementSubject: "I'm" };
     if (aux === 'are' && subject === 'they') return { aux, subject, shortYes: 'Yes, they are.', shortNo: "No, they aren't.", statementSubject: 'They' };
     if (aux === 'is' && subject === 'that') return { aux, subject, shortYes: 'Yes, it is.', shortNo: "No, it isn't.", statementSubject: 'That' };
@@ -334,10 +345,60 @@
       return ensurePeriod(`I will ${rest}`);
     }
     if (info.aux === 'does') {
-      // Does it take time? -> It takes time. (approx)
-      return ensurePeriod(`It ${rest}`.replace(/\bget\b/i, 'gets').replace(/\btake\b/i, 'takes').replace(/\bneed\b/i, 'needs').replace(/\bhave\b/i, 'has'));
+      const subject = info.statementSubject || (info.subject === 'she' ? 'She' : info.subject === 'he' ? 'He' : 'It');
+      const verbRest = String(rest || '')
+        .replace(/^(get)\b/i, 'gets')
+        .replace(/^(take)\b/i, 'takes')
+        .replace(/^(need)\b/i, 'needs')
+        .replace(/^(have)\b/i, 'has')
+        .replace(/^(go)\b/i, 'goes')
+        .replace(/^(make)\b/i, 'makes')
+        .replace(/^(feel)\b/i, 'feels')
+        .replace(/^(keep)\b/i, 'keeps')
+        .replace(/^(want)\b/i, 'wants')
+        .replace(/^(do)\b/i, 'does');
+      return ensurePeriod(`${subject} ${verbRest}`);
     }
     return ensurePeriod(`${info.statementSubject || 'I'} ${rest}`);
+  }
+
+  function deinflectPresent3sg(rest) {
+    const text = String(rest || '').trim();
+    const match = text.match(/^([A-Za-z']+)(\s+[\s\S]*)?$/);
+    if (!match) return text;
+    const verb = match[1].toLowerCase();
+    const tail = match[2] || '';
+    const known = {
+      takes: 'take', needs: 'need', has: 'have', gets: 'get', goes: 'go',
+      makes: 'make', keeps: 'keep', feels: 'feel', wants: 'want', likes: 'like',
+      loves: 'love', does: 'do', watches: 'watch', teaches: 'teach', comes: 'come',
+      leaves: 'leave', works: 'work', plays: 'play', lives: 'live', looks: 'look',
+      seems: 'seem', helps: 'help', starts: 'start', ends: 'end', calls: 'call',
+      puts: 'put', runs: 'run', finds: 'find', gives: 'give', says: 'say',
+      tries: 'try', studies: 'study', carries: 'carry',
+    };
+    if (known[verb]) return known[verb] + tail;
+    if (/ies$/i.test(verb) && verb.length > 4) return `${verb.slice(0, -3)}y${tail}`;
+    if (/(ches|shes|sses|xes|zes)$/i.test(verb)) return `${verb.slice(0, -2)}${tail}`;
+    if (/s$/i.test(verb) && !/ss$/i.test(verb) && verb.length > 3) return `${verb.slice(0, -1)}${tail}`;
+    return text;
+  }
+
+  function deinflectPast(rest) {
+    return String(rest || '')
+      .replace(/\bgot\b/i, 'get')
+      .replace(/\bmade\b/i, 'make')
+      .replace(/\bwent\b/i, 'go')
+      .replace(/\bcame\b/i, 'come')
+      .replace(/\btook\b/i, 'take')
+      .replace(/\bhad\b/i, 'have')
+      .replace(/\bfelt\b/i, 'feel')
+      .replace(/\bfound\b/i, 'find')
+      .replace(/\bkept\b/i, 'keep')
+      .replace(/\bgave\b/i, 'give')
+      .replace(/\bdid\b/i, 'do')
+      .replace(/\bsaid\b/i, 'say')
+      .replace(/\bleft\b/i, 'leave');
   }
 
   function statementToQuestion(statementEn) {
@@ -398,24 +459,30 @@
         .replace(/\bfeels\b/i, 'feel');
       return ensureQuestion(`Does it ${rest}`);
     }
+    if (/^(he|she)\s+/i.test(text)) {
+      const subject = text.match(/^(he|she)/i)[1].toLowerCase();
+      if (isPastEn(text)) {
+        const rest = deinflectPast(text.replace(/^(he|she)\s+/i, ''));
+        return ensureQuestion(`Did ${subject} ${rest}`);
+      }
+      const rest = deinflectPresent3sg(text.replace(/^(he|she)\s+/i, ''));
+      return ensureQuestion(`Does ${subject} ${rest}`);
+    }
     if (isPastEn(text)) {
-      const rest = text
-        .replace(/^(i|we|you|they)\s+/i, '')
-        .replace(/\bgot\b/i, 'get')
-        .replace(/\bmade\b/i, 'make')
-        .replace(/\bwent\b/i, 'go')
-        .replace(/\bcame\b/i, 'come')
-        .replace(/\btook\b/i, 'take')
-        .replace(/\bhad\b/i, 'have')
-        .replace(/\bfelt\b/i, 'feel')
-        .replace(/\bfound\b/i, 'find')
-        .replace(/\bkept\b/i, 'keep')
-        .replace(/\bgave\b/i, 'give');
+      if (/^they\s+/i.test(text)) {
+        const rest = deinflectPast(text.replace(/^they\s+/i, ''));
+        return ensureQuestion(`Did they ${rest}`);
+      }
+      const rest = deinflectPast(text.replace(/^(i|we|you)\s+/i, ''));
       return ensureQuestion(`Did you ${rest}`);
     }
-    if (/^(we|they)\s+/i.test(text)) {
-      const rest = text.replace(/^(we|they)\s+/i, '');
-      return ensureQuestion(`Do you ${rest}`);
+    if (/^they\s+/i.test(text)) {
+      const rest = text.replace(/^they\s+/i, '');
+      return ensureQuestion(`Do they ${rest}`);
+    }
+    if (/^we\s+/i.test(text)) {
+      const rest = text.replace(/^we\s+/i, '');
+      return ensureQuestion(`Do we ${rest}`);
     }
     if (/^you\s+/i.test(text)) {
       const rest = text.replace(/^you\s+/i, '');
@@ -464,16 +531,22 @@
         .replace(/\bgets\b/i, 'get');
       return ensurePeriod(`It doesn't ${rest}`);
     }
+    if (/^(he|she)\s+/i.test(text)) {
+      const subject = text.match(/^(he|she)/i)[1];
+      const capped = subject.charAt(0).toUpperCase() + subject.slice(1).toLowerCase();
+      if (isPastEn(text)) {
+        const rest = deinflectPast(text.replace(/^(he|she)\s+/i, ''));
+        return ensurePeriod(`${capped} didn't ${rest}`);
+      }
+      const rest = deinflectPresent3sg(text.replace(/^(he|she)\s+/i, ''));
+      return ensurePeriod(`${capped} doesn't ${rest}`);
+    }
     if (isPastEn(text)) {
-      const rest = text
-        .replace(/^(i|we|you|they)\s+/i, '')
-        .replace(/\bgot\b/i, 'get')
-        .replace(/\bmade\b/i, 'make')
-        .replace(/\bwent\b/i, 'go')
-        .replace(/\bcame\b/i, 'come')
-        .replace(/\btook\b/i, 'take')
-        .replace(/\bhad\b/i, 'have')
-        .replace(/\bfelt\b/i, 'feel');
+      if (/^they\s+/i.test(text)) {
+        const rest = deinflectPast(text.replace(/^they\s+/i, ''));
+        return ensurePeriod(`They didn't ${rest}`);
+      }
+      const rest = deinflectPast(text.replace(/^(i|we|you)\s+/i, ''));
       return ensurePeriod(`I didn't ${rest}`);
     }
     if (/^i\s+can\b/i.test(text)) return ensurePeriod(text.replace(/^i\s+can\b/i, "I can't"));
@@ -483,6 +556,7 @@
     if (/^i\s+have no\b/i.test(text)) return ensurePeriod(text); // already negative sense
     if (/^i\s+/i.test(text)) return ensurePeriod(`I don't ${text.replace(/^i\s+/i, '')}`);
     if (/^we\s+/i.test(text)) return ensurePeriod(`We don't ${text.replace(/^we\s+/i, '')}`);
+    if (/^they\s+/i.test(text)) return ensurePeriod(`They don't ${text.replace(/^they\s+/i, '')}`);
     if (/^you\s+/i.test(text)) return ensurePeriod(`You don't ${text.replace(/^you\s+/i, '')}`);
     return ensurePeriod(`I don't ${text}`);
   }
