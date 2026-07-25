@@ -309,6 +309,40 @@
     .answer-key { font-size: 14px; margin-top:8px; color:var(--muted); }
     .answer-summary { text-align:left; }
     .answer-summary .chunk-row { margin:9px 0 0; }
+    .contrast-teach {
+      margin: 10px 0 0;
+      padding: 10px 12px;
+      border-left: 3px solid var(--accent, #286f6c);
+      background: linear-gradient(120deg, rgba(40,111,108,.08), rgba(255,255,255,.55));
+      text-align: left;
+      font-weight: 600;
+      line-height: 1.45;
+    }
+    .contrast-teach .contrast-title {
+      font-size: 12px;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0 0 4px;
+      font-weight: 800;
+    }
+    .contrast-teach .contrast-summary {
+      font-size: 14px;
+      color: var(--ink);
+      margin: 0;
+    }
+    .contrast-teach .contrast-tip {
+      font-size: 13px;
+      color: var(--muted);
+      margin: 4px 0 0;
+      font-weight: 600;
+    }
+    .contrast-teach .contrast-wrong {
+      font-size: 12px;
+      color: #a7433b;
+      margin: 4px 0 0;
+      font-weight: 700;
+    }
     @keyframes pulseGood { 0% { box-shadow:0 18px 50px rgba(28,24,20,.08); } 45% { box-shadow:0 0 0 5px rgba(52,143,94,.25), 0 18px 50px rgba(28,24,20,.08); } 100% { box-shadow:0 18px 50px rgba(28,24,20,.08); } }
     @keyframes pulseWarn { 0% { box-shadow:0 18px 50px rgba(28,24,20,.08); } 45% { box-shadow:0 0 0 5px rgba(218,169,54,.25), 0 18px 50px rgba(28,24,20,.08); } 100% { box-shadow:0 18px 50px rgba(28,24,20,.08); } }
     @keyframes pulseBad { 0% { box-shadow:0 18px 50px rgba(28,24,20,.08); } 45% { box-shadow:0 0 0 5px rgba(191,76,63,.23), 0 18px 50px rgba(28,24,20,.08); } 100% { box-shadow:0 18px 50px rgba(28,24,20,.08); } }
@@ -1100,7 +1134,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.36">v1.3.36</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.37">v1.3.37</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -1452,6 +1486,7 @@
   <script src="./src/domain/feynman-challenge.js"></script>
   <script src="./src/domain/qa-matrix-generate.js"></script>
   <script src="./src/domain/topic-link.js"></script>
+  <script src="./src/domain/expression-contrast.js"></script>
   <script src="./src/domain/expand-turn.js"></script>
   <script src="./src/domain/graph-style.js"></script>
   <script src="./src/domain/progress-store.js"></script>
@@ -1610,7 +1645,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.3.36';
+    const APP_CACHE_VERSION = 'etd-quest-v1.3.37';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const ProgressStoreApi = window.ProgressStore;
@@ -2127,6 +2162,7 @@
           </div>
           <div class="en" id="expandSeedPrompt">${escapeHtml(prompt)}</div>
           <div class="ko${secondary ? '' : ' hidden'}" id="expandSeedSecondary">${escapeHtml(secondary)}</div>
+          ${lang === 'ko' ? renderContrastTeach(item, { compact: true, showTip: true }) : ''}
           <div class="expand-seed-actions">
             <button class="btn soft" type="button" id="expandSeedListen">듣기</button>
             <button class="btn accent" type="button" id="expandSeedShadow">따라말하기</button>
@@ -2843,6 +2879,10 @@
       return patterns.find(p => p.id === id)?.label || id || '';
     }
     function normalizeExpression(expression, collections = appState.dictionaryData) {
+      const api = window.ExpressionContrast;
+      const contrast = api?.resolveContrast
+        ? api.resolveContrast(expression, collections)
+        : (expression.contrast || null);
       return {
         ...expression,
         en: expression.english,
@@ -2851,7 +2891,42 @@
         frame: patternLabelFromId(expression.patternId, collections.patterns || []),
         nouns: expression.nounIds || [],
         hint: expression.hints || [],
+        contrast: contrast || expression.contrast || null,
       };
+    }
+    function resolveItemContrast(item) {
+      const api = window.ExpressionContrast;
+      if (!item) return null;
+      if (api?.resolveContrast) {
+        return api.resolveContrast(item, {
+          verbs: appState.dictionaryData?.verbs || [],
+          nouns: appState.dictionaryData?.nouns || [],
+          patterns: appState.dictionaryData?.patterns || [],
+        });
+      }
+      return item.contrast || null;
+    }
+    function renderContrastTeach(itemOrContrast, options = {}) {
+      const contrast = itemOrContrast && (itemOrContrast.koVerb || itemOrContrast.assembly)
+        ? itemOrContrast
+        : resolveItemContrast(itemOrContrast);
+      if (!contrast) return '';
+      const api = window.ExpressionContrast;
+      const summary = api?.contrastSummaryLine?.(contrast)
+        || [contrast.koVerb, contrast.assembly].filter(Boolean).join(' → ');
+      if (!summary) return '';
+      const showTip = options.showTip !== false;
+      const compact = options.compact === true;
+      return `
+        <div class="contrast-teach${compact ? ' compact' : ''}">
+          <p class="contrast-title">한 → 영 조립</p>
+          <p class="contrast-summary">${escapeHtml(summary)}</p>
+          ${showTip && contrast.tip ? `<p class="contrast-tip">${escapeHtml(contrast.tip)}</p>` : ''}
+          ${!compact && contrast.wrongDirectTranslation
+            ? `<p class="contrast-wrong">직역 주의: ${escapeHtml(contrast.wrongDirectTranslation)}</p>`
+            : ''}
+        </div>
+      `;
     }
     function normalizeFallbackPhrase(phrase) {
       return {
@@ -5177,6 +5252,7 @@
               <h6>뜻</h6>
               <p>${escapeHtml(expression.naturalKorean || '')}</p>
               ${expression.literalMeaning ? `<p class="small-note">직역: ${escapeHtml(expression.literalMeaning)}</p>` : ''}
+              ${renderContrastTeach(expression)}
               ${expression.usageNotes ? `<p><span class="small-note">언제:</span> ${escapeHtml(expression.usageNotes)}</p>` : ''}
               ${expression.nuanceNotes ? `<p><span class="small-note">실제 의미:</span> ${escapeHtml(expression.nuanceNotes)}</p>` : ''}
               <h6 style="margin-top:10px">덩어리</h6>
@@ -5296,6 +5372,13 @@
             <div class="map-detail-card">
               <p><b><span class="map-step-title"><span class="map-step-index">4</span>자주 쓰는 조합</span></b></p>
               <div class="map-chip-list">${combinationButtons}</div>
+              ${selectedCombination?.koreanContrast
+                ? `<div class="contrast-teach compact" style="margin-top:10px">
+                    <p class="contrast-title">한 → 영 조립</p>
+                    <p class="contrast-summary">${escapeHtml(selectedCombination.koreanContrast)}</p>
+                    ${selectedCombination.contrastTip ? `<p class="contrast-tip">${escapeHtml(selectedCombination.contrastTip)}</p>` : ''}
+                  </div>`
+                : ''}
             </div>
           ` : ''}
           ${selectedCombination ? `
@@ -5912,6 +5995,7 @@
           <div class="prompt-lang" id="simplePromptLang">${lang === 'en' ? 'English · 참고' : '영작하기'}</div>
           <h2 id="simplePromptText">${escapeHtml(prompt)}</h2>
         </div>
+        ${lang === 'ko' ? renderContrastTeach(item, { compact: true }) : ''}
         ${renderPracticeCountBadge(item, { elementId: countId })}
         <div class="simple-actions">
           <button class="btn soft tts-play" type="button" data-text="${escapeHtml(ttsText)}" data-lang="${ttsLang}">${lang === 'en' ? '영어 듣기' : '듣기'}</button>
@@ -5955,6 +6039,7 @@
       return `
         <h2>${item.ko}</h2>
         <p class="korean">말하듯이 영어로 조립해 보세요. 대소문자와 마침표는 크게 신경 쓰지 않아도 됩니다.</p>
+        ${renderContrastTeach(item, { compact: true })}
         ${renderVoiceFirstTypedBlock({ checkLabel: '정답 확인', placeholder: 'Type your English sentence', item })}`;
     }
     function renderMatrix(item) {
@@ -6667,9 +6752,27 @@
       }
       const guessWords = new Set(guessExpanded.split(' ').filter(Boolean));
       if (item.verb && !guessWords.has(String(item.verb).toLowerCase())) {
-        return { status: 'retry', feedbackClass: 'bad', title: '핵심 동사가 달라요.', message: `오늘은 ${item.verb}로 문장을 만드는 연습이에요. 힌트를 보고 다시 말해 보세요.`, countsAsSuccess: false };
+        const contrast = resolveItemContrast(item);
+        const assemblyHint = contrast?.assembly ? ` 영어는 ${contrast.assembly}로 조립해 보세요.` : '';
+        return {
+          status: 'retry',
+          feedbackClass: 'bad',
+          title: '핵심 동사가 달라요.',
+          message: `오늘은 ${item.verb}로 문장을 만드는 연습이에요.${assemblyHint}`,
+          countsAsSuccess: false,
+        };
       }
-      return { status: 'retry', feedbackClass: 'bad', title: '목표 문장과 달라요.', message: item.mistakeExplanation || '아직 목표 표현과 조금 달라요. 힌트를 보거나 다시 말해 보세요.', countsAsSuccess: false };
+      const contrast = resolveItemContrast(item);
+      const contrastHint = contrast?.assembly
+        ? ` 한국어 상황 표현을 ${contrast.assembly}로 바꿔 말해 보세요.`
+        : '';
+      return {
+        status: 'retry',
+        feedbackClass: 'bad',
+        title: '목표 문장과 달라요.',
+        message: (item.mistakeExplanation || '아직 목표 표현과 조금 달라요.') + contrastHint,
+        countsAsSuccess: false,
+      };
     }
     function checkTextAnswer(item, mode, options = {}) {
       if (mode === 'explain') {
@@ -6787,6 +6890,7 @@
             : `<div class="small-note" style="margin-top:8px">정답 영어는 맞춘 뒤에 보여 줄게요. 힌트로 이어서 맞춰 보세요.</div>`}
           <div class="answer-key">자연스러운 한국어</div>
           <div>${escapeHtml(item.ko)}</div>
+          ${renderContrastTeach(item)}
           ${nuance}
           <div class="answer-key">단어 덩어리</div>
           <div class="chunk-row">${(item.chunks || []).map(chunk => `<span class="chunk">${escapeHtml(chunk)}</span>`).join('')}</div>
@@ -7320,6 +7424,7 @@
           <h3>${escapeHtml(selectedExpression.english)}</h3>
           <p><b>${escapeHtml(selectedExpression.naturalKorean)}</b></p>
           <p class="small-note">직역: ${escapeHtml(selectedExpression.literalMeaning || '')}</p>
+          ${renderContrastTeach(selectedExpression)}
           ${selectedExpression.usageNotes ? `<p><span class="small-note">언제:</span> ${escapeHtml(selectedExpression.usageNotes)}</p>` : ''}
           ${selectedExpression.nuanceNotes ? `<p><span class="small-note">실제 의미:</span> ${escapeHtml(selectedExpression.nuanceNotes)}</p>` : ''}
           <div class="chunk-row">${selectedExpression.chunks.map(chunk => `<span class="chunk">${escapeHtml(chunk)}</span>`).join('')}</div>

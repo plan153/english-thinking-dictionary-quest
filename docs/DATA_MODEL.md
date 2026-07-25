@@ -62,6 +62,8 @@ English Thinking Dictionary는 단어를 따로 외우는 사전이 아니다. �
 - `quizTypes`: `listening`, `speaking`, `koToEn`, `enToKo`, `blank`, `hint`
 - `audioText`
 - `relatedExpressionIds`
+- `contrast` (선택): 한국어 상황 동사 ↔ 영어 기본동사+명사 조립 안내
+  - `koVerb`, `enEngine`, `enNoun`, `assembly`, `tip`, `wrongDirectTranslation?`, `source`
 
 ### 퀴즈
 퀴즈는 별도 문장을 만들지 않고 표현 카드에서 파생한다.
