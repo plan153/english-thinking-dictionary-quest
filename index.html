@@ -832,36 +832,57 @@
       border: 1px solid rgba(40,111,108,.18);
       background: #f7fbfa;
       border-radius: 16px;
-      padding: 12px 14px;
+      padding: 14px 14px 12px;
       margin-bottom: 12px;
+      text-align: left;
     }
-    .expand-seed .en { font-size: 18px; font-weight: 850; letter-spacing: -.3px; }
-    .expand-seed .ko { margin-top: 4px; color: var(--muted); font-size: 13px; }
+    .expand-seed .prompt-lang {
+      font-size: 11px;
+      font-weight: 850;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .expand-seed .en { font-size: 22px; font-weight: 850; letter-spacing: -.4px; line-height: 1.25; }
+    .expand-seed .ko { margin-top: 6px; color: var(--muted); font-size: 14px; line-height: 1.4; }
+    .expand-seed-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .expand-seed-actions .btn { flex: 1 1 120px; }
     .expand-choice-grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: 1fr;
       gap: 8px;
     }
     .expand-choice {
-      border: 1px solid var(--line);
-      background: #fff;
+      border: 1px solid rgba(40,111,108,.2);
+      background: #eef7f6;
       border-radius: 14px;
-      padding: 12px 12px;
+      padding: 13px 14px;
       text-align: left;
       min-height: var(--touch-min);
       display: flex;
       flex-direction: column;
       gap: 4px;
+      color: var(--accent);
     }
-    .expand-choice strong { font-size: 14px; letter-spacing: -.2px; }
+    .expand-choice strong { font-size: 15px; letter-spacing: -.2px; color: var(--accent); }
     .expand-choice span { font-size: 12px; color: var(--muted); line-height: 1.4; }
     .expand-choice:hover, .expand-choice:focus-visible {
       border-color: var(--accent);
-      background: #eef7f6;
+      background: #e3f2f0;
     }
-    @media (max-width: 530px) {
-      .expand-choice-grid { grid-template-columns: 1fr; }
+    .expand-choice.is-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
     }
+    .expand-choice.is-primary strong { color: #fff; }
+    .expand-choice.is-primary span { color: rgba(255,255,255,.82); }
 
     .quest-inline-confirm {
       margin-top: 12px;
@@ -1043,7 +1064,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.26">v1.3.26</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.28">v1.3.28</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -1070,7 +1091,7 @@
       <div class="hero">
         <div class="eyebrow">English Thinking Dictionary</div>
         <h2>오늘 한 마디,<br>이어서 말해 보세요.</h2>
-        <p>듣기·따라하기·이어묻기·이어답하기·이어말하기·화제전환 중 골라 확장합니다. 끝내는 목표가 아니라, 더 말하고 싶게 만드는 연습이에요.</p>
+        <p>듣고 · 따라하고 · 평서↔의문 · 이어말하기 · 화제전환을 골라 확장합니다. 끝내는 목표가 아니라, 더 말하고 싶게 만드는 연습이에요.</p>
         <div class="hero-actions">
           <button class="btn primary" id="startDaily">오늘의 말로 시작</button>
         </div>
@@ -1552,7 +1573,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.3.26';
+    const APP_CACHE_VERSION = 'etd-quest-v1.3.28';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const ProgressStoreApi = window.ProgressStore;
@@ -1906,13 +1927,74 @@
     }
     function getConversationExpandChoices() {
       return [
-        { id: 'listen', label: '듣기', desc: '한/영으로 듣고 따라 말하기 · 누적', mode: 'listen', questStage: 'meaning' },
-        { id: 'shadow', label: '따라하기', desc: '영어로 말하기 · 누적 학습', mode: 'speak', questStage: 'output' },
-        { id: 'ask', label: '이어묻기', desc: '연결된 질문 만들고 듣기·말하기', mode: 'matrix', matrixFormId: 'question', questStage: 'assembly', expandQa: true },
-        { id: 'answer', label: '이어답하기', desc: '질문에 이은 답 만들고 듣기·말하기', mode: 'matrix', matrixFormId: 'shortYes', questStage: 'assembly', expandQa: true },
-        { id: 'continue', label: '이어말하기', desc: '한 문장 더 붙여 말하기', mode: 'koen', questStage: 'assembly' },
+        // 듣기는 시드 카드에서 바로 재생 (화면 이동 없음)
+        { id: 'listen', label: '듣기', desc: '이 화면에서 바로 듣기', mode: 'listen', questStage: 'meaning', inlineListen: true },
+        { id: 'shadow', label: '따라하기', desc: '영어로 말해 보기 · 누적 학습', mode: 'speak', questStage: 'output' },
+        { id: 'ask', label: '의문문으로', desc: '평서문을 질문 형태로 바꿔 말하기', mode: 'matrix', matrixFormId: 'question', questStage: 'assembly', expandQa: true },
+        { id: 'answer', label: '평서문으로', desc: '질문을 평서문 형태로 바꿔 말하기', mode: 'matrix', matrixFormId: 'statement', questStage: 'assembly', expandQa: true },
+        { id: 'continue', label: '이어말하기', desc: '원문과 이어지는 다음 문장 말하기', mode: 'koen', questStage: 'assembly', continueLink: true },
         { id: 'topic', label: '화제전환', desc: '가까운 다른 표현으로 넘어가기', mode: 'speak', questStage: 'output', topicShift: true },
       ];
+    }
+    function pickContinueExpression(fromExpressionId, bank = getUnlockedBank()) {
+      const current = bank.find(item => item.id === fromExpressionId) || null;
+      const relatedIds = current?.relatedExpressionIds || [];
+      const related = relatedIds
+        .map(id => bank.find(item => item.id === id))
+        .filter(Boolean);
+      if (related.length) return related[Math.floor(Math.random() * related.length)];
+      const sameVerb = bank.filter(item => item.id !== fromExpressionId && current?.coreVerbId && item.coreVerbId === current.coreVerbId);
+      if (sameVerb.length) return sameVerb[Math.floor(Math.random() * sameVerb.length)];
+      return pickTopicShiftExpression(fromExpressionId, bank);
+    }
+    function playExpandSeedAudio(item) {
+      if (!item) {
+        toast('재생할 문장이 없어요.');
+        return;
+      }
+      const id = progressItemId(item) || item.id;
+      const lang = getPromptLang(id, 'en');
+      const en = item.en || item.english || '';
+      const ko = item.ko || item.naturalKorean || '';
+      if (lang === 'ko') speak(ko, { lang: 'ko-KR' });
+      else speak(item.audioText || en, { lang: 'en-US' });
+    }
+    function renderExpandSeedCard(item, options = {}) {
+      if (!item) return `<p class="small-note">지금 연습할 Active set 표현이 없어요.</p>`;
+      const id = progressItemId(item) || item.id;
+      const lang = getPromptLang(id, 'en');
+      const en = item.en || item.english || '';
+      const ko = item.ko || item.naturalKorean || '';
+      const prompt = lang === 'en' ? en : ko;
+      const secondary = lang === 'en' ? ko : en;
+      return `
+        <div class="expand-seed" data-expand-seed-id="${escapeHtml(id)}">
+          <div class="prompt-lang" id="expandSeedLang">${lang === 'en' ? 'English · 참고' : '한국어 · 참고'}</div>
+          <div class="en" id="expandSeedPrompt">${escapeHtml(prompt)}</div>
+          <div class="ko" id="expandSeedSecondary">${escapeHtml(secondary)}</div>
+          <div class="question-actions expand-seed-actions">
+            <button class="btn soft" type="button" id="expandSeedListen">듣기</button>
+            <button class="btn soft" type="button" id="expandSeedLangToggle">한영전환</button>
+          </div>
+        </div>
+      `;
+    }
+    function bindExpandSeedCard(root, item) {
+      if (!root || !item) return;
+      const id = progressItemId(item) || item.id;
+      root.querySelector('#expandSeedListen')?.addEventListener('click', () => playExpandSeedAudio(item));
+      root.querySelector('#expandSeedLangToggle')?.addEventListener('click', () => {
+        const next = getPromptLang(id, 'en') === 'en' ? 'ko' : 'en';
+        setPromptLang(id, next);
+        const en = item.en || item.english || '';
+        const ko = item.ko || item.naturalKorean || '';
+        const langEl = root.querySelector('#expandSeedLang');
+        const promptEl = root.querySelector('#expandSeedPrompt');
+        const secondaryEl = root.querySelector('#expandSeedSecondary');
+        if (langEl) langEl.textContent = next === 'en' ? 'English · 참고' : '한국어 · 참고';
+        if (promptEl) promptEl.textContent = next === 'en' ? en : ko;
+        if (secondaryEl) secondaryEl.textContent = next === 'en' ? ko : en;
+      });
     }
     function findBankExpression(expressionId) {
       if (!expressionId) return null;
@@ -1977,7 +2059,15 @@
     }
     function enrichExpandQaItem(item, matrix) {
       if (!item || !matrix) return item;
-      // 이어답하기: Yes/No 짧은 답 모두 허용
+      // 평서문으로 연습: 질문 원문을 기준으로 보여 준다
+      if (item.formId === 'statement' && !item.matrixBaseEn) {
+        const question = findMatrixForm(matrix, 'question');
+        if (question?.en) {
+          item.matrixBaseEn = question.en;
+          item.matrixBaseKo = question.ko || '';
+        }
+      }
+      // 예전 짧은 답 폼 호환: Yes/No 모두 허용
       if (item.formId === 'shortYes' || item.formId === 'shortNo') {
         const otherId = item.formId === 'shortYes' ? 'shortNo' : 'shortYes';
         const other = findMatrixForm(matrix, otherId);
@@ -2073,18 +2163,27 @@
     }
 
     function renderExpandChoiceButtons(expressionId, options = {}) {
-      // 평서문 원문 → 이어묻기만, 의문문 원문(또는 이어묻기 직후) → 이어답하기만
+      // 평서문 → 의문문으로, 의문문 → 평서문으로 (동적 1개). 듣기는 시드 카드에서 처리.
       const choices = getExpandChoicesForExpression(expressionId, options);
       const turn = resolveExpandTurnForExpression(expressionId, options);
+      const api = window.ExpandTurn;
       const flowNote = turn === 'question'
-        ? '지금 원문이 질문이에요. 이어답하기를 골라 보세요.'
-        : '지금 원문이 평서문이에요. 이어묻기를 골라 보세요.';
-      const buttons = choices.map(choice => `
-        <button class="expand-choice" type="button" data-expand-choice="${escapeHtml(choice.id)}" data-expression-id="${escapeHtml(expressionId || '')}">
-          <strong>${escapeHtml(choice.label)}</strong>
-          <span>${escapeHtml(choice.desc)}</span>
-        </button>
-      `).join('');
+        ? '지금 원문이 의문문이에요. 평서문으로 바꿔 말해 보세요.'
+        : '지금 원문이 평서문이에요. 의문문으로 바꿔 말해 보세요.';
+      const buttons = choices.map(choice => {
+        let label = choice.label;
+        let desc = choice.desc;
+        if (choice.id === 'ask' || choice.id === 'answer') {
+          label = api?.formSwapLabel ? api.formSwapLabel(turn) : label;
+          desc = api?.formSwapDesc ? api.formSwapDesc(turn) : desc;
+        }
+        const primary = choice.id === 'ask' || choice.id === 'answer' ? ' is-primary' : '';
+        return `
+        <button class="expand-choice${primary}" type="button" data-expand-choice="${escapeHtml(choice.id)}" data-expression-id="${escapeHtml(expressionId || '')}">
+          <strong>${escapeHtml(label)}</strong>
+          <span>${escapeHtml(desc)}</span>
+        </button>`;
+      }).join('');
       return `
         <div class="expand-board">
           ${options.heading ? `<h3 style="margin:0 0 8px">${escapeHtml(options.heading)}</h3>` : ''}
@@ -2098,7 +2197,14 @@
     function bindExpandChoiceButtons(root = document) {
       root.querySelectorAll('[data-expand-choice]').forEach(button => {
         button.addEventListener('click', () => {
-          startExpandChoice(button.dataset.expandChoice, button.dataset.expressionId);
+          const choiceId = button.dataset.expandChoice;
+          const expressionId = button.dataset.expressionId;
+          if (choiceId === 'listen') {
+            const item = findBankExpression(expressionId);
+            playExpandSeedAudio(item);
+            return;
+          }
+          startExpandChoice(choiceId, expressionId);
         });
       });
     }
@@ -2112,18 +2218,11 @@
       const expressionId = quest.lastExpressionId || quest.seedExpressionId;
       const item = bank.find(row => row.id === expressionId) || bank[0] || null;
       const momentum = countTodayExpandMomentum();
-      const seedMarkup = item ? `
-        <div class="expand-seed">
-          <div class="en">${escapeHtml(item.en || item.english || '')}</div>
-          <div class="ko">${escapeHtml(item.ko || item.naturalKorean || '')}</div>
-        </div>
-      ` : `<p class="small-note">지금 연습할 Active set 표현이 없어요.</p>`;
-
       questArea.innerHTML = `
         <div class="card">
           <h3>오늘의 말 · 확장 고르기</h3>
-          <p class="small-note" style="margin:0 0 10px">순서로 클리어하는 퀘스트가 아닙니다. 듣고·따라하고·이어 묻거나 말하며 자연스럽게 골라 보세요.</p>
-          ${seedMarkup}
+          <p class="small-note" style="margin:0 0 10px">순서로 클리어하는 퀘스트가 아닙니다. 듣고 · 따라하고 · 문장 형태를 바꿔 말하며 자연스럽게 골라 보세요.</p>
+          ${renderExpandSeedCard(item)}
           <p class="small-note" style="margin:0 0 10px">오늘 이어간 연습 <b>${momentum}</b>회 · 더 할수록 흐름이 붙어요.</p>
           ${item ? renderExpandChoiceButtons(item.id) : ''}
           <div class="quest-confirm-actions" style="margin-top:12px">
@@ -2131,6 +2230,7 @@
           </div>
         </div>
       `;
+      bindExpandSeedCard(questArea, item);
       bindExpandChoiceButtons(questArea);
       document.getElementById('refreshSeedBtn')?.addEventListener('click', () => {
         const next = pickTopicShiftExpression(item?.id, bank) || pickTodaySeedExpression(bank, seoulTodayKey());
@@ -2152,7 +2252,12 @@
       let targetId = expressionId || quest.lastExpressionId || quest.seedExpressionId;
       let target = bank.find(item => item.id === targetId) || null;
 
-      // 평서↔의문 흐름에 맞게 ask/answer를 한 번 보정 (연속 이어묻기 튕김 방지)
+      if (resolvedChoiceId === 'listen') {
+        playExpandSeedAudio(target || findBankExpression(targetId));
+        return;
+      }
+
+      // 평서↔의문 흐름에 맞게 ask/answer를 한 번 보정
       if (!options._turnCorrected && (resolvedChoiceId === 'ask' || resolvedChoiceId === 'answer')) {
         const turn = resolveExpandTurnForExpression(targetId, options);
         const api = window.ExpandTurn;
@@ -2161,8 +2266,8 @@
           : resolvedChoiceId;
         if (corrected !== resolvedChoiceId) {
           toast(corrected === 'answer'
-            ? '질문이 이어진 상태예요. 이어답하기로 갈게요.'
-            : '평서문 원문이에요. 이어묻기로 갈게요.');
+            ? '원문이 의문문이에요. 평서문으로 갈게요.'
+            : '원문이 평서문이에요. 의문문으로 갈게요.');
           return startExpandChoice(corrected, targetId, { ...options, _turnCorrected: true });
         }
       }
@@ -2174,6 +2279,13 @@
         targetId = target?.id || targetId;
         quest.lastExpandChoiceId = null;
       }
+      if (choice.continueLink) {
+        const linked = pickContinueExpression(targetId, bank);
+        if (linked?.id) {
+          target = linked;
+          targetId = linked.id;
+        }
+      }
       if (!targetId) {
         toast('지금 연습할 표현이 없어요.');
         return;
@@ -2181,17 +2293,21 @@
       if (choice.mode === 'matrix') {
         const matrix = findMatrixForExpression(targetId);
         if (!matrix) {
-          // Fall back to koen keep conversation going if matrix cannot be resolved/generated.
           return startExpandChoice('continue', targetId, { _turnCorrected: true });
         }
         const formId = choice.matrixFormId || 'question';
         if (!findMatrixForm(matrix, formId)) {
           toast(formId === 'question'
-            ? '이 말로 이어묻기 문장을 만들지 못했어요. 다른 확장을 골라 보세요.'
-            : '이 말로 이어답하기 문장을 만들지 못했어요. 다른 확장을 골라 보세요.');
+            ? '이 말로 의문문을 만들지 못했어요. 다른 확장을 골라 보세요.'
+            : '이 말로 평서문을 만들지 못했어요. 다른 확장을 골라 보세요.');
           return;
         }
       }
+      const turn = resolveExpandTurnForExpression(targetId, options);
+      const api = window.ExpandTurn;
+      const choiceLabel = (choice.id === 'ask' || choice.id === 'answer') && api?.formSwapLabel
+        ? api.formSwapLabel(turn)
+        : choice.label;
       quest.startedAt = quest.startedAt || new Date().toISOString();
       quest.lastExpressionId = targetId;
       quest.lastExpandChoiceId = choice.id;
@@ -2205,7 +2321,7 @@
         stepIndex: -1,
         expressionId: targetId,
         mode: choice.mode,
-        label: choice.label,
+        label: choiceLabel,
         questStage: choice.questStage,
         matrixFormId: choice.matrixFormId || null,
       };
@@ -2262,9 +2378,9 @@
       saveProgress();
       showScreen('home');
       updateQuestUI();
+      // 듣기는 화면 이동 없이 시드 카드에서 바로 재생
       const seedId = quest.lastExpressionId || quest.seedExpressionId;
-      // Default entry: listening is a gentle start, still a choice afterward.
-      startExpandChoice('listen', seedId);
+      playExpandSeedAudio(findBankExpression(seedId));
     }
 
     function continueQuest() {
@@ -2316,18 +2432,12 @@
       document.getElementById('lessonProgress').style.width = `${Math.min(100, Math.round(momentum / 7 * 100))}%`;
       document.getElementById('lessonProgressText').textContent = `이어가기 ${momentum}`;
       applyLessonReturn({ screen: 'home', label: '← 오늘의 말로', options: {} });
-      const seedMarkup = item ? `
-        <div class="expand-seed" style="text-align:left; margin: 12px auto; max-width: 620px;">
-          <div class="en">${escapeHtml(item.en || item.english || '')}</div>
-          <div class="ko">${escapeHtml(item.ko || item.naturalKorean || '')}</div>
-        </div>
-      ` : '';
       document.getElementById('questionCard').innerHTML = `
         <div class="lesson-label">말하기 확장</div>
         <h2>${escapeHtml(options.heading || '다음에 뭘 이어볼까요?')}</h2>
         <p class="korean">${escapeHtml(options.note || '순서 없이 골라 확장하세요. 끝내는 게 목표가 아니에요.')}</p>
-        ${seedMarkup}
-        <div style="text-align:left; max-width:650px; width:100%; align-self:center">
+        <div style="text-align:left; max-width:650px; width:100%; align-self:center; margin: 12px auto 0">
+          ${renderExpandSeedCard(item)}
           ${item ? renderExpandChoiceButtons(item.id) : ''}
         </div>
         <div class="question-actions" style="margin-top:16px">
@@ -2335,7 +2445,9 @@
           <button class="btn dark" id="expandBoardOther" type="button">다른 말로</button>
         </div>
       `;
-      bindExpandChoiceButtons(document.getElementById('questionCard'));
+      const card = document.getElementById('questionCard');
+      bindExpandSeedCard(card, item);
+      bindExpandChoiceButtons(card);
       document.getElementById('expandBoardHome')?.addEventListener('click', () => showScreen('home'));
       document.getElementById('expandBoardOther')?.addEventListener('click', () => {
         const next = pickTopicShiftExpression(item?.id, bank);
@@ -5464,8 +5576,9 @@
     }
     function renderExpandQaPractice(item, questCtx = appState.questContext) {
       const choiceId = questCtx?.expandChoiceId || '';
-      const linkLabel = choiceId === 'answer' ? '질문' : '오늘의 말';
-      const arrowLabel = choiceId === 'answer' ? '↓ 이어서 답하기' : '↓ 이어서 묻기';
+      const toStatement = choiceId === 'answer';
+      const linkLabel = toStatement ? '의문문 원문' : '평서문 원문';
+      const arrowLabel = toStatement ? '↓ 평서문으로 바꿔 말하기' : '↓ 의문문으로 바꿔 말하기';
       const context = (item.matrixBaseEn || item.matrixBaseKo)
         ? `<div class="expand-link-context">
             <div class="expand-link-label">${escapeHtml(linkLabel)}</div>
@@ -5718,7 +5831,7 @@
           <div class="small-note" style="margin-top:6px">${escapeHtml(ko)}</div>
           <div class="expand-board" style="margin-top:16px">
             <h3 style="margin:0 0 8px">이어서 골라 보세요</h3>
-            <p class="small-note" style="margin:0 0 12px">대화 흐름에 맞는 확장만 보여 줄게요.</p>
+            <p class="small-note" style="margin:0 0 12px">평서↔의문 · 이어말하기 등 지금 이어서 할 확장만 보여 줄게요.</p>
             ${renderExpandChoiceButtons(expressionId, {
               formId: item.formId || null,
               en,

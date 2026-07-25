@@ -1,5 +1,5 @@
 /**
- * Conversation turn helpers for 이어묻기 / 이어답하기 expand choices.
+ * Conversation turn helpers for 평서↔의문 form-swap expand choices.
  * Browser: window.ExpandTurn
  * Node: module.exports
  */
@@ -28,9 +28,9 @@
   }
 
   /**
-   * Resolve whether the next natural expand step is from a statement or a question.
-   * - statement → 이어묻기
-   * - question → 이어답하기
+   * Resolve whether the source sentence is a statement or a question.
+   * - statement → show 의문문으로 (ask)
+   * - question → show 평서문으로 (answer/toStatement)
    */
   function resolveExpandTurn(options = {}) {
     const formId = options.formId || null;
@@ -53,10 +53,21 @@
     return 'statement';
   }
 
+  function formSwapLabel(turn) {
+    return turn === 'question' ? '평서문으로' : '의문문으로';
+  }
+
+  function formSwapDesc(turn) {
+    return turn === 'question'
+      ? '질문을 평서문 형태로 바꿔 말하기'
+      : '평서문을 질문 형태로 바꿔 말하기';
+  }
+
   function filterExpandChoices(choices, turn) {
     const safeTurn = turn === 'question' ? 'question' : 'statement';
     return (choices || []).filter(choice => {
       if (!choice) return false;
+      if (choice.id === 'listen') return false; // 듣기는 시드 카드에서 바로 재생
       if (choice.id === 'ask') return safeTurn === 'statement';
       if (choice.id === 'answer') return safeTurn === 'question';
       return true;
@@ -72,6 +83,8 @@
   return {
     isQuestionLike,
     resolveExpandTurn,
+    formSwapLabel,
+    formSwapDesc,
     filterExpandChoices,
     correctExpandChoiceId,
   };

@@ -49,10 +49,13 @@ assert.strictEqual(
   'statement'
 );
 
+assert.strictEqual(ExpandTurn.formSwapLabel('statement'), '의문문으로');
+assert.strictEqual(ExpandTurn.formSwapLabel('question'), '평서문으로');
+
 const fromStatement = ExpandTurn.filterExpandChoices(choices, 'statement').map(c => c.id);
-assert.deepStrictEqual(fromStatement, ['listen', 'shadow', 'ask', 'continue', 'topic']);
+assert.deepStrictEqual(fromStatement, ['shadow', 'ask', 'continue', 'topic']);
 const fromQuestion = ExpandTurn.filterExpandChoices(choices, 'question').map(c => c.id);
-assert.deepStrictEqual(fromQuestion, ['listen', 'shadow', 'answer', 'continue', 'topic']);
+assert.deepStrictEqual(fromQuestion, ['shadow', 'answer', 'continue', 'topic']);
 
 assert.strictEqual(ExpandTurn.correctExpandChoiceId('ask', 'question'), 'answer');
 assert.strictEqual(ExpandTurn.correctExpandChoiceId('answer', 'statement'), 'ask');
