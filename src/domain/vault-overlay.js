@@ -14,10 +14,13 @@
     'Library/Verbs',
     'Library/Nouns',
     'Library/Patterns',
+    'Library/Scenes',
     'Verbs',
     'Nouns',
     'Patterns',
+    'Scenes',
   ];
+  const RELATED_CAP = 48;
 
   function parseFrontmatter(markdown) {
     const text = String(markdown || '');
@@ -175,20 +178,12 @@
       reason = 'candidate-only';
     }
 
-    const relatedExpressionIds = [];
-    if (entity && entityType === 'verb') {
-      expressions.forEach(expression => {
-        if (expression.coreVerbId === entity.id) relatedExpressionIds.push(expression.id);
-      });
-    } else if (entity && entityType === 'noun') {
-      expressions.forEach(expression => {
-        if ((expression.nounIds || []).includes(entity.id)) relatedExpressionIds.push(expression.id);
-      });
-    } else if (entity && entityType === 'pattern') {
-      expressions.forEach(expression => {
-        if (expression.patternId === entity.id) relatedExpressionIds.push(expression.id);
-      });
-    }
+    const relatedExpressionIds = relatedExpressionsForEntity(
+      entity ? entityType : (type || 'word'),
+      entity?.id || '',
+      catalog,
+      { seedExpression: entityType === 'expression' ? entity : null }
+    );
 
     return {
       note,
@@ -199,6 +194,150 @@
       reason,
       relatedExpressionIds,
     };
+  }
+
+  function relatedExpressionsForEntity(entityType, entityId, catalog = {}, options = {}) {
+    const expressions = catalog.expressions || [];
+    const ids = [];
+    const push = id => {
+      if (!id || ids.includes(id)) return;
+      ids.push(id);
+    };
+
+    if (entityType === 'verb' && entityId) {
+      expressions.forEach(expression => {
+        if (expression.coreVerbId === entityId) push(expression.id);
+      });
+    } else if (entityType === 'noun' && entityId) {
+      expressions.forEach(expression => {
+        if ((expression.nounIds || []).includes(entityId)) push(expression.id);
+      });
+    } else if (entityType === 'pattern' && entityId) {
+      expressions.forEach(expression => {
+        if (expression.patternId === entityId) push(expression.id);
+      });
+    } else if (entityType === 'expression' && entityId) {
+      const seed = options.seedExpression
+        || expressions.find(item => item.id === entityId)
+        || null;
+      push(entityId);
+      (seed?.relatedExpressionIds || []).forEach(push);
+      if (seed?.coreVerbId) {
+        expressions.forEach(expression => {
+          if (expression.coreVerbId === seed.coreVerbId) push(expression.id);
+        });
+      }
+      (seed?.nounIds || []).forEach(nounId => {
+        expressions.forEach(expression => {
+          if ((expression.nounIds || []).includes(nounId)) push(expression.id);
+        });
+      });
+      if (seed?.patternId) {
+        expressions.forEach(expression => {
+          if (expression.patternId === seed.patternId) push(expression.id);
+        });
+      }
+    }
+
+    const cap = Number.isFinite(options.cap) ? options.cap : RELATED_CAP;
+    return ids.filter(id => id !== entityId || entityType !== 'expression').slice(0, cap);
+  }
+
+  function refreshLinkRelatedIds(link, catalog = {}) {
+    if (!link || !link.entityType || !link.entityId) return link;
+    const fromCatalog = relatedExpressionsForEntity(link.entityType, link.entityId, catalog, {
+      seedExpression: link.entityType === 'expression'
+        ? (catalog.expressions || []).find(item => item.id === link.entityId)
+        : null,
+    });
+    // Keep vault-curated ids (scene bridges) and merge catalog neighbors.
+    const relatedExpressionIds = [...new Set([
+      ...(Array.isArray(link.relatedExpressionIds) ? link.relatedExpressionIds : []),
+      ...fromCatalog,
+    ])].filter(Boolean).slice(0, RELATED_CAP);
+    return {
+      ...link,
+      relatedExpressionIds,
+    };
+  }
+
+  /**
+   * Live expand graph: accepted links + active matches, related ids refreshed from catalog.
+   * Multiple entity links may share one notePath (bridge).
+   */
+  function buildLiveExpandLinks(links = [], matches = [], catalog = {}, options = {}) {
+    const dismissedIds = new Set(
+      (links || []).filter(link => link && link.status === 'dismissed').map(link => link.id)
+    );
+    const dismissedPaths = new Set(
+      (links || []).filter(link => link && link.status === 'dismissed').map(link => link.notePath).filter(Boolean)
+    );
+    const byId = new Map();
+
+    const upsert = (raw, status) => {
+      if (!raw) return;
+      const entityType = raw.entityType || '';
+      const entityId = raw.entityId || '';
+      const notePath = raw.notePath || raw.note?.path || '';
+      const id = raw.id || `${notePath}::${entityType}::${entityId || raw.noteWord || raw.note?.word || ''}`;
+      if (!id || dismissedIds.has(id)) return;
+      // Path dismissed: keep only already-confirmed links; do not re-soft-link matches.
+      if (notePath && dismissedPaths.has(notePath) && status !== 'confirmed') return;
+      const refreshed = refreshLinkRelatedIds({
+        id,
+        notePath,
+        noteWord: raw.noteWord || raw.note?.word || '',
+        entityType,
+        entityId,
+        entityLabel: raw.entityLabel || raw.noteWord || raw.note?.word || notePath,
+        confidence: raw.confidence || 'low',
+        gate: raw.gate || 'background',
+        relatedExpressionIds: raw.relatedExpressionIds || [],
+        status: status || raw.status || 'confirmed',
+        updatedAt: raw.updatedAt || new Date().toISOString(),
+      }, catalog);
+      const prev = byId.get(id);
+      if (!prev) {
+        byId.set(id, refreshed);
+        return;
+      }
+      // Prefer confirmed over watchlist/match; keep richer related set.
+      const statusRank = value => (value === 'confirmed' ? 2 : value === 'watchlist' ? 1 : 0);
+      const nextStatus = statusRank(refreshed.status) >= statusRank(prev.status) ? refreshed.status : prev.status;
+      const related = [...new Set([...(prev.relatedExpressionIds || []), ...(refreshed.relatedExpressionIds || [])])]
+        .slice(0, RELATED_CAP);
+      byId.set(id, {
+        ...prev,
+        ...refreshed,
+        status: nextStatus,
+        relatedExpressionIds: related,
+      });
+    };
+
+    (links || []).forEach(link => {
+      if (!link || link.status === 'dismissed') return;
+      upsert(link, link.status);
+    });
+
+    // Active matches participate automatically so fetch-without-click still feeds expand.
+    (matches || []).forEach(match => {
+      if (!match?.note?.path) return;
+      if (match.gate && match.gate !== 'active' && options.includeNonActiveMatches !== true) return;
+      if (dismissedPaths.has(match.note.path)) return;
+      upsert({
+        id: `${match.note.path}::${match.entityType || ''}::${match.entityId || match.note.word || ''}`,
+        notePath: match.note.path,
+        noteWord: match.note.word || '',
+        entityType: match.entityType,
+        entityId: match.entityId,
+        entityLabel: match.entityLabel,
+        confidence: match.confidence,
+        gate: match.gate,
+        relatedExpressionIds: match.relatedExpressionIds || [],
+      }, 'watchlist');
+    });
+
+    return [...byId.values()];
   }
 
   function classifyGate(match, options = {}) {
@@ -269,10 +408,14 @@
 
   return {
     DEFAULT_DIRS,
+    RELATED_CAP,
     parseFrontmatter,
     parseVaultNote,
     normalizeWord,
     matchNoteToCatalog,
+    relatedExpressionsForEntity,
+    refreshLinkRelatedIds,
+    buildLiveExpandLinks,
     classifyGate,
     buildOverlayIndex,
     fetchVaultOverlayNotes,

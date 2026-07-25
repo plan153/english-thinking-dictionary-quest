@@ -56,8 +56,10 @@ assert.ok(TopicLink.topicsForExpression(bank[2]).includes('time'));
 const fallbackPick = TopicLink.pickLinkedExpression('e_sub', bank, { mode: 'continue', vaultLinks: [] });
 assert.strictEqual(fallbackPick.id, 'e_bus');
 
-const vaultLinks = [
+const VaultOverlay = require(path.join(__dirname, '../../src/domain/vault-overlay.js'));
+const rawVaultLinks = [
   {
+    id: 'Library/Scenes/commute.md::verb::v_take',
     notePath: 'Library/Scenes/commute.md',
     entityType: 'verb',
     entityId: 'v_take',
@@ -66,6 +68,7 @@ const vaultLinks = [
     relatedExpressionIds: ['e_sub', 'e_time'],
   },
   {
+    id: 'Library/Scenes/commute.md::expression::e_money',
     notePath: 'Library/Scenes/commute.md',
     entityType: 'expression',
     entityId: 'e_money',
@@ -74,6 +77,12 @@ const vaultLinks = [
     relatedExpressionIds: [],
   },
 ];
+const vaultLinks = VaultOverlay.buildLiveExpandLinks(rawVaultLinks, [], {
+  expressions: bank,
+  verbs: [{ id: 'v_take', word: 'take' }],
+  nouns: [],
+  patterns: [],
+});
 
 const vaultScores = TopicLink.vaultNeighborStrengthMap(bank[0], bank, vaultLinks);
 assert.ok((vaultScores.get('e_time') || 0) > 0, 'vault should link subway → time via shared verb note');

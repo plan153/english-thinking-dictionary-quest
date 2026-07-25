@@ -8,6 +8,14 @@ const memory = {
   setItem(key, value) { this.data[key] = String(value); },
 };
 
+assert.strictEqual(sync.defaultSettings().autoSyncAfterGap, true, 'auto sync defaults ON for skill loop');
+assert.strictEqual(
+  sync.normalizeSettings({ adapter: 'download' }).autoSyncAfterGap,
+  true,
+  'missing autoSyncAfterGap key stays ON'
+);
+assert.strictEqual(sync.normalizeSettings({ autoSyncAfterGap: false }).autoSyncAfterGap, false);
+
 const settings = sync.saveSettings({
   adapter: 'local-rest',
   baseUrl: 'http://127.0.0.1:27123/',
