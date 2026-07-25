@@ -98,7 +98,8 @@ const vaultPick = TopicLink.pickLinkedExpression('e_sub', bank, {
   vaultLinks,
   historyByExpressionId,
 });
-assert.ok(['e_time', 'e_money'].includes(vaultPick.id), 'continue should stay inside vault neighbors');
+// e_bus joins via catalog merge (same verb) + curated bridge keeps e_time/e_money.
+assert.ok(['e_time', 'e_money', 'e_bus'].includes(vaultPick.id), 'continue should stay inside vault neighbors');
 assert.notStrictEqual(vaultPick.id, 'e_hobby', 'unrelated hobby must not win when vault neighbors exist');
 
 const timeScore = TopicLink.scoreLink(bank[0], bank[2], {
