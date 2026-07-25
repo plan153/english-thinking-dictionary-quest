@@ -233,50 +233,49 @@ async function main() {
     note('sync configured with autoSyncAfterGap');
     await page.screenshot({ path: path.join(ARTIFACT_DIR, '02-sync-settings.png'), fullPage: true });
 
-    // Lesson: English → meaning (multiple choice) on play screen
-    await page.click('nav button[data-screen="play"]');
-    await page.waitForSelector('#gameModes .start-mode[data-mode="enko"]', { timeout: 10000 });
-    await page.click('#gameModes .start-mode[data-mode="enko"]');
+    // Lesson: pin ASS expression so mapSets cannot skip gap-form path
+    const seedExpressionId = 'e015';
+    await page.evaluate((id) => {
+      window.location.hash = `#/quiz/${id}?mode=enko`;
+    }, seedExpressionId);
     await page.waitForFunction(() => document.getElementById('lesson')?.classList.contains('active'), { timeout: 10000 });
     await page.waitForSelector('#choices .choice', { timeout: 10000 });
+    await page.waitForFunction((id) => {
+      const root = document.getElementById('choices');
+      return root && root.dataset.expressionId === id;
+    }, seedExpressionId, { timeout: 10000 });
 
     const promptEn = (await page.locator('#questionCard h2').innerText()).trim();
     note(`enko prompt: ${promptEn}`);
 
-    const wrongInfo = await page.evaluate(async (en) => {
-      const choicesRoot = document.getElementById('choices');
-      const fromDomKo = (choicesRoot?.dataset?.correctKo || '').trim();
-      const fromDomId = (choicesRoot?.dataset?.expressionId || '').trim();
-      const normalize = (value) => String(value || '')
-        .trim()
+    const wrongInfo = await page.evaluate(() => {
+      const normalize = (s) => String(s || '')
+        .normalize('NFKC')
         .toLowerCase()
-        .replace(/[’']/g, "'")
-        .replace(/[.?!。？！]+$/u, '');
-      const res = await fetch('./data/expressions.json');
-      const list = await res.json();
-      const row = list.find(item => (
-        normalize(item.english) === normalize(en)
-        || normalize(item.audioText) === normalize(en)
-        || normalize(item.en) === normalize(en)
-      ));
-      const correctKo = fromDomKo || (row?.naturalKorean || row?.ko || '').trim();
+        .replace(/[‘’`´]/g, "'")
+        .replace(/[.?!,;:"'()[\]{}]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+      const choicesRoot = document.getElementById('choices');
+      const correctKo = (choicesRoot?.dataset?.correctKo || '').trim();
+      const expressionId = (choicesRoot?.dataset?.expressionId || '').trim();
       const buttons = [...document.querySelectorAll('#choices .choice')];
       const wrong = buttons.find(btn => normalize(btn.dataset.value) !== normalize(correctKo));
       if (!wrong || !correctKo) {
-        return { correctKo, expressionId: fromDomId || row?.id || '', value: null };
+        return { correctKo, expressionId, value: null, english: '' };
       }
-      wrong.click();
       return {
         value: wrong.dataset.value || '',
         correctKo,
-        expressionId: fromDomId || row?.id || '',
-        english: row?.english || en,
+        expressionId,
+        english: (document.querySelector('#questionCard h2')?.textContent || '').trim(),
       };
-    }, promptEn);
+    });
     if (!wrongInfo?.value) throw new Error(`no wrong choice for ${promptEn}`);
     note(`wrong choice → ${wrongInfo.value} (id ${wrongInfo.expressionId})`);
 
-    await page.waitForSelector('.open-gap-form', { timeout: 8000 });
+    await page.locator('#choices .choice').filter({ hasText: wrongInfo.value }).first().click();
+    await page.waitForSelector('#feedback.bad .open-gap-form, .feedback.bad .open-gap-form', { timeout: 8000 });
     await page.click('.open-gap-form');
     await page.waitForSelector('#gapGuess', { timeout: 5000 });
     await page.fill('#gapMissed', 'day-loop smoke: missed clue');
