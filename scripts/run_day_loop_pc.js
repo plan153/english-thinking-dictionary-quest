@@ -23,8 +23,18 @@ const { chromium } = require('playwright');
 const sync = require(path.join(__dirname, '..', 'src', 'domain', 'obsidian-sync.js'));
 
 const ROOT = path.join(__dirname, '..');
-const ARTIFACT_DIR = process.env.SMOKE_ARTIFACT_DIR
-  || '/opt/cursor/artifacts/day-loop-pc';
+const DEFAULT_CLOUD_ARTIFACT = '/opt/cursor/artifacts/day-loop-pc';
+const DEFAULT_LOCAL_ARTIFACT = path.join(ROOT, 'artifacts', 'day-loop-pc');
+function resolveArtifactDir() {
+  if (process.env.SMOKE_ARTIFACT_DIR) return process.env.SMOKE_ARTIFACT_DIR;
+  try {
+    fs.mkdirSync(DEFAULT_CLOUD_ARTIFACT, { recursive: true });
+    return DEFAULT_CLOUD_ARTIFACT;
+  } catch (_) {
+    return DEFAULT_LOCAL_ARTIFACT;
+  }
+}
+const ARTIFACT_DIR = resolveArtifactDir();
 const APP_PORT = Number(process.env.SMOKE_APP_PORT || 8790);
 const API_KEY = String(process.env.OBSIDIAN_API_KEY || '').trim();
 const BASE_URL = String(process.env.OBSIDIAN_BASE_URL || 'http://127.0.0.1:27123').replace(/\/$/, '');
