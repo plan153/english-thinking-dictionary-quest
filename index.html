@@ -997,11 +997,11 @@
         padding: 20px 16px 22px;
       }
       .question-card h2 { font-size: clamp(24px, 7vw, 34px); letter-spacing: -1px; }
-      .question-actions,
-      .quiz-nav {
+      /* Only one sticky bar — stacking every .question-actions/.quiz-nav ate taps on iOS */
+      .lesson-sticky-actions {
         position: sticky;
         bottom: calc(8px + var(--safe-bottom));
-        z-index: 5;
+        z-index: 6;
         padding: 8px 0 2px;
         background: linear-gradient(180deg, rgba(246,243,237,0), rgba(246,243,237,.92) 28%, var(--bg) 70%);
       }
@@ -1043,7 +1043,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.23">v1.3.23</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.25">v1.3.25</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -1562,7 +1562,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.3.23';
+    const APP_CACHE_VERSION = 'etd-quest-v1.3.25';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const ProgressStoreApi = window.ProgressStore;
@@ -5403,18 +5403,16 @@
       const countMarkup = item ? renderPracticeCountBadge(item, { elementId: 'practiceCount' }) : '';
       return `
         ${countMarkup}
-        <div class="question-actions" style="margin-bottom:10px">
+        <div class="question-actions lesson-sticky-actions" style="margin-bottom:10px">
           <button class="btn accent mic-start" type="button">🎤 말하고 확인하기</button>
+          <button class="btn soft text-answer-toggle" type="button">타이핑으로 답하기</button>
+          ${showHint ? '<button class="btn soft next-hint" type="button">힌트 보기</button>' : ''}
         </div>
         <div class="hint-box hidden" id="speechResultBox"></div>
         <div class="hidden" id="textAnswerBox">
           <div class="hint-title">타이핑으로 답하기</div>
           <input class="answer-input" id="answerInput" placeholder="${escapeHtml(placeholder)}" autocomplete="off" />
           ${renderQuizNav(checkLabel)}
-        </div>
-        <div class="question-actions">
-          <button class="btn soft text-answer-toggle" type="button">타이핑으로 답하기</button>
-          ${showHint ? '<button class="btn soft next-hint" type="button">힌트 보기</button>' : ''}
         </div>
         <div class="hint-box hidden" id="hintBox"></div>
         <div class="feedback hidden" id="feedback"></div>`;
@@ -5659,14 +5657,31 @@
       const answerBox = document.getElementById('textAnswerBox');
       if (practiceBox) {
         practiceBox.classList.remove('hidden');
+        document.querySelectorAll('.text-practice-toggle').forEach(btn => btn.classList.add('hidden'));
         const input = document.getElementById('textPracticeAnswerInput');
-        if (input) requestAnimationFrame(() => input.focus());
+        if (input) {
+          requestAnimationFrame(() => {
+            try { input.focus({ preventScroll: false }); } catch (_) { input.focus(); }
+            practiceBox.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+          });
+        }
         return;
       }
       if (answerBox) {
         answerBox.classList.remove('hidden');
+        // Hide toggles so sticky bars don't stack over the submit row on iOS.
+        document.querySelectorAll('.text-answer-toggle').forEach(btn => btn.classList.add('hidden'));
+        document.querySelectorAll('.question-actions.lesson-sticky-actions').forEach(el => {
+          el.classList.remove('lesson-sticky-actions');
+        });
+        answerBox.querySelector('.quiz-nav')?.classList.add('lesson-sticky-actions');
         const input = document.getElementById('answerInput');
-        if (input) requestAnimationFrame(() => input.focus());
+        if (input) {
+          requestAnimationFrame(() => {
+            try { input.focus({ preventScroll: false }); } catch (_) { input.focus(); }
+            answerBox.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+          });
+        }
       }
     }
 
@@ -6008,7 +6023,12 @@
         reason.innerHTML = `<b>선택 이유</b><br>${escapeHtml(buildVerbHintText(item, btn.dataset.value || ''))}`;
       }));
       document.querySelectorAll('.mic-start').forEach(btn => btn.addEventListener('click', () => startSpeechCapture(item, mode)));
-      document.querySelectorAll('.text-practice-toggle, .text-answer-toggle').forEach(btn => btn.addEventListener('click', () => showTextPractice()));
+      document.querySelectorAll('.text-practice-toggle, .text-answer-toggle').forEach(btn => {
+        btn.addEventListener('click', (event) => {
+          event.preventDefault();
+          showTextPractice();
+        });
+      });
       document.querySelectorAll('.text-practice-check').forEach(btn => btn.addEventListener('click', () => checkTextAnswer(item, mode, { practiceOnly: true, inputId: 'textPracticeAnswerInput' })));
       document.querySelectorAll('.choice').forEach(btn => btn.addEventListener('click', () => chooseAnswer(item, mode, btn)));
       document.querySelectorAll('.prev-question').forEach(btn => btn.addEventListener('click', () => previousQuestion()));
