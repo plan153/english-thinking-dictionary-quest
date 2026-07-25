@@ -6216,7 +6216,7 @@
         <h2>${item.en}</h2>
         <p class="korean">이 문장의 자연스러운 한국어 뜻을 고르세요.</p>
         <button class="sound-btn speak" data-text="${escapeHtml(item.audioText || item.en)}" title="문장 듣기">🔊</button>
-        <div class="choices" id="choices">${choices.map(c => `<button class="choice" data-value="${escapeHtml(c)}">${c}</button>`).join('')}</div>
+        <div class="choices" id="choices" data-correct-ko="${escapeHtml(item.ko || '')}" data-expression-id="${escapeHtml(progressItemId(item) || item.id || '')}">${choices.map(c => `<button class="choice" data-value="${escapeHtml(c)}">${c}</button>`).join('')}</div>
         <div class="feedback hidden" id="feedback"></div>`;
     }
     function renderHint(item) {
