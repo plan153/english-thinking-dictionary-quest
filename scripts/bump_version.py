@@ -65,6 +65,14 @@ def main() -> None:
     )
     if count != 1:
         raise SystemExit("Could not find APP_CACHE_VERSION marker in index.html")
+    html, count = re.subn(
+        r'(src="\./src/domain/obsidian-sync\.js)(?:\?v=[^"]*)?(")',
+        rf"\1?v={new}\2",
+        html,
+        count=1,
+    )
+    if count != 1:
+        raise SystemExit("Could not find obsidian-sync.js script tag in index.html")
     html_path.write_text(html, encoding="utf-8")
 
     worker_path = ROOT / "service-worker.js"
