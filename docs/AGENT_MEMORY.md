@@ -1,7 +1,16 @@
 # Agent Memory (압축 스냅샷)
 
 > 세션 간 이어갈 때 **이 문서 + [`BACKLOG.md`](./BACKLOG.md)** 먼저 읽기.  
-> 기준 tip: **v1.3.39** · 갱신: 2026-07-25
+> 기준 tip: **v1.3.41+** · 갱신: 2026-07-26
+
+## 이어서 (토큰 절약용 · 2026-07-26)
+
+- **Vault CONTRACT PASS** — 루트=`Project_English` 자체. 구조: `Library/` · `Learners/me/` · `MOC/` · `_Archive/reorg-20260726/`
+- **pathPrefix = 비움** (필수). `Project_English` 넣으면 `Project_English/Project_English/` 중첩 재발.
+- Library 추가 허용: `Expressions/` `Prepositions/` `Verb Maps/` (계약 확장, overlay 읽기 가능)
+- 입구: `Library/Index` · `Learners/me/English Brain Index` · `MOC/English Vault`
+- 폰 sync 본선 아님. Mac=`local-rest`. 시드/분석: `docs/VAULT_ENGLISH_BRAIN.md`
+- 학습자: 로그인 없음 · `etdLearnerProfiles` + `etdQuestProgress:<id>` · Vault `Learners/<id>/`
 
 ## 제품 한 줄
 한국어 학습자용 **ASS + Obsidian 제2영어뇌** 웹앱. 퀴즈 SoT=`expressions.json`. 비밀값은 localStorage only.
@@ -59,8 +68,8 @@
 2. Canon 파일 SoT는 `merge_canon_intake.js` + validate 후 커밋
 3. 구동사 매트릭스 ≠ VerbMatrixGate
 4. Cloud 에이전트는 Obsidian Local REST(Mac)에 도달 불가
-5. **D1·D2 = 완료 (2026-07-25 Mac Mini)** · Local REST HTTP `27123` · pathPrefix=`Project_English`  
-   - 절차: `DAY_LOOP.md` · 러너: `scripts/run_day_loop_pc.js`
+5. **D1·D2 완료** · Local REST HTTP `27123`. **현재 Mac: pathPrefix 비움** (vault 루트=`Project_English`).  
+   - 예전 상위-vault 레이아웃일 때만 prefix=`Project_English` · 절차: `DAY_LOOP.md`
 6. 브랜치: `cursor/<name>-80e0` · base=`main` · PR는 ManagePullRequest
 
 ## 주요 파일
@@ -70,8 +79,12 @@
 - `docs/BACKLOG.md` — 미구현·보류 SoT
 - `scripts/validate.py` / `bump_version.py` — 버전·`fresh.html`·SW 동기
 
+## Vault 영어뇌 시드
+- 레포: `vault/Project_English/` · SoT: `docs/VAULT_ENGLISH_BRAIN.md`
+- Mac: `OBSIDIAN_PATH_PREFIX=` (비움) + `seed_vault_english_brain.js` → `analyze_vault_md.js`
+
 ## 다음 작업 시
-1. 듣기 UI 옛 스크린샷(`0/3`) = 캐시 → `fresh.html`
-2. 버전 올릴 때 `index.html` + VERSION + fresh + SW + package + version.json **함께**
-3. **듣기/말하기 수정 시:** `recognition.start()`는 클릭 핸들러에서 동기 호출 (await getUserMedia 금지). TTS는 cancel 후 짧은 재시도.
-4. 앱 sync Path prefix는 이 Mac에서 **`Project_English`** (상위 vault 레이아웃)
+1. 캐시 의심 → `fresh.html`
+2. 버전 bump 시 index+VERSION+fresh+SW+package+version.json 함께
+3. 듣기/말하기: `recognition.start()`는 클릭에서 동기 호출
+4. **pathPrefix 비움 유지** (중첩 금지)
