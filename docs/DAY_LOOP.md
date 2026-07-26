@@ -37,6 +37,23 @@ OBSIDIAN_API_KEY='(Local REST key)' node scripts/verify_local_vault.js
 # 선택: OBSIDIAN_PATH_PREFIX=Project_English
 ```
 
+### 2b) 기존 MD 최적화 분석 (권장)
+
+폴더만 보지 말고 **실제 Markdown**을 채점합니다. Mac에서:
+
+```bash
+cd /Users/mini/Projects/english-thinking-dictionary-quest
+export OBSIDIAN_API_KEY='(Local REST key)'
+export OBSIDIAN_PATH_PREFIX=Project_English
+# 리포트만
+node scripts/analyze_vault_md.js
+# 클라우드 에이전트에 넘길 덤프까지
+VAULT_ANALYZE_OUT="$HOME/Desktop/vault-md-report" node scripts/analyze_vault_md.js
+```
+
+`report.md`의 **우선 조치**부터 Gap 본문·Draft·Verbs 링크를 고칩니다.  
+`files.json`을 채팅/워크스페이스에 주면 클라우드에서도 같은 분석을 이어갈 수 있습니다.
+
 기대 폴더:
 
 - `Learners/<id>/Learning/`
