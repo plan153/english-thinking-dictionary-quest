@@ -324,6 +324,18 @@
     });
   }
 
+  /** Local REST sometimes omits folders from vault-root listings; child LIST success still proves the folder. */
+  function folderEvidentInListings(listings, folderPath) {
+    const want = normalizeListingName(folderPath);
+    if (!want) return false;
+    if (Array.isArray(listings[want]) && listings[want].length > 0) return true;
+    const prefix = `${want}/`;
+    return Object.keys(listings || {}).some((key) => {
+      const clean = normalizeListingName(key);
+      return clean === want || clean.startsWith(prefix);
+    });
+  }
+
   /**
    * Compare Local REST directory listings against OBSIDIAN_VAULT_EVOLUTION contract.
    * listings keys: '' | 'Learners' | 'Learners/<id>' | 'Library'
@@ -341,7 +353,8 @@
       const files = listings[row.dir] || [];
       row.need.forEach((name) => {
         const path = row.dir ? `${row.dir}/${name}` : name;
-        checks.push({ path, ok: listingIncludes(files, name) });
+        const ok = listingIncludes(files, name) || folderEvidentInListings(listings, path);
+        checks.push({ path, ok });
       });
     });
     return {
