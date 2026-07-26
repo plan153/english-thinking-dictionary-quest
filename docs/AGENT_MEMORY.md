@@ -70,6 +70,11 @@
 - `docs/BACKLOG.md` — 미구현·보류 SoT
 - `scripts/validate.py` / `bump_version.py` — 버전·`fresh.html`·SW 동기
 
+## Vault 영어뇌 시드
+- 레포: `vault/Project_English/` · 문서: `docs/VAULT_ENGLISH_BRAIN.md`
+- Mac: `seed_vault_english_brain.js` → `analyze_vault_md.js` (Local REST, prefix=`Project_English`)
+- 폰 sync는 본선 아님 (Mac `local-rest`만 Vault 본선)
+
 ## 다음 작업 시
 1. 듣기 UI 옛 스크린샷(`0/3`) = 캐시 → `fresh.html`
 2. 버전 올릴 때 `index.html` + VERSION + fresh + SW + package + version.json **함께**
