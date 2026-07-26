@@ -25,7 +25,7 @@
    - Base URL: `http://127.0.0.1:27123`
    - API Key 붙여넣기
    - Path prefix: vault 루트가 `Project_English`면 **비움**. 상위 vault 루트이고 그 아래 `Project_English/`면 **`Project_English`**  
-     (**Mac Mini 실측 2026-07-25:** pathPrefix=`Project_English` PASS)
+     (**2026-07-26 재구성 후:** vault 루트=`Project_English` → **pathPrefix 비움**. prefix 넣으면 중첩 폴더 재발)
    - 간극 저장 후 자동 동기화 ON → 설정 저장 → **연결 테스트**
 
 ### 2) 폴더 계약 검사 (D2)
@@ -44,7 +44,7 @@ OBSIDIAN_API_KEY='(Local REST key)' node scripts/verify_local_vault.js
 ```bash
 cd /Users/mini/Projects/english-thinking-dictionary-quest
 export OBSIDIAN_API_KEY='(Local REST key)'
-export OBSIDIAN_PATH_PREFIX=Project_English
+export OBSIDIAN_PATH_PREFIX=   # 비움 (vault 루트=Project_English)
 # 리포트만
 node scripts/analyze_vault_md.js
 # 클라우드 에이전트에 넘길 덤프까지
@@ -58,7 +58,7 @@ VAULT_ANALYZE_OUT="$HOME/Desktop/vault-md-report" node scripts/analyze_vault_md.
 
 ```bash
 node scripts/build_vault_english_brain_seed.js   # 레포 vault/ 갱신
-node scripts/seed_vault_english_brain.js         # Local REST로 upsert (기존 파일 유지)
+OBSIDIAN_PATH_PREFIX= node scripts/seed_vault_english_brain.js
 ```
 
 SoT: [`VAULT_ENGLISH_BRAIN.md`](./VAULT_ENGLISH_BRAIN.md)

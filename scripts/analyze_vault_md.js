@@ -9,7 +9,7 @@
  *
  * Optional env:
  *   OBSIDIAN_BASE_URL=http://127.0.0.1:27123
- *   OBSIDIAN_PATH_PREFIX=Project_English
+ *   OBSIDIAN_PATH_PREFIX=            # empty when vault root is Project_English
  *   OBSIDIAN_LEARNER_ID=me
  *   OBSIDIAN_TRY_PREFIXES=1
  *   VAULT_ANALYZE_OUT=./vault-md-report   # writes report.md + files.json + summary.json
@@ -24,7 +24,7 @@ const analyze = require(path.join(__dirname, '..', 'src', 'domain', 'vault-md-an
 
 const API_KEY = String(process.env.OBSIDIAN_API_KEY || '').trim();
 const BASE_URL = String(process.env.OBSIDIAN_BASE_URL || 'http://127.0.0.1:27123').replace(/\/$/, '');
-const PATH_PREFIX = String(process.env.OBSIDIAN_PATH_PREFIX || 'Project_English').replace(/^\/+|\/+$/g, '');
+const PATH_PREFIX = String(process.env.OBSIDIAN_PATH_PREFIX || '').replace(/^\/+|\/+$/g, '');
 const LEARNER_ID = String(process.env.OBSIDIAN_LEARNER_ID || 'me').trim() || 'me';
 const TRY_PREFIXES = String(process.env.OBSIDIAN_TRY_PREFIXES || '1') !== '0';
 const OUT_DIR = String(process.env.VAULT_ANALYZE_OUT || '').trim();
@@ -116,7 +116,7 @@ async function main() {
 
   const prefixes = [PATH_PREFIX];
   if (TRY_PREFIXES) {
-    for (const alt of ['Project_English', '']) {
+    for (const alt of ['', 'Project_English']) {
       if (!prefixes.includes(alt)) prefixes.push(alt);
     }
   }

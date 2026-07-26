@@ -8,7 +8,7 @@
 ## 폴더 계약
 
 ```text
-Project_English/
+Project_English/                 # ← Obsidian vault 루트일 때 pathPrefix=비움
   Learners/                      # 개인 영어뇌 (진도·간극) — 학습자별
     <learnerId>/
       English Brain Index.md
@@ -22,10 +22,15 @@ Project_English/
     Scenes/                      # 장면·상황 메모
     Drafts/                      # 미확정 표현 후보 (진화 중)
     Canon/                       # 승격 완료 표현 (앱 JSON과 맞출 정식)
+    Expressions/ Prepositions/ Verb Maps/   # 선택 확장 (정원, 자동 출제 없음)
   MOC/
+  _Archive/                      # 레거시·중복 보관 (계약 검사 대상 아님)
 ```
 
 **이 문서가 Vault 폴더 계약의 SoT다.** SYNC·WORD_LINKING은 여기 구조를 따른다.
+
+**pathPrefix:** vault 루트가 곧 `Project_English`면 **비움**. 상위 vault 아래 하위 폴더일 때만 `Project_English`.  
+prefix를 잘못 넣으면 `Project_English/Project_English/` 중첩이 생긴다.
 
 지금 웹앱은 로컬 학습자 공책(`etdQuestProgress:<id>`)과 export/sync 경로 `Learners/<id>/Learning|Gaps`를 쓴다.  
 Library는 공유로 유지한다.

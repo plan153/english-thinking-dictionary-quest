@@ -7,7 +7,7 @@
  *
  * Env:
  *   OBSIDIAN_BASE_URL=http://127.0.0.1:27123
- *   OBSIDIAN_PATH_PREFIX=Project_English
+ *   OBSIDIAN_PATH_PREFIX=            # empty when vault root is Project_English
  *   SEED_MODE=skip-existing | overwrite   (default skip-existing)
  *   SEED_DIR=vault/Project_English
  */
@@ -17,7 +17,7 @@ const sync = require(path.join(__dirname, '..', 'src', 'domain', 'obsidian-sync.
 
 const API_KEY = String(process.env.OBSIDIAN_API_KEY || '').trim();
 const BASE_URL = String(process.env.OBSIDIAN_BASE_URL || 'http://127.0.0.1:27123').replace(/\/$/, '');
-const PATH_PREFIX = String(process.env.OBSIDIAN_PATH_PREFIX || 'Project_English').replace(/^\/+|\/+$/g, '');
+const PATH_PREFIX = String(process.env.OBSIDIAN_PATH_PREFIX || '').replace(/^\/+|\/+$/g, '');
 const SEED_MODE = String(process.env.SEED_MODE || 'skip-existing').trim();
 const SEED_DIR = path.resolve(
   process.env.SEED_DIR || path.join(__dirname, '..', 'vault', 'Project_English'),
@@ -45,7 +45,7 @@ function walkMd(dir, base = dir, acc = []) {
 async function main() {
   if (!API_KEY) {
     log('SKIP: set OBSIDIAN_API_KEY');
-    log("  OBSIDIAN_API_KEY='...' OBSIDIAN_PATH_PREFIX=Project_English node scripts/seed_vault_english_brain.js");
+    log("  OBSIDIAN_API_KEY='...' OBSIDIAN_PATH_PREFIX= node scripts/seed_vault_english_brain.js");
     process.exit(2);
   }
   if (!fs.existsSync(SEED_DIR)) {

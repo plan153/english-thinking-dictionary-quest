@@ -24,12 +24,14 @@ Mac 실볼트에 넣기 (기존 파일은 기본 유지):
 
 ```bash
 export OBSIDIAN_API_KEY='...'
-export OBSIDIAN_PATH_PREFIX=Project_English
+# vault 루트 = Project_English 이면 prefix 비움 (2026-07-26 재구성 이후)
+export OBSIDIAN_PATH_PREFIX=
 node scripts/seed_vault_english_brain.js
 node scripts/analyze_vault_md.js
 ```
 
-강제 덮어쓰기: `SEED_MODE=overwrite`.
+강제 덮어쓰기: `SEED_MODE=overwrite`.  
+상위 vault 레이아웃일 때만 `OBSIDIAN_PATH_PREFIX=Project_English`.
 
 ## 최적화 원칙 (적용됨)
 
