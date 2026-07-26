@@ -1150,7 +1150,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.42">v1.3.42</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.43">v1.3.43</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -1491,7 +1491,7 @@
   <script src="./src/data/thinking-map-sets.js"></script>
   <script src="./src/domain/next-practice.js"></script>
   <script src="./src/domain/markdown-projection.js"></script>
-  <script src="./src/domain/obsidian-sync.js?v=1.3.42"></script>
+  <script src="./src/domain/obsidian-sync.js?v=1.3.43"></script>
   <script src="./src/domain/canon-intake.js"></script>
   <script src="./src/domain/verb-matrix-gate.js"></script>
   <script src="./src/domain/vault-overlay.js"></script>
@@ -1658,7 +1658,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.3.42';
+    const APP_CACHE_VERSION = 'etd-quest-v1.3.43';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const ProgressStoreApi = window.ProgressStore;
@@ -6407,6 +6407,7 @@
       `;
       box.querySelector('.mic-retry')?.addEventListener('click', () => startSpeechCapture(item, captureMode));
       if (advanceReady) {
+        clearFeedback();
         renderPracticeSuccess(item, {
           guess: transcript,
           mode: captureMode,
@@ -6415,6 +6416,7 @@
       }
     }
     function renderPracticeSuccess(item, options = {}) {
+      clearFeedback();
       const after = document.getElementById('practiceAfterBox');
       const en = item.en || item.english || '';
       const ko = item.ko || item.naturalKorean || '';
@@ -6858,6 +6860,7 @@
           coreVerbId: item.coreVerbId || null,
         });
         recordPracticeEvent(item, mode, result.status, rawGuess);
+        clearFeedback();
         const box = document.getElementById('listenResultBox');
         if (box) {
           box.classList.remove('hidden');
@@ -7212,6 +7215,12 @@
       card.classList.remove('pulse-good', 'pulse-warn', 'pulse-bad');
       void card.offsetWidth;
       card.classList.add(className);
+    }
+    function clearFeedback() {
+      const el = document.getElementById('feedback');
+      if (!el) return;
+      el.className = 'feedback hidden';
+      el.innerHTML = '';
     }
     function showFeedback(type, html) {
       const el = document.getElementById('feedback');
