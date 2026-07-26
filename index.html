@@ -940,6 +940,12 @@
       width: 100%;
       margin: 0;
     }
+    .expand-seed-compose-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .expand-seed-compose-actions .btn { width: 100%; }
     .expand-choice-grid {
       display: grid;
       grid-template-columns: 1fr;
@@ -2192,7 +2198,10 @@
           </div>
           <div class="expand-seed-compose">
             <input class="answer-input" id="answerInput" placeholder="영어로 적어 보세요" autocomplete="off" />
-            <button class="btn soft" type="button" id="expandSeedTypeCheck">타이핑 확인</button>
+            <div class="expand-seed-compose-actions">
+              <button class="btn soft show-hint" type="button" id="expandSeedHint">힌트 보기</button>
+              <button class="btn soft" type="button" id="expandSeedTypeCheck">타이핑 확인</button>
+            </div>
           </div>
           <div class="hint-box hidden" id="hintBox"></div>
           <div class="hint-box hidden" id="listenResultBox"></div>
@@ -2242,6 +2251,9 @@
         appState.questionAnswered = false;
         checkComposeAnswer(item, 'koen');
       };
+      root.querySelector('#expandSeedHint')?.addEventListener('click', (event) => {
+        showComposeHint(item, event.currentTarget);
+      });
       root.querySelector('#expandSeedTypeCheck')?.addEventListener('click', runSeedTypingCheck);
       root.querySelector('#answerInput')?.addEventListener('keydown', (event) => {
         if (event.key !== 'Enter') return;
@@ -2249,6 +2261,7 @@
         if (appState.questionAnswered) return;
         runSeedTypingCheck();
       });
+      appState.hintStep = 0;
       refreshLangUi(getPromptLang(id, 'ko'));
     }
     function findBankExpression(expressionId) {
@@ -2419,12 +2432,10 @@
 
     function renderExpandChoiceButtons(expressionId, options = {}) {
       // 평서문 → 의문문으로, 의문문 → 평서문으로 (동적 1개). 듣기·따라말하기는 시드 카드에서 처리.
+      // 버튼 라벨/설명에 이미 평서↔의문 안내가 있으므로 별도 flowNote는 넣지 않는다.
       const choices = getExpandChoicesForExpression(expressionId, options);
       const turn = resolveExpandTurnForExpression(expressionId, options);
       const api = window.ExpandTurn;
-      const flowNote = turn === 'question'
-        ? '지금 원문이 의문문이에요. 평서문으로 바꿔 말해 보세요.'
-        : '지금 원문이 평서문이에요. 의문문으로 바꿔 말해 보세요.';
       const buttons = choices.map(choice => {
         let label = choice.label;
         let desc = choice.desc;
@@ -2443,7 +2454,6 @@
         <div class="expand-board">
           ${options.heading ? `<h3 style="margin:0 0 8px">${escapeHtml(options.heading)}</h3>` : ''}
           ${options.note ? `<p class="small-note" style="margin:0 0 12px">${escapeHtml(options.note)}</p>` : ''}
-          <p class="small-note" style="margin:0 0 12px">${escapeHtml(flowNote)}</p>
           <div class="expand-choice-grid">${buttons}</div>
         </div>
       `;
@@ -6960,13 +6970,32 @@
         });
         recordPracticeEvent(item, mode, result.status === 'meaning' ? 'meaning' : 'retry', rawGuess);
         showFeedback(result.feedbackClass || 'bad', `
-          <b>${escapeHtml(result.title || '목표 문장과 달라요.')}</b>
-          <div style="margin-top:6px">${escapeHtml(result.message || '')}</div>
+          ${feedbackTitleMessageHtml(result)}
           <div class="answer-key" style="margin-top:8px">내 답</div>
           <div>${escapeHtml(rawGuess)}</div>
         `);
-        toast('아직 목표 표현과 달라요. 힌트를 보거나 다시 말해 보세요.');
+        toast(result.message && !isRedundantFeedbackMessage(result.title, result.message)
+          ? result.message
+          : '힌트를 열고 다시 적어 보세요.');
       }
+    }
+    function isRedundantFeedbackMessage(title, message) {
+      const t = normalize(title);
+      const m = normalize(message);
+      if (!m || !t) return !m;
+      if (m === t) return true;
+      // "목표 문장과 달라요" / "아직 목표 표현과 조금 달라요" 같은 동의 반복
+      return /목표\s*(문장|표현)과/.test(String(title || ''))
+        && /목표\s*(문장|표현)과/.test(String(message || ''))
+        && String(message || '').length <= 40;
+    }
+    function feedbackTitleMessageHtml(result, fallbackTitle = '목표 문장과 달라요.') {
+      const title = String(result?.title || fallbackTitle).trim();
+      const message = String(result?.message || '').trim();
+      if (isRedundantFeedbackMessage(title, message)) {
+        return `<b>${escapeHtml(title)}</b>`;
+      }
+      return `<b>${escapeHtml(title)}</b><div style="margin-top:6px">${escapeHtml(message)}</div>`;
     }
     function normalize(s) {
       return String(s || '')
@@ -7101,13 +7130,17 @@
       }
       const contrast = resolveItemContrast(item);
       const contrastHint = contrast?.assembly
-        ? ` 한국어 상황 표현을 ${contrast.assembly}로 바꿔 말해 보세요.`
+        ? `한국어 상황 표현을 ${contrast.assembly}로 바꿔 말해 보세요.`
         : '';
+      const detail = String(item.mistakeExplanation || '').trim();
+      let message = detail;
+      if (contrastHint) message = message ? `${message} ${contrastHint}` : contrastHint;
+      if (!message) message = '힌트를 열고 주어·동사·어순을 맞춰 다시 적어 보세요.';
       return {
         status: 'retry',
         feedbackClass: 'bad',
         title: '목표 문장과 달라요.',
-        message: (item.mistakeExplanation || '아직 목표 표현과 조금 달라요.') + contrastHint,
+        message,
         countsAsSuccess: false,
       };
     }
@@ -7220,8 +7253,7 @@
         : `<div class="question-actions" style="margin-top:10px"><button class="btn soft open-gap-form" type="button">🧠 메모/간극 남기기</button></div><div id="gapFormMount"></div>`;
       showFeedback(type, `
         <div class="answer-summary">
-          <b>${escapeHtml(result.title)}</b>
-          <div style="margin-top:6px">${escapeHtml(result.message || '')}</div>
+          ${feedbackTitleMessageHtml(result)}
           ${connectionNote ? `<div class="small-note" style="margin-top:8px">${escapeHtml(connectionNote)}</div>` : ''}
           ${practiceLine}
           <div class="answer-key">내 답</div>
