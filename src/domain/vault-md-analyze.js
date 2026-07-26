@@ -119,19 +119,20 @@
     }
 
     if (type === 'gap-note') {
-      if (!attributes.id && !String(path).match(/gap_[^/]+\.md$/i)) {
+      const status = String(attributes.status || 'open').toLowerCase();
+      const isTemplate = status === 'template' || /\/Templates\//i.test(String(path || ''));
+      if (!isTemplate && !attributes.id && !String(path).match(/gap_[^/]+\.md$/i)) {
         issues.push({ code: 'gap-no-id', severity: 'high', message: 'gap id 없음' });
       }
-      if (!attributes.expressionId) {
+      if (!isTemplate && !attributes.expressionId) {
         issues.push({ code: 'gap-no-expression', severity: 'medium', message: 'expressionId 없음' });
       }
-      const status = String(attributes.status || 'open').toLowerCase();
       const missed = sectionAfterHeading(body, '놓친 단서');
       const model = sectionAfterHeading(body, '모델 업데이트');
-      if (status === 'open' && sectionLooksEmpty(missed)) {
+      if (!isTemplate && status === 'open' && sectionLooksEmpty(missed)) {
         issues.push({ code: 'gap-empty-clue', severity: 'high', message: '열린 Gap인데 「놓친 단서」가 비어 있음' });
       }
-      if (status === 'open' && sectionLooksEmpty(model)) {
+      if (!isTemplate && status === 'open' && sectionLooksEmpty(model)) {
         issues.push({ code: 'gap-empty-model', severity: 'high', message: '열린 Gap인데 「모델 업데이트」가 비어 있음' });
       }
       if (!links.some((link) => /Verbs\//i.test(link) || /Library\/Verbs\//i.test(link))) {
@@ -144,7 +145,8 @@
 
     if (type === 'expression-draft') {
       const status = String(attributes.status || 'draft').toLowerCase();
-      ['english', 'naturalKorean', 'coreVerb', 'pattern'].forEach((key) => {
+      const isTemplate = status === 'template' || /\/Templates\//i.test(String(path || ''));
+      if (!isTemplate) ['english', 'naturalKorean', 'coreVerb', 'pattern'].forEach((key) => {
         if (!String(attributes[key] || '').trim()) {
           issues.push({
             code: `draft-missing-${key}`,
@@ -276,6 +278,7 @@
   function analyzeVaultFiles(fileMap = {}) {
     const notes = Object.keys(fileMap)
       .filter((path) => /\.md$/i.test(path))
+      .filter((path) => !/(^|\/)README\.md$/i.test(path))
       .sort()
       .map((path) => analyzeNote(path, fileMap[path]));
     return {

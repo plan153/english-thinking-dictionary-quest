@@ -54,6 +54,15 @@ VAULT_ANALYZE_OUT="$HOME/Desktop/vault-md-report" node scripts/analyze_vault_md.
 `report.md`의 **우선 조치**부터 Gap 본문·Draft·Verbs 링크를 고칩니다.  
 `files.json`을 채팅/워크스페이스에 주면 클라우드에서도 같은 분석을 이어갈 수 있습니다.
 
+영어뇌 Library 시드(동사·패턴·장면·Index)를 넣으려면:
+
+```bash
+node scripts/build_vault_english_brain_seed.js   # 레포 vault/ 갱신
+node scripts/seed_vault_english_brain.js         # Local REST로 upsert (기존 파일 유지)
+```
+
+SoT: [`VAULT_ENGLISH_BRAIN.md`](./VAULT_ENGLISH_BRAIN.md)
+
 기대 폴더:
 
 - `Learners/<id>/Learning/`

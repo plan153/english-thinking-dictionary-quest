@@ -91,8 +91,15 @@ source: webapp
 - Vault 전체 문서를 JSON 원본으로 덮어쓰기  
 - 한글 없는 영어만 Canon으로 승격  
 
+## 시드·최적화
+
+레포에 최적화된 Markdown 시드가 있다: [`vault/Project_English/`](../vault/Project_English/)  
+절차 SoT: [`VAULT_ENGLISH_BRAIN.md`](./VAULT_ENGLISH_BRAIN.md)  
+Mac 적용: `node scripts/seed_vault_english_brain.js` → `node scripts/analyze_vault_md.js`
+
 ## 관련 문서
 
 - [`OBSIDIAN_ENGLISH_BRAIN_SYNC.md`](./OBSIDIAN_ENGLISH_BRAIN_SYNC.md)
 - [`OBSIDIAN_VAULT_WORD_LINKING_PLAN.md`](./OBSIDIAN_VAULT_WORD_LINKING_PLAN.md)
 - [`ACTIVE_SPEAKING_SET.md`](./ACTIVE_SPEAKING_SET.md)
+- [`VAULT_ENGLISH_BRAIN.md`](./VAULT_ENGLISH_BRAIN.md)
