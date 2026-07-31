@@ -21,6 +21,10 @@
 | ID | 항목 | 현재 상태 |
 | --- | --- | --- |
 | F1–F6 | 구동사·IA·숙달·Draft·explain·구동사 매트릭스 | **완료** (v1.1.8–v1.2.2) · explain(파인만) UI는 **v1.3.26에서 제거** |
+| G1 | **간극 자기메우기 루프** | **완료 v1.3.52** — 자동 빈 gap/Draft 중단 · 정답 선공개 제거 · 놓친 단서 필수 · 간극→힌트 · `reviewed` 메움 · Vault 경로 정합 |
+| G2 | 듣기/말하기 실패 화면에 간극 CTA | 미착수 |
+| G3 | Next Practice 다중 간극 세션(큐 순회) | 미착수 (현재 첫 항목만 시작) |
+| G4 | Vault-only gap `english` 표시 보강 | 미착수 |
 
 ## P2 — 정책 해제 후 구현 (v1.3.0)
 
@@ -63,7 +67,8 @@
 
 ## 다음 작업 추천 순서
 
-1. P0(D1·D2) **완료** — 일상은 Local REST + pathPrefix=`Project_English`로 day loop 유지
-2. P2 토글을 끄고 쓰려면 성장 화면 정책 체크박스
+1. P0(D1·D2) **완료** — 일상은 Local REST + pathPrefix 비움(루트=`Project_English`) day loop
+2. 간극 루프(G1) 사용: 틀림 → 스스로 단서 → Gaps sync → 다시 맞춤
+3. 남은 간극: G2 듣기 CTA · G3 큐 순회 · G4 vault-only 표시
 
 변경할 때마다 이 표의 Status를 갱신한다.

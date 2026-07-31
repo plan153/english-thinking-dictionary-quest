@@ -165,7 +165,7 @@
       verbId: base.verbId || '',
       createdAt,
       updatedAt: base.updatedAt || createdAt,
-      status: base.status || 'open',
+      status: ['open', 'reviewed', 'archived'].includes(base.status) ? base.status : 'open',
       source: base.source || 'webapp',
       missingInVault: Boolean(base.missingInVault),
     };
