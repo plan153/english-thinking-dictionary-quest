@@ -1165,7 +1165,7 @@
         <div class="brand-mark">E</div>
         <div>
           <h1>English Thinking Dictionary</h1>
-          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.51">v1.3.51</span></p>
+          <p>작은 단어로 큰 생각을 조립하는 영어 게임 · <span data-app-version="1.3.52">v1.3.52</span></p>
         </div>
       </div>
       <div class="top-controls">
@@ -1390,7 +1390,7 @@
       </article>
       <article class="card" style="margin-top:16px">
         <h3>간극 기록 · 영어뇌 내보내기</h3>
-        <p class="small-note">틀린 추측과 모델 업데이트를 Obsidian용 Markdown으로 남깁니다. Gap → Library/Drafts 후보로 보내 자료 정원을 키울 수 있습니다.</p>
+        <p class="small-note">틀린 뒤 AI에 바로 묻지 말고 <b>놓친 단서</b>를 스스로 적습니다. 그 메모가 다음 연습 힌트가 되고, Obsidian <code>Learners/&lt;id&gt;/Gaps</code>에 남아 간극을 메워 갑니다.</p>
         <div class="question-actions" style="justify-content:flex-start; margin-top:12px">
           <button class="btn dark" id="exportBrainMarkdown" type="button">영어뇌 Markdown 내보내기</button>
           <button class="btn soft" id="exportBrainJson" type="button">번들 JSON 다운로드</button>
@@ -1402,10 +1402,9 @@
         <p class="small-note">앱에서 말하고 → Vault에 남기고 → 다시 확장 고르기로 돌아오는 최소 루프입니다. Local REST가 켜져 있으면 자동 sync가 됩니다.</p>
         <ol class="small-note" style="margin:10px 0 0; padding-left:20px; line-height:1.7" id="dayLoopChecklist">
           <li>오늘의 말로 확장 고르기 (순서 없음)</li>
-          <li>틀림 → 간극 기록 저장</li>
-          <li>Obsidian 동기화(자동 또는 수동)</li>
-          <li>Vault에서 가져오기(선택)</li>
-          <li>Next Practice 또는 홈에서 이어서 말하기</li>
+          <li>틀림 → 힌트로 스스로 찾기 → 간극에 놓친 단서 저장</li>
+          <li>Obsidian Gaps 동기화(자동 또는 수동)</li>
+          <li>다시 맞춰 간극 메움 · Next Practice로 열린 간극 회수</li>
         </ol>
         <p class="small-note" id="dayLoopGuideStatus" style="margin-top:10px">동기화 어댑터를 설정하면 상태가 여기 표시됩니다.</p>
       </article>
@@ -1506,7 +1505,7 @@
   <script src="./src/data/thinking-map-sets.js"></script>
   <script src="./src/domain/next-practice.js"></script>
   <script src="./src/domain/markdown-projection.js"></script>
-  <script src="./src/domain/obsidian-sync.js?v=1.3.51"></script>
+  <script src="./src/domain/obsidian-sync.js?v=1.3.52"></script>
   <script src="./src/domain/canon-intake.js"></script>
   <script src="./src/domain/verb-matrix-gate.js"></script>
   <script src="./src/domain/vault-overlay.js"></script>
@@ -1674,7 +1673,7 @@
       return String(item?.en || item?.english || item?.audioText || item?.word || '').trim().toLowerCase();
     }
 
-    const APP_CACHE_VERSION = 'etd-quest-v1.3.51';
+    const APP_CACHE_VERSION = 'etd-quest-v1.3.52';
     const APP_CACHE_VERSION_KEY = 'etd-cache-version';
 
     const ProgressStoreApi = window.ProgressStore;
@@ -3524,6 +3523,42 @@
         appState.progress.historyByExpressionId[note.expressionId] = history;
       }
       saveProgress();
+      maybeAutoSyncAfterGap();
+    }
+    function markOpenGapsReviewed(expressionId, options = {}) {
+      if (!expressionId) return 0;
+      let changed = 0;
+      (appState.progress.gapNotes || []).forEach((gap) => {
+        if (gap.expressionId !== expressionId) return;
+        if ((gap.status || 'open') !== 'open') return;
+        gap.status = 'reviewed';
+        gap.updatedAt = new Date().toISOString();
+        if (options.note) gap.modelUpdate = gap.modelUpdate || options.note;
+        changed += 1;
+      });
+      if (!changed) return 0;
+      const history = appState.progress.historyByExpressionId[expressionId] || defaultHistoryEntry();
+      history.reviewPriority = computeReviewPriority(expressionId);
+      appState.progress.historyByExpressionId[expressionId] = history;
+      saveProgress();
+      maybeAutoSyncAfterGap();
+      return changed;
+    }
+    function learnerGapHintsForExpression(expressionId) {
+      if (!expressionId) return [];
+      return getOpenGapNotes()
+        .filter(gap => gap.expressionId === expressionId)
+        .flatMap(gap => [gap.missedClue, gap.modelUpdate].filter(text => String(text || '').trim()))
+        .map(text => String(text).trim())
+        .filter((text, index, all) => all.indexOf(text) === index)
+        .slice(0, 2);
+    }
+    function gapVaultPathForUi(gapId) {
+      const learnerId = getActiveLearnerId();
+      if (window.EnglishBrainMarkdown?.gapVaultPath) {
+        return window.EnglishBrainMarkdown.gapVaultPath(gapId, learnerId);
+      }
+      return `Learners/${learnerId}/Gaps/${gapId}.md`;
     }
     function isExpressionInActiveSet(expressionId) {
       if (!expressionId) return false;
@@ -4375,21 +4410,8 @@
       };
       appState.progress.practiceEvents.unshift(event);
       appState.progress.practiceEvents = appState.progress.practiceEvents.slice(0, 40);
-      if (resultType === 'retry' || resultType === 'meaning') {
-        const gap = upsertGapNote({
-          expressionId,
-          english: en,
-          naturalKorean: ko,
-          guess: event.guess || '(인식 실패/빈 답)',
-          mode,
-          modelUpdate: resultType === 'retry'
-            ? '자동 기록: 영작 연습에서 틀림'
-            : '자동 기록: 뜻은 통했지만 목표 표현과 다름',
-          status: 'open',
-        });
-        // Gap → Draft → (승격 가능 시) Canon/런타임까지 자동
-        if (gap?.id) createDraftFromGap(gap.id, { quiet: true, autoPromote: true });
-      }
+      // 틀린 즉시 빈 간극·Draft를 자동 생성하지 않는다.
+      // 간극은 학습자가 “놓친 단서”를 스스로 적은 뒤에만 남긴다 (AI 대행이 아니라 자기 메우기).
       saveProgress();
       maybeAutoSyncAfterPractice();
       return event;
@@ -4401,7 +4423,7 @@
         .sort((a, b) => String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')))
         .slice(0, 12);
       if (!notes.length) {
-        target.innerHTML = '<p class="small-note">아직 간극 기록이 없습니다. 틀린 뒤 “간극 기록 만들기”로 남겨 보세요.</p>';
+        target.innerHTML = '<p class="small-note">아직 간극 기록이 없습니다. 틀렸을 때 “간극 기록 만들기”로 <b>놓친 단서</b>를 스스로 남겨 보세요. 그 메모가 다음 힌트가 됩니다.</p>';
         return;
       }
       target.innerHTML = notes.map(note => `
@@ -4409,18 +4431,35 @@
           <div class="gap-note-head">
             <div>
               <b>${escapeHtml(note.english || note.expressionId)}</b>
-              <div class="small-note" style="margin-top:4px">${escapeHtml(note.status || 'open')}${note.missingInVault ? ' · Vault에 없음' : ''} · ${escapeHtml(note.mode || '')} · ${escapeHtml(note.id)}</div>
+              <div class="small-note" style="margin-top:4px">${escapeHtml(note.status || 'open')}${note.missingInVault ? ' · Vault에 없음' : ''} · ${escapeHtml(note.mode || '')}</div>
             </div>
             <div class="question-actions gap-note-actions">
+              ${note.status === 'open' ? `<button class="btn soft review-gap" type="button" data-gap-id="${escapeHtml(note.id)}">메움</button>` : ''}
               ${note.status === 'open' ? `<button class="btn soft archive-gap" type="button" data-gap-id="${escapeHtml(note.id)}">보관</button>` : ''}
               <button class="btn soft draft-from-gap" type="button" data-gap-id="${escapeHtml(note.id)}">Draft로</button>
-              <button class="btn soft practice-gap" type="button" data-expression-id="${escapeHtml(note.expressionId)}">다시 연결</button>
+              <button class="btn soft practice-gap" type="button" data-expression-id="${escapeHtml(note.expressionId)}" data-gap-mode="${escapeHtml(note.mode || 'koen')}">다시 연결</button>
             </div>
           </div>
           <div class="small-note" style="margin-top:8px">추측: ${escapeHtml(note.guess || '(없음)')}</div>
-          <div class="small-note">업데이트: ${escapeHtml(note.modelUpdate || '(아직 없음)')}</div>
+          <div class="small-note">놓친 단서: ${escapeHtml(note.missedClue || '(아직 없음)')}</div>
+          <div class="small-note">다음에: ${escapeHtml(note.modelUpdate || '(아직 없음)')}</div>
         </div>
       `).join('');
+      target.querySelectorAll('.review-gap').forEach(button => button.addEventListener('click', () => {
+        const gap = (appState.progress.gapNotes || []).find(item => item.id === button.dataset.gapId);
+        if (!gap) return;
+        gap.status = 'reviewed';
+        gap.updatedAt = new Date().toISOString();
+        if (gap.expressionId) {
+          const history = appState.progress.historyByExpressionId[gap.expressionId] || defaultHistoryEntry();
+          history.reviewPriority = computeReviewPriority(gap.expressionId);
+          appState.progress.historyByExpressionId[gap.expressionId] = history;
+        }
+        saveProgress();
+        maybeAutoSyncAfterGap();
+        toast('간극을 메운 것으로 표시했어요.');
+        renderGapNotesList();
+      }));
       target.querySelectorAll('.archive-gap').forEach(button => button.addEventListener('click', () => {
         archiveGapNote(button.dataset.gapId);
         toast('간극 기록을 보관했어요.');
@@ -4432,7 +4471,10 @@
       target.querySelectorAll('.practice-gap').forEach(button => button.addEventListener('click', () => {
         const expressionId = button.dataset.expressionId;
         if (!expressionId) return;
-        startMode('review', expressionId, { bankSource: 'next-practice' });
+        const mode = button.dataset.gapMode === 'speak' || button.dataset.gapMode === 'listen'
+          ? button.dataset.gapMode
+          : 'koen';
+        startMode(mode === 'review' ? 'koen' : mode, expressionId, { bankSource: 'next-practice' });
       }));
     }
     function renderExplanationsList() {
@@ -6093,19 +6135,25 @@
       return next;
     }
     function itemHintList(item) {
+      const expressionId = progressItemId(item) || item?.id || '';
+      const personal = learnerGapHintsForExpression(expressionId)
+        .map(text => `내 간극 힌트 · ${text}`);
       const list = Array.isArray(item?.hint) && item.hint.length
         ? item.hint
         : (Array.isArray(item?.hints) ? item.hints : []);
-      if (list.length) return list.slice(0, 3);
+      if (list.length || personal.length) {
+        return [...personal, ...list].filter(Boolean).slice(0, 3);
+      }
       const en = item?.en || item?.english || '';
       const chunks = Array.isArray(item?.chunks) && item.chunks.length
         ? item.chunks.join(' · ')
         : en.replace(/[aeiou]/gi, '_');
-      return [
+      const fallback = [
         item?.matrixCue || item?.frame || '한국어 뜻을 영어로 말해 보세요.',
         chunks || '핵심 단어부터 떠올려 보세요.',
         en ? en.replace(/[aeiou]/gi, '_') : '첫 글자만 떠올려 보세요.',
       ];
+      return [...personal, ...fallback].filter(Boolean).slice(0, 3);
     }
     function renderSimpleSpeakPractice(item, options = {}) {
       const mode = options.mode || 'listen';
@@ -6956,11 +7004,14 @@
           coreVerbId: item.coreVerbId || null,
         });
         recordPracticeEvent(item, mode, 'correct', rawGuess);
+        const reviewed = markOpenGapsReviewed(progressItemId(item), {
+          note: '다시 맞춰서 간극을 메움',
+        });
         clearFeedback();
         const box = document.getElementById('listenResultBox');
         if (box) {
           box.classList.remove('hidden');
-          box.innerHTML = `<div class="hint-title">성공</div><div><b>${escapeHtml(rawGuess)}</b></div>`;
+          box.innerHTML = `<div class="hint-title">성공</div><div><b>${escapeHtml(rawGuess)}</b></div>${reviewed ? '<div class="small-note" style="margin-top:6px">열린 간극을 메웠어요.</div>' : ''}`;
         }
         renderPracticeSuccess(item, { guess: rawGuess, mode, result });
       } else if (result.status === 'almost') {
@@ -6985,14 +7036,24 @@
           progressId: item.progressId,
         });
         recordPracticeEvent(item, mode, result.status === 'meaning' ? 'meaning' : 'retry', rawGuess);
+        const coach = 'AI에 바로 묻지 말고, 힌트로 어디가 다른지 찾아 간극에 남겨 보세요.';
         showFeedback(result.feedbackClass || 'bad', `
           ${feedbackTitleMessageHtml(result)}
           <div class="answer-key" style="margin-top:8px">내 답</div>
           <div>${escapeHtml(rawGuess)}</div>
+          <p class="small-note" style="margin-top:8px">${escapeHtml(coach)}</p>
+          <div class="question-actions" style="margin-top:10px">
+            <button class="btn soft open-gap-form" type="button">🧠 간극 기록 만들기</button>
+          </div>
+          <div id="gapFormMount"></div>
         `);
+        document.querySelectorAll('.open-gap-form').forEach(button => button.addEventListener('click', () => {
+          const hint = [result.title, result.message].filter(Boolean).join(' · ');
+          openGapNoteForm(item, rawGuess, mode, { feedbackHint: hint });
+        }));
         toast(result.message && !isRedundantFeedbackMessage(result.title, result.message)
           ? result.message
-          : '힌트를 열고 다시 적어 보세요.');
+          : '힌트를 열고, 놓친 단서를 간극에 적어 보세요.');
       }
     }
     function isRedundantFeedbackMessage(title, message) {
@@ -7230,7 +7291,9 @@
         }
         if (mode !== 'particle') {
           document.querySelectorAll('.open-gap-form').forEach(btn => btn.addEventListener('click', () => {
-            openGapNoteForm(item, button.dataset.value || '', mode);
+            openGapNoteForm(item, button.dataset.value || '', mode, {
+              feedbackHint: '목표 표현과 달라요. 어디가 다른지 스스로 적어 보세요.',
+            });
           }));
         }
       }
@@ -7254,9 +7317,14 @@
     function showAnswerSummary(type, item, result, rawGuess, connectionNote = '', options = {}) {
       const canAdvance = options.allowAdvance !== false && (result.status === 'correct' || result.status === 'almost');
       appState.questionAnswered = canAdvance;
-      if (canAdvance) updatePracticeCountDisplay(item);
+      if (canAdvance) {
+        updatePracticeCountDisplay(item);
+        if (result.status === 'correct') {
+          markOpenGapsReviewed(progressItemId(item), { note: '다시 맞춰서 간극을 메움' });
+        }
+      }
       pulseQuestion(type);
-      const totalHints = Math.min(3, item.hint.length || 3);
+      const totalHints = Math.min(3, (item.hint || item.hints || []).length || 3);
       const usedHints = Math.min(appState.hintStep, totalHints);
       const nuance = result.nuance ? `<div class="answer-key">뉘앙스</div><div>${escapeHtml(result.nuance)}</div>` : '';
       const practiceLine = canAdvance
@@ -7265,7 +7333,8 @@
       const buttonText = canAdvance ? (appState.currentIndex + 1 >= appState.lessonItems.length ? '마무리하기' : '다음 문제') : '같은 문제 다시 풀기';
       const suggestGap = result.status === 'retry' || result.status === 'almost' || result.status === 'meaning' || type === 'bad' || type === 'almost';
       const gapActions = suggestGap
-        ? `<div class="question-actions" style="margin-top:10px"><button class="btn soft open-gap-form" type="button">🧠 간극 기록 만들기</button></div><div id="gapFormMount"></div>`
+        ? `<p class="small-note" style="margin-top:8px">AI에 바로 묻지 말고, 어디가 다른지 찾아 간극에 남겨 보세요. 그 메모가 다음 힌트가 됩니다.</p>
+           <div class="question-actions" style="margin-top:10px"><button class="btn soft open-gap-form" type="button">🧠 간극 기록 만들기</button></div><div id="gapFormMount"></div>`
         : `<div class="question-actions" style="margin-top:10px"><button class="btn soft open-gap-form" type="button">🧠 메모/간극 남기기</button></div><div id="gapFormMount"></div>`;
       showFeedback(type, `
         <div class="answer-summary">
@@ -7279,18 +7348,19 @@
             : `<div class="small-note" style="margin-top:8px">정답 영어는 맞춘 뒤에 보여 줄게요. 힌트로 이어서 맞춰 보세요.</div>`}
           <div class="answer-key">자연스러운 한국어</div>
           <div>${escapeHtml(item.ko)}</div>
-          ${renderContrastTeach(item)}
+          ${canAdvance ? renderContrastTeach(item) : ''}
           ${nuance}
-          <div class="answer-key">단어 덩어리</div>
-          <div class="chunk-row">${(item.chunks || []).map(chunk => `<span class="chunk">${escapeHtml(chunk)}</span>`).join('')}</div>
-          <div class="answer-key">사용한 힌트 수: ${usedHints}/${totalHints} · ${escapeHtml(item.frame)} · ${escapeHtml(item.verb)} 엔진</div>
+          ${canAdvance ? `<div class="answer-key">단어 덩어리</div>
+          <div class="chunk-row">${(item.chunks || []).map(chunk => `<span class="chunk">${escapeHtml(chunk)}</span>`).join('')}</div>` : ''}
+          <div class="answer-key">사용한 힌트 수: ${usedHints}/${totalHints}${item.frame ? ` · ${escapeHtml(item.frame)}` : ''}${item.verb ? ` · ${escapeHtml(item.verb)} 엔진` : ''}</div>
           ${gapActions}
           <div class="question-actions"><button class="btn dark next-after-answer">${buttonText}</button></div>
         </div>
       `);
       document.querySelectorAll('.check-answer').forEach(btn => { btn.textContent = buttonText; });
       document.querySelectorAll('.open-gap-form').forEach(button => button.addEventListener('click', () => {
-        openGapNoteForm(item, rawGuess, appState.selectedMode);
+        const hint = [result.title, result.message].filter(Boolean).join(' · ');
+        openGapNoteForm(item, rawGuess, appState.selectedMode, { feedbackHint: hint });
       }));
       if (appState.questContext && canAdvance) {
         window.clearTimeout(appState.questAutoAdvanceTimer);
@@ -7316,37 +7386,63 @@
         }
       }
     }
-    function openGapNoteForm(item, rawGuess, mode) {
+    function openGapNoteForm(item, rawGuess, mode, options = {}) {
       const mount = document.getElementById('gapFormMount');
       if (!mount) return;
       const expressionId = progressItemId(item);
+      const feedbackHint = String(options.feedbackHint || '').trim();
+      const answerEn = item.en || item.english || '';
       mount.innerHTML = `
         <div class="gap-form">
-          <div class="hint-title">간극 기록</div>
+          <div class="hint-title">간극 기록 · 스스로 메우기</div>
+          <p class="small-note" style="margin:0 0 10px">AI에게 바로 묻지 말고, <b>어디가 달랐는지</b> 먼저 적어 보세요. 그 메모가 다음 연습 힌트가 되고 Obsidian Gaps에 남습니다.</p>
           <label for="gapGuess">내 추측</label>
           <input id="gapGuess" value="${escapeHtml(rawGuess || '')}" />
-          <label for="gapActual">실제 의미 / 정답</label>
-          <input id="gapActual" value="${escapeHtml(item.en || '')}" />
-          <label for="gapMissed">놓친 단서</label>
-          <textarea id="gapMissed" rows="2" placeholder="예: some이 빠짐, 의문문 do you 구조"></textarea>
-          <label for="gapModel">모델 업데이트</label>
-          <textarea id="gapModel" rows="2" placeholder="예: need + some time 으로 생각하기"></textarea>
+          <label for="gapMissed">놓친 단서 (필수)</label>
+          <textarea id="gapMissed" rows="2" placeholder="예: the가 빠짐 · does/did 시제 · do the shopping 덩어리">${escapeHtml(feedbackHint)}</textarea>
+          <label for="gapModel">다음에 이렇게 생각하기</label>
+          <textarea id="gapModel" rows="2" placeholder="예: 장은 보다 → do the shopping"></textarea>
+          <div class="question-actions" style="justify-content:flex-start;margin-top:8px;flex-wrap:wrap;gap:8px">
+            <button class="btn soft" type="button" id="gapRevealAnswer">정답 확인 (힌트 후)</button>
+          </div>
+          <div id="gapActualWrap" class="hidden" style="margin-top:10px">
+            <label for="gapActual">실제 의미 / 정답</label>
+            <input id="gapActual" value="${escapeHtml(answerEn)}" readonly />
+          </div>
           <div class="question-actions" style="justify-content:flex-start;margin-top:10px">
             <button class="btn dark save-gap-note" type="button">간극 저장</button>
             <button class="btn soft cancel-gap-note" type="button">닫기</button>
           </div>
         </div>
       `;
+      mount.querySelector('#gapRevealAnswer')?.addEventListener('click', () => {
+        const missed = String(document.getElementById('gapMissed')?.value || '').trim();
+        if (!missed) {
+          toast('정답을 보기 전에, 놓친 단서를 한 줄이라도 적어 보세요.');
+          document.getElementById('gapMissed')?.focus();
+          return;
+        }
+        document.getElementById('gapActualWrap')?.classList.remove('hidden');
+        toast('정답을 확인했어요. 단서를 다듬어 저장하면 다음 힌트로 씁니다.');
+      });
       mount.querySelector('.cancel-gap-note')?.addEventListener('click', () => { mount.innerHTML = ''; });
       mount.querySelector('.save-gap-note')?.addEventListener('click', () => {
         const guess = document.getElementById('gapGuess')?.value || '';
-        const actual = document.getElementById('gapActual')?.value || item.en || '';
-        const missedClue = document.getElementById('gapMissed')?.value || '';
-        const modelUpdate = document.getElementById('gapModel')?.value || '';
+        const missedClue = String(document.getElementById('gapMissed')?.value || '').trim();
+        const modelUpdate = String(document.getElementById('gapModel')?.value || '').trim();
+        if (!missedClue && !modelUpdate) {
+          toast('놓친 단서나 “다음에 이렇게 생각하기”를 적어 주세요. 그게 간극의 핵심이에요.');
+          document.getElementById('gapMissed')?.focus();
+          return;
+        }
+        const actualVisible = !document.getElementById('gapActualWrap')?.classList.contains('hidden');
+        const actual = actualVisible
+          ? (document.getElementById('gapActual')?.value || answerEn)
+          : answerEn;
         const note = upsertGapNote({
           expressionId,
-          english: item.en,
-          naturalKorean: item.ko,
+          english: answerEn,
+          naturalKorean: item.ko || item.naturalKorean || '',
           mode: mode || appState.selectedMode || '',
           guess,
           actual,
@@ -7354,10 +7450,12 @@
           modelUpdate,
           verbWord: item.verb || verbWordFromId(item.coreVerbId),
           verbId: item.coreVerbId || '',
+          status: 'open',
           createdAt: new Date().toISOString(),
         });
-        mount.innerHTML = `<p class="small-note">저장됨 · ${escapeHtml(note.id)} · Obsidian 경로 Gaps/${escapeHtml(note.id)}.md</p>`;
-        toast('간극 기록을 저장했어요. Local REST가 켜져 있으면 백그라운드 동기화를 시도합니다.');
+        const vaultPath = gapVaultPathForUi(note.id);
+        mount.innerHTML = `<p class="small-note">저장됨 · 다음 힌트에 “내 간극 힌트”로 붙어요.<br>${escapeHtml(vaultPath)}</p>`;
+        toast('간극을 저장했어요. 다시 풀 때 힌트로 쓰이고, Obsidian Gaps에 동기화됩니다.');
         renderGapNotesList();
         maybeAutoSyncAfterGap();
       });
