@@ -48,6 +48,9 @@ Library는 공유(`Library/Drafts|Canon|Index`). Local REST pathPrefix는 Vault 
 
 약점 흐름: **간극 → Library/Drafts → (승격) Canon → (리뷰 후) Unlock/JSON**. Next Practice는 연습 순서 큐다.
 
+**간극 제품·구현 SoT:** [`GAP_LOOP_PLAN.md`](./GAP_LOOP_PLAN.md)  
+(자기메우기 원칙, 스키마, Phase A–E, PR 체크리스트).
+
 ### `Learning/Brain State.md` (최소 frontmatter)
 
 ```yaml
