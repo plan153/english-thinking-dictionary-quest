@@ -6,6 +6,7 @@
 ## 이어서 (토큰 절약용 · 2026-07-31)
 
 ### 간극(Gap) 제품 원칙
+- **계획서 SoT:** [`GAP_LOOP_PLAN.md`](./GAP_LOOP_PLAN.md) (구현 방법 · Phase A–E)
 - **목표:** Obsidian Gaps와 연동해 간극을 메운다. AI에 그때그때 묻지 않고, **스스로 어디가 다른지 찾아 적기**.
 - **루프:** 틀림 → 힌트/단서 자기 발견 → 간극에 `missedClue`/`modelUpdate` 저장 → 다음 연습에 **내 간극 힌트** → 다시 맞춤 → `reviewed` → Vault sync
 - **금지(현행):** 틀린 즉시 빈 간극·Draft 자동 생성 (노이즈). 정답 선공개 후 간극 폼.
